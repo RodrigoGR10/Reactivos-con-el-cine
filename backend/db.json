@@ -1,0 +1,74 @@
+{
+    "peliculas": [
+        {
+            "id": 1,
+            "titulo": "Superman",
+            "duracion": 130,
+            "genero": "Acción",
+            "clasificacion": "TE+7",
+            "poster": ""
+        },
+        {
+            "id": 2,
+            "titulo": "Los 4 Fantásticos",
+            "duracion": 114,
+            "genero": "Acción",
+            "clasificacion": "TE+7",
+            "poster": ""
+        },
+        {
+            "id": 3,
+            "titulo": "Cómo entrenar a tu dragón",
+            "duracion": 125,
+            "genero": "Aventura",
+            "clasificacion": "TE+7",
+            "poster": ""
+        }
+    ],
+    "cines": [
+        {
+            "id": 1,
+            "nombre": "Cinemark",
+            "comuna": "Maipú"
+        },
+        {
+            "id": 2,
+            "nombre": "Cinépolis",
+            "comuna": "La Reina"
+        },
+        {
+            "id": 3,
+            "nombre": "Cineplanet",
+            "comuna": "Santiago"
+        }
+    ],
+    "funciones": [
+        {
+            "id": 1,
+            "peliculaId": 1,
+            "cineId": 1,
+            "horario": "18:30",
+            "formato": "2D",
+            "idioma": "Subtitulada",
+            "precio": 4500
+        },
+        {
+            "id": 2,
+            "peliculaId": 1,
+            "cineId": 1,
+            "horario": "21:00",
+            "formato": "3D",
+            "idioma": "Doblada",
+            "precio": 6000
+        },
+        {
+            "id": 3,
+            "peliculaId": 1,
+            "cineId": 2,
+            "horario": "19:15",
+            "formato": "2D",
+            "idioma": "Subtitulada",
+            "precio": 4800
+        }
+    ]
+}
