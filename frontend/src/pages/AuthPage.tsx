@@ -195,7 +195,7 @@ const AuthPage = () => {
                             <label>Contraseña</label>
                         </div>
 
-                        <div className="remember-forgot">
+                        <div className="remember-me">
                             <label>
                                 <input
                                     type="checkbox"
@@ -204,15 +204,6 @@ const AuthPage = () => {
                                 />
                                 Recordarme
                             </label>
-                            <a
-                                href="#forgot"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    alert('Opción para recuperar contraseña en desarrollo.');
-                                }}
-                            >
-                                ¿Olvidaste tu contraseña?
-                            </a>
                         </div>
 
                         <button type="submit" className="btn-submit" disabled={cargando}>

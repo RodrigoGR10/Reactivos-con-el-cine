@@ -249,20 +249,18 @@
 }
 
 /* ==========================================================
-   Checkbox y Enlaces
+   Checkbox Recordarme
    ========================================================== */
-.remember-forgot {
+.remember-me {
     font-size: 0.82rem;
     color: #fff;
     font-weight: 400;
     margin: -10px 0 16px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 8px;
 }
 
-.remember-forgot label {
+.remember-me label {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -271,22 +269,11 @@
     white-space: nowrap;
 }
 
-.remember-forgot label input[type="checkbox"] {
+.remember-me label input[type="checkbox"] {
     accent-color: #162938;
     cursor: pointer;
     width: 15px;
     height: 15px;
-}
-
-.remember-forgot a {
-    color: #fff;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: text-decoration 0.2s ease;
-}
-
-.remember-forgot a:hover {
-    text-decoration: underline;
 }
 
 /* ==========================================================
@@ -426,7 +413,7 @@
         font-size: 1.75rem;
     }
 
-    .remember-forgot {
+    .remember-me {
         font-size: 0.8rem;
     }
 }
