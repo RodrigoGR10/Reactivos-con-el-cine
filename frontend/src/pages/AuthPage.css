@@ -1,0 +1,420 @@
+/* Contenedor a pantalla completa con imagen cinematográfica de fondo */
+.auth-page {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(rgba(10, 12, 18, 0.45), rgba(10, 12, 18, 0.75)),
+                url('/cinema-bg.jpg') no-repeat center center / cover;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Banner de usuario autenticado en la parte superior */
+.authenticated-banner {
+    position: absolute;
+    top: 20px;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 8px 20px;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 20;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn-logout {
+    background: #ef4444;
+    border: none;
+    outline: none;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-logout:hover {
+    background: #dc2626;
+}
+
+/* ==========================================================
+   Contenedor Principal (Efecto Glassmorphism)
+   ========================================================== */
+.wrapper {
+    position: relative;
+    width: 410px;
+    height: 460px;
+    background: rgba(15, 23, 42, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: height 0.35s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
+    z-index: 10;
+}
+
+/* Ajuste dinámico de altura cuando se activa el formulario de registro */
+.wrapper.active {
+    height: 475px;
+}
+
+/* Estado cerrado al hacer clic en 'X' */
+.wrapper.closed {
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Botón de cierre en la esquina superior derecha */
+.icon-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 45px;
+    height: 45px;
+    background: #162938;
+    border: none;
+    outline: none;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 18px;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.icon-close:hover {
+    background-color: #0f172a;
+}
+
+.icon-close:active {
+    transform: scale(0.94);
+}
+
+/* ==========================================================
+   Contenido y Animación de Deslizamiento (JS & CSS)
+   ========================================================== */
+.form-box {
+    width: 100%;
+    padding: 35px 38px;
+    box-sizing: border-box;
+}
+
+.form-box h2 {
+    font-size: 1.85rem;
+    color: #fff;
+    text-align: center;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    letter-spacing: -0.5px;
+}
+
+/* Vista 1: Login */
+.form-box.login {
+    transition: transform 0.35s ease, opacity 0.25s ease;
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.wrapper.active .form-box.login {
+    transform: translateX(-400px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Vista 2: Registration */
+.form-box.register {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transform: translateX(400px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.35s ease, opacity 0.25s ease;
+}
+
+.wrapper.active .form-box.register {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ==========================================================
+   Campos de Entrada (Borde inferior visible y fondo transparente)
+   ========================================================== */
+.input-box {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    border-bottom: 2px solid #fff;
+    margin: 26px 0;
+}
+
+.input-box label {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 500;
+    pointer-events: none;
+    transition: 0.3s ease;
+}
+
+/* Animación de etiqueta flotante */
+.input-box input:focus ~ label,
+.input-box input:not(:placeholder-shown) ~ label,
+.input-box.has-value label {
+    top: -5px;
+    font-size: 0.82rem;
+    color: #e2e8f0;
+}
+
+.input-box input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 500;
+    padding: 0 35px 0 5px;
+    box-sizing: border-box;
+}
+
+.input-box .icon {
+    position: absolute;
+    right: 8px;
+    font-size: 1.2rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.9;
+}
+
+.input-box .btn-toggle-password {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0;
+    opacity: 0.85;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.input-box .btn-toggle-password:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+.input-box .btn-toggle-password:active {
+    transform: scale(0.92);
+}
+
+/* ==========================================================
+   Checkbox Recordarme
+   ========================================================== */
+.remember-me {
+    font-size: 0.82rem;
+    color: #fff;
+    font-weight: 400;
+    margin: -10px 0 16px;
+    display: flex;
+    align-items: center;
+}
+
+.remember-me label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.remember-me label input[type="checkbox"] {
+    accent-color: #162938;
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+}
+
+/* ==========================================================
+   Botón Principal Oscuro de Envío
+   ========================================================== */
+.btn-submit {
+    width: 100%;
+    height: 45px;
+    background: #162938;
+    border: none;
+    outline: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    transition: background-color 0.25s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: #1e3a5f;
+}
+
+.btn-submit:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.btn-submit:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* ==========================================================
+   Enlace Inferior (Alternar Login / Registro)
+   ========================================================== */
+.login-register {
+    font-size: 0.88rem;
+    color: #fff;
+    text-align: center;
+    font-weight: 400;
+    margin: 22px 0 8px;
+}
+
+.login-register p {
+    margin: 0;
+}
+
+.login-register p a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-register p a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================
+   Alertas de Error y Éxito
+   ========================================================== */
+.auth-alert {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.auth-alert.error {
+    background: rgba(239, 68, 68, 0.25);
+    border: 1px solid rgba(239, 68, 68, 0.6);
+    color: #fecaca;
+}
+
+.auth-alert.success {
+    background: rgba(34, 197, 94, 0.25);
+    border: 1px solid rgba(34, 197, 94, 0.6);
+    color: #bbf7d0;
+}
+
+/* ==========================================================
+   Botón Flotante para Reabrir
+   ========================================================== */
+.btn-reopen {
+    position: fixed;
+    bottom: 30px;
+    padding: 12px 24px;
+    background: rgba(15, 23, 42, 0.75);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 30px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    z-index: 50;
+}
+
+.btn-reopen:hover {
+    transform: scale(1.05);
+    background: rgba(22, 41, 56, 0.85);
+}
+
+/* ==========================================================
+   Responsividad Móvil
+   ========================================================== */
+@media (max-width: 440px) {
+    .wrapper {
+        width: 100%;
+        max-width: 360px;
+        height: 460px;
+    }
+
+    .wrapper.active {
+        height: 480px;
+    }
+
+    .form-box {
+        padding: 30px 24px;
+    }
+
+    .form-box.register {
+        padding: 30px 24px;
+    }
+
+    .form-box h2 {
+        font-size: 1.75rem;
+    }
+
+    .remember-me {
+        font-size: 0.8rem;
+    }
+}
+
