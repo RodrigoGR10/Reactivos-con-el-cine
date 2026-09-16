@@ -4,7 +4,8 @@ export interface Pelicula {
     duracion: number;
     genero: string;
     clasificacion: string;
-    poster: string;
+    poster?: string;
+    sinopsis?: string;
 }
 
 export interface Cine {
