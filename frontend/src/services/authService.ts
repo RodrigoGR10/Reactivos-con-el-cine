@@ -26,7 +26,12 @@ const login = async (credenciales: LoginInput): Promise<Usuario> => {
         throw new Error('El correo o la contraseña son incorrectos.');
     }
 
-    const { contrasena, ...usuarioSinContrasena } = usuario;
+    const usuarioSinContrasena: Usuario = {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        fechaRegistro: usuario.fechaRegistro
+    };
     localStorage.setItem(STORAGE_KEY_USUARIO_ACTIVO, JSON.stringify(usuarioSinContrasena));
     return usuarioSinContrasena;
 };
@@ -53,7 +58,12 @@ const register = async (datos: RegisterInput): Promise<Usuario> => {
     usuarios.push(nuevoUsuario);
     localStorage.setItem(STORAGE_KEY_USUARIOS, JSON.stringify(usuarios));
 
-    const { contrasena, ...usuarioSinContrasena } = nuevoUsuario;
+    const usuarioSinContrasena: Usuario = {
+        id: nuevoUsuario.id,
+        nombre: nuevoUsuario.nombre,
+        email: nuevoUsuario.email,
+        fechaRegistro: nuevoUsuario.fechaRegistro
+    };
     localStorage.setItem(STORAGE_KEY_USUARIO_ACTIVO, JSON.stringify(usuarioSinContrasena));
     return usuarioSinContrasena;
 };
