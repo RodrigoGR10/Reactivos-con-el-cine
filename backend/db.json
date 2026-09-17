@@ -69,6 +69,42 @@
             "formato": "2D",
             "idioma": "Subtitulada",
             "precio": 4800
+        },
+        {
+            "id": "4",
+            "peliculaId": "2",
+            "cineId": "1",
+            "horario": "17:00",
+            "formato": "2D",
+            "idioma": "Subtitulada",
+            "precio": 4500
+        },
+        {
+            "id": "5",
+            "peliculaId": "2",
+            "cineId": "3",
+            "horario": "20:30",
+            "formato": "3D",
+            "idioma": "Doblada",
+            "precio": 6200
+        },
+        {
+            "id": "6",
+            "peliculaId": "3",
+            "cineId": "2",
+            "horario": "16:45",
+            "formato": "2D",
+            "idioma": "Doblada",
+            "precio": 4200
+        },
+        {
+            "id": "7",
+            "peliculaId": "3",
+            "cineId": "3",
+            "horario": "19:00",
+            "formato": "3D",
+            "idioma": "Subtitulada",
+            "precio": 5900
         }
     ]
 }
