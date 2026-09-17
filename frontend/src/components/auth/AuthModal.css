@@ -1,0 +1,421 @@
+/* ==========================================================
+   Overlay de Fondo del Modal de Autenticación
+   - Fondo nítido sin desenfoque (backdrop-filter eliminado)
+   - Oscurecimiento suave para enfocar la atención
+   ========================================================== */
+.auth-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.42);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: authOverlayFadeIn 0.22s ease-out;
+}
+
+@keyframes authOverlayFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ==========================================================
+   Contenedor Principal de la Tarjeta (Efecto Cristal / Glassmorphism)
+   - Transparencia cristalina con desenfoque de 10px
+   - Reflejos especulares luminosos y borde biselado
+   - Brillo ambiental en rojo cine #cc120b
+   ========================================================== */
+.auth-modal-wrapper {
+    position: relative;
+    width: 410px;
+    height: 465px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%),
+                rgba(14, 18, 26, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    backdrop-filter: blur(10px) saturate(190%);
+    -webkit-backdrop-filter: blur(10px) saturate(190%);
+    box-shadow: 
+        0 24px 50px -10px rgba(0, 0, 0, 0.75),
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -1px 1px 0 rgba(255, 255, 255, 0.12),
+        0 0 35px -10px rgba(204, 18, 11, 0.22);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: height 0.35s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: authCardPop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes authCardPop {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Ajuste dinámico de altura cuando se activa el formulario de registro */
+.auth-modal-wrapper.active {
+    height: 485px;
+}
+
+/* ==========================================================
+   Botón de Cierre (Esquina Superior Derecha)
+   - Estilo vidrio translúcido con hover en rojo #cc120b
+   ========================================================== */
+.auth-icon-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    outline: none;
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom-left-radius: 18px;
+    border-top-right-radius: 18px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.auth-icon-close:hover {
+    background: rgba(204, 18, 11, 0.25);
+    color: #ffffff;
+    border-color: rgba(204, 18, 11, 0.4);
+}
+
+.auth-icon-close:active {
+    transform: scale(0.94);
+}
+
+/* ==========================================================
+   Cajas de Formularios y Animación de Deslizamiento
+   ========================================================== */
+.auth-form-box {
+    width: 100%;
+    padding: 34px 38px;
+    box-sizing: border-box;
+}
+
+.auth-form-box h2 {
+    font-size: 1.85rem;
+    color: #ffffff;
+    text-align: center;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.5px;
+}
+
+/* Detalle sutil en rojo #cc120b bajo el título */
+.auth-form-box h2::after {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 2px;
+    background: #cc120b;
+    margin: 8px auto 0 auto;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(204, 18, 11, 0.6);
+}
+
+/* Vista 1: Login */
+.auth-form-box.login {
+    transition: transform 0.35s ease, opacity 0.25s ease;
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.auth-modal-wrapper.active .auth-form-box.login {
+    transform: translateX(-400px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Vista 2: Registro */
+.auth-form-box.register {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transform: translateX(400px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.35s ease, opacity 0.25s ease;
+}
+
+.auth-modal-wrapper.active .auth-form-box.register {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ==========================================================
+   Campos de Entrada (Input Boxes con acento rojo #cc120b al foco)
+   ========================================================== */
+.auth-input-box {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.3);
+    margin: 24px 0;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.auth-input-box:focus-within {
+    border-bottom-color: #cc120b;
+    box-shadow: 0 1px 0 0 #cc120b;
+}
+
+.auth-input-box label {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    pointer-events: none;
+    transition: 0.25s ease;
+}
+
+/* Animación de etiqueta flotante */
+.auth-input-box input:focus ~ label,
+.auth-input-box input:not(:placeholder-shown) ~ label,
+.auth-input-box.has-value label {
+    top: -5px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-input-box:focus-within label {
+    color: #e51d15;
+}
+
+.auth-input-box input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0 35px 0 5px;
+    box-sizing: border-box;
+}
+
+.auth-input-box .icon {
+    position: absolute;
+    right: 8px;
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.65);
+    display: flex;
+    align-items: center;
+    height: 100%;
+    pointer-events: none;
+    transition: color 0.25s ease;
+}
+
+.auth-input-box:focus-within .icon {
+    color: #cc120b;
+}
+
+.auth-input-box .auth-btn-toggle-password {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0;
+    transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.auth-input-box .auth-btn-toggle-password:hover {
+    color: #cc120b;
+    transform: scale(1.15);
+}
+
+.auth-input-box .auth-btn-toggle-password:active {
+    transform: scale(0.92);
+}
+
+/* ==========================================================
+   Checkbox Recordarme
+   ========================================================== */
+.auth-remember-me {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+    margin: -8px 0 16px;
+    display: flex;
+    align-items: center;
+}
+
+.auth-remember-me label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.auth-remember-me label input[type="checkbox"] {
+    accent-color: #cc120b;
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+}
+
+/* ==========================================================
+   Botón Principal de Envío (Rojo Cinema #cc120b con Sombra)
+   ========================================================== */
+.auth-btn-submit {
+    width: 100%;
+    height: 45px;
+    background: linear-gradient(135deg, #cc120b 0%, #9e0e08 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    outline: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.98rem;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 18px rgba(204, 18, 11, 0.38);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -0.2px;
+}
+
+.auth-btn-submit:hover:not(:disabled) {
+    background: linear-gradient(135deg, #df1911 0%, #b8100a 100%);
+    box-shadow: 0 6px 22px rgba(204, 18, 11, 0.52);
+    transform: translateY(-1px);
+}
+
+.auth-btn-submit:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(204, 18, 11, 0.3);
+}
+
+.auth-btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #555555;
+    box-shadow: none;
+}
+
+/* ==========================================================
+   Alternar entre Login y Registro
+   ========================================================== */
+.auth-switch-link {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+    font-weight: 400;
+    margin: 20px 0 6px;
+}
+
+.auth-switch-link p {
+    margin: 0;
+}
+
+.auth-switch-link p a {
+    color: #cc120b;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.auth-switch-link p a:hover {
+    color: #e51d15;
+    text-decoration: underline;
+}
+
+/* ==========================================================
+   Alertas de Error y Éxito
+   ========================================================== */
+.auth-alert {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.auth-alert.error {
+    background: rgba(204, 18, 11, 0.18);
+    border: 1px solid rgba(204, 18, 11, 0.5);
+    color: #fca5a5;
+}
+
+.auth-alert.success {
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    color: #bbf7d0;
+}
+
+/* ==========================================================
+   Responsividad Móvil
+   ========================================================== */
+@media (max-width: 440px) {
+    .auth-modal-wrapper {
+        width: 100%;
+        max-width: 360px;
+        height: 460px;
+    }
+
+    .auth-modal-wrapper.active {
+        height: 480px;
+    }
+
+    .auth-form-box {
+        padding: 28px 22px;
+    }
+
+    .auth-form-box.register {
+        padding: 28px 22px;
+    }
+
+    .auth-form-box h2 {
+        font-size: 1.7rem;
+    }
+
+    .auth-remember-me {
+        font-size: 0.8rem;
+    }
+}
