@@ -1,0 +1,692 @@
+/* ==========================================================
+   Layout General: Modo Ultra Oscuro (#080808) & Tipografía Inter
+   ========================================================== */
+.layout-root {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #080808;
+    color: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ==========================================================
+   1. Sidebar Izquierdo Fijo (Minimalista, Sin Línea de Separación)
+   ========================================================== */
+.sidebar {
+    width: 72px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    left: 0;
+    background-color: transparent;
+    border-right: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 26px 0;
+    box-sizing: border-box;
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.sidebar-top,
+.sidebar-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar-mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+}
+
+.sidebar-btn {
+    width: 48px;
+    height: 48px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #737373;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.sidebar-btn:hover {
+    color: #ffffff;
+    background: transparent;
+    transform: scale(1.08);
+}
+
+.sidebar-btn.active {
+    color: #ffffff;
+    background: transparent;
+}
+
+.logo-btn {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sidebar-logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.logo-btn:hover .sidebar-logo-img {
+    transform: scale(1.08);
+    box-shadow: 0 0 10px rgba(204, 18, 11, 0.45);
+}
+
+/* ==========================================================
+   2. Contenedor Principal (Padding generoso para respirar)
+   ========================================================== */
+.main-content {
+    flex: 1;
+    padding: 36px 48px;
+    max-width: 1360px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* ==========================================================
+   3. Sección Superior (Header de Perfil Minimalista y Estadísticas)
+   ========================================================== */
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 6px 0 12px 0;
+    box-sizing: border-box;
+}
+
+.profile-header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.profile-avatar-lg {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #000000;
+    flex-shrink: 0;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.profile-avatar-lg .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-user-name {
+    margin: 0;
+    font-size: 2.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.6px;
+    line-height: 1.15;
+}
+
+.profile-user-joined {
+    margin: 4px 0 0 0;
+    font-size: 0.85rem;
+    color: #888888;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    letter-spacing: -0.2px;
+}
+
+.calendar-icon-inline {
+    color: #777777;
+    flex-shrink: 0;
+}
+
+/* Cuadrícula compacta de estadísticas (2x2 a la derecha) */
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 138px);
+    gap: 8px;
+}
+
+.compact-stat-card {
+    background-color: #141414;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 58px;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.compact-stat-card:hover {
+    background-color: #181818;
+    border-color: #2e2e2e;
+}
+
+.compact-stat-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #888888;
+    letter-spacing: -0.1px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+}
+
+.compact-stat-value {
+    font-size: 1.22rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+    line-height: 1.1;
+}
+
+/* ==========================================================
+   4. Navegación Media (Pestañas en Minúsculas + Buscador)
+   ========================================================== */
+.middle-nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 12px;
+    width: 100%;
+}
+
+.tabs-group {
+    display: flex;
+    gap: 24px;
+}
+
+.tab-link {
+    background: transparent;
+    border: none;
+    color: #666666;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color 0.2s ease;
+    letter-spacing: -0.2px;
+}
+
+.tab-link:hover {
+    color: #cccccc;
+}
+
+.tab-link.active {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.search-box-minimal {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background-color: #191919;
+    border: 1px solid #282828;
+    border-radius: 10px;
+    padding: 7px 13px;
+    width: 190px;
+    transition: all 0.2s ease;
+}
+
+.search-box-minimal:hover {
+    border-color: #333333;
+    background-color: #1b1b1b;
+}
+
+.search-box-minimal:focus-within {
+    border-color: #444444;
+    background-color: #1c1c1c;
+}
+
+.search-icon-svg {
+    color: #767676;
+    stroke: currentColor;
+    display: block;
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+}
+
+.search-box-minimal:focus-within .search-icon-svg {
+    color: #b0b0b0;
+}
+
+.search-box-minimal input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-family: inherit;
+    width: 100%;
+}
+
+.search-box-minimal input::placeholder {
+    color: #606060;
+    font-size: 0.83rem;
+}
+
+.btn-edit-minimal {
+    background-color: #141414;
+    border: 1px solid #262626;
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-edit-minimal:hover {
+    background-color: #1e1e1e;
+    border-color: #383838;
+}
+
+.btn-edit-minimal.active {
+    background-color: #ffffff;
+    color: #000000;
+    border-color: #ffffff;
+    font-weight: 600;
+}
+
+.btn-edit-minimal.active:hover {
+    background-color: #e5e5e5;
+}
+
+/* ==========================================================
+   5. Contenido Principal: Grilla de Pósters Verticales
+   ========================================================== */
+.content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    width: 100%;
+}
+
+.section-title {
+    margin: 0 0 16px 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #888888;
+    letter-spacing: -0.2px;
+}
+
+.posters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    width: 100%;
+}
+
+.poster-card {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #141414;
+    border: 1px solid #202020;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+}
+
+.poster-card:hover {
+    transform: translateY(-3px);
+    border-color: #383838;
+}
+
+.poster-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.poster-card.editing {
+    border-color: #444444;
+}
+
+.poster-edit-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInOverlay 0.18s ease;
+}
+
+.btn-poster-remove {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: rgba(220, 38, 38, 0.92);
+    color: #ffffff;
+    font-size: 1.15rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-poster-remove:hover {
+    transform: scale(1.15);
+    background-color: #ef4444;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Estado Vacío Ultra Minimalista */
+.empty-state-ultra {
+    background-color: #121212;
+    border: 1px solid #202020;
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.empty-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    color: #4a4a4a;
+}
+
+.empty-state-svg {
+    stroke: currentColor;
+    display: block;
+}
+
+.empty-state-ultra h3 {
+    margin: 0 0 6px 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.empty-state-ultra p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #777777;
+}
+
+/* Cines Habituales */
+.cinemas-grid-ultra {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+    width: 100%;
+}
+
+.cinema-card-ultra {
+    background-color: #121212;
+    border: 1px solid #222222;
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.cinema-meta h4 {
+    margin: 0 0 4px 0;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.cinema-location {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0;
+    font-size: 0.8rem;
+    color: #777777;
+}
+
+.inline-pin-svg {
+    color: #666666;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+.btn-cinema-toggle {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.btn-cinema-toggle.add {
+    background-color: #1f1f1f;
+    border-color: #303030;
+    color: #ffffff;
+}
+
+.btn-cinema-toggle.add:hover {
+    background-color: #2b2b2b;
+}
+
+.btn-cinema-toggle.saved {
+    background-color: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+}
+
+.cinema-badge-habitual {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background-color: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #6ee7b7;
+}
+
+.btn-cinema-toggle.remove {
+    background-color: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+
+.btn-cinema-toggle.remove:hover {
+    background-color: rgba(239, 68, 68, 0.3);
+    color: #ffffff;
+}
+
+/* Tarjeta Invitado Ultra */
+.guest-card-ultra {
+    background-color: #121212;
+    border: 1px solid #222222;
+    border-radius: 14px;
+    padding: 42px 36px;
+    max-width: 400px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #000000;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.guest-card-ultra h2 {
+    margin: 4px 0 0 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.guest-card-ultra p {
+    margin: 0 0 16px 0;
+    font-size: 0.88rem;
+    color: #888888;
+    line-height: 1.45;
+}
+
+.btn-action-primary {
+    background-color: #ffffff;
+    color: #080808;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-action-primary:hover {
+    background-color: #e5e5e5;
+}
+
+/* ==========================================================
+   Responsividad
+   ========================================================== */
+@media (max-width: 900px) {
+    .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    .profile-stats-grid {
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 24px 20px;
+    }
+    .middle-nav-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .actions-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .search-box-minimal {
+        flex: 1;
+    }
+}
+
+/* ==========================================================
+   Enlaces y Botones de Iniciar Sesión para Invitados
+   ========================================================== */
+.btn-guest-login {
+    margin-top: 6px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #cc120b;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.2s ease;
+    display: inline-block;
+}
+
+.btn-guest-login:hover {
+    color: #e51d15;
+    text-decoration: underline;
+}
+
+.btn-text-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #cc120b;
+    font-size: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s ease;
+}
+
+.btn-text-link:hover {
+    color: #e51d15;
+}
+
+
