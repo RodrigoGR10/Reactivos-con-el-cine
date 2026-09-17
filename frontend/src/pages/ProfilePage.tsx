@@ -47,10 +47,19 @@ const PELICULAS_BASE: Pelicula[] = [
 ];
 
 const CINES_BASE: Cine[] = [
-    { id: 1, nombre: 'Cinemark', comuna: 'Maipú' },
-    { id: 2, nombre: 'Cinépolis', comuna: 'La Reina' },
-    { id: 3, nombre: 'Cineplanet', comuna: 'Santiago' }
+    { id: 1, nombre: 'Cinemark', comuna: 'Maipú', logo: '/cinemark.png' },
+    { id: 2, nombre: 'Cinépolis', comuna: 'La Reina', logo: '/cinepolis.png' },
+    { id: 3, nombre: 'Cineplanet', comuna: 'Santiago', logo: '/cineplanet.png' }
 ];
+
+const getCinemaLogo = (cine: Cine): string => {
+    if (cine.logo) return cine.logo;
+    const nameLower = cine.nombre.toLowerCase();
+    if (nameLower.includes('cinemark')) return '/cinemark.png';
+    if (nameLower.includes('cinepolis') || nameLower.includes('cinépolis')) return '/cinepolis.png';
+    if (nameLower.includes('cineplanet')) return '/cineplanet.png';
+    return '';
+};
 
 type TabType = 'peliculas' | 'cines';
 
@@ -333,25 +342,41 @@ const ProfilePage = () => {
                             <div className="cinemas-grid-ultra">
                                 {cinesGuardadosFiltrados.map((cine) => (
                                     <div key={cine.id} className="cinema-card-ultra">
-                                        <div className="cinema-meta">
-                                            <h4>{cine.nombre}</h4>
-                                            <p className="cinema-location">
-                                                <MapPinIcon size={13} className="inline-pin-svg" />
-                                                <span>{cine.comuna}</span>
-                                            </p>
+                                        <div className="cinema-card-left">
+                                            <div className="cinema-logo-box">
+                                                {getCinemaLogo(cine) ? (
+                                                    <img
+                                                        src={getCinemaLogo(cine)}
+                                                        alt={cine.nombre}
+                                                        className="cinema-logo-img"
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <MapPinIcon size={20} className="inline-pin-svg" />
+                                                )}
+                                            </div>
+                                            <div className="cinema-meta">
+                                                <h4>{cine.nombre}</h4>
+                                                <p className="cinema-location">
+                                                    <MapPinIcon size={13} className="inline-pin-svg" />
+                                                    <span>{cine.comuna}</span>
+                                                </p>
+                                            </div>
                                         </div>
-                                        {modoEdicion ? (
-                                            <button
-                                                type="button"
-                                                className="btn-cinema-toggle remove"
-                                                onClick={() => toggleFavoriteCinema(cine.id)}
-                                                title="eliminar de cines habituales"
-                                            >
-                                                eliminar ✕
-                                            </button>
-                                        ) : (
-                                            <span className="cinema-badge-habitual">habitual ✓</span>
-                                        )}
+                                        <div className="cinema-card-right">
+                                            {modoEdicion ? (
+                                                <button
+                                                    type="button"
+                                                    className="btn-cinema-toggle remove"
+                                                    onClick={() => toggleFavoriteCinema(cine.id)}
+                                                    title="eliminar de cines habituales"
+                                                >
+                                                    eliminar ✕
+                                                </button>
+                                            ) : (
+                                                <span className="cinema-badge-habitual">habitual ✓</span>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

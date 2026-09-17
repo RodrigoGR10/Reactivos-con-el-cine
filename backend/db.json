@@ -40,17 +40,20 @@
         {
             "id": 1,
             "nombre": "Cinemark",
-            "comuna": "Maipú"
+            "comuna": "Maipú",
+            "logo": "/cinemark.png"
         },
         {
             "id": 2,
             "nombre": "Cinépolis",
-            "comuna": "La Reina"
+            "comuna": "La Reina",
+            "logo": "/cinepolis.png"
         },
         {
             "id": 3,
             "nombre": "Cineplanet",
-            "comuna": "Santiago"
+            "comuna": "Santiago",
+            "logo": "/cineplanet.png"
         }
     ],
     "funciones": [

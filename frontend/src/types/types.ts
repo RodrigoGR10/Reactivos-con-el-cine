@@ -13,6 +13,7 @@ export interface Cine {
     id: number;
     nombre: string;
     comuna: string;
+    logo?: string;
 }
 
 export interface Funcion {
