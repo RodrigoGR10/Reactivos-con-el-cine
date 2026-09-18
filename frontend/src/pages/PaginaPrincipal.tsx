@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
-
 import BarraNavegacion from '../components/BarraNavegacion.tsx'
 import Cartelera from '../components/Cartelera.tsx'
 import FiltrosPeliculas from '../components/FiltrosPeliculas.tsx'
 import PeliculaDestacada from '../components/PeliculaDestacada.tsx'
-
 import type { Pelicula } from '../types/types.ts'
 import peliculaService from '../services/peliculas.ts'
 
@@ -15,10 +13,7 @@ function normalizarTexto(texto: string): string {
     .toLocaleLowerCase('es-CL')
 }
 
-function cumpleFiltroDuracion(
-  duracion: number,
-  filtro: string,
-): boolean {
+function cumpleFiltroDuracion(duracion: number, filtro: string,): boolean {
   if (filtro === 'corta') return duracion <= 100
   if (filtro === 'media') return duracion >= 101 && duracion <= 130
   if (filtro === 'larga') return duracion > 130
@@ -59,18 +54,11 @@ function PaginaPrincipal() {
   const terminoBusqueda = normalizarTexto(busqueda.trim())
 
   const peliculasFiltradas = peliculas.filter((pelicula) => {
-    const coincideTitulo = normalizarTexto(
-      pelicula.titulo,
-    ).includes(terminoBusqueda)
-
+    const coincideTitulo = normalizarTexto(pelicula.titulo).includes(terminoBusqueda)
     const coincideGenero =
-      generoSeleccionado === '' ||
-      pelicula.genero === generoSeleccionado
-
+      generoSeleccionado === '' || pelicula.genero === generoSeleccionado
     const coincideClasificacion =
-      clasificacionSeleccionada === '' ||
-      pelicula.clasificacion === clasificacionSeleccionada
-
+      clasificacionSeleccionada === '' || pelicula.clasificacion === clasificacionSeleccionada
     const coincideDuracion = cumpleFiltroDuracion(
       pelicula.duracion,
       duracionSeleccionada,
@@ -129,37 +117,23 @@ function PaginaPrincipal() {
                 onLimpiar={limpiarFiltros}
               />
 
-              <section
-                className="seccion-cartelera"
-                aria-labelledby="titulo-cartelera"
-              >
+              <section className="seccion-cartelera" aria-labelledby="titulo-cartelera">
                 <div className="titulo-cartelera">
                   <div>
-                    <p className="subtitulo-seccion">
-                      Ahora en cines
-                    </p>
-
-                    <h2 id="titulo-cartelera">
-                      Cartelera
-                    </h2>
+                    <p className="subtitulo-seccion">Ahora en cines</p>
+                    <h2 id="titulo-cartelera">Cartelera</h2>
                   </div>
-
                   <p aria-live="polite">
                     {peliculasFiltradas.length}{' '}
-                    {peliculasFiltradas.length === 1
-                      ? 'película'
-                      : 'películas'}
+                    {peliculasFiltradas.length === 1 ? 'película' : 'películas'}
                   </p>
                 </div>
-
                 <Cartelera peliculas={peliculasFiltradas} />
               </section>
             </div>
           </>
         ) : (
-          <p className="sin-resultados">
-            No hay películas disponibles.
-          </p>
+          <p className="sin-resultados">No hay películas disponibles.</p>
         )}
       </main>
     </>
