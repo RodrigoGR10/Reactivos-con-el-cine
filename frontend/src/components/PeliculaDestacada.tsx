@@ -7,9 +7,11 @@ interface PeliculaDestacadaProps {
 function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
   return (
     <section className="pelicula-destacada" aria-labelledby="titulo-destacada">
-      <div className="decoracion-destacada" aria-hidden="true">
-        <div className="circulo-cine"></div>
-        <span>🎬</span>
+      <div className="decoracion-destacada">
+        <img
+          src={pelicula.poster}
+          alt={`Poster de ${pelicula.titulo}`}
+        />
       </div>
 
       <div className="contenido-destacada">
