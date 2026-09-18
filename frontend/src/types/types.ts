@@ -1,5 +1,5 @@
 export interface Pelicula {
-    id: number;
+    id: string;
     titulo: string;
     duracion: number;
     genero: string;
@@ -9,15 +9,15 @@ export interface Pelicula {
 }
 
 export interface Cine {
-    id: number;
+    id: string;
     nombre: string;
     comuna: string;
 }
 
 export interface Funcion {
-    id: number;
-    peliculaId: number;
-    cineId: number;
+    id: string;
+    peliculaId: string;
+    cineId: string;
     horario: string;
     formato: string;
     idioma: string;
