@@ -5,6 +5,8 @@ import peliculaService from "../services/peliculas";
 import cineService from "../services/cines";
 import funcionService from "../services/funciones";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
+import BarraNavegacion from "../components/BarraNavegacion";
+import "./MovieDetailPage.css";
 
 function MovieDetailPage() {
     const { id } = useParams();
@@ -37,11 +39,35 @@ function MovieDetailPage() {
     }, [peliculaId]);
 
     if (error) {
-        return <p>{error}</p>;
+        return (
+            <>
+                <BarraNavegacion
+                    busqueda=""
+                    onBusquedaChange={() => { }}
+                />
+
+                <main className="detalle-pelicula">
+                    <p className="mensaje-detalle">{error}</p>
+                </main>
+            </>
+        );
     }
 
     if (!pelicula) {
-        return <p>Cargando película...</p>;
+        return (
+            <>
+                <BarraNavegacion
+                    busqueda=""
+                    onBusquedaChange={() => { }}
+                />
+
+                <main className="detalle-pelicula">
+                    <p className="mensaje-detalle">
+                        Cargando película...
+                    </p>
+                </main>
+            </>
+        );
     }
 
     const formatosDisponibles = funciones.reduce<string[]>(
@@ -71,72 +97,173 @@ function MovieDetailPage() {
     );
 
     return (
-        <div>
-            <h1>{pelicula.titulo}</h1>
+        <>
+            <BarraNavegacion
+                busqueda=""
+                onBusquedaChange={() => { }}
+            />
 
-            <p>
-                Duración: {pelicula.duracion} minutos
-            </p>
+            <main className="detalle-pelicula">
+                <section className="hero-detalle">
+                    <div className="poster-detalle">
+                        {pelicula.poster ? (
+                            <img
+                                src={pelicula.poster}
+                                alt={`Póster de ${pelicula.titulo}`}
+                            />
+                        ) : (
+                            <div className="poster-detalle-placeholder">
+                                🎬
+                            </div>
+                        )}
+                    </div>
 
-            <p>
-                Género: {pelicula.genero}
-            </p>
-
-            <p>
-                Clasificación: {pelicula.clasificacion}
-            </p>
-
-            <p>
-                {pelicula.sinopsis}
-            </p>
-
-            <h2>Funciones</h2>
-
-            <label htmlFor="formato">
-                Formato:
-            </label>{" "}
-
-            <select
-                id="formato"
-                value={formatoSeleccionado}
-                onChange={(e) =>
-                    setFormatoSeleccionado(e.target.value)
-                }
-            >
-                {formatosDisponibles.map((formato) => (
-                    <option
-                        key={formato}
-                        value={formato}
-                    >
-                        {formato}
-                    </option>
-                ))}
-            </select>
-
-            {grupos.length === 0 && (
-                <p>
-                    No hay funciones disponibles para
-                    este formato.
-                </p>
-            )}
-
-            {grupos.map(({ cine, funciones }) => (
-                <div key={cine.id}>
-                    <h3>
-                        {cine.nombre} - {cine.comuna}
-                    </h3>
-
-                    {funciones.map((funcion) => (
-                        <p key={funcion.id}>
-                            {funcion.horario} -{" "}
-                            {funcion.formato} -{" "}
-                            {funcion.idioma} - $
-                            {funcion.precio}
+                    <div className="contenido-detalle">
+                        <p className="subtitulo-seccion">
+                            Información de la película
                         </p>
-                    ))}
-                </div>
-            ))}
-        </div>
+
+                        <h1>{pelicula.titulo}</h1>
+
+                        <div className="metadatos-detalle">
+                            <span>{pelicula.clasificacion}</span>
+                            <span aria-hidden="true">•</span>
+                            <span>{pelicula.genero}</span>
+                            <span aria-hidden="true">•</span>
+                            <span>{pelicula.duracion} min</span>
+                        </div>
+
+                        <p className="sinopsis-detalle">
+                            {pelicula.sinopsis}
+                        </p>
+                    </div>
+                </section>
+
+                <section
+                    className="seccion-funciones"
+                    aria-labelledby="titulo-funciones"
+                >
+                    <div className="encabezado-funciones">
+                        <div>
+                            <p className="subtitulo-seccion">
+                                Elige dónde verla
+                            </p>
+
+                            <h2 id="titulo-funciones">
+                                Funciones
+                            </h2>
+                        </div>
+
+                        <div className="filtro-formato">
+                            <label htmlFor="formato">
+                                Formato
+                            </label>
+
+                            <select
+                                id="formato"
+                                value={formatoSeleccionado}
+                                onChange={(e) =>
+                                    setFormatoSeleccionado(
+                                        e.target.value
+                                    )
+                                }
+                            >
+                                {formatosDisponibles.map(
+                                    (formato) => (
+                                        <option
+                                            key={formato}
+                                            value={formato}
+                                        >
+                                            {formato}
+                                        </option>
+                                    )
+                                )}
+                            </select>
+                        </div>
+                    </div>
+
+                    {grupos.length === 0 ? (
+                        <div className="sin-funciones">
+                            <span aria-hidden="true">🎬</span>
+                            <p>
+                                No hay funciones disponibles
+                                para este formato.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="lista-cines">
+                            {grupos.map(({ cine, funciones }) => (
+                                <article
+                                    key={cine.id}
+                                    className="tarjeta-cine"
+                                >
+                                    <div className="cabecera-cine">
+                                        <div className="logo-cine">
+                                            {cine.logo ? (
+                                                <img
+                                                    src={cine.logo}
+                                                    alt={`Logo de ${cine.nombre}`}
+                                                />
+                                            ) : (
+                                                <span>
+                                                    🎬
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <h3>
+                                                {cine.nombre}
+                                            </h3>
+                                            <p>
+                                                {cine.comuna}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="horarios-cine">
+                                        {funciones.map(
+                                            (funcion) => (
+                                                <button
+                                                    key={funcion.id}
+                                                    type="button"
+                                                    className="tarjeta-horario"
+                                                >
+                                                    <strong>
+                                                        {
+                                                            funcion.horario
+                                                        }
+                                                    </strong>
+
+                                                    <span>
+                                                        {
+                                                            funcion.formato
+                                                        }
+                                                    </span>
+
+                                                    <span>
+                                                        {
+                                                            funcion.idioma
+                                                        }
+                                                    </span>
+
+                                                    <span className="precio-horario">
+                                                        $
+                                                        {
+                                                            funcion.precio
+                                                        }
+                                                    </span>
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            </main>
+        </>
     );
 }
 
