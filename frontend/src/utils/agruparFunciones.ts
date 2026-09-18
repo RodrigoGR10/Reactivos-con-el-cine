@@ -1,4 +1,3 @@
-// Transforma una lista plana de funciones en una lista agrupada por cine
 import type { Cine, Funcion } from "../types/types";
 
 export interface GrupoFunciones {
@@ -11,10 +10,18 @@ export function agruparFuncionesPorCine(
     cines: Cine[]
 ): GrupoFunciones[] {
     return funciones.reduce<GrupoFunciones[]>((grupos, funcion) => {
-        const cine = cines.find((c) => c.id === funcion.cineId);
-        if (!cine) return grupos;
+        const cine = cines.find(
+            (c) => Number(c.id) === Number(funcion.cineId)
+        );
 
-        const grupoExistente = grupos.find((grupo) => grupo.cine.id === cine.id);
+        if (!cine) {
+            return grupos;
+        }
+
+        const grupoExistente = grupos.find(
+            (grupo) => Number(grupo.cine.id) === Number(cine.id)
+        );
+
         if (grupoExistente) {
             grupoExistente.funciones.push(funcion);
             return grupos;

@@ -1,81 +1,66 @@
 {
     "peliculas": [
         {
-<<<<<<< HEAD
-            "id": "1",
-            "titulo": "Superman",
-            "duracion": 130,
-            "genero": "Acción",
-            "clasificacion": "TE+7",
-            "poster": ""
-        },
-        {
-            "id": "2",
-            "titulo": "Los 4 Fantásticos",
-            "duracion": 114,
-            "genero": "Acción",
-            "clasificacion": "TE+7",
-            "poster": ""
-        },
-        {
-            "id": "3",
-            "titulo": "Cómo entrenar a tu dragón",
-            "duracion": 125,
-            "genero": "Aventura",
-            "clasificacion": "TE+7",
-            "poster": ""
-=======
             "id": 1,
             "titulo": "Resident Evil",
             "duracion": 93,
-            "sinopsis": "Película basada en la saga de videojuegos de Capcom del mismo nombre. En una reinvención totalmente nueva, el mensajero médico Bryan se ve inmerso en una carrera de acción sin descanso por la supervivencia, mientras el caos se desata a su alrededor.",
+            "genero": "Acción",
+            "clasificacion": "18",
+            "sinopsis": "Película basada en la saga de videojuegos de Capcom del mismo nombre.",
             "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/ntmaNFJ7O60n45E1E6HZlXeSV5e.jpg"
         },
         {
             "id": 2,
             "titulo": "Dune: Part Three",
             "duracion": 140,
-            "sinopsis": "Paul Atreides, ahora Emperador Muad'Dib, se desenvuelve en su inmenso poder mientras lucha contra enemigos políticos y una conspiración dentro de su círculo. Mientras la Casa Atreides se enfrenta al colapso, surge el verdadero peligro para la amante de Paul, Chani, y su heredero nonato.",
+            "genero": "Ciencia ficción",
+            "clasificacion": "14",
+            "sinopsis": "Paul Atreides, ahora Emperador Muad'Dib, se desenvuelve en su inmenso poder.",
             "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/uj4EuGmFNAc4CHBVEtRZ04MXzka.jpg"
         },
         {
             "id": 3,
             "titulo": "Coyote vs. Acme",
             "duracion": 103,
-            "sinopsis": "Después de que todos los productos fabricados por ACME Corporation le salgan mal a Wile E. Coyote, en su persecución del Correcaminos, contrata a un abogado humano igualmente desafortunado para demandar a la empresa. Cuando el abogado de Wile E. descubre que el intimidante jefe de su antiguo bufete es el director general de ACME, se une a Wile E. para ganar el juicio contra él.",
+            "genero": "Comedia",
+            "clasificacion": "TE",
+            "sinopsis": "Wile E. Coyote contrata a un abogado para demandar a ACME Corporation.",
             "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/sv6gFggwOOOAMRZssdkNwEIMzCa.jpg"
         },
         {
             "id": 4,
             "titulo": "La Odisea",
             "duracion": 173,
-            "sinopsis": "Tras la caída de Troya, el legendario rey de Ítaca, Odiseo a.k.a. Ulises, emprende un largo y peligroso viaje para regresar junto a su esposa Penélope y su hijo Telémaco. En el camino deberá enfrentarse a criaturas mitológicas, dioses caprichosos y pruebas que pondrán a prueba su ingenio, su resistencia y su humanidad. Mientras tanto, en Ítaca, el futuro de su reino pende de un hilo ante la creciente amenaza de quienes creen que jamás volverá.",
+            "genero": "Aventura",
+            "clasificacion": "14",
+            "sinopsis": "Tras la caída de Troya, Odiseo emprende un largo viaje de regreso a Ítaca.",
             "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/sf2ke1nwFOLLcwLZiXu9VaMMv8e.jpg"
         },
         {
             "id": 5,
             "titulo": "Minions & Monsters",
             "duracion": 90,
-            "sinopsis": "Narra la historia de cómo los minions conquistaron la industria de Hollywood, se convirtieron en estrellas de cine, lo perdieron todo, desataron monstruos en el mundo y luego se unieron para intentar salvar al planeta del caos que acababan de crear.",
+            "genero": "Animación",
+            "clasificacion": "TE",
+            "sinopsis": "Cómo los minions conquistaron Hollywood.",
             "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/euBGhMiViiIrVyAuA8seORR0QWH.jpg"
->>>>>>> origin/vista-perfil
         }
     ],
     "cines": [
         {
-            "id": "1",
+            "id": 1,
             "nombre": "Cinemark",
             "comuna": "Maipú",
             "logo": "/cinemark.png"
         },
         {
-            "id": "2",
+            "id": 2,
             "nombre": "Cinépolis",
             "comuna": "La Reina",
             "logo": "/cinepolis.png"
         },
         {
-            "id": "3",
+            "id": 3,
             "nombre": "Cineplanet",
             "comuna": "Santiago",
             "logo": "/cineplanet.png"
@@ -83,70 +68,52 @@
     ],
     "funciones": [
         {
-            "id": "1",
-            "peliculaId": "1",
-            "cineId": "1",
+            "id": 1,
+            "peliculaId": 1,
+            "cineId": 1,
             "horario": "18:30",
             "formato": "2D",
             "idioma": "Subtitulada",
             "precio": 4500
         },
         {
-            "id": "2",
-            "peliculaId": "1",
-            "cineId": "1",
+            "id": 2,
+            "peliculaId": 1,
+            "cineId": 1,
             "horario": "21:00",
             "formato": "3D",
             "idioma": "Doblada",
             "precio": 6000
         },
         {
-            "id": "3",
-            "peliculaId": "1",
-            "cineId": "2",
+            "id": 3,
+            "peliculaId": 1,
+            "cineId": 2,
             "horario": "19:15",
             "formato": "2D",
             "idioma": "Subtitulada",
             "precio": 4800
         },
         {
-<<<<<<< HEAD
-            "id": "4",
-            "peliculaId": "2",
-            "cineId": "1",
-            "horario": "17:00",
+            "id": 4,
+            "peliculaId": 2,
+            "cineId": 2,
+            "horario": "20:30",
             "formato": "2D",
             "idioma": "Subtitulada",
-            "precio": 4500
+            "precio": 5000
         },
         {
-            "id": "5",
-            "peliculaId": "2",
-            "cineId": "3",
-            "horario": "20:30",
-            "formato": "3D",
-            "idioma": "Doblada",
-            "precio": 6200
-        },
-        {
-            "id": "6",
-            "peliculaId": "3",
-            "cineId": "2",
-            "horario": "16:45",
+            "id": 5,
+            "peliculaId": 3,
+            "cineId": 3,
+            "horario": "17:00",
             "formato": "2D",
             "idioma": "Doblada",
             "precio": 4200
         },
         {
-            "id": "7",
-            "peliculaId": "3",
-            "cineId": "3",
-            "horario": "19:00",
-            "formato": "3D",
-            "idioma": "Subtitulada",
-            "precio": 5900
-=======
-            "id": 4,
+            "id": 6,
             "peliculaId": 4,
             "cineId": 1,
             "horario": "20:00",
@@ -155,14 +122,13 @@
             "precio": 7500
         },
         {
-            "id": 5,
+            "id": 7,
             "peliculaId": 5,
             "cineId": 3,
             "horario": "21:30",
             "formato": "2D",
             "idioma": "Doblada",
             "precio": 5200
->>>>>>> origin/vista-perfil
         }
     ]
 }

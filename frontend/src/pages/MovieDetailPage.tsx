@@ -8,34 +8,50 @@ import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
 
 function MovieDetailPage() {
     const { id } = useParams();
-    const peliculaId = id ?? "1";
+
+    const peliculaId = Number(id ?? "1");
 
     const [pelicula, setPelicula] = useState<Pelicula | null>(null);
     const [funciones, setFunciones] = useState<Funcion[]>([]);
     const [cines, setCines] = useState<Cine[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
+    const [formatoSeleccionado, setFormatoSeleccionado] =
+        useState("Todos");
 
     useEffect(() => {
         setError(null);
 
-        peliculaService
-            .getById(peliculaId)
-            .then((data) => setPelicula(data))
-            .catch(() => setError("No se pudo cargar la película."));
-
-        cineService.getAll().then((data) => setCines(data));
-
-        funcionService.getByPelicula(peliculaId).then((data) => setFunciones(data));
+        Promise.all([
+            peliculaService.getById(String(peliculaId)),
+            funcionService.getByPelicula(peliculaId),
+            cineService.getAll(),
+        ])
+            .then(([peliculaData, funcionesData, cinesData]) => {
+                setPelicula(peliculaData);
+                setFunciones(funcionesData);
+                setCines(cinesData);
+            })
+            .catch(() => {
+                setError("No se pudo cargar la información.");
+            });
     }, [peliculaId]);
 
-    if (error) return <p>{error}</p>;
-    if (!pelicula) return <p>Cargando película...</p>;
+    if (error) {
+        return <p>{error}</p>;
+    }
+
+    if (!pelicula) {
+        return <p>Cargando película...</p>;
+    }
 
     const formatosDisponibles = funciones.reduce<string[]>(
         (acumulado, funcion) => {
-            const yaExiste = acumulado.find((formato) => formato === funcion.formato);
-            if (yaExiste) return acumulado;
+            const yaExiste = acumulado.includes(funcion.formato);
+
+            if (yaExiste) {
+                return acumulado;
+            }
+
             return [...acumulado, funcion.formato];
         },
         ["Todos"]
@@ -44,40 +60,78 @@ function MovieDetailPage() {
     const funcionesFiltradas =
         formatoSeleccionado === "Todos"
             ? funciones
-            : funciones.filter((funcion) => funcion.formato === formatoSeleccionado);
+            : funciones.filter(
+                (funcion) =>
+                    funcion.formato === formatoSeleccionado
+            );
 
-    const grupos = agruparFuncionesPorCine(funcionesFiltradas, cines);
+    const grupos = agruparFuncionesPorCine(
+        funcionesFiltradas,
+        cines
+    );
 
     return (
         <div>
             <h1>{pelicula.titulo}</h1>
-            <p>Duración: {pelicula.duracion} minutos</p>
-            <p>Género: {pelicula.genero}</p>
-            <p>Clasificación: {pelicula.clasificacion}</p>
+
+            <p>
+                Duración: {pelicula.duracion} minutos
+            </p>
+
+            <p>
+                Género: {pelicula.genero}
+            </p>
+
+            <p>
+                Clasificación: {pelicula.clasificacion}
+            </p>
+
+            <p>
+                {pelicula.sinopsis}
+            </p>
 
             <h2>Funciones</h2>
 
-            <label htmlFor="formato">Formato: </label>
+            <label htmlFor="formato">
+                Formato:
+            </label>{" "}
+
             <select
                 id="formato"
                 value={formatoSeleccionado}
-                onChange={(e) => setFormatoSeleccionado(e.target.value)}
+                onChange={(e) =>
+                    setFormatoSeleccionado(e.target.value)
+                }
             >
                 {formatosDisponibles.map((formato) => (
-                    <option key={formato} value={formato}>
+                    <option
+                        key={formato}
+                        value={formato}
+                    >
                         {formato}
                     </option>
                 ))}
             </select>
+
+            {grupos.length === 0 && (
+                <p>
+                    No hay funciones disponibles para
+                    este formato.
+                </p>
+            )}
 
             {grupos.map(({ cine, funciones }) => (
                 <div key={cine.id}>
                     <h3>
                         {cine.nombre} - {cine.comuna}
                     </h3>
+
                     {funciones.map((funcion) => (
                         <p key={funcion.id}>
-                            {funcion.horario} - {funcion.formato} - {funcion.idioma} - ${funcion.precio}
+                            {funcion.horario} -{" "}
+                            {funcion.formato} -{" "}
+                            {funcion.idioma} - $
+                            {funcion.precio}
                         </p>
                     ))}
                 </div>
