@@ -1,25 +1,24 @@
 export interface Pelicula {
-    id: string;
-    titulo: string;
-    duracion: number;
-    genero: string;
-    clasificacion: string;
-    poster?: string;
-    sinopsis?: string;
+    id: number
+    titulo: string
+    duracion?: number
+    genero?: string
+    clasificacion?: string
+    sinopsis?: string
+    poster?: string
 }
-
 export interface Cine {
-    id: string;
-    nombre: string;
-    comuna: string;
+    id: number
+    nombre: string
+    comuna: string
+    logo?: string
 }
-
 export interface Funcion {
-    id: string;
-    peliculaId: string;
-    cineId: string;
-    horario: string;
-    formato: string;
-    idioma: string;
-    precio: number;
+    id: number
+    peliculaId: number
+    cineId: number
+    horario: string
+    formato: string
+    idioma: string
+    precio: number
 }
