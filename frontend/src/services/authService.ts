@@ -3,7 +3,7 @@ import type { Usuario, LoginInput, RegisterInput } from '../types/auth';
 const STORAGE_KEY_USUARIO_ACTIVO = 'cine_usuario_activo';
 const STORAGE_KEY_USUARIOS = 'cine_usuarios_registrados';
 
-// Obtiene la lista de usuarios registrados desde localStorage
+/** Lee array de usuarios registrados desde localStorage */
 const obtenerUsuariosRegistrados = (): (Usuario & { contrasena: string })[] => {
     const data = localStorage.getItem(STORAGE_KEY_USUARIOS);
     if (!data) return [];
@@ -14,7 +14,7 @@ const obtenerUsuariosRegistrados = (): (Usuario & { contrasena: string })[] => {
     }
 };
 
-// Autentica un usuario verificando correo y contraseña
+/** Autentica usuario por email/contraseña; guarda sesión sin contraseña en localStorage */
 const login = async (credenciales: LoginInput): Promise<Usuario> => {
     const usuarios = obtenerUsuariosRegistrados();
     const usuario = usuarios.find(
@@ -36,7 +36,7 @@ const login = async (credenciales: LoginInput): Promise<Usuario> => {
     return usuarioSinContrasena;
 };
 
-// Registra un nuevo usuario verificando que el correo no esté duplicado
+/** Registra nuevo usuario validando email único; guarda sesión automáticamente */
 const register = async (datos: RegisterInput): Promise<Usuario> => {
     const usuarios = obtenerUsuariosRegistrados();
     const emailExiste = usuarios.some(
@@ -68,12 +68,12 @@ const register = async (datos: RegisterInput): Promise<Usuario> => {
     return usuarioSinContrasena;
 };
 
-// Elimina la sesión activa
+/** Cierra sesión eliminando usuario activo de localStorage */
 const logout = (): void => {
     localStorage.removeItem(STORAGE_KEY_USUARIO_ACTIVO);
 };
 
-// Retorna el usuario activo si existe una sesión válida
+/** Recupera usuario activo si hay sesión válida; limpia storage si hay dato corrupto */
 const getCurrentUser = (): Usuario | null => {
     const data = localStorage.getItem(STORAGE_KEY_USUARIO_ACTIVO);
     if (!data) return null;

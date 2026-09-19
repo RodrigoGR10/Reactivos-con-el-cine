@@ -1,8 +1,9 @@
-/* ==========================================================
-   Overlay de Fondo del Modal de Autenticación
-   - Fondo nítido sin desenfoque (backdrop-filter eliminado)
-   - Oscurecimiento suave para enfocar la atención
-   ========================================================== */
+html:has(.auth-modal-overlay),
+body:has(.auth-modal-overlay) {
+    overflow: hidden;
+    height: 100vh;
+}
+
 .auth-modal-overlay {
     position: fixed;
     top: 0;
@@ -17,6 +18,7 @@
     padding: 20px;
     box-sizing: border-box;
     animation: authOverlayFadeIn 0.22s ease-out;
+    overscroll-behavior: contain;
 }
 
 @keyframes authOverlayFadeIn {
@@ -28,12 +30,6 @@
     }
 }
 
-/* ==========================================================
-   Contenedor Principal de la Tarjeta (Efecto Cristal / Glassmorphism)
-   - Transparencia cristalina con desenfoque de 10px
-   - Reflejos especulares luminosos y borde biselado
-   - Brillo ambiental en rojo cine #cc120b
-   ========================================================== */
 .auth-modal-wrapper {
     position: relative;
     width: 410px;
@@ -68,15 +64,10 @@
     }
 }
 
-/* Ajuste dinámico de altura cuando se activa el formulario de registro */
 .auth-modal-wrapper.active {
     height: 485px;
 }
 
-/* ==========================================================
-   Botón de Cierre (Esquina Superior Derecha)
-   - Estilo vidrio translúcido con hover en rojo #cc120b
-   ========================================================== */
 .auth-icon-close {
     position: absolute;
     top: 0;
@@ -109,9 +100,6 @@
     transform: scale(0.94);
 }
 
-/* ==========================================================
-   Cajas de Formularios y Animación de Deslizamiento
-   ========================================================== */
 .auth-form-box {
     width: 100%;
     padding: 34px 38px;
@@ -127,7 +115,6 @@
     letter-spacing: -0.5px;
 }
 
-/* Detalle sutil en rojo #cc120b bajo el título */
 .auth-form-box h2::after {
     content: '';
     display: block;
@@ -139,7 +126,6 @@
     box-shadow: 0 0 8px rgba(204, 18, 11, 0.6);
 }
 
-/* Vista 1: Login */
 .auth-form-box.login {
     transition: transform 0.35s ease, opacity 0.25s ease;
     transform: translateX(0);
@@ -152,7 +138,6 @@
     pointer-events: none;
 }
 
-/* Vista 2: Registro */
 .auth-form-box.register {
     position: absolute;
     top: 0;
@@ -174,9 +159,6 @@
     pointer-events: auto;
 }
 
-/* ==========================================================
-   Campos de Entrada (Input Boxes con acento rojo #cc120b al foco)
-   ========================================================== */
 .auth-input-box {
     position: relative;
     width: 100%;
@@ -203,7 +185,6 @@
     transition: 0.25s ease;
 }
 
-/* Animación de etiqueta flotante */
 .auth-input-box input:focus ~ label,
 .auth-input-box input:not(:placeholder-shown) ~ label,
 .auth-input-box.has-value label {
@@ -271,9 +252,6 @@
     transform: scale(0.92);
 }
 
-/* ==========================================================
-   Checkbox Recordarme
-   ========================================================== */
 .auth-remember-me {
     font-size: 0.82rem;
     color: rgba(255, 255, 255, 0.8);
@@ -299,9 +277,6 @@
     height: 15px;
 }
 
-/* ==========================================================
-   Botón Principal de Envío (Rojo Cinema #cc120b con Sombra)
-   ========================================================== */
 .auth-btn-submit {
     width: 100%;
     height: 45px;
@@ -339,9 +314,6 @@
     box-shadow: none;
 }
 
-/* ==========================================================
-   Alternar entre Login y Registro
-   ========================================================== */
 .auth-switch-link {
     font-size: 0.88rem;
     color: rgba(255, 255, 255, 0.75);
@@ -366,9 +338,6 @@
     text-decoration: underline;
 }
 
-/* ==========================================================
-   Alertas de Error y Éxito
-   ========================================================== */
 .auth-alert {
     padding: 8px 12px;
     border-radius: 6px;
@@ -389,9 +358,6 @@
     color: #bbf7d0;
 }
 
-/* ==========================================================
-   Responsividad Móvil
-   ========================================================== */
 @media (max-width: 440px) {
     .auth-modal-wrapper {
         width: 100%;

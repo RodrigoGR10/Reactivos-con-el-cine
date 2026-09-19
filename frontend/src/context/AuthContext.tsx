@@ -8,13 +8,20 @@ interface AuthContextType {
     login: (credenciales: LoginInput) => Promise<void>;
     register: (datos: RegisterInput) => Promise<void>;
     logout: () => void;
+    isAuthModalOpen: boolean;
+    openAuthModal: () => void;
+    closeAuthModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    // Inicialización perezosa: lee el usuario guardado solo al cargar la app
+    // Inicialización perezosa: lee localStorage solo una vez al montar la app
     const [user, setUser] = useState<Usuario | null>(() => authService.getCurrentUser());
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+    const openAuthModal = (): void => setIsAuthModalOpen(true);
+    const closeAuthModal = (): void => setIsAuthModalOpen(false);
 
     const login = async (credenciales: LoginInput): Promise<void> => {
         const usuarioAutenticado = await authService.login(credenciales);
@@ -36,7 +43,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated: !!user,
         login,
         register,
-        logout
+        logout,
+        isAuthModalOpen,
+        openAuthModal,
+        closeAuthModal
     };
 
     return (
@@ -46,8 +56,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// Hook personalizado para acceder al estado de autenticación
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (!context) {

@@ -1,5 +1,6 @@
 import { useState, useEffect, type SubmitEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { CloseIcon, MailIcon, PersonIcon, EyeIcon, EyeOffIcon } from '../common/Icons';
 import './AuthModal.css';
 
 interface AuthModalProps {
@@ -11,27 +12,22 @@ interface AuthModalProps {
 export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) => {
     const { login, register } = useAuth();
 
-    // Estado para alternar entre Login (false) y Registro (true)
     const [isRegisterActive, setIsRegisterActive] = useState(initialMode === 'register');
 
-    // Estados del formulario de Login
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
     const [showLoginPassword, setShowLoginPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
 
-    // Estados del formulario de Registro
     const [regUsername, setRegUsername] = useState('');
     const [regEmail, setRegEmail] = useState('');
     const [regPassword, setRegPassword] = useState('');
     const [showRegPassword, setShowRegPassword] = useState(false);
 
-    // Estados de feedback y carga
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const [cargando, setCargando] = useState(false);
 
-    // Cerrar con la tecla Escape y bloquear el scroll de fondo
+    // Cierra con Escape; el bloqueo de scroll se hace vía CSS :has() en AuthModal.css
     useEffect(() => {
         if (!isOpen) return;
 
@@ -41,12 +37,9 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
             }
         };
 
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
-            document.body.style.overflow = originalOverflow;
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [isOpen, onClose]);
@@ -84,6 +77,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
         try {
             await login({ email: emailTrimmed, contrasena: loginPassword });
             setSuccessMsg('¡Sesión iniciada con éxito!');
+            // Cierra tras breve delay para que el usuario vea el mensaje de éxito
             setTimeout(() => {
                 onClose();
             }, 600);
@@ -147,22 +141,16 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
             aria-modal="true"
             aria-label="Iniciar Sesión o Registrarse"
         >
-            {/* Contenedor Principal (Tarjeta Glassmorphism) */}
             <div className={`auth-modal-wrapper ${isRegisterActive ? 'active' : ''}`}>
-                {/* Botón de cierre superior derecho */}
                 <button
                     type="button"
                     className="auth-icon-close"
                     onClick={onClose}
                     aria-label="Cerrar modal"
                 >
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
+                    <CloseIcon size={20} />
                 </button>
 
-                {/* Vista 1: Login */}
                 <div className="auth-form-box login">
                     <h2>Iniciar Sesión</h2>
 
@@ -176,9 +164,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <form onSubmit={handleLoginSubmit} noValidate>
                         <div className={`auth-input-box ${loginEmail ? 'has-value' : ''}`}>
                             <span className="icon">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                                </svg>
+                                <MailIcon size={18} />
                             </span>
                             <input
                                 type="email"
@@ -198,17 +184,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                                 aria-label={showLoginPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
                                 title={showLoginPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
                             >
-                                {showLoginPassword ? (
-                                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                                        <line x1="1" y1="1" x2="23" y2="23" />
-                                    </svg>
-                                ) : (
-                                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                        <circle cx="12" cy="12" r="3" />
-                                    </svg>
-                                )}
+                                {showLoginPassword ? <EyeOffIcon size={19} /> : <EyeIcon size={19} />}
                             </button>
                             <input
                                 type={showLoginPassword ? 'text' : 'password'}
@@ -218,17 +194,6 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                                 onChange={(e) => setLoginPassword(e.target.value)}
                             />
                             <label>Contraseña</label>
-                        </div>
-
-                        <div className="auth-remember-me">
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
-                                />
-                                Recordarme
-                            </label>
                         </div>
 
                         <button type="submit" className="auth-btn-submit" disabled={cargando}>
@@ -252,7 +217,6 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     </form>
                 </div>
 
-                {/* Vista 2: Registro */}
                 <div className="auth-form-box register">
                     <h2>Registrarse</h2>
 
@@ -266,9 +230,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <form onSubmit={handleRegisterSubmit} noValidate>
                         <div className={`auth-input-box ${regUsername ? 'has-value' : ''}`}>
                             <span className="icon">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                </svg>
+                                <PersonIcon size={18} />
                             </span>
                             <input
                                 type="text"
@@ -282,9 +244,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
                         <div className={`auth-input-box ${regEmail ? 'has-value' : ''}`}>
                             <span className="icon">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                                </svg>
+                                <MailIcon size={18} />
                             </span>
                             <input
                                 type="email"
@@ -304,17 +264,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                                 aria-label={showRegPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
                                 title={showRegPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
                             >
-                                {showRegPassword ? (
-                                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                                        <line x1="1" y1="1" x2="23" y2="23" />
-                                    </svg>
-                                ) : (
-                                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                        <circle cx="12" cy="12" r="3" />
-                                    </svg>
-                                )}
+                                {showRegPassword ? <EyeOffIcon size={19} /> : <EyeIcon size={19} />}
                             </button>
                             <input
                                 type={showRegPassword ? 'text' : 'password'}
@@ -352,3 +302,4 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 };
 
 export default AuthModal;
+
