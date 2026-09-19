@@ -369,6 +369,7 @@ body {
   line-height: 1.65;
 }
 
+
 .boton-horarios,
 .boton-tarjeta {
   text-decoration: none;
@@ -513,16 +514,64 @@ body {
   border-color: #494a54;
   transform: translateY(-4px);
 }
-
-.tarjeta-pelicula>img,
-.poster-placeholder {
+.poster-pelicula {
+  position: relative;
   width: 100%;
   aspect-ratio: 2 / 2.65;
 }
 
-.tarjeta-pelicula>img {
+.poster-pelicula > img,
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.poster-pelicula > img {
   display: block;
   object-fit: cover;
+}
+
+.overlay-fav {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 200ms ease;
+}
+
+.poster-pelicula:hover .overlay-fav {
+  opacity: 1;
+  visibility: visible;
+}
+
+.boton-fav {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  font-size: 1.8rem;
+  color: white;
+  cursor: pointer;
+
+  transform: scale(0.85);
+  transition: transform 200ms ease, background 150ms ease;
+}
+
+.boton-fav:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.poster-pelicula:hover .boton-fav {
+  transform: scale(1);
 }
 
 .poster-placeholder {
