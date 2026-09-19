@@ -11,7 +11,7 @@ import "./MovieDetailPage.css";
 
 function MovieDetailPage() {
     const { id } = useParams();
-    const { toggleFavoriteMovie, isFavoriteMovie } = useFavorites();
+    const { toggleFavoriteCinema, toggleFavoriteMovie, isFavoriteMovie, isFavoriteCinema } = useFavorites();
     const { user, openAuthModal } = useAuth();
     const peliculaId = Number(id ?? "1");
 
@@ -116,7 +116,7 @@ function MovieDetailPage() {
                             <span aria-hidden="true">•</span>
                             <button 
                               type="button"
-                              className="boton-favorito"
+                              className="boton-fav-peli"
                               onClick={() => {
                                 if (!user) {
                                   openAuthModal();
@@ -195,11 +195,25 @@ function MovieDetailPage() {
                                 >
                                     <div className="cabecera-cine">
                                         <div className="logo-cine">
-                                            {cine.logo ? (
+                                          <button 
+                                            type="button"
+                                            className="boton-fav-cine"
+                                            onClick={() => {
+                                              if (!user) {
+                                                openAuthModal();
+                                                return;
+                                              }
+                                              toggleFavoriteCinema(Number(cine.id))
+                                            }}
+                                          >
+                                            {isFavoriteCinema(Number(cine.id)) ? '♥' : '♡'}
+                                          </button>
+                                          {cine.logo ? (
                                                 <img
                                                     src={cine.logo}
                                                     alt={`Logo de ${cine.nombre}`}
                                                 />
+                                                
                                             ) : (
                                                 <span>
                                                     🎬
