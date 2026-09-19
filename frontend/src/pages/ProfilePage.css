@@ -1,109 +1,5 @@
-/* ==========================================================
-   Layout General: Modo Ultra Oscuro (#080808) & Tipografía Inter
-   ========================================================== */
-.layout-root {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
-    background-color: #080808;
-    color: #ffffff;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    overflow-x: hidden;
-}
-
-.flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* ==========================================================
-   1. Sidebar Izquierdo Fijo (Minimalista, Sin Línea de Separación)
-   ========================================================== */
-.sidebar {
-    width: 72px;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    left: 0;
-    background-color: transparent;
-    border-right: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    padding: 26px 0;
-    box-sizing: border-box;
-    z-index: 100;
-    flex-shrink: 0;
-}
-
-.sidebar-top,
-.sidebar-bottom {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.sidebar-mid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-}
-
-.sidebar-btn {
-    width: 48px;
-    height: 48px;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #737373;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    padding: 0;
-    transition: color 0.2s ease, transform 0.15s ease;
-}
-
-.sidebar-btn:hover {
-    color: #ffffff;
-    background: transparent;
-    transform: scale(1.08);
-}
-
-.sidebar-btn.active {
-    color: #ffffff;
-    background: transparent;
-}
-
-.logo-btn {
-    padding: 0;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.sidebar-logo-img {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.logo-btn:hover .sidebar-logo-img {
-    transform: scale(1.08);
-    box-shadow: 0 0 10px rgba(204, 18, 11, 0.45);
-}
-
-/* ==========================================================
-   2. Contenedor Principal (Padding generoso para respirar)
-   ========================================================== */
 .main-content {
+    width: 100%;
     flex: 1;
     padding: 36px 48px;
     max-width: 1360px;
@@ -112,11 +8,9 @@
     display: flex;
     flex-direction: column;
     gap: 32px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ==========================================================
-   3. Sección Superior (Header de Perfil Minimalista y Estadísticas)
-   ========================================================== */
 .profile-header {
     display: flex;
     justify-content: space-between;
@@ -179,7 +73,6 @@
     flex-shrink: 0;
 }
 
-/* Cuadrícula compacta de estadísticas (2x2 a la derecha) */
 .profile-stats-grid {
     display: grid;
     grid-template-columns: repeat(2, 138px);
@@ -223,9 +116,6 @@
     line-height: 1.1;
 }
 
-/* ==========================================================
-   4. Navegación Media (Pestañas en Minúsculas + Buscador)
-   ========================================================== */
 .middle-nav-row {
     display: flex;
     justify-content: space-between;
@@ -344,9 +234,6 @@
     background-color: #e5e5e5;
 }
 
-/* ==========================================================
-   5. Contenido Principal: Grilla de Pósters Verticales
-   ========================================================== */
 .content-area {
     display: flex;
     flex-direction: column;
@@ -435,7 +322,6 @@
     to { opacity: 1; }
 }
 
-/* Estado Vacío Ultra Minimalista */
 .empty-state-ultra {
     background-color: #121212;
     border: 1px solid #202020;
@@ -472,8 +358,6 @@
     color: #777777;
 }
 
-/* Cines Habituales */
-/* Cines Habituales */
 .cinemas-grid-ultra {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -602,7 +486,6 @@
     color: #ffffff;
 }
 
-/* Tarjeta Invitado Ultra */
 .guest-card-ultra {
     background-color: #121212;
     border: 1px solid #222222;
@@ -659,9 +542,6 @@
     background-color: #e5e5e5;
 }
 
-/* ==========================================================
-   Responsividad
-   ========================================================== */
 @media (max-width: 900px) {
     .profile-header {
         flex-direction: column;
@@ -692,9 +572,6 @@
     }
 }
 
-/* ==========================================================
-   Enlaces y Botones de Iniciar Sesión para Invitados
-   ========================================================== */
 .btn-guest-login {
     margin-top: 6px;
     background: transparent;

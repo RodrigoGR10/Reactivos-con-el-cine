@@ -17,7 +17,8 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     const { user } = useAuth();
     const currentUserId = user ? user.id : null;
 
-    // Detectamos si cambió el usuario conectado para sincronizar favoritos sin cascada de efectos
+    // Rastreamos el userId previo para detectar login/logout y recargar favoritos
+    // sin depender de un useEffect (evita cascada de renders)
     const [prevUserId, setPrevUserId] = useState<number | null>(currentUserId);
     const [favoriteMovieIds, setFavoriteMovieIds] = useState<number[]>(() =>
         user ? profileService.getFavoriteMovieIds(user.id) : []
@@ -26,6 +27,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
         user ? profileService.getFavoriteCinemaIds(user.id) : []
     );
 
+    // Sincronización inmediata al cambiar de usuario (login/logout/switch)
     if (currentUserId !== prevUserId) {
         setPrevUserId(currentUserId);
         setFavoriteMovieIds(user ? profileService.getFavoriteMovieIds(user.id) : []);
@@ -68,8 +70,6 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// Hook de acceso al contexto de favoritos
-// eslint-disable-next-line react-refresh/only-export-components
 export const useFavorites = (): FavoritesContextType => {
     const context = useContext(FavoritesContext);
     if (!context) {
