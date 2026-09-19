@@ -2,44 +2,70 @@
     "peliculas": [
         {
             "id": 1,
-            "titulo": "Superman",
-            "duracion": 130,
+            "titulo": "Resident Evil",
+            "duracion": 93,
             "genero": "Acción",
-            "clasificacion": "TE+7",
-            "poster": ""
+            "clasificacion": "18",
+            "sinopsis": "Película basada en la saga de videojuegos de Capcom del mismo nombre.",
+            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/ntmaNFJ7O60n45E1E6HZlXeSV5e.jpg",
+            "banner": "https://image.tmdb.org/t/p/w1066_and_h600_face/3icyRAqgakNcQn6aDVz9libFmBA.jpg"
         },
         {
             "id": 2,
-            "titulo": "Los 4 Fantásticos",
-            "duracion": 114,
-            "genero": "Acción",
-            "clasificacion": "TE+7",
-            "poster": ""
+            "titulo": "Dune: Part Three",
+            "duracion": 140,
+            "genero": "Ciencia ficción",
+            "clasificacion": "14",
+            "sinopsis": "Paul Atreides, ahora Emperador Muad'Dib, se desenvuelve en su inmenso poder.",
+            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/uj4EuGmFNAc4CHBVEtRZ04MXzka.jpg"
         },
         {
             "id": 3,
-            "titulo": "Cómo entrenar a tu dragón",
-            "duracion": 125,
+            "titulo": "Coyote vs. Acme",
+            "duracion": 103,
+            "genero": "Comedia",
+            "clasificacion": "TE",
+            "sinopsis": "Wile E. Coyote contrata a un abogado para demandar a ACME Corporation.",
+            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/sv6gFggwOOOAMRZssdkNwEIMzCa.jpg"
+        },
+        {
+            "id": 4,
+            "titulo": "La Odisea",
+            "duracion": 173,
             "genero": "Aventura",
-            "clasificacion": "TE+7",
-            "poster": ""
+            "clasificacion": "14",
+            "sinopsis": "Tras la caída de Troya, Odiseo emprende un largo viaje de regreso a Ítaca.",
+            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/sf2ke1nwFOLLcwLZiXu9VaMMv8e.jpg"
+        },
+        {
+            "id": 5,
+            "titulo": "Minions & Monsters",
+            "duracion": 90,
+            "genero": "Animación",
+            "clasificacion": "TE",
+            "sinopsis": "Cómo los minions conquistaron Hollywood.",
+            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/euBGhMiViiIrVyAuA8seORR0QWH.jpg",
+            "banner": "https://image.tmdb.org/t/p/w1066_and_h600_face/kkcwhgSFd81QDlXo8ytrpHPQjhy.jpg"
         }
     ],
     "cines": [
         {
             "id": 1,
             "nombre": "Cinemark",
-            "comuna": "Maipú"
+            "comuna": "Maipú",
+            "logo": "/cinemark.png"
         },
         {
             "id": 2,
             "nombre": "Cinépolis",
-            "comuna": "La Reina"
+            "comuna": "La Reina",
+            "logo": "/cinepolis.png"
         },
         {
             "id": 3,
             "nombre": "Cineplanet",
-            "comuna": "Santiago"
+            "comuna": "Santiago",
+            "logo": "/cineplanet.png"
         }
     ],
     "funciones": [
@@ -69,6 +95,42 @@
             "formato": "2D",
             "idioma": "Subtitulada",
             "precio": 4800
+        },
+        {
+            "id": 4,
+            "peliculaId": 2,
+            "cineId": 2,
+            "horario": "20:30",
+            "formato": "2D",
+            "idioma": "Subtitulada",
+            "precio": 5000
+        },
+        {
+            "id": 5,
+            "peliculaId": 3,
+            "cineId": 3,
+            "horario": "17:00",
+            "formato": "2D",
+            "idioma": "Doblada",
+            "precio": 4200
+        },
+        {
+            "id": 6,
+            "peliculaId": 4,
+            "cineId": 1,
+            "horario": "20:00",
+            "formato": "IMAX",
+            "idioma": "Subtitulada",
+            "precio": 7500
+        },
+        {
+            "id": 7,
+            "peliculaId": 5,
+            "cineId": 3,
+            "horario": "21:30",
+            "formato": "2D",
+            "idioma": "Doblada",
+            "precio": 5200
         }
     ]
 }
