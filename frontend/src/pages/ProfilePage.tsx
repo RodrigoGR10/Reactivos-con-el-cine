@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
@@ -203,14 +204,26 @@ const ProfilePage = () => {
                                         key={peli.id}
                                         className={`poster-card ${modoEdicion ? 'editing' : ''}`}
                                         title={peli.titulo}
-                                    >
-                                        <img
+                                  >
+                                    {modoEdicion ? (
+                                      <img
+                                        src={peli.poster}
+                                        alt={peli.titulo}
+                                        className="poster-img"
+                                        loading="lazy"
+                                        />
+                                    ) : (
+                                        <Link to={`/peliculas/${peli.id}`}>
+                                          <img
                                             src={peli.poster}
                                             alt={peli.titulo}
                                             className="poster-img"
                                             loading="lazy"
-                                        />
-                                        {modoEdicion && (
+                                          />
+                                        </Link>
+                                        )}
+                                    
+                                    {modoEdicion && (
                                             <div className="poster-edit-overlay">
                                                 <button
                                                     type="button"

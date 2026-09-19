@@ -371,6 +371,7 @@ body {
 
 .boton-horarios,
 .boton-tarjeta {
+  text-decoration: none;
   color: #ffffff;
   font-weight: 750;
   background: var(--color-acento);

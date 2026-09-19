@@ -1,3 +1,4 @@
+import {Link} from 'react-router-dom'
 import type { Pelicula } from '../types/types.ts'
 
 interface TarjetaPeliculaProps {
@@ -24,9 +25,9 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
         </p>
         <div className="pie-tarjeta">
           <span className="clasificacion">{pelicula.clasificacion}</span>
-          <button type="button" className="boton-tarjeta" title="Próximamente">
+          <Link to={`/peliculas/${pelicula.id}`} className="boton-tarjeta">
             Ver horarios
-          </button>
+          </Link>
         </div>
       </div>
     </article>
