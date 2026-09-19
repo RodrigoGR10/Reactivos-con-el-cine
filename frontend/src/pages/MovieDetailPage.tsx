@@ -4,6 +4,7 @@ import type { Pelicula, Cine, Funcion } from "../types/types";
 import peliculaService from "../services/peliculas";
 import cineService from "../services/cines";
 import funcionService from "../services/funciones";
+import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
 import "./MovieDetailPage.css";
@@ -11,7 +12,7 @@ import "./MovieDetailPage.css";
 function MovieDetailPage() {
     const { id } = useParams();
     const { toggleFavoriteMovie, isFavoriteMovie } = useFavorites();
-
+    const { user, openAuthModal } = useAuth();
     const peliculaId = Number(id ?? "1");
 
     const [pelicula, setPelicula] = useState<Pelicula | null>(null);
@@ -116,7 +117,13 @@ function MovieDetailPage() {
                             <button 
                               type="button"
                               className="boton-favorito"
-                              onClick={() => toggleFavoriteMovie(pelicula.id)}
+                              onClick={() => {
+                                if (!user) {
+                                  openAuthModal();
+                                  return;
+                                }
+                                toggleFavoriteMovie(pelicula.id)
+                              }}
                             >
                               {isFavoriteMovie(pelicula.id) ? '♥' : '♡'}
                             </button>
