@@ -4,11 +4,13 @@ import type { Pelicula, Cine, Funcion } from "../types/types";
 import peliculaService from "../services/peliculas";
 import cineService from "../services/cines";
 import funcionService from "../services/funciones";
+import { useFavorites } from "../context/FavoritesContext";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
 import "./MovieDetailPage.css";
 
 function MovieDetailPage() {
     const { id } = useParams();
+    const { toggleFavoriteMovie, isFavoriteMovie } = useFavorites();
 
     const peliculaId = Number(id ?? "1");
 
@@ -22,10 +24,10 @@ function MovieDetailPage() {
     useEffect(() => {
         setError(null);
 
-        Promise.all([
-            peliculaService.getById(String(peliculaId)),
-            funcionService.getByPelicula(peliculaId),
-            cineService.getAll(),
+      Promise.all([
+          peliculaService.getById(String(peliculaId)),
+          funcionService.getByPelicula(peliculaId),
+          cineService.getAll(),
         ])
             .then(([peliculaData, funcionesData, cinesData]) => {
                 setPelicula(peliculaData);
@@ -110,6 +112,14 @@ function MovieDetailPage() {
                             <span>{pelicula.genero}</span>
                             <span aria-hidden="true">•</span>
                             <span>{pelicula.duracion} min</span>
+                            <span aria-hidden="true">•</span>
+                            <button 
+                              type="button"
+                              className="boton-favorito"
+                              onClick={() => toggleFavoriteMovie(pelicula.id)}
+                            >
+                              {isFavoriteMovie(pelicula.id) ? '♥' : '♡'}
+                            </button>
                         </div>
 
                         <p className="sinopsis-detalle">
