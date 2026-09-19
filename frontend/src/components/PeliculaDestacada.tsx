@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Pelicula } from '../types/types.ts'
 
 interface PeliculaDestacadaProps {
@@ -27,9 +28,9 @@ function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
         {pelicula.sinopsis && (
           <p className="sinopsis-destacada">{pelicula.sinopsis}</p>
         )}
-        <button type="button" className="boton-horarios" title="Próximamente">
+        <Link to={`/peliculas/${pelicula.id}`} className="boton-horarios">
           Ver horarios
-        </button>
+        </Link>
       </div>
     </section>
   )
