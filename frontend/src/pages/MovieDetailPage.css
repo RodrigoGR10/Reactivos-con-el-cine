@@ -95,6 +95,13 @@
     line-height: 1.75;
 }
 
+.boton-favorito {
+    padding: 5px 9px;
+    color: #ffffff;
+    background: var(--color-acento);
+    border-radius: 6px;
+}
+
 .seccion-funciones {
     padding-bottom: 20px;
 }
