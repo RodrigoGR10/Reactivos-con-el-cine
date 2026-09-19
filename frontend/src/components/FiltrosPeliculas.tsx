@@ -1,4 +1,8 @@
+import BuscadorPeliculas from './BuscadorPeliculas.tsx'
+
 interface FiltrosPeliculasProps {
+  busqueda: string
+  onBusquedaChange: (nuevaBusqueda: string) => void
   generos: string[]
   clasificaciones: string[]
   generoSeleccionado: string
@@ -12,6 +16,8 @@ interface FiltrosPeliculasProps {
 }
 
 function FiltrosPeliculas({
+  busqueda,
+  onBusquedaChange,
   generos,
   clasificaciones,
   generoSeleccionado,
@@ -24,19 +30,19 @@ function FiltrosPeliculas({
   onLimpiar,
 }: FiltrosPeliculasProps) {
   return (
-    <section className="panel-filtros" aria-labelledby="titulo-filtros">
-      <div className="encabezado-filtros">
-        <div>
-          <p className="subtitulo-seccion">Personaliza tu búsqueda</p>
-          <h2 id="titulo-filtros">Filtrar cartelera</h2>
-        </div>
+    <section className="panel-filtros" aria-label="Búsqueda y filtros de cartelera">
+      <div className="fila-busqueda-filtros">
+        <BuscadorPeliculas
+          busqueda={busqueda}
+          onBusquedaChange={onBusquedaChange}
+        />
         <button
           type="button"
           className="boton-limpiar"
           onClick={onLimpiar}
           disabled={!hayFiltrosActivos}
         >
-          Limpiar filtros
+          Limpiar
         </button>
       </div>
 

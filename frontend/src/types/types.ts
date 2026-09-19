@@ -6,6 +6,7 @@ export interface Pelicula {
     clasificacion: string;
     sinopsis: string;
     poster: string;
+    banner?: string
 }
 
 export interface Cine {

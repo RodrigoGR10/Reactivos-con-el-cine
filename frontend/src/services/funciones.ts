@@ -13,12 +13,14 @@ const getAll = () => {
     });
 };
 
-// Obtiene las funciones de una película.
+// Obtiene las funciones de una película directamente desde el backend.
 const getByPelicula = (peliculaId: number) => {
-    return getAll().then((funciones) => {
-        return funciones.filter(
-            (funcion) => funcion.peliculaId === peliculaId
-        );
+    return fetch(`${baseUrl}?peliculaId=${peliculaId}`).then((response) => {
+        if (!response.ok) {
+            throw new Error("No se pudieron obtener las funciones de la película");
+        }
+
+        return response.json() as Promise<Funcion[]>;
     });
 };
 

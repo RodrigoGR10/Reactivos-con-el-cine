@@ -9,8 +9,8 @@ function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
     <section className="pelicula-destacada" aria-labelledby="titulo-destacada">
       <div className="decoracion-destacada">
         <img
-          src={pelicula.poster}
-          alt={`Poster de ${pelicula.titulo}`}
+          src={pelicula.banner || pelicula.poster}
+          alt={`Banner de ${pelicula.titulo}`}
         />
       </div>
 

@@ -4,8 +4,6 @@
     padding: 52px 0 80px;
 }
 
-/* HERO */
-
 .hero-detalle {
     display: grid;
     grid-template-columns: 270px 1fr;
@@ -97,8 +95,6 @@
     line-height: 1.75;
 }
 
-/* FUNCIONES */
-
 .seccion-funciones {
     padding-bottom: 20px;
 }
@@ -143,8 +139,6 @@
     border-color: var(--color-acento);
     outline: 3px solid rgba(230, 45, 63, 0.14);
 }
-
-/* CINES */
 
 .lista-cines {
     display: grid;
@@ -256,8 +250,6 @@
     font-weight: 800;
 }
 
-/* ESTADOS */
-
 .sin-funciones,
 .mensaje-detalle {
     padding: 50px 20px;
@@ -277,8 +269,6 @@
 .sin-funciones p {
     margin: 0;
 }
-
-/* RESPONSIVE */
 
 @media (max-width: 820px) {
     .hero-detalle {

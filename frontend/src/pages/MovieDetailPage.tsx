@@ -5,7 +5,6 @@ import peliculaService from "../services/peliculas";
 import cineService from "../services/cines";
 import funcionService from "../services/funciones";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
-import BarraNavegacion from "../components/BarraNavegacion";
 import "./MovieDetailPage.css";
 
 function MovieDetailPage() {
@@ -40,33 +39,19 @@ function MovieDetailPage() {
 
     if (error) {
         return (
-            <>
-                <BarraNavegacion
-                    busqueda=""
-                    onBusquedaChange={() => { }}
-                />
-
-                <main className="detalle-pelicula">
-                    <p className="mensaje-detalle">{error}</p>
-                </main>
-            </>
+            <div className="detalle-pelicula">
+                <p className="mensaje-detalle">{error}</p>
+            </div>
         );
     }
 
     if (!pelicula) {
         return (
-            <>
-                <BarraNavegacion
-                    busqueda=""
-                    onBusquedaChange={() => { }}
-                />
-
-                <main className="detalle-pelicula">
-                    <p className="mensaje-detalle">
-                        Cargando película...
-                    </p>
-                </main>
-            </>
+            <div className="detalle-pelicula">
+                <p className="mensaje-detalle">
+                    Cargando película...
+                </p>
+            </div>
         );
     }
 
@@ -97,14 +82,8 @@ function MovieDetailPage() {
     );
 
     return (
-        <>
-            <BarraNavegacion
-                busqueda=""
-                onBusquedaChange={() => { }}
-            />
-
-            <main className="detalle-pelicula">
-                <section className="hero-detalle">
+        <div className="detalle-pelicula">
+            <section className="hero-detalle">
                     <div className="poster-detalle">
                         {pelicula.poster ? (
                             <img
@@ -262,8 +241,7 @@ function MovieDetailPage() {
                         </div>
                     )}
                 </section>
-            </main>
-        </>
+        </div>
     );
 }
 

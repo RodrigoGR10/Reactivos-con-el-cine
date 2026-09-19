@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import BarraNavegacion from '../components/BarraNavegacion.tsx'
 import Cartelera from '../components/Cartelera.tsx'
 import FiltrosPeliculas from '../components/FiltrosPeliculas.tsx'
 import PeliculaDestacada from '../components/PeliculaDestacada.tsx'
@@ -73,11 +72,13 @@ function PaginaPrincipal() {
   })
 
   const hayFiltrosActivos =
+    busqueda.trim() !== '' ||
     generoSeleccionado !== '' ||
     clasificacionSeleccionada !== '' ||
     duracionSeleccionada !== ''
 
   function limpiarFiltros() {
+    setBusqueda('')
     setGeneroSeleccionado('')
     setClasificacionSeleccionada('')
     setDuracionSeleccionada('')
@@ -85,57 +86,52 @@ function PaginaPrincipal() {
 
   return (
     <>
-      <BarraNavegacion
-        busqueda={busqueda}
-        onBusquedaChange={setBusqueda}
-      />
+      {cargando ? (
+        <p className="sin-resultados">
+          Cargando películas...
+        </p>
+      ) : error ? (
+        <p className="sin-resultados">
+          {error}
+        </p>
+      ) : peliculas.length > 0 ? (
+        <>
+          <PeliculaDestacada pelicula={peliculas[0]} />
 
-      <main>
-        {cargando ? (
-          <p className="sin-resultados">
-            Cargando películas...
-          </p>
-        ) : error ? (
-          <p className="sin-resultados">
-            {error}
-          </p>
-        ) : peliculas.length > 0 ? (
-          <>
-            <PeliculaDestacada pelicula={peliculas[0]} />
+          <div className="contenido-principal">
+            <FiltrosPeliculas
+              busqueda={busqueda}
+              onBusquedaChange={setBusqueda}
+              generos={generosDisponibles}
+              clasificaciones={clasificacionesDisponibles}
+              generoSeleccionado={generoSeleccionado}
+              clasificacionSeleccionada={clasificacionSeleccionada}
+              duracionSeleccionada={duracionSeleccionada}
+              hayFiltrosActivos={hayFiltrosActivos}
+              onGeneroChange={setGeneroSeleccionado}
+              onClasificacionChange={setClasificacionSeleccionada}
+              onDuracionChange={setDuracionSeleccionada}
+              onLimpiar={limpiarFiltros}
+            />
 
-            <div className="contenido-principal">
-              <FiltrosPeliculas
-                generos={generosDisponibles}
-                clasificaciones={clasificacionesDisponibles}
-                generoSeleccionado={generoSeleccionado}
-                clasificacionSeleccionada={clasificacionSeleccionada}
-                duracionSeleccionada={duracionSeleccionada}
-                hayFiltrosActivos={hayFiltrosActivos}
-                onGeneroChange={setGeneroSeleccionado}
-                onClasificacionChange={setClasificacionSeleccionada}
-                onDuracionChange={setDuracionSeleccionada}
-                onLimpiar={limpiarFiltros}
-              />
-
-              <section className="seccion-cartelera" aria-labelledby="titulo-cartelera">
-                <div className="titulo-cartelera">
-                  <div>
-                    <p className="subtitulo-seccion">Ahora en cines</p>
-                    <h2 id="titulo-cartelera">Cartelera</h2>
-                  </div>
-                  <p aria-live="polite">
-                    {peliculasFiltradas.length}{' '}
-                    {peliculasFiltradas.length === 1 ? 'película' : 'películas'}
-                  </p>
+            <section className="seccion-cartelera" aria-labelledby="titulo-cartelera">
+              <div className="titulo-cartelera">
+                <div>
+                  <p className="subtitulo-seccion">Ahora en cines</p>
+                  <h2 id="titulo-cartelera">Cartelera</h2>
                 </div>
-                <Cartelera peliculas={peliculasFiltradas} />
-              </section>
-            </div>
-          </>
-        ) : (
-          <p className="sin-resultados">No hay películas disponibles.</p>
-        )}
-      </main>
+                <p aria-live="polite">
+                  {peliculasFiltradas.length}{' '}
+                  {peliculasFiltradas.length === 1 ? 'película' : 'películas'}
+                </p>
+              </div>
+              <Cartelera peliculas={peliculasFiltradas} />
+            </section>
+          </div>
+        </>
+      ) : (
+        <p className="sin-resultados">No hay películas disponibles.</p>
+      )}
     </>
   )
 }
