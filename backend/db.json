@@ -7,7 +7,8 @@
             "genero": "Acción",
             "clasificacion": "18",
             "sinopsis": "Película basada en la saga de videojuegos de Capcom del mismo nombre.",
-            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/ntmaNFJ7O60n45E1E6HZlXeSV5e.jpg"
+            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/ntmaNFJ7O60n45E1E6HZlXeSV5e.jpg",
+            "banner": "https://image.tmdb.org/t/p/w1066_and_h600_face/3icyRAqgakNcQn6aDVz9libFmBA.jpg"
         },
         {
             "id": 2,
@@ -43,7 +44,8 @@
             "genero": "Animación",
             "clasificacion": "TE",
             "sinopsis": "Cómo los minions conquistaron Hollywood.",
-            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/euBGhMiViiIrVyAuA8seORR0QWH.jpg"
+            "poster": "https://image.tmdb.org/t/p/w440_and_h660_face/euBGhMiViiIrVyAuA8seORR0QWH.jpg",
+            "banner": "https://image.tmdb.org/t/p/w1066_and_h600_face/kkcwhgSFd81QDlXo8ytrpHPQjhy.jpg"
         }
     ],
     "cines": [
