@@ -18,7 +18,10 @@ const getById = (id: string) => {
             throw new Error("No se pudo obtener la película");
         }
 
-        return response.json() as Promise<Pelicula>;
+      return response.json().then((data) => ({
+        ...data,
+        id: Number(data.id),
+        })) as Promise<Pelicula>;
     });
 };
 
