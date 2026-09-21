@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import profileService from '../services/profileService';
 
@@ -15,11 +15,8 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(undefin
 
 export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     const { user } = useAuth();
-    const currentUserId = user ? user.id : null;
 
-    // Rastreamos el userId previo para detectar login/logout y recargar favoritos
-    // sin depender de un useEffect (evita cascada de renders)
-    const [prevUserId, setPrevUserId] = useState<number | null>(currentUserId);
+    // Inicialización perezosa: obtiene favoritos iniciales solo en el primer montaje
     const [favoriteMovieIds, setFavoriteMovieIds] = useState<number[]>(() =>
         user ? profileService.getFavoriteMovieIds(user.id) : []
     );
@@ -27,12 +24,16 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
         user ? profileService.getFavoriteCinemaIds(user.id) : []
     );
 
-    // Sincronización inmediata al cambiar de usuario (login/logout/switch)
-    if (currentUserId !== prevUserId) {
-        setPrevUserId(currentUserId);
-        setFavoriteMovieIds(user ? profileService.getFavoriteMovieIds(user.id) : []);
-        setFavoriteCinemaIds(user ? profileService.getFavoriteCinemaIds(user.id) : []);
-    }
+    // Sincroniza el estado de favoritos cada vez que cambia la sesión (login/logout)
+    useEffect(() => {
+        if (user) {
+            setFavoriteMovieIds(profileService.getFavoriteMovieIds(user.id));
+            setFavoriteCinemaIds(profileService.getFavoriteCinemaIds(user.id));
+        } else {
+            setFavoriteMovieIds([]);
+            setFavoriteCinemaIds([]);
+        }
+    }, [user]);
 
     const toggleFavoriteMovie = (movieId: number) => {
         if (!user) return;
