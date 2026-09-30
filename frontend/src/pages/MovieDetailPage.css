@@ -1,0 +1,359 @@
+.detalle-pelicula {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 52px 0 80px;
+}
+
+.hero-detalle {
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    gap: 42px;
+    align-items: center;
+    padding: 36px;
+    margin-bottom: 62px;
+
+    background:
+        linear-gradient(135deg,
+            rgba(230, 45, 63, 0.14),
+            transparent 45%),
+        var(--color-superficie);
+
+    border: 1px solid var(--color-borde);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.poster-detalle {
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid #34353e;
+    box-shadow: 0 22px 45px rgba(0, 0, 0, 0.4);
+}
+
+.poster-detalle img,
+.poster-detalle-placeholder {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 2.95;
+    object-fit: cover;
+}
+
+.poster-detalle-placeholder {
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    font-size: 4rem;
+
+    background:
+        radial-gradient(circle at 50% 35%,
+            rgba(230, 45, 63, 0.55),
+            transparent 32%),
+        linear-gradient(145deg,
+            #22232a,
+            #531923 60%,
+            #17181d);
+}
+
+.contenido-detalle {
+    max-width: 700px;
+}
+
+.contenido-detalle h1 {
+    margin: 8px 0 18px;
+    color: var(--color-texto);
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+}
+
+.metadatos-detalle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    color: var(--color-texto-secundario);
+    font-weight: 700;
+}
+
+.metadatos-detalle span:first-child {
+    padding: 5px 9px;
+    color: #ffffff;
+    background: var(--color-acento);
+    border-radius: 6px;
+}
+
+.metadatos-detalle span:nth-child(even) {
+    color: var(--color-acento);
+}
+
+.sinopsis-detalle {
+    max-width: 650px;
+    color: var(--color-texto-secundario);
+    font-size: 1.05rem;
+    line-height: 1.75;
+}
+
+.boton-fav-peli {
+    padding: 5px 9px;
+    color: #ffffff;
+    background: var(--color-acento);
+    border-radius: 6px;
+}
+
+.seccion-funciones {
+    padding-bottom: 20px;
+}
+
+.encabezado-funciones {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.encabezado-funciones h2 {
+    margin: 0;
+    color: var(--color-texto);
+    font-size: 1.9rem;
+    letter-spacing: -0.03em;
+}
+
+.filtro-formato {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filtro-formato label {
+    color: var(--color-texto);
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.filtro-formato select {
+    min-width: 130px;
+    padding: 10px 36px 10px 12px;
+    color: var(--color-texto);
+    background: var(--color-superficie-clara);
+    border: 1px solid #34353e;
+    border-radius: 8px;
+}
+
+.filtro-formato select:focus {
+    border-color: var(--color-acento);
+    outline: 3px solid rgba(230, 45, 63, 0.14);
+}
+
+.lista-cines {
+    display: grid;
+    gap: 20px;
+}
+
+.tarjeta-cine {
+    padding: 24px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 14px;
+    transition:
+        border-color 180ms ease,
+        transform 180ms ease;
+}
+
+.tarjeta-cine:hover {
+    border-color: #494a54;
+    transform: translateY(-2px);
+}
+
+.cabecera-cine {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.logo-cine {
+    position: relative;
+    display: grid;
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+    place-items: center;
+    padding: 8px;
+
+    background: #ffffff;
+    border-radius: 10px;
+}
+
+.logo-cine img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.logo-cine span {
+    font-size: 1.6rem;
+}
+
+.boton-fav-cine {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    z-index: 2;
+
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background:#531923;
+    color: white;
+    cursor: pointer;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: scale(0.8);
+    
+}
+.logo-cine:hover .boton-fav-cine {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+.cabecera-cine h3 {
+    margin: 0 0 4px;
+    color: var(--color-texto);
+    font-size: 1.2rem;
+}
+
+.cabecera-cine p {
+    margin: 0;
+    color: var(--color-texto-secundario);
+    font-size: 0.9rem;
+}
+
+.horarios-cine {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.tarjeta-horario {
+    display: grid;
+    min-width: 150px;
+    padding: 14px 16px;
+    gap: 4px;
+
+    color: var(--color-texto);
+    text-align: left;
+
+    background: var(--color-superficie-clara);
+    border: 1px solid #34353e;
+    border-radius: 10px;
+
+    transition:
+        border-color 160ms ease,
+        background 160ms ease,
+        transform 160ms ease;
+}
+
+.tarjeta-horario:hover {
+    background: #202128;
+    border-color: var(--color-acento);
+    transform: translateY(-2px);
+}
+
+.tarjeta-horario strong {
+    color: #ffffff;
+    font-size: 1.2rem;
+}
+
+.tarjeta-horario span {
+    color: var(--color-texto-secundario);
+    font-size: 0.78rem;
+}
+
+.tarjeta-horario .precio-horario {
+    margin-top: 4px;
+    color: var(--color-acento);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.sin-funciones,
+.mensaje-detalle {
+    padding: 50px 20px;
+    color: var(--color-texto-secundario);
+    text-align: center;
+    background: var(--color-superficie);
+    border: 1px dashed #3b3c45;
+    border-radius: 12px;
+}
+
+.sin-funciones span {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 2.5rem;
+}
+
+.sin-funciones p {
+    margin: 0;
+}
+
+@media (max-width: 820px) {
+    .hero-detalle {
+        grid-template-columns: 210px 1fr;
+        gap: 28px;
+        padding: 28px;
+    }
+
+    .contenido-detalle h1 {
+        font-size: 3rem;
+    }
+
+    .encabezado-funciones {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 600px) {
+    .detalle-pelicula {
+        width: min(100% - 28px, 1180px);
+        padding: 34px 0 60px;
+    }
+
+    .hero-detalle {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
+
+    .poster-detalle {
+        width: min(230px, 100%);
+        margin: 0 auto;
+    }
+
+    .contenido-detalle h1 {
+        font-size: 2.8rem;
+    }
+
+    .filtro-formato {
+        width: 100%;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .filtro-formato select {
+        width: 100%;
+    }
+
+    .tarjeta-horario {
+        width: 100%;
+    }
+}
