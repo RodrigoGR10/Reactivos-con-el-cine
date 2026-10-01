@@ -59,11 +59,9 @@ const ProfilePage = () => {
   }, []);
 
   const peliculasFavoritas = peliculas.filter((p) =>
-    favoriteMovieIds.includes(Number(p.id)),
+    favoriteMovieIds.includes(p.id),
   );
-  const cinesFavoritos = cines.filter((c) =>
-    favoriteCinemaIds.includes(Number(c.id)),
-  );
+  const cinesFavoritos = cines.filter((c) => favoriteCinemaIds.includes(c.id));
 
   // Buscador solo aparece si hay >14 items (evita UI innecesaria en listas cortas)
   const mostrarBuscador =
@@ -252,9 +250,7 @@ const ProfilePage = () => {
                             <button
                               type="button"
                               className="btn-poster-remove"
-                              onClick={() =>
-                                toggleFavoriteMovie(Number(peli.id))
-                              }
+                              onClick={() => toggleFavoriteMovie(peli.id)}
                               title={`Eliminar ${peli.titulo} de mis películas`}
                             >
                               ✕
@@ -336,9 +332,7 @@ const ProfilePage = () => {
                             <button
                               type="button"
                               className="btn-cinema-toggle remove"
-                              onClick={() =>
-                                toggleFavoriteCinema(Number(cine.id))
-                              }
+                              onClick={() => toggleFavoriteCinema(cine.id)}
                               title="eliminar de cines habituales"
                             >
                               eliminar ✕
