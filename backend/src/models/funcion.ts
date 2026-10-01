@@ -14,9 +14,8 @@ if (url) {
   });
 }
 export interface Funcion {
-  id: number;
-  peliculaId: number;
-  cineId: number;
+  peliculaId: mongoose.Types.ObjectId;
+  cineId: mongoose.Types.ObjectId;
   horario: string;
   formato: string;
   idioma: string;
@@ -25,9 +24,12 @@ export interface Funcion {
 
 const funcionSchema = new mongoose.Schema<Funcion>(
   {
-    id: { type: Number, required: true },
-    peliculaId: { type: Number, required: true },
-    cineId: { type: Number, required: true },
+    peliculaId: {
+      type: Schema.Types.ObjectId,
+      ref: "Pelicula",
+      required: true,
+    },
+    cineId: { type: Schema.Types.ObjectId, ref: "Cine", required: true },
     horario: { type: String, required: true },
     formato: { type: String, required: true },
     idioma: { type: String, required: true },
@@ -35,7 +37,6 @@ const funcionSchema = new mongoose.Schema<Funcion>(
   },
   {
     timestamps: true,
-    strict: false, //Mantiene flexibilidad (solo es inicial)
   },
 );
 

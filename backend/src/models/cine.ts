@@ -14,7 +14,6 @@ if (url) {
   });
 }
 export interface Cine {
-  id: number;
   nombre: string;
   comuna: string;
   logo?: string;
@@ -22,18 +21,16 @@ export interface Cine {
 
 const cineSchema = new mongoose.Schema<Cine>(
   {
-    id: { type: Number, required: true },
     nombre: { type: String, required: true },
     comuna: { type: String, required: true },
     logo: { type: String },
   },
   {
     timestamps: true,
-    strict: false, //Mantiene flexibilidad (solo es inicial)
   },
 );
 
-const CineModel = mongoose.model<Cine>('Cine', cineSchema, 'cines');
+const CineModel = mongoose.model<Cine>("Cine", cineSchema, "cines");
 
 cineSchema.set("toJSON", {
   transform: (

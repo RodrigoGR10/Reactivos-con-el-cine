@@ -15,7 +15,6 @@ if (url) {
 }
 
 export interface Pelicula {
-  id: number;
   titulo: string;
   duracion: number;
   genero: string;
@@ -27,7 +26,6 @@ export interface Pelicula {
 
 const peliculaSchema = new mongoose.Schema<Pelicula>(
   {
-    id: { type: Number, required: true },
     titulo: { type: String, required: true },
     duracion: { type: Number, required: true },
     genero: { type: String, required: true },
@@ -38,7 +36,6 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
   },
   {
     timestamps: true,
-    strict: false, //Mantiene flexibilidad (solo es inicial)
   },
 );
 
