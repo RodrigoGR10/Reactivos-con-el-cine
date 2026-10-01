@@ -33,13 +33,18 @@ body:has(.auth-modal-overlay) {
     position: relative;
     width: 410px;
     height: 465px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%),
-                rgba(14, 18, 26, 0.32);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.12) 0%,
+            rgba(255, 255, 255, 0.02) 100%
+        ),
+        rgba(14, 18, 26, 0.32);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 20px;
     backdrop-filter: blur(10px) saturate(190%);
     -webkit-backdrop-filter: blur(10px) saturate(190%);
-    box-shadow: 
+    box-shadow:
         0 24px 50px -10px rgba(0, 0, 0, 0.75),
         inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
         inset 0 -1px 1px 0 rgba(255, 255, 255, 0.12),
@@ -50,7 +55,9 @@ body:has(.auth-modal-overlay) {
     overflow: hidden;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    transition: height 0.35s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition:
+        height 0.35s ease,
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     animation: authCardPop 0.16s ease-out;
 }
 
@@ -115,7 +122,7 @@ body:has(.auth-modal-overlay) {
 }
 
 .auth-form-box h2::after {
-    content: '';
+    content: "";
     display: block;
     width: 32px;
     height: 2px;
@@ -126,7 +133,9 @@ body:has(.auth-modal-overlay) {
 }
 
 .auth-form-box.login {
-    transition: transform 0.35s ease, opacity 0.25s ease;
+    transition:
+        transform 0.35s ease,
+        opacity 0.25s ease;
     transform: translateX(0);
     opacity: 1;
 }
@@ -149,7 +158,9 @@ body:has(.auth-modal-overlay) {
     transform: translateX(400px);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.35s ease, opacity 0.25s ease;
+    transition:
+        transform 0.35s ease,
+        opacity 0.25s ease;
 }
 
 .auth-modal-wrapper.active .auth-form-box.register {
@@ -164,7 +175,9 @@ body:has(.auth-modal-overlay) {
     height: 50px;
     border-bottom: 1.5px solid rgba(255, 255, 255, 0.3);
     margin: 24px 0;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
 }
 
 .auth-input-box:focus-within {
@@ -239,7 +252,9 @@ body:has(.auth-modal-overlay) {
     justify-content: center;
     height: 100%;
     padding: 0;
-    transition: color 0.2s ease, transform 0.15s ease;
+    transition:
+        color 0.2s ease,
+        transform 0.15s ease;
 }
 
 .auth-input-box .auth-btn-toggle-password:hover {

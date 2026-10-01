@@ -1,9 +1,9 @@
-import { NavLink } from 'react-router-dom'
-import { HomeIcon, UserIcon, LogInIcon, LogOutIcon } from './common/Icons'
-import { useAuth } from '../context/AuthContext'
+import { NavLink } from "react-router-dom";
+import { HomeIcon, UserIcon, LogInIcon, LogOutIcon } from "./common/Icons";
+import { useAuth } from "../context/AuthContext";
 
 function Sidebar() {
-  const { user, logout, openAuthModal } = useAuth()
+  const { user, logout, openAuthModal } = useAuth();
 
   return (
     <aside className="sidebar" aria-label="Navegación principal">
@@ -25,14 +25,18 @@ function Sidebar() {
         <NavLink
           to="/"
           end
-          className={({ isActive }) => `sidebar-btn ${isActive ? 'active' : ''}`}
+          className={({ isActive }) =>
+            `sidebar-btn ${isActive ? "active" : ""}`
+          }
           title="Inicio"
         >
           <HomeIcon size={28} />
         </NavLink>
         <NavLink
           to="/perfil"
-          className={({ isActive }) => `sidebar-btn ${isActive ? 'active' : ''}`}
+          className={({ isActive }) =>
+            `sidebar-btn ${isActive ? "active" : ""}`
+          }
           title="Perfil"
         >
           <UserIcon size={28} />
@@ -61,7 +65,7 @@ function Sidebar() {
         )}
       </div>
     </aside>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;
