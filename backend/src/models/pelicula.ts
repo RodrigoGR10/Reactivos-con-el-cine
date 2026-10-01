@@ -45,7 +45,7 @@ peliculaSchema.set("toJSON", {
   transform: (
     _,
     returnedObject: {
-      id?: number;
+      id?: string;
       _id?: mongoose.Types.ObjectId;
       __v?: number;
     },
