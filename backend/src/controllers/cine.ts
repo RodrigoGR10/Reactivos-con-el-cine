@@ -4,12 +4,10 @@ import express from "express";
 
 const router = express.Router();
 
-router.get("/", (request, response, next) => {
-  CineModel.find({})
-    .then((cines) => {
-      response.json(cines);
-    })
-    .catch((error) => next(error));
+router.get("/", async (req, res, next) => {
+  const cines = await CineModel.find({});
+
+  res.json(cines);
 });
 
 export default router;

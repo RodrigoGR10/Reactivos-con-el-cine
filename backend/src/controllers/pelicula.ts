@@ -4,27 +4,19 @@ import express from "express";
 
 const router = express.Router();
 
-router.get("/", (request, response, next) => {
-  PeliculaModel.find({})
-    .then((peliculas) => {
-      response.json(peliculas);
-    })
-    .catch((error) => next(error));
+router.get("/", async (req, res, next) => {
+  const peliculas = await PeliculaModel.find({});
+
+  res.json(peliculas);
 });
 
-router.get("/:id", (request, response, next) => {
-  const id = request.params.id;
-  const pelicula = PeliculaModel.findById(id);
+router.get("/:id", async (req, res, next) => {
+  const pelicula = await PeliculaModel.findById(req.params.id);
 
-  Promise.all([pelicula])
-    .then(([peliculaEncontrada]) => {
-      if (peliculaEncontrada) {
-        response.json(peliculaEncontrada);
-      } else {
-        response.status(404).json({ error: "Pelicula no encontrada" });
-      }
-    })
-    .catch((error) => next(error));
+  if (!pelicula) {
+    res.status(404).json({ error: "Pelicula no encontrada" });
+  }
+  res.json(pelicula);
 });
 
 export default router;

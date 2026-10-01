@@ -5,40 +5,34 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
-router.get("/", (request, response, next) => {
-  const { peliculaId } = request.query;
+router.get("/", async (req, res, next) => {
+  const { peliculaId } = req.query;
 
   // Sin filtro: traemos todas las funciones
   if (peliculaId === undefined) {
-    FuncionModel.find({})
-      .then((funciones) => response.json(funciones))
-      .catch((error) => next(error));
+    const funciones = await FuncionModel.find({});
+    res.json(funciones);
     return;
   }
 
   // Con filtro: debe ser un string con formato de ObjectId válido
   if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
-    response.status(400).json({ error: "peliculaId inválido" });
+    res.status(400).json({ error: "peliculaId inválido" });
     return;
   }
 
-  FuncionModel.find({ peliculaId })
-    .then((funciones) => response.json(funciones))
-    .catch((error) => next(error));
+  const funcionesFiltradas = await FuncionModel.find({ peliculaId });
+  res.json(funcionesFiltradas);
 });
 
-router.get("/:id", (request, response, next) => {
-  const id = request.params.id;
+router.get("/:id", async (req, res, next) => {
+  const funcion = await FuncionModel.findById(req.params.id);
 
-  FuncionModel.findById(id)
-    .then((funcion) => {
-      if (funcion) {
-        response.json(funcion);
-      } else {
-        response.status(404).json({ error: "Funcion no encontrada" });
-      }
-    })
-    .catch((error) => next(error));
+  if (funcion) {
+    res.json(funcion);
+  } else {
+    res.status(404).json({ error: "Funcion no encontrada" });
+  }
 });
 
 export default router;
