@@ -1,19 +1,29 @@
 import FuncionModel from "../models/funcion.ts";
 import logger from "../utils/logger.ts";
 import express from "express";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
 router.get("/", (request, response, next) => {
   const { peliculaId } = request.query;
 
-  //si pasan una peli por query, filtramos - si no, traemos todas
-  const filtro = peliculaId ? { pelicula: peliculaId } : {};
+  // Sin filtro: traemos todas las funciones
+  if (peliculaId === undefined) {
+    FuncionModel.find({})
+      .then((funciones) => response.json(funciones))
+      .catch((error) => next(error));
+    return;
+  }
 
-  FuncionModel.find(filtro)
-    .then((funciones) => {
-      response.json(funciones);
-    })
+  // Con filtro: debe ser un string con formato de ObjectId válido
+  if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
+    response.status(400).json({ error: "peliculaId inválido" });
+    return;
+  }
+
+  FuncionModel.find({ peliculaId })
+    .then((funciones) => response.json(funciones))
     .catch((error) => next(error));
 });
 
