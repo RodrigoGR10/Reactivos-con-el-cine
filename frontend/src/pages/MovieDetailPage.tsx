@@ -166,10 +166,10 @@ function MovieDetailPage() {
                           openAuthModal();
                           return;
                         }
-                        toggleFavoriteCinema(Number(cine.id));
+                        toggleFavoriteCinema(cine.id);
                       }}
                     >
-                      {isFavoriteCinema(Number(cine.id)) ? "♥" : "♡"}
+                      {isFavoriteCinema(cine.id) ? "♥" : "♡"}
                     </button>
                     {cine.logo ? (
                       <img src={cine.logo} alt={`Logo de ${cine.nombre}`} />
