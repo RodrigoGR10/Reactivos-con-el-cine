@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom'
-import type { Pelicula } from '../types/types.ts'
+import { Link } from "react-router-dom";
+import type { Pelicula } from "../types/types.ts";
 
 interface PeliculaDestacadaProps {
-  pelicula: Pelicula
+  pelicula: Pelicula;
 }
 
 function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
@@ -33,7 +33,7 @@ function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
         </Link>
       </div>
     </section>
-  )
+  );
 }
 
-export default PeliculaDestacada
+export default PeliculaDestacada;

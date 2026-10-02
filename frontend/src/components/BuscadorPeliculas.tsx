@@ -1,6 +1,6 @@
 interface BuscadorPeliculasProps {
-  busqueda: string
-  onBusquedaChange: (nuevaBusqueda: string) => void
+  busqueda: string;
+  onBusquedaChange: (nuevaBusqueda: string) => void;
 }
 
 function BuscadorPeliculas({
@@ -24,7 +24,7 @@ function BuscadorPeliculas({
         autoComplete="off"
       />
     </div>
-  )
+  );
 }
 
-export default BuscadorPeliculas
+export default BuscadorPeliculas;

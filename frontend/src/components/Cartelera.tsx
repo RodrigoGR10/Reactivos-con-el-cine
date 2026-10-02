@@ -1,8 +1,8 @@
-import type { Pelicula } from '../types/types.ts'
-import TarjetaPelicula from './TarjetaPelicula.tsx'
+import type { Pelicula } from "../types/types.ts";
+import TarjetaPelicula from "./TarjetaPelicula.tsx";
 
 interface CarteleraProps {
-  peliculas: Pelicula[]
+  peliculas: Pelicula[];
 }
 
 function Cartelera({ peliculas }: CarteleraProps) {
@@ -11,7 +11,7 @@ function Cartelera({ peliculas }: CarteleraProps) {
       <p className="sin-resultados" role="status">
         No encontramos películas que coincidan con tu búsqueda y filtros.
       </p>
-    )
+    );
   }
 
   return (
@@ -20,7 +20,7 @@ function Cartelera({ peliculas }: CarteleraProps) {
         <TarjetaPelicula key={pelicula.id} pelicula={pelicula} />
       ))}
     </div>
-  )
+  );
 }
 
-export default Cartelera
+export default Cartelera;

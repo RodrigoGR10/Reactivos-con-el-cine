@@ -1,18 +1,18 @@
-import BuscadorPeliculas from './BuscadorPeliculas.tsx'
+import BuscadorPeliculas from "./BuscadorPeliculas.tsx";
 
 interface FiltrosPeliculasProps {
-  busqueda: string
-  onBusquedaChange: (nuevaBusqueda: string) => void
-  generos: string[]
-  clasificaciones: string[]
-  generoSeleccionado: string
-  clasificacionSeleccionada: string
-  duracionSeleccionada: string
-  hayFiltrosActivos: boolean
-  onGeneroChange: (genero: string) => void
-  onClasificacionChange: (clasificacion: string) => void
-  onDuracionChange: (duracion: string) => void
-  onLimpiar: () => void
+  busqueda: string;
+  onBusquedaChange: (nuevaBusqueda: string) => void;
+  generos: string[];
+  clasificaciones: string[];
+  generoSeleccionado: string;
+  clasificacionSeleccionada: string;
+  duracionSeleccionada: string;
+  hayFiltrosActivos: boolean;
+  onGeneroChange: (genero: string) => void;
+  onClasificacionChange: (clasificacion: string) => void;
+  onDuracionChange: (duracion: string) => void;
+  onLimpiar: () => void;
 }
 
 function FiltrosPeliculas({
@@ -30,7 +30,10 @@ function FiltrosPeliculas({
   onLimpiar,
 }: FiltrosPeliculasProps) {
   return (
-    <section className="panel-filtros" aria-label="Búsqueda y filtros de cartelera">
+    <section
+      className="panel-filtros"
+      aria-label="Búsqueda y filtros de cartelera"
+    >
       <div className="fila-busqueda-filtros">
         <BuscadorPeliculas
           busqueda={busqueda}
@@ -91,7 +94,7 @@ function FiltrosPeliculas({
         </label>
       </div>
     </section>
-  )
+  );
 }
 
-export default FiltrosPeliculas
+export default FiltrosPeliculas;

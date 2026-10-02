@@ -1,11 +1,11 @@
-import './App.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import { FavoritesProvider } from './context/FavoritesContext'
-import MainLayout from './layouts/MainLayout'
-import PaginaPrincipal from './pages/PaginaPrincipal'
-import MovieDetailPage from './pages/MovieDetailPage'
-import ProfilePage from './pages/ProfilePage'
+import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
+import MainLayout from "./layouts/MainLayout";
+import PaginaPrincipal from "./pages/PaginaPrincipal";
+import MovieDetailPage from "./pages/MovieDetailPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -22,6 +22,6 @@ function App() {
         </BrowserRouter>
       </FavoritesProvider>
     </AuthProvider>
-  )
+  );
 }
-export default App
+export default App;
