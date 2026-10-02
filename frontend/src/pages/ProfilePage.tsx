@@ -24,6 +24,17 @@ const getCinemaLogo = (cine: Cine): string => {
   return "";
 };
 
+/** Formatea la fecha de registro dinámicamente en español */
+const formatearFechaRegistro = (fechaStr?: string): string => {
+  const fecha = fechaStr ? new Date(fechaStr) : new Date();
+  const textoFecha = new Intl.DateTimeFormat("es-CL", {
+    month: "long",
+    year: "numeric",
+  }).format(fecha);
+
+  return `se unió en ${textoFecha}`;
+};
+
 type TabType = "peliculas" | "cines";
 
 const ProfilePage = () => {
@@ -102,7 +113,7 @@ const ProfilePage = () => {
               {user ? (
                 <p className="profile-user-joined">
                   <CalendarIcon size={14} className="calendar-icon-inline" />
-                  <span>se unió en septiembre de 2026</span>
+                  <span>{formatearFechaRegistro(user.fechaRegistro)}</span>
                 </p>
               ) : (
                 <button
