@@ -1,12 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import type { Pelicula, Cine, Funcion } from "../types/types";
-import peliculaService from "../services/peliculas";
-import cineService from "../services/cines";
-import funcionService from "../services/funciones";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
+import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import "./MovieDetailPage.css";
 
 function MovieDetailPage() {
@@ -19,34 +16,9 @@ function MovieDetailPage() {
   } = useFavorites();
   const { user, openAuthModal } = useAuth();
 
-  const [pelicula, setPelicula] = useState<Pelicula | null>(null);
-  const [funciones, setFunciones] = useState<Funcion[]>([]);
-  const [cines, setCines] = useState<Cine[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { pelicula, funciones, cines, error } = useDetallePelicula(id);
+
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
-
-  useEffect(() => {
-    if (!id) {
-      setError("Película no encontrada.");
-      return;
-    }
-
-    setError(null);
-
-    Promise.all([
-      peliculaService.getById(id),
-      funcionService.getByPelicula(id),
-      cineService.getAll(),
-    ])
-      .then(([peliculaData, funcionesData, cinesData]) => {
-        setPelicula(peliculaData);
-        setFunciones(funcionesData);
-        setCines(cinesData);
-      })
-      .catch(() => {
-        setError("No se pudo cargar la información.");
-      });
-  }, [id]);
 
   if (error) {
     return (
