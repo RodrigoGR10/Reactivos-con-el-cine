@@ -1,6 +1,7 @@
 import type { Funcion } from "../types/types";
+import { API_BASE_URL } from "./apiConfig";
 
-const baseUrl = "http://localhost:3001/funciones";
+const baseUrl = `${API_BASE_URL}/funciones`;
 
 // Pide todas las funciones.
 const getAll = () => {

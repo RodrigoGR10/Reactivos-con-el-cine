@@ -1,7 +1,8 @@
 import type { Usuario, LoginInput, RegisterInput } from "../types/auth";
+import { API_BASE_URL } from "./apiConfig";
 
 const STORAGE_KEY_USUARIO_ACTIVO = "cine_usuario_activo";
-const BASE_URL = "http://localhost:3001/auth";
+const BASE_URL = `${API_BASE_URL}/auth`;
 
 /** Autentica usuario contra el backend MongoDB y guarda sesión en localStorage */
 const login = async (credenciales: LoginInput): Promise<Usuario> => {

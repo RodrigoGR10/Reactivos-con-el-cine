@@ -1,6 +1,7 @@
 import type { Pelicula } from "../types/types";
+import { API_BASE_URL } from "./apiConfig";
 
-const baseUrl = "http://localhost:3001/peliculas";
+const baseUrl = `${API_BASE_URL}/peliculas`;
 
 const getAll = () => {
   return fetch(baseUrl).then((response) => {
