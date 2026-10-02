@@ -71,7 +71,7 @@ body:has(.auth-modal-overlay) {
 }
 
 .auth-modal-wrapper.active {
-    height: 485px;
+    height: 560px;
 }
 
 .auth-icon-close {
@@ -152,6 +152,7 @@ body:has(.auth-modal-overlay) {
     left: 0;
     width: 100%;
     height: 100%;
+    padding: 24px 38px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -161,6 +162,10 @@ body:has(.auth-modal-overlay) {
     transition:
         transform 0.35s ease,
         opacity 0.25s ease;
+}
+
+.auth-form-box.register .auth-input-box {
+    margin: 14px 0;
 }
 
 .auth-modal-wrapper.active .auth-form-box.register {
@@ -380,7 +385,7 @@ body:has(.auth-modal-overlay) {
     }
 
     .auth-modal-wrapper.active {
-        height: 480px;
+        height: 550px;
     }
 
     .auth-form-box {
@@ -388,7 +393,11 @@ body:has(.auth-modal-overlay) {
     }
 
     .auth-form-box.register {
-        padding: 28px 22px;
+        padding: 20px 22px;
+    }
+
+    .auth-form-box.register .auth-input-box {
+        margin: 12px 0;
     }
 
     .auth-form-box h2 {

@@ -34,6 +34,8 @@ export const AuthModal = ({
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [showRegPassword, setShowRegPassword] = useState(false);
+  const [regConfirmPassword, setRegConfirmPassword] = useState("");
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -123,6 +125,14 @@ export const AuthModal = ({
       setErrorMsg("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
+    if (!regConfirmPassword) {
+      setErrorMsg("Por favor confirma tu contraseña.");
+      return;
+    }
+    if (regPassword !== regConfirmPassword) {
+      setErrorMsg("Las contraseñas no coinciden.");
+      return;
+    }
 
     setCargando(true);
     try {
@@ -130,7 +140,7 @@ export const AuthModal = ({
         nombre: usernameTrimmed,
         email: emailTrimmed,
         contrasena: regPassword,
-        confirmarContrasena: regPassword,
+        confirmarContrasena: regConfirmPassword,
       });
       setSuccessMsg("¡Cuenta creada e iniciada con éxito!");
       setTimeout(() => {
@@ -312,6 +322,40 @@ export const AuthModal = ({
                 onChange={(e) => setRegPassword(e.target.value)}
               />
               <label>Contraseña</label>
+            </div>
+
+            <div
+              className={`auth-input-box ${regConfirmPassword ? "has-value" : ""}`}
+            >
+              <button
+                type="button"
+                className="icon auth-btn-toggle-password"
+                onClick={() => setShowRegConfirmPassword((prev) => !prev)}
+                aria-label={
+                  showRegConfirmPassword
+                    ? "Ocultar confirmación de contraseña"
+                    : "Ver confirmación de contraseña"
+                }
+                title={
+                  showRegConfirmPassword
+                    ? "Ocultar confirmación de contraseña"
+                    : "Ver confirmación de contraseña"
+                }
+              >
+                {showRegConfirmPassword ? (
+                  <EyeOffIcon size={19} />
+                ) : (
+                  <EyeIcon size={19} />
+                )}
+              </button>
+              <input
+                type={showRegConfirmPassword ? "text" : "password"}
+                required
+                placeholder=" "
+                value={regConfirmPassword}
+                onChange={(e) => setRegConfirmPassword(e.target.value)}
+              />
+              <label>Confirmar Contraseña</label>
             </div>
 
             <button
