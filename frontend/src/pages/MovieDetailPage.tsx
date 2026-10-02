@@ -18,7 +18,6 @@ function MovieDetailPage() {
     isFavoriteCinema,
   } = useFavorites();
   const { user, openAuthModal } = useAuth();
-  const peliculaId = id ?? "1";
 
   const [pelicula, setPelicula] = useState<Pelicula | null>(null);
   const [funciones, setFunciones] = useState<Funcion[]>([]);
@@ -27,11 +26,16 @@ function MovieDetailPage() {
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
 
   useEffect(() => {
+    if (!id) {
+      setError("Película no encontrada.");
+      return;
+    }
+
     setError(null);
 
     Promise.all([
-      peliculaService.getById(peliculaId),
-      funcionService.getByPelicula(peliculaId),
+      peliculaService.getById(id),
+      funcionService.getByPelicula(id),
       cineService.getAll(),
     ])
       .then(([peliculaData, funcionesData, cinesData]) => {
@@ -42,7 +46,7 @@ function MovieDetailPage() {
       .catch(() => {
         setError("No se pudo cargar la información.");
       });
-  }, [peliculaId]);
+  }, [id]);
 
   if (error) {
     return (

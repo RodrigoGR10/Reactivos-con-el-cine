@@ -101,7 +101,7 @@ const ProfilePage = () => {
           <div className="profile-header-left">
             <div className="profile-avatar-lg">
               <img
-                src={user ? "/default-avatar.png?v=3" : "/guest-avatar.png"}
+                src={user ? "/default-avatar.png" : "/guest-avatar.png"}
                 alt={user ? user.nombre : "mi perfil"}
                 className="avatar-img"
               />
