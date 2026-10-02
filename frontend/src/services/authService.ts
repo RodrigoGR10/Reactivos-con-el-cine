@@ -1,78 +1,53 @@
 import type { Usuario, LoginInput, RegisterInput } from "../types/auth";
 
 const STORAGE_KEY_USUARIO_ACTIVO = "cine_usuario_activo";
-const STORAGE_KEY_USUARIOS = "cine_usuarios_registrados";
+const BASE_URL = "http://localhost:3001/auth";
 
-/** Lee array de usuarios registrados desde localStorage */
-const obtenerUsuariosRegistrados = (): (Usuario & { contrasena: string })[] => {
-  const data = localStorage.getItem(STORAGE_KEY_USUARIOS);
-  if (!data) return [];
-  try {
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-};
-
-/** Autentica usuario por email/contraseña; guarda sesión sin contraseña en localStorage */
+/** Autentica usuario contra el backend MongoDB y guarda sesión en localStorage */
 const login = async (credenciales: LoginInput): Promise<Usuario> => {
-  const usuarios = obtenerUsuariosRegistrados();
-  const usuario = usuarios.find(
-    (u) =>
-      u.email.toLowerCase() === credenciales.email.trim().toLowerCase() &&
-      u.contrasena === credenciales.contrasena,
-  );
+  const response = await fetch(`${BASE_URL}/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: credenciales.email,
+      contrasena: credenciales.contrasena,
+    }),
+  });
 
-  if (!usuario) {
-    throw new Error("El correo o la contraseña son incorrectos.");
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "El correo o la contraseña son incorrectos.");
   }
 
-  const usuarioSinContrasena: Usuario = {
-    id: usuario.id,
-    nombre: usuario.nombre,
-    email: usuario.email,
-    fechaRegistro: usuario.fechaRegistro,
-  };
-  localStorage.setItem(
-    STORAGE_KEY_USUARIO_ACTIVO,
-    JSON.stringify(usuarioSinContrasena),
-  );
-  return usuarioSinContrasena;
+  localStorage.setItem(STORAGE_KEY_USUARIO_ACTIVO, JSON.stringify(data));
+  return data as Usuario;
 };
 
-/** Registra nuevo usuario validando email único; guarda sesión automáticamente */
+/** Registra nuevo usuario en MongoDB y guarda sesión automáticamente en localStorage */
 const register = async (datos: RegisterInput): Promise<Usuario> => {
-  const usuarios = obtenerUsuariosRegistrados();
-  const emailExiste = usuarios.some(
-    (u) => u.email.toLowerCase() === datos.email.trim().toLowerCase(),
-  );
+  const response = await fetch(`${BASE_URL}/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      nombre: datos.nombre,
+      email: datos.email,
+      contrasena: datos.contrasena,
+    }),
+  });
 
-  if (emailExiste) {
-    throw new Error("Este correo electrónico ya se encuentra registrado.");
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Error al registrar el usuario.");
   }
 
-  const nuevoUsuario: Usuario & { contrasena: string } = {
-    id: Date.now(),
-    nombre: datos.nombre.trim(),
-    email: datos.email.trim().toLowerCase(),
-    contrasena: datos.contrasena,
-    fechaRegistro: new Date().toISOString(),
-  };
-
-  usuarios.push(nuevoUsuario);
-  localStorage.setItem(STORAGE_KEY_USUARIOS, JSON.stringify(usuarios));
-
-  const usuarioSinContrasena: Usuario = {
-    id: nuevoUsuario.id,
-    nombre: nuevoUsuario.nombre,
-    email: nuevoUsuario.email,
-    fechaRegistro: nuevoUsuario.fechaRegistro,
-  };
-  localStorage.setItem(
-    STORAGE_KEY_USUARIO_ACTIVO,
-    JSON.stringify(usuarioSinContrasena),
-  );
-  return usuarioSinContrasena;
+  localStorage.setItem(STORAGE_KEY_USUARIO_ACTIVO, JSON.stringify(data));
+  return data as Usuario;
 };
 
 /** Cierra sesión eliminando usuario activo de localStorage */

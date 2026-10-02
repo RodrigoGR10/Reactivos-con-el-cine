@@ -1,14 +1,14 @@
 import type { Pelicula, Cine } from "./types";
 
 export interface FavoritoPelicula {
-  usuarioId: number;
-  peliculaId: number;
+  usuarioId: string;
+  peliculaId: string;
   fechaGuardado: string;
 }
 
 export interface FavoritoCine {
-  usuarioId: number;
-  cineId: number;
+  usuarioId: string;
+  cineId: string;
   fechaGuardado: string;
 }
 
