@@ -6,6 +6,7 @@ import MainLayout from "./layouts/MainLayout";
 import PaginaPrincipal from "./pages/PaginaPrincipal";
 import MovieDetailPage from "./pages/MovieDetailPage";
 import ProfilePage from "./pages/ProfilePage";
+import CinemasPage from "./pages/CinemasPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Route element={<MainLayout />}>
               <Route path="/" element={<PaginaPrincipal />} />
               <Route path="/peliculas/:id" element={<MovieDetailPage />} />
+              <Route path="/cines" element={<CinemasPage />} />
               <Route path="/perfil" element={<ProfilePage />} />
             </Route>
           </Routes>
