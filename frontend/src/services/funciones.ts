@@ -25,7 +25,19 @@ const getByPelicula = (peliculaId: string) => {
   });
 };
 
+// Obtiene las funciones de un cine directamente desde el backend.
+const getByCine = (cineId: string) => {
+  return fetch(`${baseUrl}?cineId=${cineId}`).then((response) => {
+    if (!response.ok) {
+      throw new Error("No se pudieron obtener las funciones del cine");
+    }
+
+    return response.json() as Promise<Funcion[]>;
+  });
+};
+
 export default {
   getAll,
   getByPelicula,
+  getByCine,
 };

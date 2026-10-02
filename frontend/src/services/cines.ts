@@ -13,6 +13,17 @@ const getAll = () => {
   });
 };
 
+const getById = (id: string) => {
+  return fetch(`${baseUrl}/${id}`).then((response) => {
+    if (!response.ok) {
+      throw new Error("No se pudo obtener el cine");
+    }
+
+    return response.json() as Promise<Cine>;
+  });
+};
+
 export default {
   getAll,
+  getById,
 };

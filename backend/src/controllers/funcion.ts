@@ -6,23 +6,28 @@ import mongoose from "mongoose";
 const router = express.Router();
 
 router.get("/", async (req, res, next) => {
-  const { peliculaId } = req.query;
+  const { peliculaId, cineId } = req.query;
 
-  // Sin filtro: traemos todas las funciones
-  if (peliculaId === undefined) {
-    const funciones = await FuncionModel.find({});
-    res.json(funciones);
-    return;
+  const filtro: Record<string, string> = {};
+
+  if (peliculaId !== undefined) {
+    if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
+      res.status(400).json({ error: "peliculaId inválido" });
+      return;
+    }
+    filtro.peliculaId = peliculaId;
   }
 
-  // Con filtro: debe ser un string con formato de ObjectId válido
-  if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
-    res.status(400).json({ error: "peliculaId inválido" });
-    return;
+  if (cineId !== undefined) {
+    if (typeof cineId !== "string" || !mongoose.isValidObjectId(cineId)) {
+      res.status(400).json({ error: "cineId inválido" });
+      return;
+    }
+    filtro.cineId = cineId;
   }
 
-  const funcionesFiltradas = await FuncionModel.find({ peliculaId });
-  res.json(funcionesFiltradas);
+  const funciones = await FuncionModel.find(filtro);
+  res.json(funciones);
 });
 
 router.get("/:id", async (req, res, next) => {
