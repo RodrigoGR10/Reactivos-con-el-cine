@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Cartelera from "../components/Cartelera.tsx";
-import FiltrosPeliculas from "../components/FiltrosPeliculas.tsx";
-import PeliculaDestacada from "../components/PeliculaDestacada.tsx";
+import Cartelera from "../components/peliculas/Cartelera.tsx";
+import FiltrosPeliculas from "../components/peliculas/FiltrosPeliculas.tsx";
+import PeliculaDestacada from "../components/peliculas/PeliculaDestacada.tsx";
 import type { Pelicula } from "../types/types.ts";
 import peliculaService from "../services/peliculas.ts";
 
