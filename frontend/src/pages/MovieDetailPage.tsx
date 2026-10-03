@@ -6,6 +6,13 @@ import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import "./MovieDetailPage.css";
 
+// Const. aux para mostrar mensajes en pantalla
+const Mensaje = ({ texto }: { texto: string }) => (
+  <div className="detalle-pelicula">
+    <p className="mensaje-detalle">{texto}</p>
+  </div>
+);
+
 function MovieDetailPage() {
   const { id } = useParams();
   const {
@@ -20,21 +27,9 @@ function MovieDetailPage() {
 
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
 
-  if (error) {
-    return (
-      <div className="detalle-pelicula">
-        <p className="mensaje-detalle">{error}</p>
-      </div>
-    );
-  }
+  if (error) return <Mensaje texto={error} />;
 
-  if (!pelicula) {
-    return (
-      <div className="detalle-pelicula">
-        <p className="mensaje-detalle">Cargando película...</p>
-      </div>
-    );
-  }
+  if (!pelicula) return <Mensaje texto="Cargando película..." />;
 
   const formatosDisponibles = funciones.reduce<string[]>(
     (acumulado, funcion) => {
