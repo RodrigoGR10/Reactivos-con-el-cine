@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import type { Pelicula, Cine, Funcion } from "../types/types";
-import peliculaService from "../services/peliculas";
-import cineService from "../services/cines";
-import funcionService from "../services/funciones";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
+import { useDetallePelicula } from "../hooks/useDetallePelicula";
+import { Mensaje } from "../components/common/Mensaje";
 import "./MovieDetailPage.css";
 
 function MovieDetailPage() {
@@ -19,63 +17,18 @@ function MovieDetailPage() {
   } = useFavorites();
   const { user, openAuthModal } = useAuth();
 
-  const [pelicula, setPelicula] = useState<Pelicula | null>(null);
-  const [funciones, setFunciones] = useState<Funcion[]>([]);
-  const [cines, setCines] = useState<Cine[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { pelicula, funciones, cines, error } = useDetallePelicula(id);
+
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
 
-  useEffect(() => {
-    if (!id) {
-      setError("Película no encontrada.");
-      return;
-    }
+  if (error) return <Mensaje texto={error} />;
 
-    setError(null);
+  if (!pelicula) return <Mensaje texto="Cargando película..." />;
 
-    Promise.all([
-      peliculaService.getById(id),
-      funcionService.getByPelicula(id),
-      cineService.getAll(),
-    ])
-      .then(([peliculaData, funcionesData, cinesData]) => {
-        setPelicula(peliculaData);
-        setFunciones(funcionesData);
-        setCines(cinesData);
-      })
-      .catch(() => {
-        setError("No se pudo cargar la información.");
-      });
-  }, [id]);
-
-  if (error) {
-    return (
-      <div className="detalle-pelicula">
-        <p className="mensaje-detalle">{error}</p>
-      </div>
-    );
-  }
-
-  if (!pelicula) {
-    return (
-      <div className="detalle-pelicula">
-        <p className="mensaje-detalle">Cargando película...</p>
-      </div>
-    );
-  }
-
-  const formatosDisponibles = funciones.reduce<string[]>(
-    (acumulado, funcion) => {
-      const yaExiste = acumulado.includes(funcion.formato);
-
-      if (yaExiste) {
-        return acumulado;
-      }
-
-      return [...acumulado, funcion.formato];
-    },
-    ["Todos"],
-  );
+  const formatosDisponibles = [
+    "Todos",
+    ...new Set(funciones.map((f) => f.formato)),
+  ];
 
   const funcionesFiltradas =
     formatoSeleccionado === "Todos"

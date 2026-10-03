@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { Pelicula } from "../types/types.ts";
+import type { Pelicula } from "../../types/types.ts";
 
 interface PeliculaDestacadaProps {
   pelicula: Pelicula;
