@@ -1,5 +1,5 @@
-import type { Pelicula } from "../types/types.ts";
-import TarjetaPelicula from "./TarjetaPelicula.tsx";
+import type { Pelicula } from "../../types/types.ts";
+import TarjetaPelicula from "../TarjetaPelicula.tsx";
 
 interface CarteleraProps {
   peliculas: Pelicula[];
