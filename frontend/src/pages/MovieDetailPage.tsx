@@ -6,13 +6,6 @@ import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import "./MovieDetailPage.css";
 
-// Const. aux para mostrar mensajes en pantalla
-const Mensaje = ({ texto }: { texto: string }) => (
-  <div className="detalle-pelicula">
-    <p className="mensaje-detalle">{texto}</p>
-  </div>
-);
-
 function MovieDetailPage() {
   const { id } = useParams();
   const {
