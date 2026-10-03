@@ -31,18 +31,10 @@ function MovieDetailPage() {
 
   if (!pelicula) return <Mensaje texto="Cargando película..." />;
 
-  const formatosDisponibles = funciones.reduce<string[]>(
-    (acumulado, funcion) => {
-      const yaExiste = acumulado.includes(funcion.formato);
-
-      if (yaExiste) {
-        return acumulado;
-      }
-
-      return [...acumulado, funcion.formato];
-    },
-    ["Todos"],
-  );
+  const formatosDisponibles = [
+    "Todos",
+    ...new Set(funciones.map((f) => f.formato)),
+  ];
 
   const funcionesFiltradas =
     formatoSeleccionado === "Todos"
