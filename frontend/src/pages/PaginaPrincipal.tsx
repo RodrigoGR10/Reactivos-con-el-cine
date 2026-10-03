@@ -1,7 +1,7 @@
 import Cartelera from "../components/peliculas/Cartelera.tsx";
 import FiltrosPeliculas from "../components/peliculas/FiltrosPeliculas.tsx";
 import PeliculaDestacada from "../components/peliculas/PeliculaDestacada.tsx";
-import { usePeliculas } from "../hooks/usePaginaPrincipal.ts";
+import { usePeliculas } from "../hooks/usePelicula.ts";
 import { useFiltrosPeliculas } from "../hooks/useFiltrosPeliculas.ts";
 
 function PaginaPrincipal() {
