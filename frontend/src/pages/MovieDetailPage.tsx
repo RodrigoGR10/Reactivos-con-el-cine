@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
+import { Mensaje } from "../components/common/Mensaje";
 import "./MovieDetailPage.css";
 
 function MovieDetailPage() {
