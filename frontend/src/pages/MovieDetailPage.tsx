@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import type { Pelicula, Cine, Funcion } from "../types/types";
 import peliculaService from "../services/peliculas";
 import cineService from "../services/cines";
@@ -183,7 +183,12 @@ function MovieDetailPage() {
                   </div>
 
                   <div>
-                    <h3>{cine.nombre}</h3>
+                    <Link
+                      to={`/cines/${cine.id}`}
+                      className="enlace-cine-detalle"
+                    >
+                      <h3>{cine.nombre}</h3>
+                    </Link>
                     <p>{cine.comuna}</p>
                   </div>
                 </div>
