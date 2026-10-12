@@ -22,6 +22,10 @@ export interface Pelicula {
   sinopsis: string;
   poster: string;
   banner?: string;
+  url?: string;
+  origen?: string;
+  origenId?: string;
+  extraidoEn?: string;
 }
 
 const peliculaSchema = new mongoose.Schema<Pelicula>(
@@ -33,11 +37,19 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
     sinopsis: { type: String, required: true },
     poster: { type: String, required: true },
     banner: { type: String },
+    url: { type: String },
+    origen: { type: String },
+    origenId: { type: String },
+    extraidoEn: { type: String },
   },
   {
     timestamps: true,
   },
 );
+
+peliculaSchema.index({ origen: 1, origenId: 1 }, {
+  unique: true, partialFilterExpression: { origen: "cinemark", origenId: { $type: "string" } },
+});
 
 const PeliculaModel = mongoose.model<Pelicula>("Pelicula", peliculaSchema);
 

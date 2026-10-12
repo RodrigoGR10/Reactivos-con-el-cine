@@ -17,6 +17,14 @@ export interface Cine {
   nombre: string;
   comuna: string;
   logo?: string;
+  direccion?: string;
+  ciudad?: string;
+  latitud?: number;
+  longitud?: number;
+  url?: string;
+  origen?: string;
+  origenId?: string;
+  extraidoEn?: string;
 }
 
 const cineSchema = new mongoose.Schema<Cine>(
@@ -24,11 +32,23 @@ const cineSchema = new mongoose.Schema<Cine>(
     nombre: { type: String, required: true },
     comuna: { type: String, required: true },
     logo: { type: String },
+    direccion: { type: String },
+    ciudad: { type: String },
+    latitud: { type: Number },
+    longitud: { type: Number },
+    url: { type: String },
+    origen: { type: String },
+    origenId: { type: String },
+    extraidoEn: { type: String },
   },
   {
     timestamps: true,
   },
 );
+
+cineSchema.index({ origen: 1, origenId: 1 }, {
+  unique: true, partialFilterExpression: { origen: "cinemark", origenId: { $type: "string" } },
+});
 
 const CineModel = mongoose.model<Cine>("Cine", cineSchema, "cines");
 
