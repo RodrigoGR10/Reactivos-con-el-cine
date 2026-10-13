@@ -7,6 +7,14 @@ import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import { Mensaje } from "../components/common/Mensaje";
 import "./MovieDetailPage.css";
 
+const mostrarFecha = (fecha: string) => new Intl.DateTimeFormat("es-CL", {
+  weekday: "short", day: "numeric", month: "short", timeZone: "UTC",
+}).format(new Date(`${fecha}T12:00:00Z`));
+
+const precioCLP = (precio: number) => new Intl.NumberFormat("es-CL", {
+  style: "currency", currency: "CLP", maximumFractionDigits: 0,
+}).format(precio);
+
 function MovieDetailPage() {
   const { id } = useParams();
   const {
@@ -20,20 +28,25 @@ function MovieDetailPage() {
   const { pelicula, funciones, cines, error } = useDetallePelicula(id);
 
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
+  const [fechaSeleccionada, setFechaSeleccionada] = useState("");
 
   if (error) return <Mensaje texto={error} />;
 
   if (!pelicula) return <Mensaje texto="Cargando película..." />;
 
+  const fechasDisponibles = [...new Set(funciones.flatMap((funcion) => funcion.fecha ? [funcion.fecha] : []))].sort();
+  const fechaActual = fechasDisponibles.includes(fechaSeleccionada) ? fechaSeleccionada : (fechasDisponibles[0] ?? "");
+  const funcionesDelDia = funciones.filter((funcion) => !fechaActual || !funcion.fecha || funcion.fecha === fechaActual);
   const formatosDisponibles = [
     "Todos",
-    ...new Set(funciones.map((f) => f.formato)),
+    ...new Set(funcionesDelDia.map((f) => f.formato)),
   ];
+  const formatoActual = formatosDisponibles.includes(formatoSeleccionado) ? formatoSeleccionado : "Todos";
 
   const funcionesFiltradas =
-    formatoSeleccionado === "Todos"
-      ? funciones
-      : funciones.filter((funcion) => funcion.formato === formatoSeleccionado);
+    formatoActual === "Todos"
+      ? funcionesDelDia
+      : funcionesDelDia.filter((funcion) => funcion.formato === formatoActual);
 
   const grupos = agruparFuncionesPorCine(funcionesFiltradas, cines);
 
@@ -87,20 +100,39 @@ function MovieDetailPage() {
             <h2 id="titulo-funciones">Funciones</h2>
           </div>
 
-          <div className="filtro-formato">
-            <label htmlFor="formato">Formato</label>
+          <div className="filtros-funciones">
+            {fechasDisponibles.length > 0 && (
+              <div className="filtro-formato">
+                <label htmlFor="fecha-funcion">Fecha</label>
+                <select
+                  id="fecha-funcion"
+                  value={fechaActual}
+                  onChange={(e) => {
+                    setFechaSeleccionada(e.target.value);
+                    setFormatoSeleccionado("Todos");
+                  }}
+                >
+                  {fechasDisponibles.map((fecha) => (
+                    <option key={fecha} value={fecha}>{mostrarFecha(fecha)}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="filtro-formato">
+              <label htmlFor="formato">Formato</label>
 
-            <select
-              id="formato"
-              value={formatoSeleccionado}
-              onChange={(e) => setFormatoSeleccionado(e.target.value)}
-            >
-              {formatosDisponibles.map((formato) => (
-                <option key={formato} value={formato}>
-                  {formato}
-                </option>
-              ))}
-            </select>
+              <select
+                id="formato"
+                value={formatoActual}
+                onChange={(e) => setFormatoSeleccionado(e.target.value)}
+              >
+                {formatosDisponibles.map((formato) => (
+                  <option key={formato} value={formato}>
+                    {formato}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -143,19 +175,24 @@ function MovieDetailPage() {
 
                 <div className="horarios-cine">
                   {funciones.map((funcion) => (
-                    <button
+                    <div
                       key={funcion.id}
-                      type="button"
                       className="tarjeta-horario"
                     >
                       <strong>{funcion.horario}</strong>
 
-                      <span>{funcion.formato}</span>
+                      <span title={funcion.tipoEntrada}>{funcion.formato}</span>
 
                       <span>{funcion.idioma}</span>
-
-                      <span className="precio-horario">${funcion.precio}</span>
-                    </button>
+                      {funcion.sala && <span>Sala {funcion.sala}</span>}
+                      <span className="precio-horario">{precioCLP(funcion.precioOnline ?? funcion.precio)}</span>
+                      {funcion.cargoServicio !== undefined && funcion.cargoServicio > 0 && (
+                        <span className="desglose-precio">
+                          Entrada {precioCLP(funcion.precio)} + servicio {precioCLP(funcion.cargoServicio)}
+                        </span>
+                      )}
+                      {funcion.agotada && <span>Agotada</span>}
+                    </div>
                   ))}
                 </div>
               </article>
