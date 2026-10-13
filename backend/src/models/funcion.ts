@@ -8,7 +8,7 @@ const dbName = process.env.MONGODB_NAME || "reactivos-cine";
 
 mongoose.set("strictQuery", false);
 
-if (url) {
+if (url && mongoose.connection.readyState === 0) {
   mongoose.connect(url, { dbName }).catch((error) => {
     console.log("error connecting to MongoDB:", error.message);
   });

@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
 import { isDate, ticketFormat } from "./normalize.ts";
 import type { ScrapeResult, SourceRecord } from "./types.ts";
+import type { Funcion as FuncionData } from "../models/funcion.ts";
 
 export function validateResult(value: unknown): asserts value is ScrapeResult {
   if (!value || typeof value !== "object") throw new Error("JSON de Cinemark invalido.");
@@ -45,5 +47,90 @@ export function validateResult(value: unknown): asserts value is ScrapeResult {
     if (!Number.isInteger(session.precio) || session.precio <= 0 || !Number.isInteger(session.cargoServicio) || session.cargoServicio < 0 || session.precioOnline !== session.precio + session.cargoServicio) throw new Error("Tarifa invalida en funcion.");
     const url = new URL(session.urlCompra);
     if (url.protocol !== "https:" || url.hostname !== "www.cinemark.cl" || url.username || url.password) throw new Error("Enlace de funcion invalido.");
+  }
+}
+
+async function connectModels(uri: string, dbName: string) {
+  await mongoose.connect(uri, { dbName, serverSelectionTimeoutMS: 10_000, autoIndex: false, autoCreate: false });
+  // Cargar los modelos aqui permite validar un JSON sin conectarse a Mongo.
+  const { default: Pelicula } = await import("../models/pelicula.ts");
+  const { default: Cine } = await import("../models/cine.ts");
+  const { default: Funcion } = await import("../models/funcion.ts");
+  const { default: User } = await import("../models/user.ts");
+  return { Pelicula, Cine, Funcion, User };
+}
+
+export async function inspectCatalog(uri: string, dbName: string) {
+  try {
+    const { Pelicula, Cine, Funcion, User } = await connectModels(uri, dbName);
+    return {
+      base: dbName,
+      peliculas: await Pelicula.countDocuments(),
+      cines: await Cine.countDocuments(),
+      funciones: await Funcion.countDocuments(),
+      users: await User.countDocuments(),
+    };
+  } finally {
+    await mongoose.disconnect();
+  }
+}
+
+export async function importCinemark(result: ScrapeResult, uri: string, dbName: string) {
+  validateResult(result);
+  try {
+    const { Pelicula, Cine, Funcion } = await connectModels(uri, dbName);
+    await Pelicula.createIndexes();
+    await Cine.createIndexes();
+    await Funcion.createIndexes();
+    const movies = new Map<string, mongoose.Types.ObjectId>();
+    const cinemas = new Map<string, mongoose.Types.ObjectId>();
+    for (const { id, ...movie } of result.peliculas) {
+      const saved = await Pelicula.findOneAndUpdate(
+        { origen: "cinemark", origenId: movie.origenId },
+        { $set: movie },
+        { upsert: true, new: true, runValidators: true },
+      );
+      if (!saved) throw new Error(`No se pudo guardar la pelicula ${id}.`);
+      movies.set(id, saved._id);
+    }
+    for (const { id, ...cinema } of result.cines) {
+      const saved = await Cine.findOneAndUpdate(
+        { origen: "cinemark", origenId: cinema.origenId },
+        { $set: cinema },
+        { upsert: true, new: true, runValidators: true },
+      );
+      if (!saved) throw new Error(`No se pudo guardar el cine ${id}.`);
+      cinemas.set(id, saved._id);
+    }
+    for (let offset = 0; offset < result.funciones.length; offset += 250) {
+      const batch = result.funciones.slice(offset, offset + 250);
+      const operations: mongoose.AnyBulkWriteOperation<FuncionData>[] = [];
+      for (const { id, ...session } of batch) {
+        const peliculaId = movies.get(session.peliculaId);
+        const cineId = cinemas.get(session.cineId);
+        if (!peliculaId || !cineId) throw new Error(`Referencias incompletas para la funcion ${id}.`);
+        const document = { ...session, peliculaId, cineId };
+        // bulkWrite no valida updates: validar aqui no hace consultas a Mongo.
+        await new Funcion(document).validate();
+        operations.push({
+          updateOne: {
+            filter: { origen: "cinemark", origenId: session.origenId },
+            update: { $set: document },
+            upsert: true,
+          },
+        });
+      }
+      const saved = await Funcion.bulkWrite(operations, { ordered: true });
+      if (saved.matchedCount + saved.upsertedCount !== batch.length) throw new Error("No se guardaron todas las funciones del lote.");
+      console.log(`Importadas ${offset + batch.length}/${result.funciones.length} opciones de funcion.`);
+    }
+    return {
+      base: dbName,
+      peliculas: await Pelicula.countDocuments(),
+      cines: await Cine.countDocuments(),
+      funciones: await Funcion.countDocuments(),
+    };
+  } finally {
+    await mongoose.disconnect();
   }
 }

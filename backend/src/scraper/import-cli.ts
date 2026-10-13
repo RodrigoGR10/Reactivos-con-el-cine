@@ -2,20 +2,36 @@ import fs from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { validateResult } from "./import-data.ts";
+import dotenv from "dotenv";
+import { importCinemark, inspectCatalog, validateResult } from "./import-data.ts";
 
 async function main() {
-  const { values } = parseArgs({ options: { file: { type: "string" }, help: { type: "boolean" } } });
+  const { values } = parseArgs({ options: { file: { type: "string" }, write: { type: "boolean" }, status: { type: "boolean" }, help: { type: "boolean" } } });
   if (values.help) {
-    console.log("npm run import:cinemark -- [--file=data/cinemark.json]\nEste paso solo valida el archivo y no se conecta a MongoDB.");
+    console.log("npm run import:cinemark -- [--file=data/cinemark.json] [--write]\nSin --write solo valida el archivo. --write agrega o actualiza registros, sin eliminar datos.\n--status consulta los conteos actuales de MongoDB sin escribir.");
     return;
   }
   const root = fileURLToPath(new URL("../../", import.meta.url));
+  const mongoConfig = () => {
+    dotenv.config({ path: resolve(root, ".env"), quiet: true });
+    const uri = process.env.MONGODB_URI;
+    if (!uri) throw new Error("Configura MONGODB_URI en backend/.env antes de importar.");
+    return { uri, dbName: process.env.MONGODB_NAME ?? "reactivos-cine" };
+  };
+  if (values.status) {
+    const { uri, dbName } = mongoConfig();
+    console.log(JSON.stringify(await inspectCatalog(uri, dbName), null, 2));
+    return;
+  }
   const file = values.file ? resolve(values.file) : resolve(root, "data/cinemark.json");
   const result: unknown = JSON.parse(fs.readFileSync(file, "utf8"));
   validateResult(result);
   console.log(`Archivo valido: ${result.peliculas.length} peliculas, ${result.cines.length} cines, ${result.funciones.length} funciones.`);
-  console.log("Vista previa. Todavia no se importan datos en MongoDB.");
+  if (!values.write) { console.log("Vista previa. Agrega --write para importar en MongoDB."); return; }
+  const { uri, dbName } = mongoConfig();
+  const summary = await importCinemark(result, uri, dbName);
+  console.log(JSON.stringify(summary, null, 2));
+  console.log("Cinemark importado. Los registros existentes de otras fuentes se conservaron.");
 }
 
 main().catch((error) => { console.error("Error:", error.message); process.exitCode = 1; });
