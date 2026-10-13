@@ -101,3 +101,34 @@ export interface ScrapedSession extends SourceRecord {
   urlCompra: string;
   agotada: boolean;
 }
+
+export interface Incident {
+  cineId?: string;
+  peliculaId?: string;
+  sesionId?: string;
+  etapa: "cine" | "pelicula" | "precio" | "funcion";
+  mensaje: string;
+}
+
+export interface ScrapeResult {
+  peliculas: ScrapedMovie[];
+  cines: ScrapedCinema[];
+  funciones: ScrapedSession[];
+  incidencias: Incident[];
+  meta: {
+    origen: "cinemark";
+    version: 1;
+    iniciadoEn: string;
+    terminadoEn?: string;
+    completo: boolean;
+    desde: string;
+    dias: number | null;
+    limitePorCine: number | null;
+    cinesSeleccionados: number;
+    cinesProcesados: number;
+    sesionesConsultadas: number;
+    moneda: "CLP";
+    zonaHoraria: "America/Santiago";
+    precioIncluyeServicio: false;
+  };
+}
