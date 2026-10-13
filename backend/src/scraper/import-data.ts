@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import fs from "node:fs";
+import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { isDate, localNow, ticketFormat } from "./normalize.ts";
 import type { ScrapeResult, SourceRecord } from "./types.ts";
 import type { Funcion as FuncionData } from "../models/funcion.ts";
@@ -76,17 +79,37 @@ export async function inspectCatalog(uri: string, dbName: string) {
 }
 
 export interface ImportOptions {
+  reset?: boolean;
   sync?: boolean;
+  backupDirectory?: string;
 }
 
 export async function importCinemark(result: ScrapeResult, uri: string, dbName: string, options: ImportOptions = {}) {
   validateResult(result);
-  if (options.sync && result.meta.limitePorCine !== null) throw new Error("No se puede sincronizar con una muestra limitada.");
+  if ((options.reset || options.sync) && result.meta.limitePorCine !== null) throw new Error("No se puede reiniciar o sincronizar con una muestra limitada.");
+  if (options.reset && (!options.backupDirectory || !result.funciones.length)) throw new Error("El reinicio requiere respaldo y funciones nuevas validas.");
   try {
     const { Pelicula, Cine, Funcion } = await connectModels(uri, dbName);
     await Pelicula.createIndexes();
     await Cine.createIndexes();
     await Funcion.createIndexes();
+    let backup: string | undefined;
+    if (options.reset) {
+      const snapshot = {
+        base: dbName, creadoEn: new Date(),
+        peliculas: await Pelicula.find({}).lean(),
+        cines: await Cine.find({}).lean(),
+        funciones: await Funcion.find({}).lean(),
+      };
+      fs.mkdirSync(options.backupDirectory!, { recursive: true });
+      backup = join(options.backupDirectory!, `catalogo-${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID()}.json`);
+      fs.writeFileSync(backup, mongoose.mongo.BSON.EJSON.stringify(snapshot, null, 2, { relaxed: false }), { encoding: "utf8", flag: "wx" });
+      console.log(`Respaldo del catalogo: ${backup}`);
+      await Funcion.deleteMany({});
+      await Pelicula.deleteMany({});
+      await Cine.deleteMany({});
+      console.log("Catalogo anterior retirado. Las cuentas de usuario se conservaron.");
+    }
     const movies = new Map<string, mongoose.Types.ObjectId>();
     const cinemas = new Map<string, mongoose.Types.ObjectId>();
     for (const { id, ...movie } of result.peliculas) {
@@ -150,7 +173,7 @@ export async function importCinemark(result: ScrapeResult, uri: string, dbName: 
       console.log(`Retiradas ${removedSessions} funciones antiguas y ${removedMovies} peliculas sin funciones.`);
     }
     return {
-      base: dbName, retiradas: { funciones: removedSessions, peliculas: removedMovies },
+      base: dbName, backup, retiradas: { funciones: removedSessions, peliculas: removedMovies },
       peliculas: await Pelicula.countDocuments(),
       cines: await Cine.countDocuments(),
       funciones: await Funcion.countDocuments(),
