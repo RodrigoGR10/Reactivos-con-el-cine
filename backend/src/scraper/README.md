@@ -63,3 +63,4 @@ los tiempos de extraccion y guardado; no se promete un tiempo total fijo.
 `precio` no incluye servicio; `precioOnline` es el total. El formato pertenece
 a cada tarifa, no al resumen de la sala. Los enlaces abren pelicula, cine,
 fecha e idioma/formato filtrados; el horario y la entrada se eligen en Cinemark.
+La pagina conserva sus filtros, precios y tarjetas enlazadas.

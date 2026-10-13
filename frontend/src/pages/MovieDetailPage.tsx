@@ -5,15 +5,12 @@ import { useFavorites } from "../context/FavoritesContext";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import { Mensaje } from "../components/common/Mensaje";
+import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import "./MovieDetailPage.css";
 
 const mostrarFecha = (fecha: string) => new Intl.DateTimeFormat("es-CL", {
   weekday: "short", day: "numeric", month: "short", timeZone: "UTC",
 }).format(new Date(`${fecha}T12:00:00Z`));
-
-const precioCLP = (precio: number) => new Intl.NumberFormat("es-CL", {
-  style: "currency", currency: "CLP", maximumFractionDigits: 0,
-}).format(precio);
 
 function MovieDetailPage() {
   const { id } = useParams();
@@ -175,24 +172,12 @@ function MovieDetailPage() {
 
                 <div className="horarios-cine">
                   {funciones.map((funcion) => (
-                    <div
+                    <TarjetaFuncion
                       key={funcion.id}
-                      className="tarjeta-horario"
-                    >
-                      <strong>{funcion.horario}</strong>
-
-                      <span title={funcion.tipoEntrada}>{funcion.formato}</span>
-
-                      <span>{funcion.idioma}</span>
-                      {funcion.sala && <span>Sala {funcion.sala}</span>}
-                      <span className="precio-horario">{precioCLP(funcion.precioOnline ?? funcion.precio)}</span>
-                      {funcion.cargoServicio !== undefined && funcion.cargoServicio > 0 && (
-                        <span className="desglose-precio">
-                          Entrada {precioCLP(funcion.precio)} + servicio {precioCLP(funcion.cargoServicio)}
-                        </span>
-                      )}
-                      {funcion.agotada && <span>Agotada</span>}
-                    </div>
+                      funcion={funcion}
+                      pelicula={pelicula}
+                      cine={cine}
+                    />
                   ))}
                 </div>
               </article>
