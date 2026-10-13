@@ -6,12 +6,13 @@ import dotenv from "dotenv";
 import { importCinemark, inspectCatalog, validateResult } from "./import-data.ts";
 
 async function main() {
-  const { values } = parseArgs({ options: { file: { type: "string" }, write: { type: "boolean" }, status: { type: "boolean" }, help: { type: "boolean" } } });
+  const { values } = parseArgs({ options: { file: { type: "string" }, write: { type: "boolean" }, sync: { type: "boolean" }, status: { type: "boolean" }, help: { type: "boolean" } } });
   if (values.help) {
-    console.log("npm run import:cinemark -- [--file=data/cinemark.json] [--write]\nSin --write solo valida el archivo. --write agrega o actualiza registros, sin eliminar datos.\n--status consulta los conteos actuales de MongoDB sin escribir.");
+    console.log("npm run import:cinemark -- [--file=data/cinemark.json] [--write] [--sync]\nSin --write solo valida el archivo. --sync retira funciones antiguas del alcance extraido.\n--status consulta los conteos actuales de MongoDB sin escribir.");
     return;
   }
   const root = fileURLToPath(new URL("../../", import.meta.url));
+  if (values.sync && !values.write) throw new Error("--sync requiere --write.");
   const mongoConfig = () => {
     dotenv.config({ path: resolve(root, ".env"), quiet: true });
     const uri = process.env.MONGODB_URI;
@@ -29,7 +30,7 @@ async function main() {
   console.log(`Archivo valido: ${result.peliculas.length} peliculas, ${result.cines.length} cines, ${result.funciones.length} funciones.`);
   if (!values.write) { console.log("Vista previa. Agrega --write para importar en MongoDB."); return; }
   const { uri, dbName } = mongoConfig();
-  const summary = await importCinemark(result, uri, dbName);
+  const summary = await importCinemark(result, uri, dbName, { sync: values.sync });
   console.log(JSON.stringify(summary, null, 2));
   console.log("Cinemark importado. Los registros existentes de otras fuentes se conservaron.");
 }

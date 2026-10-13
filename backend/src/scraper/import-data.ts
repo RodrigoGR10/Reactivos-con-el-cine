@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { isDate, ticketFormat } from "./normalize.ts";
+import { isDate, localNow, ticketFormat } from "./normalize.ts";
 import type { ScrapeResult, SourceRecord } from "./types.ts";
 import type { Funcion as FuncionData } from "../models/funcion.ts";
 
@@ -75,8 +75,13 @@ export async function inspectCatalog(uri: string, dbName: string) {
   }
 }
 
-export async function importCinemark(result: ScrapeResult, uri: string, dbName: string) {
+export interface ImportOptions {
+  sync?: boolean;
+}
+
+export async function importCinemark(result: ScrapeResult, uri: string, dbName: string, options: ImportOptions = {}) {
   validateResult(result);
+  if (options.sync && result.meta.limitePorCine !== null) throw new Error("No se puede sincronizar con una muestra limitada.");
   try {
     const { Pelicula, Cine, Funcion } = await connectModels(uri, dbName);
     await Pelicula.createIndexes();
@@ -124,8 +129,28 @@ export async function importCinemark(result: ScrapeResult, uri: string, dbName: 
       if (saved.matchedCount + saved.upsertedCount !== batch.length) throw new Error("No se guardaron todas las funciones del lote.");
       console.log(`Importadas ${offset + batch.length}/${result.funciones.length} opciones de funcion.`);
     }
+    let removedSessions = 0;
+    let removedMovies = 0;
+    if (options.sync) {
+      const cinemaIds = [...cinemas.values()];
+      const range: Record<string, string> = { $gte: result.meta.desde };
+      if (result.meta.dias !== null) range.$lt = new Date(Date.parse(`${result.meta.desde}T00:00:00Z`) + result.meta.dias * 86_400_000).toISOString().slice(0, 10);
+      const stale = await Funcion.deleteMany({
+        origen: "cinemark", cineId: { $in: cinemaIds }, fechaCartelera: range,
+        origenId: { $nin: result.funciones.map((session) => session.origenId) },
+      });
+      const now = localNow();
+      const expired = await Funcion.deleteMany({
+        origen: "cinemark", cineId: { $in: cinemaIds },
+        $or: [{ fecha: { $lt: now.slice(0, 10) } }, { fecha: now.slice(0, 10), horario: { $lt: now.slice(11, 16) } }],
+      });
+      removedSessions = stale.deletedCount + expired.deletedCount;
+      const referencedMovies = await Funcion.distinct("peliculaId");
+      removedMovies = (await Pelicula.deleteMany({ origen: "cinemark", _id: { $nin: referencedMovies } })).deletedCount;
+      console.log(`Retiradas ${removedSessions} funciones antiguas y ${removedMovies} peliculas sin funciones.`);
+    }
     return {
-      base: dbName,
+      base: dbName, retiradas: { funciones: removedSessions, peliculas: removedMovies },
       peliculas: await Pelicula.countDocuments(),
       cines: await Cine.countDocuments(),
       funciones: await Funcion.countDocuments(),

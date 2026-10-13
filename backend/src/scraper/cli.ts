@@ -5,6 +5,8 @@ import { parseArgs } from "node:util";
 import { initializeCinemark } from "./client.ts";
 import { listCinemas, scrapeCinemark } from "./cinemark.ts";
 import { isDate, localNow } from "./normalize.ts";
+import dotenv from "dotenv";
+import { importCinemark } from "./import-data.ts";
 
 const HELP = `Scraper Cinemark Chile (Node 24 o superior)
 
@@ -16,10 +18,12 @@ Uso: npm run scrape:cinemark -- [opciones]
   --all-dates            Incluye todas las fechas publicadas, incluidas preventas
   --limit=5              Maximo de sesiones por cine, para pruebas pequenas
   --delay=500            Pausa minima entre consultas en milisegundos (minimo 250)
-  --output=data/cinemark.json Ruta del JSON generado
+  --output=data/cinemark.json Guarda un JSON (opcional al sincronizar)
+  --import               Sincroniza MongoDB al completar la extraccion
   --help
 
-Este paso genera JSON y no modifica MongoDB.
+Sin --import solo genera JSON. Con --import actualiza MongoDB directamente.
+Para guardar tambien un JSON al sincronizar, agrega --output.
 Si se interrumpe, ejecuta nuevamente el comando. No modifica backend/db.json.
 Precio normal = tarifa adulto/general sin cargo de servicio.
 Precio online = tarifa normal + cargo de servicio.`;
@@ -31,6 +35,7 @@ async function main() {
       cinema: { type: "string", multiple: true }, from: { type: "string" },
       days: { type: "string" }, limit: { type: "string" }, delay: { type: "string" },
       output: { type: "string" }, help: { type: "boolean" },
+      import: { type: "boolean" },
     },
   });
   if (values.help) { console.log(HELP); return; }
@@ -44,29 +49,44 @@ async function main() {
   const dias = values["all-dates"] ? null : integer(values.days ?? "7", "--days");
   if (dias !== null && dias > 365) throw new Error("--days no puede superar 365.");
   const limitePorCine = values.limit ? integer(values.limit, "--limit") : null;
+  if (values.import && (limitePorCine !== null || values["list-cinemas"])) throw new Error("--import no se combina con --limit o --list-cinemas.");
   const root = fileURLToPath(new URL("../../", import.meta.url));
+  if (values.import) {
+    dotenv.config({ path: resolve(root, ".env"), quiet: true });
+    if (!process.env.MONGODB_URI) throw new Error("Configura MONGODB_URI antes de sincronizar.");
+  }
   await initializeCinemark(integer(values.delay ?? "500", "--delay", 250));
   if (values["list-cinemas"]) {
     console.table((await listCinemas()).map((cinema) => ({ id: cinema.id, nombre: cinema.name, slug: cinema.slug })));
     return;
   }
-  const output = values.output ? resolve(values.output) : resolve(root, "data/cinemark.json");
-  if (output.toLowerCase() === resolve(root, "db.json").toLowerCase()) throw new Error("Elige otra salida: db.json contiene los datos existentes.");
+  let output: string | undefined;
+  if (values.output) output = resolve(values.output);
+  else if (!values.import) output = resolve(root, "data/cinemark.json");
+  if (output?.toLowerCase() === resolve(root, "db.json").toLowerCase()) throw new Error("Elige otra salida: db.json contiene los datos existentes.");
   const scrapeStartedAt = Date.now();
   const result = await scrapeCinemark({
     desde, dias, limitePorCine,
     cines: (values.cinema ?? []).flatMap((value) => value.split(",")).map((value) => value.trim()).filter(Boolean),
   });
   console.log(`Tiempo de extraccion: ${((Date.now() - scrapeStartedAt) / 1000).toFixed(1)} s.`);
-  fs.mkdirSync(dirname(output), { recursive: true });
-  fs.writeFileSync(`${output}.tmp`, `${JSON.stringify(result, null, 2)}\n`, "utf8");
-  fs.renameSync(`${output}.tmp`, output);
-  console.log(`Guardado: ${output}`);
+  if (output) {
+    fs.mkdirSync(dirname(output), { recursive: true });
+    fs.writeFileSync(`${output}.tmp`, `${JSON.stringify(result, null, 2)}\n`, "utf8");
+    fs.renameSync(`${output}.tmp`, output);
+    console.log(`Guardado: ${output}`);
+  }
   console.log(`${result.peliculas.length} peliculas, ${result.cines.length} cines, ${result.funciones.length} opciones de funcion; ${result.incidencias.length} incidencias.`);
   if (!result.meta.completo) {
-    console.error("Extraccion parcial. Revisa los avisos y ejecuta nuevamente antes de usar el JSON.");
+    console.error("Extraccion parcial. MongoDB no se actualizo; revisa los avisos y ejecuta nuevamente.");
     process.exitCode = 2;
     return;
+  }
+  if (values.import) {
+    const importStartedAt = Date.now();
+    const summary = await importCinemark(result, process.env.MONGODB_URI!, process.env.MONGODB_NAME ?? "reactivos-cine", { sync: true });
+    console.log(`Tiempo de guardado en MongoDB: ${((Date.now() - importStartedAt) / 1000).toFixed(1)} s.`);
+    console.log("MongoDB sincronizado:", JSON.stringify(summary));
   }
 }
 
