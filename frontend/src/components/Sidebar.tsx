@@ -49,7 +49,15 @@ function Sidebar() {
             type="button"
             className="sidebar-btn"
             title="Cerrar sesión"
-            onClick={logout}
+            onClick={() => {
+              logout().catch((error: unknown) => {
+                window.alert(
+                  error instanceof Error
+                    ? error.message
+                    : "No se pudo cerrar la sesión.",
+                );
+              });
+            }}
           >
             <LogOutIcon size={26} />
           </button>
