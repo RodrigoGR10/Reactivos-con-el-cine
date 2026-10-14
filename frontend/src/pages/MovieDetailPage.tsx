@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import type { Pelicula, Cine, Funcion } from "../types/types";
-import peliculaService from "../services/peliculas";
-import cineService from "../services/cines";
-import funcionService from "../services/funciones";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { agruparFuncionesPorCine } from "../utils/agruparFunciones";
+import { useDetallePelicula } from "../hooks/useDetallePelicula";
+import { Mensaje } from "../components/common/Mensaje";
+import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import "./MovieDetailPage.css";
+
+const mostrarFecha = (fecha: string) => new Intl.DateTimeFormat("es-CL", {
+  weekday: "short", day: "numeric", month: "short", timeZone: "UTC",
+}).format(new Date(`${fecha}T12:00:00Z`));
 
 function MovieDetailPage() {
   const { id } = useParams();
@@ -19,68 +22,28 @@ function MovieDetailPage() {
   } = useFavorites();
   const { user, openAuthModal } = useAuth();
 
-  const [pelicula, setPelicula] = useState<Pelicula | null>(null);
-  const [funciones, setFunciones] = useState<Funcion[]>([]);
-  const [cines, setCines] = useState<Cine[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { pelicula, funciones, cines, error } = useDetallePelicula(id);
+
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
+  const [fechaSeleccionada, setFechaSeleccionada] = useState("");
 
-  useEffect(() => {
-    if (!id) {
-      setError("Película no encontrada.");
-      return;
-    }
+  if (error) return <Mensaje texto={error} />;
 
-    setError(null);
+  if (!pelicula) return <Mensaje texto="Cargando película..." />;
 
-    Promise.all([
-      peliculaService.getById(id),
-      funcionService.getByPelicula(id),
-      cineService.getAll(),
-    ])
-      .then(([peliculaData, funcionesData, cinesData]) => {
-        setPelicula(peliculaData);
-        setFunciones(funcionesData);
-        setCines(cinesData);
-      })
-      .catch(() => {
-        setError("No se pudo cargar la información.");
-      });
-  }, [id]);
-
-  if (error) {
-    return (
-      <div className="detalle-pelicula">
-        <p className="mensaje-detalle">{error}</p>
-      </div>
-    );
-  }
-
-  if (!pelicula) {
-    return (
-      <div className="detalle-pelicula">
-        <p className="mensaje-detalle">Cargando película...</p>
-      </div>
-    );
-  }
-
-  const formatosDisponibles = funciones.reduce<string[]>(
-    (acumulado, funcion) => {
-      const yaExiste = acumulado.includes(funcion.formato);
-
-      if (yaExiste) {
-        return acumulado;
-      }
-
-      return [...acumulado, funcion.formato];
-    },
-    ["Todos"],
-  );
+  const fechasDisponibles = [...new Set(funciones.flatMap((funcion) => funcion.fecha ? [funcion.fecha] : []))].sort();
+  const fechaActual = fechasDisponibles.includes(fechaSeleccionada) ? fechaSeleccionada : (fechasDisponibles[0] ?? "");
+  const funcionesDelDia = funciones.filter((funcion) => !fechaActual || !funcion.fecha || funcion.fecha === fechaActual);
+  const formatosDisponibles = [
+    "Todos",
+    ...new Set(funcionesDelDia.map((f) => f.formato)),
+  ];
+  const formatoActual = formatosDisponibles.includes(formatoSeleccionado) ? formatoSeleccionado : "Todos";
 
   const funcionesFiltradas =
-    formatoSeleccionado === "Todos"
-      ? funciones
-      : funciones.filter((funcion) => funcion.formato === formatoSeleccionado);
+    formatoActual === "Todos"
+      ? funcionesDelDia
+      : funcionesDelDia.filter((funcion) => funcion.formato === formatoActual);
 
   const grupos = agruparFuncionesPorCine(funcionesFiltradas, cines);
 
@@ -134,20 +97,39 @@ function MovieDetailPage() {
             <h2 id="titulo-funciones">Funciones</h2>
           </div>
 
-          <div className="filtro-formato">
-            <label htmlFor="formato">Formato</label>
+          <div className="filtros-funciones">
+            {fechasDisponibles.length > 0 && (
+              <div className="filtro-formato">
+                <label htmlFor="fecha-funcion">Fecha</label>
+                <select
+                  id="fecha-funcion"
+                  value={fechaActual}
+                  onChange={(e) => {
+                    setFechaSeleccionada(e.target.value);
+                    setFormatoSeleccionado("Todos");
+                  }}
+                >
+                  {fechasDisponibles.map((fecha) => (
+                    <option key={fecha} value={fecha}>{mostrarFecha(fecha)}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="filtro-formato">
+              <label htmlFor="formato">Formato</label>
 
-            <select
-              id="formato"
-              value={formatoSeleccionado}
-              onChange={(e) => setFormatoSeleccionado(e.target.value)}
-            >
-              {formatosDisponibles.map((formato) => (
-                <option key={formato} value={formato}>
-                  {formato}
-                </option>
-              ))}
-            </select>
+              <select
+                id="formato"
+                value={formatoActual}
+                onChange={(e) => setFormatoSeleccionado(e.target.value)}
+              >
+                {formatosDisponibles.map((formato) => (
+                  <option key={formato} value={formato}>
+                    {formato}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -190,19 +172,12 @@ function MovieDetailPage() {
 
                 <div className="horarios-cine">
                   {funciones.map((funcion) => (
-                    <button
+                    <TarjetaFuncion
                       key={funcion.id}
-                      type="button"
-                      className="tarjeta-horario"
-                    >
-                      <strong>{funcion.horario}</strong>
-
-                      <span>{funcion.formato}</span>
-
-                      <span>{funcion.idioma}</span>
-
-                      <span className="precio-horario">${funcion.precio}</span>
-                    </button>
+                      funcion={funcion}
+                      pelicula={pelicula}
+                      cine={cine}
+                    />
                   ))}
                 </div>
               </article>

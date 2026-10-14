@@ -14,6 +14,11 @@ export interface Cine {
   nombre: string;
   comuna: string;
   logo?: string;
+  direccion?: string;
+  ciudad?: string;
+  latitud?: number;
+  longitud?: number;
+  url?: string;
 }
 
 export interface Funcion {
@@ -24,4 +29,12 @@ export interface Funcion {
   formato: string;
   idioma: string;
   precio: number;
+  fecha?: string;
+  fechaCartelera?: string;
+  sala?: string;
+  cargoServicio?: number;
+  precioOnline?: number;
+  tipoEntrada?: string;
+  urlCompra?: string;
+  agotada?: boolean;
 }

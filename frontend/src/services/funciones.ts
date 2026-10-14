@@ -1,28 +1,23 @@
+import axios from "axios";
 import type { Funcion } from "../types/types";
 import { API_BASE_URL } from "./apiConfig";
 
 const baseUrl = `${API_BASE_URL}/funciones`;
 
 // Pide todas las funciones.
-const getAll = () => {
-  return fetch(baseUrl).then((response) => {
-    if (!response.ok) {
-      throw new Error("No se pudieron obtener las funciones");
-    }
+const getAll = async (): Promise<Funcion[]> => {
+  const { data } = await axios.get<Funcion[]>(baseUrl);
 
-    return response.json() as Promise<Funcion[]>;
-  });
+  return data;
 };
 
 // Obtiene las funciones de una película directamente desde el backend.
-const getByPelicula = (peliculaId: string) => {
-  return fetch(`${baseUrl}?peliculaId=${peliculaId}`).then((response) => {
-    if (!response.ok) {
-      throw new Error("No se pudieron obtener las funciones de la película");
-    }
+const getByPelicula = async (peliculaId: string): Promise<Funcion[]> => {
+  const { data } = await axios.get<Funcion[]>(
+    `${baseUrl}?peliculaId=${peliculaId}`,
+  );
 
-    return response.json() as Promise<Funcion[]>;
-  });
+  return data;
 };
 
 export default {

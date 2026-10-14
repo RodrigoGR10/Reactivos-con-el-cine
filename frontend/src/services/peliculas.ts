@@ -1,29 +1,19 @@
+import axios from "axios";
 import type { Pelicula } from "../types/types";
 import { API_BASE_URL } from "./apiConfig";
 
 const baseUrl = `${API_BASE_URL}/peliculas`;
 
-const getAll = () => {
-  return fetch(baseUrl).then((response) => {
-    if (!response.ok) {
-      throw new Error("No se pudieron obtener las películas");
-    }
+const getAll = async (): Promise<Pelicula[]> => {
+  const { data } = await axios.get<Pelicula[]>(baseUrl);
 
-    return response.json() as Promise<Pelicula[]>;
-  });
+  return data;
 };
 
-const getById = (id: string) => {
-  return fetch(`${baseUrl}/${id}`).then((response) => {
-    if (!response.ok) {
-      throw new Error("No se pudo obtener la película");
-    }
+const getById = async (id: string): Promise<Pelicula> => {
+  const { data } = await axios.get<Pelicula>(`${baseUrl}/${id}`);
 
-    return response.json().then((data) => ({
-      ...data,
-      id: data.id,
-    })) as Promise<Pelicula>;
-  });
+  return data;
 };
 
 export default {

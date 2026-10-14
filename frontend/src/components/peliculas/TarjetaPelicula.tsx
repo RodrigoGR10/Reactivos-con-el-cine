@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import type { Pelicula } from "../types/types.ts";
-import { useFavorites } from "../context/FavoritesContext.tsx";
-import { useAuth } from "../context/AuthContext.tsx";
+import type { Pelicula } from "../../types/types.ts";
+import { useFavorites } from "../../context/FavoritesContext.tsx";
+import { useAuth } from "../../context/AuthContext.tsx";
 interface TarjetaPeliculaProps {
   pelicula: Pelicula;
 }
