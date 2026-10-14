@@ -86,10 +86,10 @@ const register = async (datos: RegisterInput): Promise<Usuario> => {
   return saveSessionData(response, data as Usuario);
 };
 
-/** Solicita eliminar la cookie; también limpia los datos si la sesión ya expiró. */
+/** Limpia los datos locales solo cuando el backend confirma el cierre de sesión. */
 const logout = async (): Promise<void> => {
   const response = await fetchAuth("/logout", { method: "POST" });
-  if (!response.ok && response.status !== 401) {
+  if (!response.ok) {
     const data = await response.json();
     throw new Error(data.error || "No se pudo cerrar la sesión.");
   }
