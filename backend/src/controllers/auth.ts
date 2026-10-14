@@ -1,8 +1,36 @@
-import express from "express";
+import express, { type Response } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 import UserModel from "../models/user.ts";
+import config from "../utils/config.ts";
+import middleware from "../utils/middleware.ts";
 
 const router = express.Router();
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict" as const,
+  path: "/",
+};
+
+const createSession = (response: Response, user: { id: string; email: string }) => {
+  const userForToken = {
+    id: user.id,
+    email: user.email,
+    csrf: randomUUID(),
+  };
+  const token = jwt.sign(userForToken, config.JWT_SECRET, { expiresIn: 60 * 60 });
+
+  response.setHeader("X-CSRF-Token", userForToken.csrf);
+  response.cookie("token", token, { ...cookieOptions, maxAge: 60 * 60 * 1000 });
+};
+
+router.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
 
 router.post("/register", async (req, res) => {
   const { nombre, email, contrasena } = req.body ?? {};
@@ -44,6 +72,7 @@ router.post("/register", async (req, res) => {
   });
 
   const guardado = await nuevoUsuario.save();
+  createSession(res, guardado);
   return res.status(201).json(guardado);
 });
 
@@ -75,7 +104,23 @@ router.post("/login", async (req, res) => {
       .json({ error: "El correo o la contraseña son incorrectos." });
   }
 
+  createSession(res, user);
   return res.json(user);
+});
+
+router.get("/me", middleware.withUser, async (req, res) => {
+  const user = await UserModel.findById(req.userId);
+  if (!user) {
+    return res.status(401).json({ error: "El usuario de la sesión no existe" });
+  }
+
+  res.setHeader("X-CSRF-Token", req.headers["x-csrf-token"] as string);
+  return res.json(user);
+});
+
+router.post("/logout", middleware.withUser, (req, res) => {
+  res.clearCookie("token", cookieOptions);
+  return res.json({ message: "Sesión cerrada correctamente" });
 });
 
 export default router;

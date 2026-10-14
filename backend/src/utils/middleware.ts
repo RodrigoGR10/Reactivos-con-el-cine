@@ -1,5 +1,43 @@
 import { type NextFunction, type Request, type Response } from "express";
 import logger from "./logger.ts";
+import jwt from "jsonwebtoken";
+import config from "./config.ts";
+
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}
+
+const withUser = async (
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) => {
+  const token = request.cookies?.token;
+  if (typeof token !== "string" || !token) {
+    return response.status(401).json({ error: "No hay una sesión activa" });
+  }
+
+  const decodedToken = jwt.verify(token, config.JWT_SECRET, {
+    algorithms: ["HS256"],
+  });
+  const csrfToken = request.headers["x-csrf-token"];
+
+  if (
+    typeof decodedToken !== "object" ||
+    typeof decodedToken.id !== "string" ||
+    typeof decodedToken.csrf !== "string" ||
+    decodedToken.csrf !== csrfToken
+  ) {
+    return response.status(401).json({ error: "Sesión o token CSRF inválido" });
+  }
+
+  request.userId = decodedToken.id;
+  next();
+};
 
 const requestLogger = (
   request: Request,
@@ -8,7 +46,6 @@ const requestLogger = (
 ) => {
   logger.info("Method:", request.method);
   logger.info("Path:  ", request.path);
-  logger.info("Body:  ", request.body);
   logger.info("---");
   next();
 };
@@ -30,6 +67,10 @@ const errorHandler = (
     return response.status(400).json({ error: "Identificador inválido" });
   } else if (error.name === "ValidationError") {
     return response.status(400).json({ error: error.message });
+  } else if (error.name === "JsonWebTokenError" || error.name === "NotBeforeError") {
+    return response.status(401).json({ error: "Sesión inválida" });
+  } else if (error.name === "TokenExpiredError") {
+    return response.status(401).json({ error: "La sesión ha expirado" });
   } else if (
     error.name === "MongoServerError" &&
     error.message.includes("E11000 duplicate key error")
@@ -60,4 +101,4 @@ const unknownEndpoint = (
   response.status(404).json({ error: "Ruta no encontrada" });
 };
 
-export default { requestLogger, errorHandler, unknownEndpoint };
+export default { requestLogger, errorHandler, unknownEndpoint, withUser };

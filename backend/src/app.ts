@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+import config from "./utils/config.ts";
 import middleware from "./utils/middleware.ts";
 import peliculaRouter from "./controllers/pelicula.ts";
 import funcionRouter from "./controllers/funcion.ts";
@@ -10,8 +12,15 @@ import authRouter from "./controllers/auth.ts";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: config.FRONTEND_URL,
+    credentials: true,
+    exposedHeaders: ["X-CSRF-Token"],
+  }),
+);
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(express.static("dist"));
 app.use(middleware.requestLogger);
