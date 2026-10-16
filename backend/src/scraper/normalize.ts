@@ -72,16 +72,44 @@ export function localNow(now = new Date()): string {
   return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
 }
 
-export function ticketFormat(sessionFormat: string, ticketTitle: string): string {
+export function ticketFormat(
+  sessionFormat: string,
+  ticketTitle: string,
+): string {
+  const session = normalized(sessionFormat).replace(
+    /\bINFINITY[ -]+VISION\b/g,
+    "IV",
+  );
+
   const title = normalized(text(ticketTitle, "tipo de entrada"))
-    .replace(/\bD[ -]?BOX\b/g, "DBOX").replace(/\bPRE\b/g, "PREMIER");
-  const formats = title.match(/\b(?:2D|3D|4D|XD|DBOX|IMAX|PREMIER|PALCO|PLAY|IV)\b/g) ?? [];
-  const dimensions = [...new Set(formats.filter((format) => /^[23]D$/.test(format)))];
-  if (dimensions.length > 1) throw new Error("La tarifa contiene dimensiones incompatibles.");
-  // Only projection is shared; seat and room options must belong to this tariff.
-  const projection = dimensions[0] ?? normalized(sessionFormat).match(/\b[23]D\b/)?.[0];
-  if (!projection) throw new Error("La tarifa no indica una proyeccion 2D o 3D.");
-  return [...new Set([projection, ...formats])].join(" ");
+    .replace(/\bD[ -]?BOX\b/g, "DBOX")
+    .replace(/\bPRE\b/g, "PREMIER")
+    .replace(/\bINFINITY[ -]+VISION\b/g, "IV");
+
+  const formats: string[] =
+    title.match(/\b(?:2D|3D|4D|XD|DBOX|IMAX|PREMIER|PALCO|PLAY|IV)\b/g) ?? [];
+
+  const dimensions = [
+    ...new Set(formats.filter((format) => /^[23]D$/.test(format))),
+  ];
+
+  if (dimensions.length > 1) {
+    throw new Error("La tarifa contiene dimensiones incompatibles.");
+  }
+
+  const projection = dimensions[0] ?? session.match(/\b[23]D\b/)?.[0];
+
+  if (!projection) {
+    throw new Error("La tarifa no indica una proyeccion 2D o 3D.");
+  }
+
+  if (/\bIV\b/.test(session)) {
+    formats.push("IV");
+  }
+
+  return [...new Set([projection, ...formats])]
+    .map((format) => (format === "IV" ? "INFINITY VISION" : format))
+    .join(" ");
 }
 
 export function normalizePrices(groups: RawPriceGroup[], session: RawSession): {
