@@ -1,7 +1,6 @@
 import type { Usuario, LoginInput, RegisterInput } from "../types/auth";
 import { API_BASE_URL } from "./apiConfig";
 
-const STORAGE_KEY_USUARIO_ACTIVO = "cine_usuario_activo";
 const STORAGE_KEY_CSRF = "csrfToken";
 const BASE_URL = `${API_BASE_URL}/auth`;
 
@@ -20,7 +19,6 @@ const fetchAuth = (endpoint: string, options: RequestInit = {}) => {
 };
 
 const clearSessionData = (): void => {
-  localStorage.removeItem(STORAGE_KEY_USUARIO_ACTIVO);
   localStorage.removeItem(STORAGE_KEY_CSRF);
 };
 
@@ -35,13 +33,14 @@ const saveSessionData = (response: Response, usuario: Usuario): Usuario => {
     nombre: usuario.nombre,
     email: usuario.email,
     fechaRegistro: usuario.fechaRegistro,
+    peliculasFavoritas: usuario.peliculasFavoritas ?? [],
+    cinesFavoritos: usuario.cinesFavoritos ?? [],
   };
   localStorage.setItem(STORAGE_KEY_CSRF, csrfToken);
-  localStorage.setItem(STORAGE_KEY_USUARIO_ACTIVO, JSON.stringify(datosUsuario));
   return datosUsuario;
 };
 
-/** El navegador recibe el JWT en una cookie; solo guardamos datos de usuario y CSRF. */
+/** El navegador recibe el JWT en una cookie; en localStorage solo guardamos el token CSRF. */
 const login = async (credenciales: LoginInput): Promise<Usuario> => {
   const response = await fetchAuth("/login", {
     method: "POST",
