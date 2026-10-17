@@ -1,5 +1,4 @@
 import CineModel from "../models/cine.ts";
-import logger from "../utils/logger.ts";
 import express from "express";
 
 const router = express.Router();

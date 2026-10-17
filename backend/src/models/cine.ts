@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
 const url = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_NAME || "reactivos-cine";
