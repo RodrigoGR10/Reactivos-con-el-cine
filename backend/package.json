@@ -10,7 +10,13 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "scrape:cinemark": "node src/scraper/cli.ts",
     "sync:cinemark": "node src/scraper/cli.ts --import",
-    "import:cinemark": "node src/scraper/import-cli.ts"
+    "import:cinemark": "node src/scraper/import-cli.ts",
+    "scrape:cineplanet": "node src/scraper/cli.ts --chain=cineplanet",
+    "sync:cineplanet": "node src/scraper/cli.ts --chain=cineplanet --import",
+    "scrape:muvix": "node src/scraper/cli.ts --chain=muvix",
+    "sync:muvix": "node src/scraper/cli.ts --chain=muvix --import",
+    "scrape:cinestar": "node src/scraper/cli.ts --chain=cinestar",
+    "sync:cinestar": "node src/scraper/cli.ts --chain=cinestar --import"
   },
   "keywords": [],
   "author": "",

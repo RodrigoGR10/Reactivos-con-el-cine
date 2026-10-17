@@ -1,6 +1,6 @@
 import { cinemarkData } from "./client.ts";
-import { isDate, localNow, normalizeCinema, normalizeMovie, normalizeSessions, sessionDateTime } from "./normalize.ts";
-import type { Incident, RawCinema, RawMovie, RawPriceGroup, RawSession, ScrapedMovie, ScrapeResult } from "./types.ts";
+import { isDate, localNow, normalizeCinema, normalizeMovie, normalizeSchedule, sessionDateTime } from "./normalize.ts";
+import type { Incident, RawCinema, RawMovie, RawSession, ScrapedMovie, ScrapeResult } from "./types.ts";
 
 export interface ScrapeOptions {
   desde: string;
@@ -24,11 +24,12 @@ export async function scrapeCinemark(options: ScrapeOptions): Promise<ScrapeResu
     if (!selected.some((cinema) => String(cinema.id) === selector || cinema.slug === selector)) throw new Error(`Cine desconocido: ${selector}. Usa --list-cinemas.`);
   }
   const result: ScrapeResult = {
-    peliculas: [], cines: [], funciones: [], incidencias: [],
+    peliculas: [], cines: [], funciones: [], horarios: [], incidencias: [],
     meta: {
-      origen: "cinemark", version: 1, iniciadoEn: startedAt, completo: false,
+      origen: "cinemark", version: 1, modo: "cartelera", iniciadoEn: startedAt, completo: false,
       desde: options.desde, dias: options.dias, limitePorCine: options.limitePorCine,
       cinesSeleccionados: selected.length, cinesProcesados: 0, sesionesConsultadas: 0,
+      cinesDisponibles: allCinemas.length,
       moneda: "CLP", zonaHoraria: "America/Santiago", precioIncluyeServicio: false,
     },
   };
@@ -37,6 +38,7 @@ export async function scrapeCinemark(options: ScrapeOptions): Promise<ScrapeResu
   const movies = new Map<string, ScrapedMovie>();
   const failedMovies = new Set<string>();
   const sessionIds = new Set<string>();
+  const moviesWithFutureSessions = new Set<string>();
   const addIncident = (incident: Incident) => {
     result.incidencias.push(incident);
     console.log(`  Aviso (${incident.etapa}): ${incident.mensaje}`);
@@ -54,7 +56,10 @@ export async function scrapeCinemark(options: ScrapeOptions): Promise<ScrapeResu
           const { fecha, horario } = sessionDateTime(session);
           const date = session.sessionDisplayDate;
           if (!isDate(date)) throw new Error("Fecha de cartelera invalida.");
-          return date >= options.desde && (!until || date < until) && `${fecha}T${horario}:59` >= now;
+          if (!session.corporateId?.trim()) throw new Error("Id de pelicula invalido.");
+          const future = `${fecha}T${horario}:59` >= now;
+          if (future) moviesWithFutureSessions.add(session.corporateId);
+          return date >= options.desde && (!until || date < until) && future;
         } catch (error) {
           addIncident({ cineId: cinemaId, sesionId: session.sessionId, etapa: "funcion", mensaje: message(error) });
           return false;
@@ -62,8 +67,8 @@ export async function scrapeCinemark(options: ScrapeOptions): Promise<ScrapeResu
       }).sort((a, b) => a.sessionDateTime.localeCompare(b.sessionDateTime));
       const limited = options.limitePorCine === null ? relevant : relevant.slice(0, options.limitePorCine);
       result.cines.push(normalizedCinema);
-      console.log(`  ${limited.length} sesiones a consultar (${relevant.length} dentro del rango).`);
-      for (const [sessionIndex, session] of limited.entries()) {
+      console.log(`  ${limited.length} horarios (${relevant.length} dentro del rango), sin consultar precios.`);
+      for (const session of limited) {
         const sessionKey = `${cinemaId}:${session.sessionId}`;
         if (sessionIds.has(sessionKey)) continue;
         sessionIds.add(sessionKey);
@@ -82,17 +87,9 @@ export async function scrapeCinemark(options: ScrapeOptions): Promise<ScrapeResu
         }
         if (!movies.has(session.corporateId)) continue;
         try {
-          const prices = await cinemarkData<RawPriceGroup[]>("/get-prices", {
-            cinemaId, sessionId: session.sessionId, feature: "0", salesChannelToken: "WWW", memberId: "invited",
-          });
-          const functions = normalizeSessions(session, prices, cinema, startedAt, movies.get(session.corporateId)?.url);
-          if (!functions.length) throw new Error("No se publico una tarifa normal para adulto/general.");
-          result.funciones.push(...functions);
+          result.horarios!.push(normalizeSchedule(session, startedAt));
         } catch (error) {
-          addIncident({ cineId: cinemaId, peliculaId: session.corporateId, sesionId: session.sessionId, etapa: "precio", mensaje: message(error) });
-        }
-        if ((sessionIndex + 1) % 25 === 0) {
-          console.log(`  Consultadas ${sessionIndex + 1}/${limited.length} sesiones.`);
+          addIncident({ cineId: cinemaId, peliculaId: session.corporateId, sesionId: session.sessionId, etapa: "funcion", mensaje: message(error) });
         }
       }
       result.meta.cinesProcesados++;
@@ -101,7 +98,8 @@ export async function scrapeCinemark(options: ScrapeOptions): Promise<ScrapeResu
     }
   }
   result.meta.terminadoEn = new Date().toISOString();
-  result.funciones.sort((a, b) => a.cineId.localeCompare(b.cineId) || `${a.fecha}T${a.horario}`.localeCompare(`${b.fecha}T${b.horario}`) || a.formato.localeCompare(b.formato));
+  result.meta.peliculasConFuncionesFuturas = [...moviesWithFutureSessions].sort();
+  result.horarios!.sort((a, b) => a.cineId.localeCompare(b.cineId) || `${a.fecha}T${a.horario}`.localeCompare(`${b.fecha}T${b.horario}`));
   result.meta.completo = result.meta.cinesProcesados === selected.length && result.incidencias.length === 0;
   return result;
 }
