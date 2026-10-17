@@ -7,6 +7,7 @@
     --color-texto-secundario: #a8a9b1;
     --color-acento: #cc120b;
     --color-acento-oscuro: #a50e09;
+    --sidebar-width: clamp(64px, 4.8vw, 96px);
 }
 
 *,
@@ -50,7 +51,7 @@ body {
 }
 
 .sidebar {
-    width: 64px;
+    width: var(--sidebar-width);
     height: 100vh;
     height: 100dvh;
     position: fixed;
@@ -63,7 +64,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 26px 0;
+    padding: clamp(24px, 3vh, 40px) 0;
     box-sizing: border-box;
     z-index: 1000;
     pointer-events: none;
@@ -81,13 +82,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 28px;
+    gap: clamp(28px, 3.2vh, 44px);
     pointer-events: auto;
 }
 
 .sidebar-btn {
-    width: 48px;
-    height: 48px;
+    width: clamp(48px, 3.4vw, 64px);
+    height: clamp(48px, 3.4vw, 64px);
     background: transparent;
     border: none;
     outline: none;
@@ -97,11 +98,16 @@ body {
     align-items: center;
     cursor: pointer;
     padding: 0;
-    border-radius: 10px;
+    border-radius: 12px;
     transition:
         color 0.2s ease,
         transform 0.15s ease,
         background-color 0.2s ease;
+}
+
+.sidebar-btn svg {
+    width: clamp(26px, 1.8vw, 34px);
+    height: clamp(26px, 1.8vw, 34px);
 }
 
 .sidebar-btn:hover {
@@ -124,8 +130,8 @@ body {
 }
 
 .sidebar-logo-img {
-    width: 32px;
-    height: 32px;
+    width: clamp(32px, 2.3vw, 44px);
+    height: clamp(32px, 2.3vw, 44px);
     border-radius: 8px;
     object-fit: cover;
     display: block;
@@ -142,8 +148,8 @@ body {
 .main-principal {
     flex: 1;
     min-width: 0;
-    margin-left: 64px;
-    width: calc(100% - 64px);
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
     background-color: var(--color-fondo);
     display: flex;
     flex-direction: column;
