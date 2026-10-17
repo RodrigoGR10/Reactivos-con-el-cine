@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import type { Pelicula, Cine, Funcion } from "../types/types";
+import type { Pelicula, Cine, Horario } from "../types/types";
 import peliculaService from "../services/peliculas";
 import cineService from "../services/cines";
 import funcionService from "../services/funciones";
 
 export function useDetallePelicula(id?: string) {
   const [pelicula, setPelicula] = useState<Pelicula | null>(null);
-  const [funciones, setFunciones] = useState<Funcion[]>([]);
+  const [horarios, setHorarios] = useState<Horario[]>([]);
+  const [idCargado, setIdCargado] = useState<string>();
   const [cines, setCines] = useState<Cine[]>([]);
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
 
@@ -16,19 +17,23 @@ export function useDetallePelicula(id?: string) {
 
     const cargar = async () => {
       try {
-        const [peliculaData, funcionesData, cinesData] = await Promise.all([
+        const [peliculaData, horariosData, cinesData] = await Promise.all([
           peliculaService.getById(id),
-          funcionService.getByPelicula(id),
+          funcionService.getHorarios(id),
           cineService.getAll(),
         ]);
 
         if (cancelado) return;
         setErrorCarga(null);
         setPelicula(peliculaData);
-        setFunciones(funcionesData);
+        setHorarios(horariosData);
+        setIdCargado(id);
         setCines(cinesData);
       } catch {
-        if (!cancelado) setErrorCarga("No se pudo cargar la información.");
+        if (!cancelado) {
+          setErrorCarga("No se pudo cargar la información.");
+          setIdCargado(id);
+        }
       }
     };
 
@@ -39,7 +44,11 @@ export function useDetallePelicula(id?: string) {
     };
   }, [id]);
 
-  const error = id ? errorCarga : "Pelicula no encontrada.";
+  const error = id ? (idCargado === id ? errorCarga : null) : "Pelicula no encontrada.";
 
-  return { pelicula, funciones, cines, error };
+  return {
+    pelicula: idCargado === id ? pelicula : null,
+    horarios: idCargado === id ? horarios : [],
+    cines: idCargado === id ? cines : [], error,
+  };
 }

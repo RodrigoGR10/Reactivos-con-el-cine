@@ -174,7 +174,99 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    margin-bottom: 22px;
+    margin-bottom: 0;
+}
+
+.abrir-cine {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+    min-height: 58px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-texto);
+    text-align: left;
+    cursor: pointer;
+}
+
+.nombre-cine {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.nombre-cine strong {
+    font-size: 1.2rem;
+}
+
+.nombre-cine > span {
+    font-size: 0.9rem;
+    color: var(--color-texto-secundario);
+}
+
+.indicador-cine {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    font-size: 1.5rem;
+}
+
+.abrir-cine:focus-visible,
+.reintentar-precios:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 4px;
+}
+
+.contenido-horarios {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--color-borde);
+}
+
+.estado-precios {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-height: 32px;
+    margin-bottom: 12px;
+    color: var(--color-texto-secundario);
+    font-size: 0.9rem;
+}
+
+.estado-precios p {
+    margin: 0;
+}
+
+.estado-precios .error-precios,
+.tarjeta-horario .precio-anterior {
+    color: #f5bc70;
+}
+
+.reintentar-precios {
+    margin-left: auto;
+    padding: 6px 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-texto);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.mensaje-horarios {
+    color: var(--color-texto-secundario);
+}
+
+.filtro-formato select:disabled {
+    opacity: 0.55;
 }
 
 .logo-cine {
@@ -188,6 +280,10 @@
 
     background: #ffffff;
     border-radius: 10px;
+}
+
+.logo-cine[data-origen="cinestar"] {
+    background: #121212;
 }
 
 .logo-cine img {
@@ -230,18 +326,6 @@
     visibility: visible;
     transform: scale(1);
 }
-.cabecera-cine h3 {
-    margin: 0 0 4px;
-    color: var(--color-texto);
-    font-size: 1.2rem;
-}
-
-.cabecera-cine p {
-    margin: 0;
-    color: var(--color-texto-secundario);
-    font-size: 0.9rem;
-}
-
 .horarios-cine {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
