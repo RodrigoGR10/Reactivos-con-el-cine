@@ -286,43 +286,45 @@ body {
     top: 0;
     right: 0;
     bottom: 0;
-    max-width: 65%;
+    width: 65%;
     z-index: 1;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     overflow: hidden;
     pointer-events: none;
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 22%,
+        black 55%
+    );
+    mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 22%,
+        black 55%
+    );
 }
 
 .decoracion-destacada img {
     height: 100%;
-    width: auto;
-    max-width: 100%;
+    width: 100%;
     object-fit: cover;
-    object-position: center right;
+    object-position: center;
     display: block;
-}
-
-.decoracion-destacada::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        linear-gradient(
-            to right,
-            var(--color-fondo) 0%,
-            rgba(8, 8, 8, 0.75) 14%,
-            rgba(8, 8, 8, 0.2) 32%,
-            transparent 55%
-        ),
-        linear-gradient(
-            to top,
-            var(--color-fondo) 0%,
-            rgba(8, 8, 8, 0.85) 16%,
-            transparent 45%
-        );
+    -webkit-mask-image: linear-gradient(
+        to top,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 18%,
+        black 45%
+    );
+    mask-image: linear-gradient(
+        to top,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 18%,
+        black 45%
+    );
 }
 
 .circulo-cine {
