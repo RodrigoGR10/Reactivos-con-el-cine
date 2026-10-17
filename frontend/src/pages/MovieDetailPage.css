@@ -269,6 +269,16 @@
     opacity: 0.55;
 }
 
+.enlace-cine-detalle {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.15s ease;
+}
+
+.enlace-cine-detalle:hover h3 {
+    color: var(--color-acento);
+}
+
 .logo-cine {
     position: relative;
     display: grid;

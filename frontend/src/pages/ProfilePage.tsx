@@ -328,7 +328,12 @@ const ProfilePage = () => {
                             )}
                           </div>
                           <div className="cinema-meta">
-                            <h4>{cine.nombre}</h4>
+                            <Link
+                              to={`/cines/${cine.id}`}
+                              className="profile-cinema-link"
+                            >
+                              <h4>{cine.nombre}</h4>
+                            </Link>
                             <p className="cinema-location">
                               <MapPinIcon
                                 size={13}

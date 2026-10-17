@@ -47,6 +47,7 @@ export interface Horario {
   fecha: string;
   fechaCartelera: string;
   horario: string;
+  formatoResumen?: string;
   idioma: string;
   sala: string;
   agotada: boolean;

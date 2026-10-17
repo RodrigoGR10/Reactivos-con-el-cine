@@ -16,7 +16,13 @@ const getPrecios = async (peliculaId: string, cineId: string, fecha: string, sig
   return data.horarios;
 };
 
+const getHorariosByCine = async (cineId: string): Promise<Horario[]> => {
+  const { data } = await axios.get<Horario[]>(`${baseUrl}/horarios`, { params: { cineId } });
+  return data;
+};
+
 export default {
   getHorarios,
+  getHorariosByCine,
   getPrecios,
 };

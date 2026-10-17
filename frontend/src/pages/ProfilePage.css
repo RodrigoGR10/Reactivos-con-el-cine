@@ -441,6 +441,16 @@
     min-width: 0;
 }
 
+.profile-cinema-link {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.15s ease;
+}
+
+.profile-cinema-link:hover h4 {
+    color: #e50914;
+}
+
 .cinema-meta h4 {
     margin: 0;
     font-size: 1.02rem;

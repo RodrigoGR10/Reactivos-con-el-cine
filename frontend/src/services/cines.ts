@@ -9,6 +9,12 @@ const getAll = async (): Promise<Cine[]> => {
   return data;
 };
 
+const getById = async (id: string): Promise<Cine> => {
+  const { data } = await axios.get<Cine>(`${baseUrl}/${id}`);
+  return data;
+};
+
 export default {
   getAll,
+  getById,
 };

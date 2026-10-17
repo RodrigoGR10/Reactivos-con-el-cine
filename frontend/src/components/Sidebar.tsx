@@ -1,5 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { HomeIcon, UserIcon, LogInIcon, LogOutIcon } from "./common/Icons";
+import {
+  HomeIcon,
+  TicketIcon,
+  UserIcon,
+  LogInIcon,
+  LogOutIcon,
+} from "./common/Icons";
 import { useAuth } from "../context/AuthContext";
 
 function Sidebar() {
@@ -31,6 +37,15 @@ function Sidebar() {
           title="Inicio"
         >
           <HomeIcon size={28} />
+        </NavLink>
+        <NavLink
+          to="/cines"
+          className={({ isActive }) =>
+            `sidebar-btn ${isActive ? "active" : ""}`
+          }
+          title="Cines"
+        >
+          <TicketIcon size={28} />
         </NavLink>
         <NavLink
           to="/perfil"

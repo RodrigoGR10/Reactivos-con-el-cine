@@ -38,7 +38,7 @@ export function horarioPublico(schedule: HorarioGuardado) {
     id: schedule._id.toString(),
     peliculaId: schedule.peliculaId.toString(), cineId: schedule.cineId.toString(),
     fecha: schedule.fecha, fechaCartelera: schedule.fechaCartelera,
-    horario: schedule.horario, idioma: schedule.idioma, sala: schedule.sala,
+    horario: schedule.horario, formatoResumen: schedule.formatoResumen, idioma: schedule.idioma, sala: schedule.sala,
     agotada: schedule.agotada, estadoPrecio,
     preciosConsultadosEn: compatible ? schedule.preciosConsultadosEn?.toISOString() : undefined,
     reintentarEn: schedule.preciosErrorRevision === schedule.revision ? schedule.preciosErrorHasta?.toISOString() : undefined,

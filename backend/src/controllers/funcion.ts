@@ -8,12 +8,31 @@ import mongoose from "mongoose";
 const router = express.Router();
 
 router.get("/horarios", async (req, res) => {
-  const { peliculaId } = req.query;
-  if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
-    res.status(400).json({ error: "peliculaId invalido" });
+  const { peliculaId, cineId } = req.query;
+  const filtro: Record<string, string> = {};
+
+  if (peliculaId !== undefined) {
+    if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
+      res.status(400).json({ error: "peliculaId invalido" });
+      return;
+    }
+    filtro.peliculaId = peliculaId;
+  }
+
+  if (cineId !== undefined) {
+    if (typeof cineId !== "string" || !mongoose.isValidObjectId(cineId)) {
+      res.status(400).json({ error: "cineId invalido" });
+      return;
+    }
+    filtro.cineId = cineId;
+  }
+
+  if (!filtro.peliculaId && !filtro.cineId) {
+    res.status(400).json({ error: "Indica peliculaId o cineId" });
     return;
   }
-  const horarios = await HorarioModel.find({ peliculaId, ...horariosVigentes() }).sort({ fecha: 1, horario: 1 }).lean();
+
+  const horarios = await HorarioModel.find({ ...filtro, ...horariosVigentes() }).sort({ fecha: 1, horario: 1 }).lean();
   res.set("Cache-Control", "no-store").json(horarios.map(horarioPublico));
 });
 
@@ -27,27 +46,31 @@ router.get("/precios", async (req, res) => {
   res.set("Cache-Control", "no-store").json({ horarios, cacheMinutos: 15 });
 });
 
-router.get("/", async (req, res, next) => {
-  const { peliculaId } = req.query;
+router.get("/", async (req, res) => {
+  const { peliculaId, cineId } = req.query;
+  const filtro: Record<string, string> = {};
 
-  // Sin filtro: traemos todas las funciones
-  if (peliculaId === undefined) {
-    const funciones = await FuncionModel.find(horariosVigentes());
-    res.json(funciones);
-    return;
+  if (peliculaId !== undefined) {
+    if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
+      res.status(400).json({ error: "peliculaId inválido" });
+      return;
+    }
+    filtro.peliculaId = peliculaId;
   }
 
-  // Con filtro: debe ser un string con formato de ObjectId válido
-  if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
-    res.status(400).json({ error: "peliculaId inválido" });
-    return;
+  if (cineId !== undefined) {
+    if (typeof cineId !== "string" || !mongoose.isValidObjectId(cineId)) {
+      res.status(400).json({ error: "cineId inválido" });
+      return;
+    }
+    filtro.cineId = cineId;
   }
 
-  const funcionesFiltradas = await FuncionModel.find({ peliculaId, ...horariosVigentes() });
-  res.json(funcionesFiltradas);
+  const funciones = await FuncionModel.find({ ...filtro, ...horariosVigentes() });
+  res.json(funciones);
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", async (req, res) => {
   const funcion = await FuncionModel.findById(req.params.id);
 
   if (funcion) {

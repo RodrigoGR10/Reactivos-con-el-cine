@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
@@ -175,7 +175,15 @@ function MovieDetailPage() {
                     }}
                   >
                     <span className="nombre-cine">
-                      <strong>{cine.nombre}</strong>
+                      <strong>
+                        <Link
+                          to={`/cines/${cine.id}`}
+                          className="enlace-cine-detalle"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {cine.nombre}
+                        </Link>
+                      </strong>
                       <span>{cine.comuna} · {sesiones.length} {sesiones.length === 1 ? "horario" : "horarios"}</span>
                     </span>
                     <span className="indicador-cine" aria-hidden="true">{cineActual === cine.id ? "-" : "+"}</span>

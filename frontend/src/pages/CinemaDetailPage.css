@@ -1,0 +1,493 @@
+.detalle-cine-page {
+    width: 100%;
+    flex: 1;
+    padding: 36px 48px;
+    max-width: 1360px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    font-family:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+}
+
+.detalle-cine-nav {
+    display: flex;
+    align-items: center;
+}
+
+.btn-volver-cines {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #888888;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.btn-volver-cines:hover {
+    color: #ffffff;
+}
+
+/* Header / Hero del Cine */
+.detalle-cine-header {
+    background-color: #121212;
+    border: 1px solid #202020;
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+.detalle-cine-header-main {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.detalle-cine-logo-wrap {
+    width: 84px;
+    height: 84px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-sizing: border-box;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    flex-shrink: 0;
+}
+
+.detalle-cine-logo-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.detalle-cine-fallback-icon {
+    font-size: 2.5rem;
+}
+
+.detalle-cine-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.detalle-cine-etiqueta {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #e50914;
+    letter-spacing: 0.8px;
+}
+
+.detalle-cine-nombre {
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.6px;
+    line-height: 1.15;
+}
+
+.detalle-cine-comuna {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #888888;
+    font-size: 0.95rem;
+}
+
+.detalle-cine-header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.btn-fav-cine-detalle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #181818;
+    border: 1px solid #2a2a2a;
+    color: #ffffff;
+    padding: 11px 20px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.btn-fav-cine-detalle:hover {
+    border-color: #e50914;
+    background-color: rgba(229, 9, 20, 0.1);
+}
+
+.btn-fav-cine-detalle.active {
+    background-color: rgba(229, 9, 20, 0.14);
+    border-color: rgba(229, 9, 20, 0.45);
+    color: #ff6b72;
+}
+
+.corazon-icon {
+    font-size: 1.2rem;
+}
+
+/* Sección Cartelera */
+.detalle-cine-cartelera-sec {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.cartelera-sec-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid #1c1c1c;
+    padding-bottom: 12px;
+    gap: 16px;
+}
+
+.cartelera-sec-header h2 {
+    margin: 4px 0 0 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.4px;
+}
+
+.conteo-peliculas-cine {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #888888;
+    background-color: #141414;
+    border: 1px solid #222222;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* Filtros de la cartelera */
+.cartelera-cine-filtros {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.cartelera-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #121212;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 38px;
+    color: #777777;
+    min-width: 240px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.cartelera-search-box:focus-within {
+    border-color: #444444;
+}
+
+.cartelera-search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-size: 0.88rem;
+    width: 100%;
+}
+
+.cartelera-search-box input::placeholder {
+    color: #666666;
+}
+
+.btn-clear-inline {
+    background: transparent;
+    border: none;
+    color: #777777;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 4px;
+}
+
+.btn-clear-inline:hover {
+    color: #ffffff;
+}
+
+.formatos-chips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.formato-chip {
+    background-color: #141414;
+    border: 1px solid #262626;
+    color: #888888;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.formato-chip:hover {
+    border-color: #444444;
+    color: #ffffff;
+}
+
+.formato-chip.active {
+    background-color: #e50914;
+    border-color: #e50914;
+    color: #ffffff;
+}
+
+/* Tarjetas de Película en el Cine */
+.peliculas-cine-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.pelicula-cine-card {
+    background-color: #121212;
+    border: 1px solid #202020;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    gap: 24px;
+    box-sizing: border-box;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.pelicula-cine-card:hover {
+    border-color: #2e2e2e;
+    background-color: #141414;
+}
+
+.pelicula-cine-poster-link {
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.pelicula-cine-poster {
+    width: 110px;
+    height: 165px;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s ease;
+}
+
+.pelicula-cine-poster-link:hover .pelicula-cine-poster {
+    transform: scale(1.03);
+}
+
+.pelicula-cine-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+}
+
+.pelicula-cine-header-info h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+}
+
+.pelicula-cine-titulo-link {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.15s ease;
+}
+
+.pelicula-cine-titulo-link:hover {
+    color: #e50914;
+}
+
+.pelicula-cine-metadatos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #888888;
+    font-size: 0.88rem;
+    margin: 6px 0 0 0;
+    flex-wrap: wrap;
+}
+
+.badge-clasif {
+    border: 1px solid #2e2e2e;
+    background-color: #181818;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: #b0b0b0;
+}
+
+/* Grilla de Horarios */
+.horarios-grid-cine {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.horario-pill-item {
+    background-color: #181818;
+    border: 1px solid #282828;
+    border-radius: 10px;
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 105px;
+    box-sizing: border-box;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.horario-pill-item:hover {
+    background-color: #1f1f1f;
+    border-color: #3e3e3e;
+}
+
+.horario-hora {
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.2px;
+}
+
+.horario-detalles {
+    font-size: 0.74rem;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.horario-precio {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #10b981;
+    margin-top: 2px;
+}
+
+/* Estados vacíos y carga */
+.detalle-cine-loading,
+.detalle-cine-error,
+.cartelera-cine-empty {
+    background-color: #121212;
+    border: 1px solid #202020;
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.detalle-cine-loading p,
+.detalle-cine-error p,
+.cartelera-cine-empty p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #888888;
+}
+
+.btn-reset-filtros {
+    margin-top: 14px;
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-reset-filtros:hover {
+    background-color: #242424;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .detalle-cine-page {
+        padding: 24px 18px;
+        gap: 20px;
+    }
+
+    .detalle-cine-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    .detalle-cine-header-actions {
+        width: 100%;
+    }
+
+    .btn-fav-cine-detalle {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .detalle-cine-nombre {
+        font-size: 1.8rem;
+    }
+
+    .pelicula-cine-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .pelicula-cine-metadatos {
+        justify-content: center;
+    }
+
+    .horarios-grid-cine {
+        justify-content: center;
+    }
+}
