@@ -14,7 +14,7 @@ export function usePeliculas() {
 
     const cargar = async () => {
       try {
-        const data = await peliculaService.getAll();
+        const data = await peliculaService.getCartelera();
 
         if (!cancelado) setPeliculas(data);
       } catch {
