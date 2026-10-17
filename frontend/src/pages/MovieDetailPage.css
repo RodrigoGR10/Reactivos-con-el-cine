@@ -412,6 +412,14 @@
     border-radius: 12px;
 }
 
+.boton-cercania-detalle {
+    margin-bottom: 12px;
+    padding: 6px 9px;
+    color: #ffffff;
+    background: var(--color-acento);
+    border-radius: 6px;
+}
+
 .sin-funciones span {
     display: block;
     margin-bottom: 12px;
