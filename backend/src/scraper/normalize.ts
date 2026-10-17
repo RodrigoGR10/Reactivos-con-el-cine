@@ -1,6 +1,6 @@
 import { SITE } from "./client.ts";
 import { normalizarSinopsis } from "../utils/sinopsis.ts";
-import type { RawCinema, RawMovie, RawPriceGroup, RawSession, RawTicket, ScrapedCinema, ScrapedMovie, ScrapedSession } from "./types.ts";
+import type { RawCinema, RawMovie, RawPriceGroup, RawSession, RawTicket, ScrapedCinema, ScrapedMovie, ScrapedSchedule, ScrapedSession } from "./types.ts";
 
 export { localNow } from "../utils/localNow.ts";
 
@@ -64,6 +64,35 @@ export function sessionDateTime(session: RawSession): { fecha: string; horario: 
 
 export function isDate(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
+}
+
+export function scheduleRevision(schedule: Pick<ScrapedSchedule, "peliculaId" | "cineId" | "sesionId" | "fecha" | "fechaCartelera" | "horario" | "formatoResumen" | "idioma" | "sala" | "urlCompra">): string {
+  return JSON.stringify([
+    schedule.peliculaId, schedule.cineId, schedule.sesionId,
+    schedule.fecha, schedule.fechaCartelera, schedule.horario,
+    schedule.formatoResumen, schedule.idioma, schedule.sala,
+    ...(schedule.urlCompra ? [schedule.urlCompra] : []),
+  ]);
+}
+
+export function normalizeSchedule(session: RawSession, extractedAt: string): ScrapedSchedule {
+  const { fecha, horario } = sessionDateTime(session);
+  if (!isDate(session.sessionDisplayDate)) throw new Error("Fecha de cartelera invalida.");
+  const cinemaId = text(session.theaterId, "id de cine");
+  const sessionId = text(session.sessionId, "id de sesion");
+  const sourceId = `${cinemaId}:${sessionId}`;
+  const schedule = {
+    id: `cinemark:${sourceId}`, origen: "cinemark" as const,
+    origenId: sourceId, extraidoEn: extractedAt,
+    peliculaId: `cinemark:${text(session.corporateId, "id de pelicula")}`,
+    cineId: `cinemark:${cinemaId}`, sesionId: sessionId,
+    fecha, horario, fechaCartelera: session.sessionDisplayDate,
+    formatoResumen: text(session.sessionFormat, "formato de sesion"),
+    idioma: text(session.language?.name, "idioma"),
+    sala: text(session.theaterRoom, "sala"),
+    agotada: session.occupation?.availableSeats === 0,
+  };
+  return { ...schedule, revision: scheduleRevision(schedule) };
 }
 
 export function ticketFormat(
