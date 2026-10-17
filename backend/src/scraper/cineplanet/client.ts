@@ -9,7 +9,6 @@ function publicConfig(source: string) {
   const reference = (field: string) => source.match(new RegExp(`['"]${field}['"]\\s*:\\s*[\\w$]+\\((0x[\\da-f]+|\\d+)\\)`, "i"))?.[1];
   const anchor = reference("microservices");
   if (!anchor) throw new Error("Cineplanet cambio su configuracion publica.");
-  // Leer la tabla de cadenas publicada por la web, sin ejecutar su JavaScript.
   for (const match of source.matchAll(/\b(?:var|const|let)\s+[\w$]+\s*=\s*\[/g)) {
     const start = source.indexOf("[", match.index);
     const end = source.indexOf("]", start);

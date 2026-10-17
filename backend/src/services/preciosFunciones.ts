@@ -45,7 +45,6 @@ export function horarioPublico(schedule: HorarioGuardado) {
     tarifas: tarifas.map((tarifa) => ({
       ...tarifa, peliculaId: schedule.peliculaId.toString(),
       cineId: schedule.cineId.toString(), agotada: schedule.agotada,
-      // Corrige tambien los enlaces de tarifas guardadas antes de usar el paso de asientos.
       urlCompra: schedule.origen === "cineplanet" ? tarifa.urlCompra.replace(/\/entradas$/, "/asientos") : tarifa.urlCompra,
     })),
   };
@@ -61,7 +60,6 @@ async function consultarHorario(schedule: HorarioGuardado, movieId: string, movi
 
   const task = (async () => {
     const token = randomUUID();
-    // La reserva en Mongo evita duplicados incluso entre procesos del backend.
     const claimed = await HorarioModel.findOneAndUpdate({
       _id: schedule._id, revision: schedule.revision,
       $and: [

@@ -92,7 +92,6 @@ export function validateResult(value: unknown, allowPartial = false): asserts va
 
 async function connectModels(uri: string, dbName: string) {
   await mongoose.connect(uri, { dbName, serverSelectionTimeoutMS: 10_000, autoIndex: false, autoCreate: false });
-  // Cargar los modelos aqui permite validar un JSON sin conectarse a Mongo.
   const { default: Pelicula } = await import("../models/pelicula.ts");
   const { default: Cine } = await import("../models/cine.ts");
   const { default: Funcion } = await import("../models/funcion.ts");
@@ -215,7 +214,6 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
         const cineId = cinemas.get(session.cineId);
         if (!peliculaId || !cineId) throw new Error(`Referencias incompletas para la funcion ${id}.`);
         const document = { ...session, peliculaId, cineId };
-        // bulkWrite no valida updates: validar aqui no hace consultas a Mongo.
         await new Funcion(document).validate();
         operations.push({
           updateOne: {

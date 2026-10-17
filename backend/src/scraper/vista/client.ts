@@ -77,7 +77,6 @@ export async function ticketPage(chain: CadenaVista, cinemaId: string, sessionId
   const site = CADENAS[chain].sitio;
   let url = purchaseUrl(chain, cinemaId, sessionId);
   const cookies = new Map<string, string>();
-  // Cada consulta usa su propia sesion anonima; nunca se comparten carritos.
   for (let hop = 0; hop < 4; hop++) {
     const response = await request(url, { Cookie: [...cookies.values()].join("; ") }, "manual");
     for (const cookie of response.headers.getSetCookie()) {

@@ -10,7 +10,6 @@ const text = (value: string, field: string): string => {
 };
 const normalized = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
 
-// These two addresses omit the comuna. All other branches publish it explicitly.
 const comunaBySlug: Record<string, string> = {
   "cinemark-gran-avenida": "San Miguel",
   "cinemark-la-dehesa": "Lo Barnechea",
@@ -58,7 +57,6 @@ export function normalizeMovie(movie: RawMovie, extractedAt: string): ScrapedMov
 export function sessionDateTime(session: RawSession): { fecha: string; horario: string } {
   const match = /^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d):/.exec(session.sessionDateTime);
   if (!match || !isDate(match[1])) throw new Error("Fecha u hora de funcion invalida.");
-  // Cinemark's Z suffix represents its displayed wall time, not a UTC instant.
   return { fecha: match[1], horario: `${match[2]}:${match[3]}` };
 }
 
@@ -160,13 +158,11 @@ export function purchaseUrl(movieUrl: string | undefined, cinema: Pick<RawCinema
   if (movieUrl && !/^\/pelicula\/[^/]+$/.test(url.pathname)) throw new Error("Enlace de pelicula invalido.");
   url.searchParams.set("date", date);
   if (movieUrl) {
-    // Cinemark matches cine against its normalized name, not the API's slug.
     const cinemaName = text(cinema.name, "nombre del cine").toLowerCase().normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     url.searchParams.set("cine", cinemaName);
   }
   url.searchParams.set("language", text(language, "idioma"));
-  // Repeated formats are OR filters, so choose the most specific tariff feature.
   const formats = format.split(/\s+/);
   const feature = ["DBOX", "PALCO", "PREMIER", "IMAX", "4D", "PLAY", "XD", "3D", "2D"].find((value) => formats.includes(value));
   if (!feature) throw new Error("Formato de enlace invalido.");
@@ -181,7 +177,6 @@ export function normalizeSessions(session: RawSession, groups: RawPriceGroup[], 
   const cinemaId = text(session.theaterId, "id de cine");
   return normalizePrices(groups, session).map(({ areaId, ...price }) => {
     const sourceId = `${cinemaId}:${sessionId}:${areaId}`;
-    // The exact session and ticket area must still be selected on Cinemark.
     const url = purchaseUrl(movieUrl, cinema, session.sessionDisplayDate, session.language.name, price.formato);
     return {
       id: `cinemark:${sourceId}`, origen: "cinemark", origenId: sourceId, extraidoEn: extractedAt,

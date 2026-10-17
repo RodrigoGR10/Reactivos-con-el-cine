@@ -43,7 +43,6 @@ export function normalizeMovie(chain: CadenaVista, movie: Movie, html: string, e
 
 export function normalizeSchedule(chain: CadenaVista, session: Session, movie: Movie, extractedAt: string): ScrapedSchedule {
   if (session.ID !== `${session.CinemaId}-${session.SessionId}` || session.CinemaId !== movie.CinemaId || session.ScheduledFilmId !== movie.ScheduledFilmId || !/^\d+$/.test(session.SessionId)) throw new Error("La sesion no coincide con la pelicula o cine.");
-  // Vista publica la hora local sin offset; no debe convertirse usando la zona del servidor.
   if (!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(session.Showtime) || !isDate(session.Showtime.slice(0, 10)) || !isDate(session.SessionBusinessDate.slice(0, 10))) throw new Error("Fecha u hora de funcion invalida.");
   const attributes = session.SessionAttributesNames;
   if (!Array.isArray(attributes) || !attributes.length) throw new Error("Faltan los atributos de la funcion.");
