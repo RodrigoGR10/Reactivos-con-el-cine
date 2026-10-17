@@ -1,11 +1,28 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+
 export interface TmdbEnrichment {
   tmdbId: number;
   poster?: string;
   banner?: string;
   sinopsis?: string;
+}
+
+interface TmdbMovieResult {
+  id: number;
+  title: string;
+  original_title: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date?: string;
+  popularity?: number;
+}
+
+interface TmdbSearchResponse {
+  results?: TmdbMovieResult[];
 }
 
 /**
@@ -42,4 +59,75 @@ export function parseMovieTitleForSearch(rawTitle: string): {
   }
 
   return { queries, year: explicitYear };
+}
+
+async function searchTmdbQuery(
+  query: string,
+  apiKey: string,
+  language = "es-MX",
+): Promise<TmdbMovieResult[]> {
+  const url = new URL(`${TMDB_BASE_URL}/search/movie`);
+  url.searchParams.set("api_key", apiKey);
+  url.searchParams.set("query", query);
+  url.searchParams.set("language", language);
+  url.searchParams.set("include_adult", "false");
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`TMDB HTTP ${response.status} al buscar "${query}"`);
+  }
+
+  const data = (await response.json()) as TmdbSearchResponse;
+  return Array.isArray(data.results) ? data.results : [];
+}
+
+function scoreCandidate(
+  candidate: TmdbMovieResult,
+  cleanQuery: string,
+  explicitYear?: number,
+): number {
+  let score = 0;
+  const releaseYear = candidate.release_date
+    ? Number(candidate.release_date.slice(0, 4))
+    : undefined;
+
+  const norm = (str: string) =>
+    str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+
+  const qNorm = norm(cleanQuery);
+  const titleNorm = norm(candidate.title || "");
+  const origNorm = norm(candidate.original_title || "");
+
+  if (titleNorm === qNorm || origNorm === qNorm) {
+    score += 50;
+  } else if (titleNorm.includes(qNorm) || origNorm.includes(qNorm)) {
+    score += 20;
+  }
+
+  if (explicitYear && releaseYear) {
+    if (releaseYear === explicitYear) {
+      score += 60;
+    } else if (Math.abs(releaseYear - explicitYear) <= 1) {
+      score += 30;
+    } else {
+      // Caso como "EL EXORCISTA [2000]" (reestreno año 2000 del clásico de 1973)
+      score -= 10;
+    }
+  } else if (releaseYear) {
+    // Para estrenos actuales sin año en corchetes, priorizar películas recientes (2024-2027)
+    if (releaseYear >= 2024 && releaseYear <= 2027) {
+      score += 35;
+    }
+  }
+
+  if (candidate.backdrop_path) score += 25;
+  if (candidate.poster_path) score += 15;
+  if (candidate.overview && candidate.overview.trim().length > 20) score += 10;
+  score += Math.min(candidate.popularity ?? 0, 20);
+
+  return score;
 }
