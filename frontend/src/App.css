@@ -286,7 +286,7 @@ body {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 65%;
+    max-width: 65%;
     z-index: 1;
     display: flex;
     justify-content: flex-end;
@@ -302,34 +302,6 @@ body {
     object-fit: cover;
     object-position: center right;
     display: block;
-    mask-image:
-        linear-gradient(
-            to right,
-            transparent 0%,
-            rgba(0, 0, 0, 0.4) 15%,
-            black 45%
-        ),
-        linear-gradient(
-            to top,
-            transparent 0%,
-            rgba(0, 0, 0, 0.4) 18%,
-            black 50%
-        );
-    -webkit-mask-image:
-        linear-gradient(
-            to right,
-            transparent 0%,
-            rgba(0, 0, 0, 0.4) 15%,
-            black 45%
-        ),
-        linear-gradient(
-            to top,
-            transparent 0%,
-            rgba(0, 0, 0, 0.4) 18%,
-            black 50%
-        );
-    mask-composite: intersect;
-    -webkit-mask-composite: source-in;
 }
 
 .decoracion-destacada::after {
@@ -341,8 +313,9 @@ body {
         linear-gradient(
             to right,
             var(--color-fondo) 0%,
-            rgba(8, 8, 8, 0.2) 15%,
-            transparent 45%
+            rgba(8, 8, 8, 0.75) 14%,
+            rgba(8, 8, 8, 0.2) 32%,
+            transparent 55%
         ),
         linear-gradient(
             to top,
