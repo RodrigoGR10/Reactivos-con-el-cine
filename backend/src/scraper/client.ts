@@ -1,53 +1,24 @@
-import { setTimeout as delay } from "node:timers/promises";
 import LZString from "lz-string";
+import { configureRequests, request } from "./http.ts";
 
 export const SITE = "https://www.cinemark.cl";
 
 let baseUrl = "";
-let interval = 500;
-let lastRequest = 0;
+let initialization: Promise<void> | undefined;
 
-async function request(url: string): Promise<Response> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    await delay(Math.max(0, interval - (Date.now() - lastRequest)));
-    lastRequest = Date.now();
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        headers: {
-          Accept: "application/json, text/html",
-          country: "CL",
-          "User-Agent": "ReactivosCine/1.0 (cartelera publica)",
-        },
-        signal: AbortSignal.timeout(30_000),
-      });
-    } catch (error) {
-      if (attempt === 2) throw error;
-      await delay(1000 * 2 ** attempt);
-      continue;
-    }
-    if (response.ok) return response;
-    if ((response.status === 429 || response.status >= 500) && attempt < 2) {
-      await response.body?.cancel();
-      const retryAfter = response.headers.get("retry-after");
-      const seconds = Number(retryAfter);
-      const date = retryAfter ? Date.parse(retryAfter) : NaN;
-      const retryMs = seconds > 0 ? seconds * 1000 : Number.isFinite(date) ? date - Date.now() : 1000 * 2 ** attempt;
-      if (retryMs > 60_000) throw new Error(`Cinemark solicita esperar ${retryAfter}. Ejecuta el scraper mas tarde.`);
-      await delay(Math.max(0, retryMs));
-      continue;
-    }
-    await response.body?.cancel();
-    throw new Error(`Cinemark HTTP ${response.status}: ${new URL(url).pathname}`);
+export async function ensureCinemark(): Promise<void> {
+  if (baseUrl) return;
+  if (!initialization) {
+    initialization = initializeCinemark().finally(() => { initialization = undefined; });
   }
-  throw new Error("No se pudo consultar Cinemark.");
+  await initialization;
 }
 
 export async function initializeCinemark(delayMs = 500): Promise<void> {
-  if (!Number.isSafeInteger(delayMs) || delayMs < 250) throw new Error("La pausa debe ser un entero >= 250 ms.");
-  interval = delayMs;
+  configureRequests(delayMs);
   baseUrl = "";
-  const response = await request(SITE);
+  const response = await request(SITE, { country: "CL" });
+  if (!response.ok) { await response.body?.cancel(); throw new Error(`Cinemark HTTP ${response.status}.`); }
   const cookie = response.headers.getSetCookie().find((value) => value.startsWith("CNK_PUBLIC_ENVS="));
   await response.body?.cancel();
   if (!cookie) throw new Error("Cinemark no publico su configuracion (CNK_PUBLIC_ENVS).");
@@ -66,7 +37,9 @@ export async function cinemarkData<T>(path: string, params: Record<string, strin
   if (!baseUrl) throw new Error("Inicializa Cinemark antes de consultar su API.");
   const url = new URL(`${baseUrl}${path}`);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
-  const payload = await (await request(url.href)).json();
+  const response = await request(url.href, { country: "CL" });
+  if (!response.ok) { await response.body?.cancel(); throw new Error(`Cinemark HTTP ${response.status}: ${path}`); }
+  const payload = await response.json();
   if (!payload || !Object.hasOwn(payload, "data")) throw new Error(`Respuesta invalida en ${path}.`);
   if (payload.code !== undefined && payload.code !== 0) throw new Error(`Cinemark devolvio codigo ${payload.code} en ${path}.`);
   return payload.data as T;

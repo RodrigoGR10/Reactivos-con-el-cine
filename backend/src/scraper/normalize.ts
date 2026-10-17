@@ -2,6 +2,8 @@ import { SITE } from "./client.ts";
 import { normalizarSinopsis } from "../utils/sinopsis.ts";
 import type { RawCinema, RawMovie, RawPriceGroup, RawSession, RawTicket, ScrapedCinema, ScrapedMovie, ScrapedSession } from "./types.ts";
 
+export { localNow } from "../utils/localNow.ts";
+
 const text = (value: string, field: string): string => {
   if (typeof value !== "string" || !value.trim()) throw new Error(`Falta ${field}.`);
   return value.trim();
@@ -62,15 +64,6 @@ export function sessionDateTime(session: RawSession): { fecha: string; horario: 
 
 export function isDate(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
-}
-
-export function localNow(now = new Date()): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Santiago", year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
-  }).formatToParts(now);
-  const get = (type: string) => parts.find((part) => part.type === type)?.value;
-  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
 }
 
 export function ticketFormat(
