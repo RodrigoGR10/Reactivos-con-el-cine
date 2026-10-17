@@ -206,7 +206,7 @@ function MovieDetailPage() {
                             {estado !== "listo" && (
                                 <button
                                     type="button"
-                                    className="boton-cercania"
+                                    className="boton-cercania-detalle"
                                     onClick={solicitar}
                                     disabled={estado === "cargando"}
                                 >
@@ -218,7 +218,7 @@ function MovieDetailPage() {
 
                             {estado === "listo" && (
                                 <p className="aviso-cercania">
-                                    Ordenado por cercania a tu ubicacion
+                                    Ordenado por cercanía a tu ubicación.
                                 </p>
                             )}
 

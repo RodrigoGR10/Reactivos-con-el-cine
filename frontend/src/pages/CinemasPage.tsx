@@ -147,7 +147,7 @@ function CinemasPage() {
                 {estado !== "listo" && (
                     <button
                         type="button"
-                        className="boton-cercania"
+                        className="boton-cercania-cine"
                         onClick={solicitar}
                         disabled={estado === "cargando"}
                     >
@@ -170,7 +170,7 @@ function CinemasPage() {
 
             {estado === "listo" && (
                 <p className="aviso-cercania">
-                    Ordenado por cercania a tu ubicacion
+                    Ordenado por cercanía a tu ubicación.
                 </p>
             )}
 
