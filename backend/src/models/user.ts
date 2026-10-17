@@ -19,6 +19,8 @@ export interface User {
   email: string;
   passwordHash: string;
   fechaRegistro?: string;
+  peliculasFavoritas: string[];
+  cinesFavoritos: string[];
 }
 
 const userSchema = new mongoose.Schema<User>(
@@ -27,6 +29,8 @@ const userSchema = new mongoose.Schema<User>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     fechaRegistro: { type: String, default: () => new Date().toISOString() },
+    peliculasFavoritas: { type: [String], default: [] },
+    cinesFavoritos: { type: [String], default: [] },
   },
   {
     timestamps: true,
