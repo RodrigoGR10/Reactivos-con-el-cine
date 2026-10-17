@@ -1,4 +1,5 @@
 import { SITE } from "./client.ts";
+import { normalizarSinopsis } from "../utils/sinopsis.ts";
 import type { RawCinema, RawMovie, RawPriceGroup, RawSession, RawTicket, ScrapedCinema, ScrapedMovie, ScrapedSession } from "./types.ts";
 
 const text = (value: string, field: string): string => {
@@ -46,7 +47,7 @@ export function normalizeMovie(movie: RawMovie, extractedAt: string): ScrapedMov
     duracion: movie.runTime,
     genero: text(movie.genres?.map((genre) => genre.name).join(", "), "genero"),
     clasificacion: text(movie.rating, "clasificacion"),
-    sinopsis: text(movie.synopsis, "sinopsis"),
+    sinopsis: normalizarSinopsis(movie.synopsis),
     poster: text(movie.posterUrl, "poster"),
     url: `${SITE}/pelicula/${encodeURIComponent(text(movie.slug, "slug de pelicula"))}`,
   };

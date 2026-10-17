@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose, { Schema } from "mongoose";
+import { normalizarSinopsis } from "../utils/sinopsis.ts";
 
 const url = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_NAME || "reactivos-cine";
@@ -34,7 +35,7 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
     duracion: { type: Number, required: true },
     genero: { type: String, required: true },
     clasificacion: { type: String, required: true },
-    sinopsis: { type: String, required: true },
+    sinopsis: { type: String, required: true, set: normalizarSinopsis },
     poster: { type: String, required: true },
     banner: { type: String },
     url: { type: String },
@@ -60,9 +61,11 @@ peliculaSchema.set("toJSON", {
       id?: string;
       _id?: mongoose.Types.ObjectId;
       __v?: number;
+      sinopsis?: string;
     },
   ) => {
     returnedObject.id = returnedObject._id?.toString();
+    returnedObject.sinopsis = normalizarSinopsis(returnedObject.sinopsis);
     delete returnedObject._id;
     delete returnedObject.__v;
   },
