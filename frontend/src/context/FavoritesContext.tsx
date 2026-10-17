@@ -23,36 +23,64 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 
 export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
+  const [prevUserId, setPrevUserId] = useState<string | undefined>(user?.id);
 
-  // Inicialización perezosa: obtiene favoritos iniciales solo en el primer montaje
-  const [favoriteMovieIds, setFavoriteMovieIds] = useState<string[]>(() =>
-    user ? profileService.getFavoriteMovieIds(user.id) : [],
+  const [favoriteMovieIds, setFavoriteMovieIds] = useState<string[]>(
+    () => user?.peliculasFavoritas ?? [],
   );
-  const [favoriteCinemaIds, setFavoriteCinemaIds] = useState<string[]>(() =>
-    user ? profileService.getFavoriteCinemaIds(user.id) : [],
+  const [favoriteCinemaIds, setFavoriteCinemaIds] = useState<string[]>(
+    () => user?.cinesFavoritos ?? [],
   );
 
-  // Sincroniza el estado de favoritos cada vez que cambia la sesión (login/logout)
+  // Ajusta el estado inmediatamente cuando cambia el usuario activo (login/logout)
+  if (user?.id !== prevUserId) {
+    setPrevUserId(user?.id);
+    setFavoriteMovieIds(user?.peliculasFavoritas ?? []);
+    setFavoriteCinemaIds(user?.cinesFavoritos ?? []);
+  }
+
+  // Sincroniza favoritos desde el backend cuando hay sesión activa
   useEffect(() => {
-    if (user) {
-      setFavoriteMovieIds(profileService.getFavoriteMovieIds(user.id));
-      setFavoriteCinemaIds(profileService.getFavoriteCinemaIds(user.id));
-    } else {
-      setFavoriteMovieIds([]);
-      setFavoriteCinemaIds([]);
-    }
+    if (!user) return;
+
+    const controller = new AbortController();
+    profileService
+      .getFavorites(controller.signal)
+      .then((favoritos) => {
+        if (!controller.signal.aborted) {
+          setFavoriteMovieIds(favoritos.peliculasFavoritas);
+          setFavoriteCinemaIds(favoritos.cinesFavoritos);
+        }
+      })
+      .catch(() => {
+        // Si falla la recarga, conservamos los favoritos entregados por la sesión
+      });
+
+    return () => controller.abort();
   }, [user]);
 
   const toggleFavoriteMovie = (movieId: string) => {
     if (!user) return;
-    const updated = profileService.toggleFavoriteMovie(user.id, movieId);
-    setFavoriteMovieIds(updated);
+    profileService
+      .toggleFavoriteMovie(movieId)
+      .then((updated) => {
+        setFavoriteMovieIds(updated);
+      })
+      .catch((error) => {
+        console.error("Error al actualizar película favorita:", error);
+      });
   };
 
   const toggleFavoriteCinema = (cinemaId: string) => {
     if (!user) return;
-    const updated = profileService.toggleFavoriteCinema(user.id, cinemaId);
-    setFavoriteCinemaIds(updated);
+    profileService
+      .toggleFavoriteCinema(cinemaId)
+      .then((updated) => {
+        setFavoriteCinemaIds(updated);
+      })
+      .catch((error) => {
+        console.error("Error al actualizar cine favorito:", error);
+      });
   };
 
   const isFavoriteMovie = (movieId: string): boolean => {
