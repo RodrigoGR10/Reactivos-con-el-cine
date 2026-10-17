@@ -3,13 +3,14 @@ import type mongoose from "mongoose";
 import HorarioModel, { type Horario } from "../models/horario.ts";
 import PeliculaModel from "../models/pelicula.ts";
 import CineModel from "../models/cine.ts";
-import { cinemarkData, ensureCinemark } from "../scraper/client.ts";
-import { normalizeSessions } from "../scraper/normalize.ts";
+import { cinemarkData, ensureCinemark } from "../scraper/cinemark/client.ts";
+import { normalizeSessions } from "../scraper/cinemark/normalize.ts";
 import { localNow } from "../utils/localNow.ts";
 import { pricesForSchedule } from "../scraper/cineplanet/normalize.ts";
 import { pricesForSchedule as vistaPrices } from "../scraper/vista/normalize.ts";
 import { ORIGENES } from "../scraper/types.ts";
-import type { RawPriceGroup, RawSession, ScrapedSession } from "../scraper/types.ts";
+import type { RawPriceGroup, RawSession } from "../scraper/cinemark/types.ts";
+import type { ScrapedSession } from "../scraper/types.ts";
 
 export const CACHE_PRECIOS_MS = 15 * 60_000;
 const RETRY_MS = 60_000;

@@ -1,5 +1,5 @@
 import LZString from "lz-string";
-import { configureRequests, request } from "./http.ts";
+import { configureRequests, request } from "../http.ts";
 
 export const SITE = "https://www.cinemark.cl";
 

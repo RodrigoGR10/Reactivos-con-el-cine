@@ -3,8 +3,7 @@ import { localNow } from "../../utils/localNow.ts";
 import { CADENAS, vistaData } from "./client.ts";
 import { normalizeCinema, normalizeMovie, normalizeSchedule } from "./normalize.ts";
 import type { CadenaVista, Cinema, Movie, Session, SiteGroup, SiteGroupCinemaLink } from "./types.ts";
-import type { ScrapeResult, ScrapedMovie, ScrapedSchedule } from "../types.ts";
-import type { ScrapeOptions } from "../cinemark.ts";
+import type { ScrapeOptions, ScrapeResult, ScrapedMovie, ScrapedSchedule } from "../types.ts";
 
 export async function listCinemas(chain: CadenaVista) {
   const cinemas = (await vistaData<Cinema>(chain, "Cinemas")).filter((cinema) => !cinema.IsGiftStore);

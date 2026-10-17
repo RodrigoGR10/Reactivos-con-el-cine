@@ -1,13 +1,8 @@
 import { cinemarkData } from "./client.ts";
-import { isDate, localNow, normalizeCinema, normalizeMovie, normalizeSchedule, sessionDateTime } from "./normalize.ts";
-import type { Incident, RawCinema, RawMovie, RawSession, ScrapedMovie, ScrapeResult } from "./types.ts";
-
-export interface ScrapeOptions {
-  desde: string;
-  dias: number | null;
-  cines: string[];
-  limitePorCine: number | null;
-}
+import { normalizeCinema, normalizeMovie, normalizeSchedule, sessionDateTime } from "./normalize.ts";
+import { isDate, localNow } from "../normalize.ts";
+import type { RawCinema, RawMovie, RawSession } from "./types.ts";
+import type { Incident, ScrapedMovie, ScrapeOptions, ScrapeResult } from "../types.ts";
 
 export async function listCinemas(): Promise<RawCinema[]> {
   const cinemas = await cinemarkData<RawCinema[]>("/cinema/theaters", { limit: String(Number.MAX_SAFE_INTEGER) });

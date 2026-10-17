@@ -3,8 +3,7 @@ import { normalizeCinema, normalizeMovie, normalizeSchedule } from "./normalize.
 import { isDate } from "../normalize.ts";
 import { localNow } from "../../utils/localNow.ts";
 import type { Cinema, Movie, Session } from "./types.ts";
-import type { ScrapeResult } from "../types.ts";
-import type { ScrapeOptions } from "../cinemark.ts";
+import type { ScrapeOptions, ScrapeResult } from "../types.ts";
 
 export async function listCinemas(): Promise<Cinema[]> {
   const result = await cineplanetData<{ cinemas: Cinema[] }>("/api/cache/cinemascache");
