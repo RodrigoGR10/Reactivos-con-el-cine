@@ -2,7 +2,7 @@
 // para calcular distancias entre dos coordenadas
 
 const RADIO_TIERRA_KM = 6371;
-const aRadianes = (grados: number) => (grados * Math.PI) / 100;
+const aRadianes = (grados: number) => (grados * Math.PI) / 180;
 
 //Funcion que calcula la distancia entre dos coordenadas por medio de
 // sus latitudes, longitudes y semiversenos
