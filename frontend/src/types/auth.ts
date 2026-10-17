@@ -3,6 +3,8 @@ export interface Usuario {
   nombre: string;
   email: string;
   fechaRegistro?: string;
+  peliculasFavoritas?: string[];
+  cinesFavoritos?: string[];
 }
 
 export interface LoginInput {

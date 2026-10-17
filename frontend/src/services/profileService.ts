@@ -1,56 +1,63 @@
-const MOVIES_PREFIX = "cine_favoritos_usuario_";
-const CINEMAS_PREFIX = "cine_cines_usuario_";
+import axios from "axios";
+import { API_BASE_URL } from "./apiConfig";
 
-/** Función pura de lectura: no muta localStorage (cumple CQS) */
-const getFavoriteIds = (prefix: string, userId: string): string[] => {
-  const data = localStorage.getItem(`${prefix}${userId}`);
-  if (data === null) {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(data);
-    return Array.isArray(parsed) ? (parsed as string[]) : [];
-  } catch {
-    return [];
-  }
+const STORAGE_KEY_CSRF = "csrfToken";
+const baseUrl = `${API_BASE_URL}/perfil`;
+
+interface FavoritosResponse {
+  peliculasFavoritas: string[];
+  cinesFavoritos: string[];
+}
+
+const getAuthConfig = (signal?: AbortSignal) => {
+  const csrfToken = localStorage.getItem(STORAGE_KEY_CSRF);
+  return {
+    withCredentials: true,
+    signal,
+    headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+  };
 };
 
-/** Función de comando: actualiza favoritos en localStorage */
-const toggleFavoriteId = (
-  prefix: string,
-  userId: string,
-  id: string,
-): string[] => {
-  const current = getFavoriteIds(prefix, userId);
-  const exists = current.includes(id);
+const getFavorites = async (
+  signal?: AbortSignal,
+): Promise<FavoritosResponse> => {
+  const { data } = await axios.get<FavoritosResponse>(
+    `${baseUrl}/favoritos`,
+    getAuthConfig(signal),
+  );
 
-  const updated = exists
-    ? current.filter((item) => item !== id)
-    : [...current, id];
-
-  localStorage.setItem(`${prefix}${userId}`, JSON.stringify(updated));
-  return updated;
+  return {
+    peliculasFavoritas: Array.isArray(data.peliculasFavoritas)
+      ? data.peliculasFavoritas
+      : [],
+    cinesFavoritos: Array.isArray(data.cinesFavoritos)
+      ? data.cinesFavoritos
+      : [],
+  };
 };
 
-const getFavoriteMovieIds = (userId: string): string[] =>
-  getFavoriteIds(MOVIES_PREFIX, userId);
-const toggleFavoriteMovie = (userId: string, movieId: string): string[] =>
-  toggleFavoriteId(MOVIES_PREFIX, userId, movieId);
-const isFavoriteMovie = (userId: string, movieId: string): boolean =>
-  getFavoriteMovieIds(userId).includes(movieId);
+const toggleFavoriteMovie = async (movieId: string): Promise<string[]> => {
+  const { data } = await axios.post<{ peliculasFavoritas: string[] }>(
+    `${baseUrl}/favoritos/peliculas/${encodeURIComponent(movieId)}`,
+    {},
+    getAuthConfig(),
+  );
 
-const getFavoriteCinemaIds = (userId: string): string[] =>
-  getFavoriteIds(CINEMAS_PREFIX, userId);
-const toggleFavoriteCinema = (userId: string, cinemaId: string): string[] =>
-  toggleFavoriteId(CINEMAS_PREFIX, userId, cinemaId);
-const isFavoriteCinema = (userId: string, cinemaId: string): boolean =>
-  getFavoriteCinemaIds(userId).includes(cinemaId);
+  return Array.isArray(data.peliculasFavoritas) ? data.peliculasFavoritas : [];
+};
+
+const toggleFavoriteCinema = async (cinemaId: string): Promise<string[]> => {
+  const { data } = await axios.post<{ cinesFavoritos: string[] }>(
+    `${baseUrl}/favoritos/cines/${encodeURIComponent(cinemaId)}`,
+    {},
+    getAuthConfig(),
+  );
+
+  return Array.isArray(data.cinesFavoritos) ? data.cinesFavoritos : [];
+};
 
 export default {
-  getFavoriteMovieIds,
+  getFavorites,
   toggleFavoriteMovie,
-  isFavoriteMovie,
-  getFavoriteCinemaIds,
   toggleFavoriteCinema,
-  isFavoriteCinema,
 };
