@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 
 export interface TmdbEnrichment {
   tmdbId: number;
@@ -130,4 +131,66 @@ function scoreCandidate(
   score += Math.min(candidate.popularity ?? 0, 20);
 
   return score;
+}
+
+export async function fetchTmdbMovieMetadata(
+  titulo: string,
+  apiKey = process.env.TMDB_API_KEY,
+): Promise<TmdbEnrichment | null> {
+  if (!apiKey || !apiKey.trim()) {
+    return null;
+  }
+
+  const { queries, year } = parseMovieTitleForSearch(titulo);
+  let bestCandidate: TmdbMovieResult | null = null;
+  let bestScore = -Infinity;
+
+  for (const query of queries) {
+    const results = await searchTmdbQuery(query, apiKey.trim(), "es-MX");
+    for (const item of results) {
+      const score = scoreCandidate(item, queries[0]!, year);
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = item;
+      }
+    }
+    if (bestCandidate && bestScore >= 70) {
+      break;
+    }
+  }
+
+  if (!bestCandidate) {
+    return null;
+  }
+
+  let sinopsis = bestCandidate.overview?.trim() || undefined;
+
+  // Si en es-MX no tiene sinopsis, intentamos obtenerla en es-ES
+  if (!sinopsis) {
+    try {
+      const detailUrl = new URL(`${TMDB_BASE_URL}/movie/${bestCandidate.id}`);
+      detailUrl.searchParams.set("api_key", apiKey.trim());
+      detailUrl.searchParams.set("language", "es-ES");
+      const resp = await fetch(detailUrl);
+      if (resp.ok) {
+        const detail = (await resp.json()) as { overview?: string };
+        if (detail.overview?.trim()) {
+          sinopsis = detail.overview.trim();
+        }
+      }
+    } catch {
+      // Mantiene fallback del scraper si falla
+    }
+  }
+
+  return {
+    tmdbId: bestCandidate.id,
+    poster: bestCandidate.poster_path
+      ? `${TMDB_IMAGE_BASE}/w780${bestCandidate.poster_path}`
+      : undefined,
+    banner: bestCandidate.backdrop_path
+      ? `${TMDB_IMAGE_BASE}/original${bestCandidate.backdrop_path}`
+      : undefined,
+    sinopsis,
+  };
 }
