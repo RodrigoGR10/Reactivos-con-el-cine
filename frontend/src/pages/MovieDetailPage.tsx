@@ -232,7 +232,7 @@ function MovieDetailPage() {
                             {estado === "error" && (
                                 <p className="aviso-cercania">
                                     No se pudo obtener tu ubicación. Intenta
-                                    denuevo.
+                                    nuevamente.
                                 </p>
                             )}
                         </div>

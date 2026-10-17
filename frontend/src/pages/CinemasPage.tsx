@@ -177,12 +177,12 @@ function CinemasPage() {
             {estado === "denegado" && (
                 <p className="aviso-cercania">
                     No pudimos acceder a tu ubicación. Habilita el permiso en tu
-                    navegador para ordenar por cercanía
+                    navegador para ordenar por cercanía.
                 </p>
             )}
             {estado === "error" && (
                 <p className="aviso-cercania">
-                    No se pudo obtener tu ubicación. Intenta denuevo.
+                    No se pudo obtener tu ubicación. Intenta nuevamente.
                 </p>
             )}
 
