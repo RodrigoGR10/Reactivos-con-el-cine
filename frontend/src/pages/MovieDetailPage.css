@@ -1,7 +1,8 @@
 .detalle-pelicula {
-    width: min(1180px, calc(100% - 40px));
+    width: 100%;
     margin: 0 auto;
-    padding: 52px 0 80px;
+    padding: 36px 48px 80px;
+    box-sizing: border-box;
 }
 
 .hero-detalle {
@@ -52,7 +53,7 @@
 }
 
 .contenido-detalle {
-    max-width: 700px;
+    width: 100%;
 }
 
 .contenido-detalle h1 {
@@ -86,7 +87,7 @@
 }
 
 .sinopsis-detalle {
-    max-width: 650px;
+    max-width: 95ch;
     color: var(--color-texto-secundario);
     font-size: 1.05rem;
     line-height: 1.75;
