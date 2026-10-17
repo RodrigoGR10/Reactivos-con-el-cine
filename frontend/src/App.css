@@ -7,6 +7,7 @@
     --color-texto-secundario: #a8a9b1;
     --color-acento: #cc120b;
     --color-acento-oscuro: #a50e09;
+    --sidebar-width: clamp(64px, 4.8vw, 96px);
 }
 
 *,
@@ -50,7 +51,7 @@ body {
 }
 
 .sidebar {
-    width: 64px;
+    width: var(--sidebar-width);
     height: 100vh;
     height: 100dvh;
     position: fixed;
@@ -63,7 +64,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 26px 0;
+    padding: clamp(24px, 3vh, 40px) 0;
     box-sizing: border-box;
     z-index: 1000;
     pointer-events: none;
@@ -81,13 +82,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 28px;
+    gap: clamp(28px, 3.2vh, 44px);
     pointer-events: auto;
 }
 
 .sidebar-btn {
-    width: 48px;
-    height: 48px;
+    width: clamp(48px, 3.4vw, 64px);
+    height: clamp(48px, 3.4vw, 64px);
     background: transparent;
     border: none;
     outline: none;
@@ -97,11 +98,16 @@ body {
     align-items: center;
     cursor: pointer;
     padding: 0;
-    border-radius: 10px;
+    border-radius: 12px;
     transition:
         color 0.2s ease,
         transform 0.15s ease,
         background-color 0.2s ease;
+}
+
+.sidebar-btn svg {
+    width: clamp(26px, 1.8vw, 34px);
+    height: clamp(26px, 1.8vw, 34px);
 }
 
 .sidebar-btn:hover {
@@ -124,8 +130,8 @@ body {
 }
 
 .sidebar-logo-img {
-    width: 32px;
-    height: 32px;
+    width: clamp(32px, 2.3vw, 44px);
+    height: clamp(32px, 2.3vw, 44px);
     border-radius: 8px;
     object-fit: cover;
     display: block;
@@ -142,8 +148,8 @@ body {
 .main-principal {
     flex: 1;
     min-width: 0;
-    margin-left: 64px;
-    width: calc(100% - 64px);
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
     background-color: var(--color-fondo);
     display: flex;
     flex-direction: column;
@@ -280,7 +286,7 @@ body {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 65%;
+    max-width: 65%;
     z-index: 1;
     display: flex;
     justify-content: flex-end;
@@ -296,34 +302,6 @@ body {
     object-fit: cover;
     object-position: center right;
     display: block;
-    mask-image:
-        linear-gradient(
-            to right,
-            transparent 0%,
-            rgba(0, 0, 0, 0.4) 15%,
-            black 45%
-        ),
-        linear-gradient(
-            to top,
-            transparent 0%,
-            rgba(0, 0, 0, 0.4) 18%,
-            black 50%
-        );
-    -webkit-mask-image:
-        linear-gradient(
-            to right,
-            transparent 0%,
-            rgba(0, 0, 0, 0.4) 15%,
-            black 45%
-        ),
-        linear-gradient(
-            to top,
-            transparent 0%,
-            rgba(0, 0, 0, 0.4) 18%,
-            black 50%
-        );
-    mask-composite: intersect;
-    -webkit-mask-composite: source-in;
 }
 
 .decoracion-destacada::after {
@@ -335,8 +313,9 @@ body {
         linear-gradient(
             to right,
             var(--color-fondo) 0%,
-            rgba(8, 8, 8, 0.2) 15%,
-            transparent 45%
+            rgba(8, 8, 8, 0.75) 14%,
+            rgba(8, 8, 8, 0.2) 32%,
+            transparent 55%
         ),
         linear-gradient(
             to top,
@@ -372,7 +351,6 @@ body {
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 1360px;
     margin: 0;
     padding: 60px 48px 60px 24px;
     box-sizing: border-box;
@@ -444,7 +422,6 @@ body {
 
 .contenido-principal {
     width: 100%;
-    max-width: 1360px;
     margin: 0;
     padding: 32px 48px 80px 24px;
     box-sizing: border-box;
