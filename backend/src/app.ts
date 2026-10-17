@@ -9,6 +9,7 @@ import peliculaRouter from "./controllers/pelicula.ts";
 import funcionRouter from "./controllers/funcion.ts";
 import cineRouter from "./controllers/cine.ts";
 import authRouter from "./controllers/auth.ts";
+import perfilRouter from "./controllers/perfil.ts";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/peliculas", peliculaRouter);
 app.use("/funciones", funcionRouter);
 app.use("/cines", cineRouter);
 app.use("/auth", authRouter);
+app.use("/perfil", perfilRouter);
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
