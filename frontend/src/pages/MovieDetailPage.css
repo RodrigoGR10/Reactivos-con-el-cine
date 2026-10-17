@@ -87,7 +87,7 @@
 }
 
 .sinopsis-detalle {
-    max-width: 95ch;
+    width: 100%;
     color: var(--color-texto-secundario);
     font-size: 1.05rem;
     line-height: 1.75;
