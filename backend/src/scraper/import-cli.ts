@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import dotenv from "dotenv";
-import { importCinemark, inspectCatalog, validateResult } from "./import-data.ts";
+import { importCatalog, inspectCatalog, validateResult } from "./import-data.ts";
 
 async function main() {
   const { values } = parseArgs({ options: { file: { type: "string" }, write: { type: "boolean" }, reset: { type: "boolean" }, sync: { type: "boolean" }, status: { type: "boolean" }, help: { type: "boolean" } } });
@@ -27,14 +27,14 @@ async function main() {
   const file = values.file ? resolve(values.file) : resolve(root, "data/cinemark.json");
   const result: unknown = JSON.parse(fs.readFileSync(file, "utf8"));
   validateResult(result);
-  console.log(`Archivo valido: ${result.peliculas.length} peliculas, ${result.cines.length} cines, ${result.funciones.length} funciones.`);
+  console.log(`Archivo valido: ${result.peliculas.length} peliculas, ${result.cines.length} cines, ${result.horarios?.length ?? 0} horarios, ${result.funciones.length} tarifas.`);
   if (!values.write) { console.log("Vista previa. Agrega --write para importar en MongoDB."); return; }
   const { uri, dbName } = mongoConfig();
-  const summary = await importCinemark(result, uri, dbName, {
+  const summary = await importCatalog(result, uri, dbName, {
     reset: values.reset, sync: values.sync, backupDirectory: resolve(root, "data/backups"),
   });
   console.log(JSON.stringify(summary, null, 2));
-  console.log(values.reset ? "Catalogo reemplazado con Cinemark. Las cuentas de usuario se conservaron." : "Cinemark importado. Los registros existentes de otras fuentes se conservaron.");
+  console.log(values.reset ? "Catalogo reemplazado. Las cuentas de usuario se conservaron." : `${result.meta.origen} importado. Los registros existentes de otras fuentes se conservaron.`);
 }
 
 main().catch((error) => { console.error("Error:", error.message); process.exitCode = 1; });

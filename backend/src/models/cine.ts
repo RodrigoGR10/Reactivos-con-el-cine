@@ -49,6 +49,14 @@ const cineSchema = new mongoose.Schema<Cine>(
 cineSchema.index({ origen: 1, origenId: 1 }, {
   unique: true, partialFilterExpression: { origen: "cinemark", origenId: { $type: "string" } },
 });
+cineSchema.index({ origenId: 1 }, {
+  unique: true, partialFilterExpression: { origen: "cineplanet", origenId: { $type: "string" } }, name: "cineplanet_origenId",
+});
+for (const origen of ["muvix", "cinestar"]) {
+  cineSchema.index({ origenId: 1 }, {
+    unique: true, partialFilterExpression: { origen, origenId: { $type: "string" } }, name: `${origen}_origenId`,
+  });
+}
 
 const CineModel = mongoose.model<Cine>("Cine", cineSchema, "cines");
 

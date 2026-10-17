@@ -6,7 +6,7 @@ import { initializeCinemark } from "./client.ts";
 import { listCinemas, scrapeCinemark } from "./cinemark.ts";
 import { isDate, localNow } from "./normalize.ts";
 import dotenv from "dotenv";
-import { importCinemark } from "./import-data.ts";
+import { importCatalog } from "./import-data.ts";
 
 const HELP = `Scraper Cinemark Chile (Node 24 o superior)
 
@@ -84,7 +84,7 @@ async function main() {
   }
   if (values.import) {
     const importStartedAt = Date.now();
-    const summary = await importCinemark(result, process.env.MONGODB_URI!, process.env.MONGODB_NAME ?? "reactivos-cine", { sync: true });
+    const summary = await importCatalog(result, process.env.MONGODB_URI!, process.env.MONGODB_NAME ?? "reactivos-cine", { sync: true });
     console.log(`Tiempo de guardado en MongoDB: ${((Date.now() - importStartedAt) / 1000).toFixed(1)} s.`);
     console.log("MongoDB sincronizado:", JSON.stringify(summary));
   }

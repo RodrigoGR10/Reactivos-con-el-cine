@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose, { Schema } from "mongoose";
+import type { Origen } from "../scraper/types.ts";
+import { ORIGENES } from "../scraper/types.ts";
 import { normalizarSinopsis } from "../utils/sinopsis.ts";
 
 const url = process.env.MONGODB_URI;
@@ -27,7 +29,13 @@ export interface Pelicula {
   origen?: string;
   origenId?: string;
   extraidoEn?: string;
+  fuentes?: { origen: Origen; origenId: string }[];
 }
+
+const fuenteSchema = new Schema({
+  origen: { type: String, enum: ORIGENES, required: true },
+  origenId: { type: String, required: true },
+}, { _id: false });
 
 const peliculaSchema = new mongoose.Schema<Pelicula>(
   {
@@ -42,6 +50,7 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
     origen: { type: String },
     origenId: { type: String },
     extraidoEn: { type: String },
+    fuentes: { type: [fuenteSchema], default: [] },
   },
   {
     timestamps: true,
@@ -50,6 +59,9 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
 
 peliculaSchema.index({ origen: 1, origenId: 1 }, {
   unique: true, partialFilterExpression: { origen: "cinemark", origenId: { $type: "string" } },
+});
+peliculaSchema.index({ "fuentes.origen": 1, "fuentes.origenId": 1 }, {
+  unique: true, partialFilterExpression: { "fuentes.origenId": { $type: "string" } },
 });
 
 const PeliculaModel = mongoose.model<Pelicula>("Pelicula", peliculaSchema);
