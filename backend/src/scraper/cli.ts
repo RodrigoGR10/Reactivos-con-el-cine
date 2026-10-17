@@ -56,7 +56,6 @@ async function main() {
   let output: string | undefined;
   if (values.output) output = resolve(values.output);
   else if (!values.import) output = resolve(root, `data/${chain}.json`);
-  if (output?.toLowerCase() === resolve(root, "db.json").toLowerCase()) throw new Error("Elige otra salida: db.json contiene los datos existentes.");
   const scrapeStartedAt = Date.now();
   console.log("Cartelera ligera: peliculas y horarios. Los precios se consultan al abrir un cine y fecha.");
   const scrape = chain === "cinemark" ? scrapeCinemark : chain === "cineplanet" ? scrapeCineplanet : (options: Parameters<typeof scrapeVista>[1]) => scrapeVista(chain, options);
