@@ -274,6 +274,13 @@
     gap: 5px;
 }
 
+.boton-cercania-cine {
+    padding: 6px 9px;
+    color: #ffffff;
+    background: var(--color-acento);
+    border-radius: 6px;
+}
+
 .cine-card-nombre {
     margin: 0;
     font-size: 1.25rem;
