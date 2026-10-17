@@ -1,31 +1,43 @@
 import type { Cine, Funcion, Pelicula } from "../../types/types";
 
+const cadenas: Record<string, { nombre: string; dominios: string[] }> = {
+  cinemark: { nombre: "Cinemark", dominios: ["www.cinemark.cl", "cinemark.cl"] },
+  cineplanet: { nombre: "Cineplanet", dominios: ["www.cineplanet.cl", "cineplanet.cl"] },
+  muvix: { nombre: "Muvix", dominios: ["muvix.cl", "www.muvix.cl"] },
+  cinestar: { nombre: "Cinestar", dominios: ["cinestar.cl", "www.cinestar.cl"] },
+};
+
 const precioCLP = (precio: number) => new Intl.NumberFormat("es-CL", {
   style: "currency", currency: "CLP", maximumFractionDigits: 0,
 }).format(precio);
 
-function enlaceSeguro(value?: string): string | undefined {
+function enlaceSeguro(value: string | undefined, origen: string | undefined): string | undefined {
   if (!value) return undefined;
   try {
     const url = new URL(value);
-    if (url.protocol !== "https:" || !["www.cinemark.cl", "cinemark.cl"].includes(url.hostname) || url.username || url.password) return undefined;
+    const dominios = cadenas[origen ?? "cinemark"]?.dominios ?? [];
+    if (url.protocol !== "https:" || !dominios.includes(url.hostname) || url.username || url.password) return undefined;
     return url.href;
   } catch {
     return undefined;
   }
 }
 
-export function TarjetaFuncion({ funcion, pelicula, cine }: { funcion: Funcion; pelicula: Pelicula; cine: Cine }) {
-  const enlace = enlaceSeguro(funcion.urlCompra);
+export function TarjetaFuncion({ funcion, pelicula, cine, precioAnterior = false, consultadoEn }: { funcion: Funcion; pelicula: Pelicula; cine: Cine; precioAnterior?: boolean; consultadoEn?: string }) {
+  const enlace = enlaceSeguro(funcion.urlCompra, cine.origen);
+  const cadena = cadenas[cine.origen ?? "cinemark"]?.nombre ?? cine.nombre;
+  const precio = funcion.precioOnline ?? funcion.precio;
   const etiqueta = `${pelicula.titulo}, ${cine.nombre}, ${funcion.fecha ?? ""} ${funcion.horario}, ${funcion.formato}, ${funcion.idioma}`;
   const contenido = (
     <>
       <strong>{funcion.horario}</strong>
       <span title={funcion.tipoEntrada}>{funcion.formato}</span>
       <span>{funcion.idioma}</span>
-      {funcion.sala && <span>Sala {funcion.sala}</span>}
-      <span className="precio-horario">{precioCLP(funcion.precioOnline ?? funcion.precio)}</span>
-      {funcion.cargoServicio !== undefined && funcion.cargoServicio > 0 && (
+      <span className="precio-horario">{precio !== undefined ? precioCLP(precio) : "Precio no disponible"}</span>
+      {funcion.precio === undefined && <span className="desglose-precio">Desglose no informado</span>}
+      {precioAnterior && <span className="precio-anterior">Precio anterior, pendiente de actualizar</span>}
+      {consultadoEn && <span className="fecha-precio">Consultado {new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Santiago" }).format(new Date(consultadoEn))}</span>}
+      {funcion.precio !== undefined && funcion.cargoServicio !== undefined && funcion.cargoServicio > 0 && (
         <span className="desglose-precio">
           Entrada {precioCLP(funcion.precio)} + servicio {precioCLP(funcion.cargoServicio)}
         </span>
@@ -48,8 +60,8 @@ export function TarjetaFuncion({ funcion, pelicula, cine }: { funcion: Funcion; 
       target="_blank"
       rel="noopener noreferrer"
       className="tarjeta-horario"
-      aria-label={`Ver en Cinemark: ${etiqueta} (nueva pestaña)`}
-      title={`Ver en Cinemark: ${etiqueta}. Selecciona allí el horario y la entrada.`}
+      aria-label={`Ver en ${cadena}: ${etiqueta} (nueva pestaña)`}
+      title={`Ver en ${cadena}: ${etiqueta}`}
     >
       {contenido}
     </a>

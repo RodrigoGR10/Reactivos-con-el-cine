@@ -19,6 +19,7 @@ export interface Cine {
   latitud?: number;
   longitud?: number;
   url?: string;
+  origen?: string;
 }
 
 export interface Funcion {
@@ -28,7 +29,7 @@ export interface Funcion {
   horario: string;
   formato: string;
   idioma: string;
-  precio: number;
+  precio?: number;
   fecha?: string;
   fechaCartelera?: string;
   sala?: string;
@@ -37,4 +38,20 @@ export interface Funcion {
   tipoEntrada?: string;
   urlCompra?: string;
   agotada?: boolean;
+}
+
+export interface Horario {
+  id: string;
+  peliculaId: string;
+  cineId: string;
+  fecha: string;
+  fechaCartelera: string;
+  horario: string;
+  idioma: string;
+  sala: string;
+  agotada: boolean;
+  estadoPrecio: "pendiente" | "consultando" | "disponible" | "desactualizado" | "error" | "sin_tarifa" | "agotada";
+  preciosConsultadosEn?: string;
+  reintentarEn?: string;
+  tarifas: Funcion[];
 }

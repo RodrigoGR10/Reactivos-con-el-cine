@@ -10,6 +10,11 @@ const getAll = async (): Promise<Pelicula[]> => {
   return data;
 };
 
+const getCartelera = async (): Promise<Pelicula[]> => {
+  const { data } = await axios.get<Pelicula[]>(baseUrl, { params: { cartelera: true } });
+  return data;
+};
+
 const getById = async (id: string): Promise<Pelicula> => {
   const { data } = await axios.get<Pelicula>(`${baseUrl}/${id}`);
 
@@ -18,5 +23,6 @@ const getById = async (id: string): Promise<Pelicula> => {
 
 export default {
   getAll,
+  getCartelera,
   getById,
 };

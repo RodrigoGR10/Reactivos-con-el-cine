@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Funcion } from "../types/types";
+import type { Funcion, Horario } from "../types/types";
 import { API_BASE_URL } from "./apiConfig";
 
 const baseUrl = `${API_BASE_URL}/funciones`;
@@ -20,7 +20,21 @@ const getByPelicula = async (peliculaId: string): Promise<Funcion[]> => {
   return data;
 };
 
+const getHorarios = async (peliculaId: string): Promise<Horario[]> => {
+  const { data } = await axios.get<Horario[]>(`${baseUrl}/horarios`, { params: { peliculaId } });
+  return data;
+};
+
+const getPrecios = async (peliculaId: string, cineId: string, fecha: string, signal?: AbortSignal): Promise<Horario[]> => {
+  const { data } = await axios.get<{ horarios: Horario[] }>(`${baseUrl}/precios`, {
+    params: { peliculaId, cineId, fecha }, signal, timeout: 90_000,
+  });
+  return data.horarios;
+};
+
 export default {
   getAll,
   getByPelicula,
+  getHorarios,
+  getPrecios,
 };
