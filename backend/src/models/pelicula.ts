@@ -25,6 +25,7 @@ export interface Pelicula {
   sinopsis: string;
   poster: string;
   banner?: string;
+  tmdbId?: number;
   url?: string;
   origen?: string;
   origenId?: string;
@@ -46,6 +47,7 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
     sinopsis: { type: String, required: true, set: normalizarSinopsis },
     poster: { type: String, required: true },
     banner: { type: String },
+    tmdbId: { type: Number },
     url: { type: String },
     origen: { type: String },
     origenId: { type: String },
