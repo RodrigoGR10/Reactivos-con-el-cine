@@ -9,7 +9,7 @@ import { ORIGENES } from "./types.ts";
 import { purchaseUrl } from "./vista/client.ts";
 import type { Funcion as FuncionData } from "../models/funcion.ts";
 import type { Horario as HorarioData } from "../models/horario.ts";
-import { fetchTmdbMovieMetadata } from "./tmdb.ts";
+import { areSameCatalogMovie, fetchTmdbMovieMetadata } from "./tmdb.ts";
 
 export function validateResult(value: unknown, allowPartial = false): asserts value is ScrapeResult {
   if (!value || typeof value !== "object") throw new Error("JSON de cartelera invalido.");
@@ -124,9 +124,95 @@ export interface ImportOptions {
   allowPartial?: boolean;
 }
 
+type ModelsBundle = Awaited<ReturnType<typeof connectModels>>;
+
+async function mergeDuplicateMovies({
+  Pelicula,
+  Funcion,
+  Horario,
+  User,
+}: Pick<ModelsBundle, "Pelicula" | "Funcion" | "Horario" | "User">): Promise<number> {
+  const peliculas = await Pelicula.find({}).sort({ _id: 1 }).lean();
+  const visited = new Set<string>();
+  let mergedCount = 0;
+
+  for (let i = 0; i < peliculas.length; i++) {
+    const base = peliculas[i]!;
+    if (visited.has(base._id.toString())) continue;
+
+    const group = [base];
+    visited.add(base._id.toString());
+
+    for (let j = i + 1; j < peliculas.length; j++) {
+      const candidate = peliculas[j]!;
+      if (visited.has(candidate._id.toString())) continue;
+      if (group.some((member) => areSameCatalogMovie(member, candidate))) {
+        group.push(candidate);
+        visited.add(candidate._id.toString());
+      }
+    }
+
+    if (group.length <= 1) continue;
+
+    const primary = group.find((item) => item.origen === "cinemark") ?? group[0]!;
+    const duplicates = group.filter((item) => !item._id.equals(primary._id));
+
+    for (const duplicate of duplicates) {
+      await Horario.updateMany(
+        { peliculaId: duplicate._id },
+        { $set: { peliculaId: primary._id } },
+      );
+      await Funcion.updateMany(
+        { peliculaId: duplicate._id },
+        { $set: { peliculaId: primary._id } },
+      );
+
+      const dupId = duplicate._id.toString();
+      const primId = primary._id.toString();
+      const users = await User.find({ peliculasFavoritas: dupId });
+      for (const user of users) {
+        user.peliculasFavoritas = [
+          ...new Set(
+            user.peliculasFavoritas.map((favId) => (favId === dupId ? primId : favId)),
+          ),
+        ];
+        await user.save();
+      }
+
+      const extraSources = [...(duplicate.fuentes ?? [])];
+      if (
+        duplicate.origen &&
+        ORIGENES.includes(duplicate.origen as (typeof ORIGENES)[number]) &&
+        duplicate.origenId &&
+        !extraSources.some(
+          (src) => src.origen === duplicate.origen && src.origenId === duplicate.origenId,
+        )
+      ) {
+        extraSources.push({
+          origen: duplicate.origen as (typeof ORIGENES)[number],
+          origenId: duplicate.origenId,
+        });
+      }
+
+      await Pelicula.deleteOne({ _id: duplicate._id });
+
+      if (extraSources.length > 0) {
+        await Pelicula.updateOne(
+          { _id: primary._id },
+          { $addToSet: { fuentes: { $each: extraSources } } },
+        );
+      }
+
+      mergedCount++;
+    }
+  }
+
+  return mergedCount;
+}
+
 export async function syncTmdbCatalog(uri: string, dbName: string) {
   try {
-    const { Pelicula } = await connectModels(uri, dbName);
+    const { Pelicula, Funcion, Horario, User } = await connectModels(uri, dbName);
     const peliculas = await Pelicula.find({});
     let actualizadas = 0;
 
@@ -134,6 +220,7 @@ export async function syncTmdbCatalog(uri: string, dbName: string) {
       const tmdb = await fetchTmdbMovieMetadata(pelicula.titulo);
       if (!tmdb) continue;
 
+      pelicula.tmdbId = tmdb.tmdbId;
       if (tmdb.poster) pelicula.poster = tmdb.poster;
       if (tmdb.banner) pelicula.banner = tmdb.banner;
       if (tmdb.sinopsis) pelicula.sinopsis = tmdb.sinopsis;
@@ -142,10 +229,18 @@ export async function syncTmdbCatalog(uri: string, dbName: string) {
       actualizadas++;
     }
 
+    const duplicadasFusionadas = await mergeDuplicateMovies({
+      Pelicula,
+      Funcion,
+      Horario,
+      User,
+    });
+
     return {
       base: dbName,
-      totalPeliculas: peliculas.length,
+      totalPeliculas: await Pelicula.countDocuments(),
       actualizadasConTmdb: actualizadas,
+      duplicadasFusionadas,
     };
   } finally {
     await mongoose.disconnect();
@@ -188,30 +283,39 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
     const movies = new Map<string, mongoose.Types.ObjectId>();
     const cinemas = new Map<string, mongoose.Types.ObjectId>();
     const catalog = await Pelicula.find({}).lean();
-    const movieKey = (movie: { titulo: string }) => movie.titulo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+INFINITY VISION$/, "").replace(/[^A-Z0-9]/g, "");
     for (const { id, ...movie } of result.peliculas) {
       const source = { origen: origin, origenId: movie.origenId };
       let existing = await Pelicula.findOne({ $or: [source, { fuentes: { $elemMatch: source } }] }).lean();
       if (!existing) {
-        const candidates = catalog.filter((item) => movieKey(item) === movieKey(movie) && Math.abs(item.duracion - movie.duracion) <= 3);
-        if (candidates.length === 1) existing = candidates[0]!;
+        const candidates = catalog.filter((item) => areSameCatalogMovie(item, movie));
+        if (candidates.length >= 1) existing = candidates[0]!;
+      }
+      let tmdb = null;
+      if (!existing && process.env.TMDB_API_KEY) {
+        tmdb = await fetchTmdbMovieMetadata(movie.titulo);
+        if (tmdb?.tmdbId) {
+          const byTmdb = catalog.find((item) => item.tmdbId === tmdb.tmdbId);
+          if (byTmdb) existing = byTmdb;
+        }
       }
       const primary = !existing || (existing.origen === origin && existing.origenId === movie.origenId);
-      let enrichedMovie: typeof movie & { banner?: string } = { ...movie };
+      let enrichedMovie: typeof movie & { banner?: string; tmdbId?: number } = { ...movie };
       if (primary) {
-        const hasExistingTmdb = Boolean(existing?.banner?.includes("image.tmdb.org") || existing?.poster?.includes("image.tmdb.org"));
+        const hasExistingTmdb = Boolean(existing?.tmdbId || existing?.banner?.includes("image.tmdb.org") || existing?.poster?.includes("image.tmdb.org"));
         if (hasExistingTmdb && existing) {
           enrichedMovie = {
             ...enrichedMovie,
             poster: existing.poster || enrichedMovie.poster,
             banner: existing.banner || enrichedMovie.banner,
             sinopsis: existing.sinopsis || enrichedMovie.sinopsis,
+            ...(existing.tmdbId ? { tmdbId: existing.tmdbId } : {}),
           };
         } else if (process.env.TMDB_API_KEY) {
-          const tmdb = await fetchTmdbMovieMetadata(movie.titulo);
+          if (!tmdb) tmdb = await fetchTmdbMovieMetadata(movie.titulo);
           if (tmdb) {
             enrichedMovie = {
               ...enrichedMovie,
+              tmdbId: tmdb.tmdbId,
               ...(tmdb.poster ? { poster: tmdb.poster } : {}),
               ...(tmdb.banner ? { banner: tmdb.banner } : {}),
               ...(tmdb.sinopsis ? { sinopsis: tmdb.sinopsis } : {}),
@@ -226,7 +330,9 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
       );
       if (!saved) throw new Error(`No se pudo guardar la pelicula ${id}.`);
       movies.set(id, saved._id);
-      if (!catalog.some((item) => item._id.equals(saved._id))) catalog.push(saved.toObject());
+      const idx = catalog.findIndex((item) => item._id.equals(saved._id));
+      if (idx === -1) catalog.push(saved.toObject());
+      else catalog[idx] = saved.toObject();
     }
     for (const { id, ...cinema } of result.cines) {
       const saved = await Cine.findOneAndUpdate(
