@@ -19,7 +19,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   invalidateSession: () => void;
   isAuthModalOpen: boolean;
-  openAuthModal: () => void;
+  executeAuthSuccess?: () => void;
+  openAuthModal: (onSuccessCallback?: (() => void) | unknown) => void;
   closeAuthModal: () => void;
 }
 
@@ -29,6 +30,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Usuario | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [hasSuccessCallback, setHasSuccessCallback] = useState(false);
+  const authSuccessCallbackRef = useRef<(() => void) | null>(null);
   // Evita que una restauración pendiente sobrescriba un login o logout posterior.
   const restoreController = useRef<AbortController | null>(null);
 
@@ -46,8 +49,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => controller.abort();
   }, []);
 
-  const openAuthModal = (): void => setIsAuthModalOpen(true);
-  const closeAuthModal = (): void => setIsAuthModalOpen(false);
+  const openAuthModal = useCallback((callback?: (() => void) | unknown): void => {
+    if (typeof callback === "function") {
+      authSuccessCallbackRef.current = callback as () => void;
+      setHasSuccessCallback(true);
+    } else {
+      authSuccessCallbackRef.current = null;
+      setHasSuccessCallback(false);
+    }
+    setIsAuthModalOpen(true);
+  }, []);
+
+  const closeAuthModal = useCallback((): void => {
+    setIsAuthModalOpen(false);
+    authSuccessCallbackRef.current = null;
+    setHasSuccessCallback(false);
+  }, []);
+
+  const executeAuthSuccess = useCallback((): void => {
+    const callback = authSuccessCallbackRef.current;
+    closeAuthModal();
+    if (callback) {
+      callback();
+    }
+  }, [closeAuthModal]);
 
   const invalidateSession = useCallback((): void => {
     restoreController.current?.abort();
@@ -96,6 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     invalidateSession,
     isAuthModalOpen,
+    executeAuthSuccess: hasSuccessCallback ? executeAuthSuccess : undefined,
     openAuthModal,
     closeAuthModal,
   };

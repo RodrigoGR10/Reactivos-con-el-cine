@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   HomeIcon,
   TicketIcon,
@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext";
 
 function Sidebar() {
   const { user, logout, openAuthModal } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <aside className="sidebar" aria-label="Navegación principal">
@@ -47,15 +48,26 @@ function Sidebar() {
         >
           <TicketIcon size={28} />
         </NavLink>
-        <NavLink
-          to="/perfil"
-          className={({ isActive }) =>
-            `sidebar-btn ${isActive ? "active" : ""}`
-          }
-          title="Perfil"
-        >
-          <UserIcon size={28} />
-        </NavLink>
+        {user ? (
+          <NavLink
+            to="/perfil"
+            className={({ isActive }) =>
+              `sidebar-btn ${isActive ? "active" : ""}`
+            }
+            title="Perfil"
+          >
+            <UserIcon size={28} />
+          </NavLink>
+        ) : (
+          <button
+            type="button"
+            className="sidebar-btn"
+            title="Perfil"
+            onClick={() => openAuthModal(() => navigate("/perfil"))}
+          >
+            <UserIcon size={28} />
+          </button>
+        )}
       </div>
 
       <div className="sidebar-bottom">
@@ -64,14 +76,17 @@ function Sidebar() {
             type="button"
             className="sidebar-btn"
             title="Cerrar sesión"
-            onClick={() => {
-              logout().catch((error: unknown) => {
+            onClick={async () => {
+              try {
+                navigate("/", { replace: true });
+                await logout();
+              } catch (error: unknown) {
                 window.alert(
                   error instanceof Error
                     ? error.message
                     : "No se pudo cerrar la sesión.",
                 );
-              });
+              }
             }}
           >
             <LogOutIcon size={26} />
