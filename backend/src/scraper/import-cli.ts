@@ -3,12 +3,12 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import dotenv from "dotenv";
-import { importCatalog, inspectCatalog, validateResult } from "./import-data.ts";
+import { importCatalog, inspectCatalog, syncTmdbCatalog, validateResult } from "./import-data.ts";
 
 async function main() {
-  const { values } = parseArgs({ options: { file: { type: "string" }, write: { type: "boolean" }, reset: { type: "boolean" }, sync: { type: "boolean" }, status: { type: "boolean" }, help: { type: "boolean" } } });
+  const { values } = parseArgs({ options: { file: { type: "string" }, write: { type: "boolean" }, reset: { type: "boolean" }, sync: { type: "boolean" }, status: { type: "boolean" }, tmdb: { type: "boolean" }, help: { type: "boolean" } } });
   if (values.help) {
-    console.log("npm run import:cinemark -- [--file=data/cinemark.json] [--write] [--sync] [--reset]\nSin --write solo valida el archivo. --sync retira funciones antiguas del alcance extraido.\n--reset respalda y reemplaza peliculas, cines y funciones; conserva users.\n--status consulta los conteos actuales de MongoDB sin escribir.");
+    console.log("npm run import:cinemark -- [--file=data/cinemark.json] [--write] [--sync] [--reset]\nSin --write solo valida el archivo. --sync retira funciones antiguas del alcance extraido.\n--reset respalda y reemplaza peliculas, cines y funciones; conserva users.\n--status consulta los conteos actuales de MongoDB sin escribir.\n--tmdb enriquece peliculas existentes en MongoDB con banner, poster y sinopsis de TMDB.");
     return;
   }
   const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -22,6 +22,12 @@ async function main() {
   if (values.status) {
     const { uri, dbName } = mongoConfig();
     console.log(JSON.stringify(await inspectCatalog(uri, dbName), null, 2));
+    return;
+  }
+  if (values.tmdb) {
+    const { uri, dbName } = mongoConfig();
+    if (!process.env.TMDB_API_KEY) throw new Error("Configura TMDB_API_KEY en backend/.env antes de sincronizar con TMDB.");
+    console.log(JSON.stringify(await syncTmdbCatalog(uri, dbName), null, 2));
     return;
   }
   const file = values.file ? resolve(values.file) : resolve(root, "data/cinemark.json");

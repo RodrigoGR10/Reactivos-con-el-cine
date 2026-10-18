@@ -9,6 +9,7 @@ import { ORIGENES } from "./types.ts";
 import { purchaseUrl } from "./vista/client.ts";
 import type { Funcion as FuncionData } from "../models/funcion.ts";
 import type { Horario as HorarioData } from "../models/horario.ts";
+import { fetchTmdbMovieMetadata } from "./tmdb.ts";
 
 export function validateResult(value: unknown, allowPartial = false): asserts value is ScrapeResult {
   if (!value || typeof value !== "object") throw new Error("JSON de cartelera invalido.");
@@ -123,6 +124,34 @@ export interface ImportOptions {
   allowPartial?: boolean;
 }
 
+export async function syncTmdbCatalog(uri: string, dbName: string) {
+  try {
+    const { Pelicula } = await connectModels(uri, dbName);
+    const peliculas = await Pelicula.find({});
+    let actualizadas = 0;
+
+    for (const pelicula of peliculas) {
+      const tmdb = await fetchTmdbMovieMetadata(pelicula.titulo);
+      if (!tmdb) continue;
+
+      if (tmdb.poster) pelicula.poster = tmdb.poster;
+      if (tmdb.banner) pelicula.banner = tmdb.banner;
+      if (tmdb.sinopsis) pelicula.sinopsis = tmdb.sinopsis;
+
+      await pelicula.save();
+      actualizadas++;
+    }
+
+    return {
+      base: dbName,
+      totalPeliculas: peliculas.length,
+      actualizadasConTmdb: actualizadas,
+    };
+  } finally {
+    await mongoose.disconnect();
+  }
+}
+
 export async function importCatalog(result: ScrapeResult, uri: string, dbName: string, options: ImportOptions = {}) {
   validateResult(result, options.allowPartial);
   const origin = result.meta.origen;
@@ -168,9 +197,31 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
         if (candidates.length === 1) existing = candidates[0]!;
       }
       const primary = !existing || (existing.origen === origin && existing.origenId === movie.origenId);
+      let enrichedMovie: typeof movie & { banner?: string } = { ...movie };
+      if (primary) {
+        const hasExistingTmdb = Boolean(existing?.banner?.includes("image.tmdb.org") || existing?.poster?.includes("image.tmdb.org"));
+        if (hasExistingTmdb && existing) {
+          enrichedMovie = {
+            ...enrichedMovie,
+            poster: existing.poster || enrichedMovie.poster,
+            banner: existing.banner || enrichedMovie.banner,
+            sinopsis: existing.sinopsis || enrichedMovie.sinopsis,
+          };
+        } else if (process.env.TMDB_API_KEY) {
+          const tmdb = await fetchTmdbMovieMetadata(movie.titulo);
+          if (tmdb) {
+            enrichedMovie = {
+              ...enrichedMovie,
+              ...(tmdb.poster ? { poster: tmdb.poster } : {}),
+              ...(tmdb.banner ? { banner: tmdb.banner } : {}),
+              ...(tmdb.sinopsis ? { sinopsis: tmdb.sinopsis } : {}),
+            };
+          }
+        }
+      }
       const saved = await Pelicula.findOneAndUpdate(
         existing ? { _id: existing._id } : source,
-        { ...(primary ? { $set: movie } : {}), $addToSet: { fuentes: source } },
+        { ...(primary ? { $set: enrichedMovie } : {}), $addToSet: { fuentes: source } },
         { upsert: true, returnDocument: "after", runValidators: true },
       );
       if (!saved) throw new Error(`No se pudo guardar la pelicula ${id}.`);
