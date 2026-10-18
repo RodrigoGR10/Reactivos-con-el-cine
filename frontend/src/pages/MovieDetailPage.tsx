@@ -6,6 +6,7 @@ import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import funcionService from "../services/funciones";
 import { Mensaje } from "../components/common/Mensaje";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
+import { SelectorFechas } from "../components/funciones/SelectorFechas";
 import { MapPinIcon, SearchIcon } from "../components/common/Icons";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import { useUbicacion } from "../hooks/useUbicacion";
@@ -13,13 +14,6 @@ import "./MovieDetailPage.css";
 
 import type { Cine, Horario } from "../types/types";
 
-const mostrarFecha = (fecha: string) =>
-    new Intl.DateTimeFormat("es-CL", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        timeZone: "UTC",
-    }).format(new Date(`${fecha}T12:00:00Z`));
 
 function MovieDetailPage() {
     const { id } = useParams();
@@ -200,23 +194,14 @@ function MovieDetailPage() {
                 </div>
 
                 {/* Selector de fechas */}
-                {fechasDisponibles.length > 1 && (
-                    <div className="formatos-chips" style={{ marginBottom: "14px" }}>
-                        {fechasDisponibles.map((fecha) => (
-                            <button
-                                key={fecha}
-                                type="button"
-                                className={`formato-chip ${fechaActual === fecha ? "active" : ""}`}
-                                onClick={() => {
-                                    setFechaSeleccionada(fecha);
-                                    setFormatoSeleccionado("Todos");
-                                }}
-                            >
-                                {mostrarFecha(fecha)}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                <SelectorFechas
+                    fechas={fechasDisponibles}
+                    fechaSeleccionada={fechaActual}
+                    onSeleccionarFecha={(fecha) => {
+                        setFechaSeleccionada(fecha);
+                        setFormatoSeleccionado("Todos");
+                    }}
+                />
 
                 {/* Filtros de la cartelera: Buscador, Formatos y Cerca de mí */}
                 {horarios.length > 0 && (

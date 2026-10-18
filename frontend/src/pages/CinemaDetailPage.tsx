@@ -9,15 +9,9 @@ import { useFavorites } from "../context/FavoritesContext";
 import { MapPinIcon, SearchIcon } from "../components/common/Icons";
 import { agruparHorariosPorPelicula } from "../utils/agruparFunciones";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
+import { SelectorFechas } from "../components/funciones/SelectorFechas";
 import "./CinemaDetailPage.css";
 
-const mostrarFecha = (fecha: string) =>
-  new Intl.DateTimeFormat("es-CL", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  }).format(new Date(`${fecha}T12:00:00Z`));
 
 /** Resuelve logo de cine: usa el provisto o infiere por nombre conocido */
 const getCinemaLogo = (cine: Cine): string => {
@@ -243,23 +237,14 @@ function CinemaDetailPage() {
         </div>
 
         {/* Selector de fechas */}
-        {fechasDisponibles.length > 1 && (
-          <div className="formatos-chips" style={{ marginBottom: "14px" }}>
-            {fechasDisponibles.map((fecha) => (
-              <button
-                key={fecha}
-                type="button"
-                className={`formato-chip ${fechaActual === fecha ? "active" : ""}`}
-                onClick={() => {
-                  setFechaSeleccionada(fecha);
-                  setFormatoSeleccionado("Todos");
-                }}
-              >
-                {mostrarFecha(fecha)}
-              </button>
-            ))}
-          </div>
-        )}
+        <SelectorFechas
+          fechas={fechasDisponibles}
+          fechaSeleccionada={fechaActual}
+          onSeleccionarFecha={(fecha) => {
+            setFechaSeleccionada(fecha);
+            setFormatoSeleccionado("Todos");
+          }}
+        />
 
         {/* Filtros de la cartelera del cine */}
         {horarios.length > 0 && (
