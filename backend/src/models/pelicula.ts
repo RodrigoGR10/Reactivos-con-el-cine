@@ -5,6 +5,7 @@ import mongoose, { Schema } from "mongoose";
 import type { Origen } from "../scraper/types.ts";
 import { ORIGENES } from "../scraper/types.ts";
 import { normalizarSinopsis } from "../utils/sinopsis.ts";
+import { nombreColeccion } from "../utils/colecciones.ts";
 
 const url = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_NAME || "reactivos-cine";
@@ -66,7 +67,7 @@ peliculaSchema.index({ "fuentes.origen": 1, "fuentes.origenId": 1 }, {
   unique: true, partialFilterExpression: { "fuentes.origenId": { $type: "string" } },
 });
 
-const PeliculaModel = mongoose.model<Pelicula>("Pelicula", peliculaSchema);
+const PeliculaModel = mongoose.model<Pelicula>("Pelicula", peliculaSchema, nombreColeccion("peliculas"));
 
 peliculaSchema.set("toJSON", {
   transform: (

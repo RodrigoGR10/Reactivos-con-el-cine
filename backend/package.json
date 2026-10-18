@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "build": "tsc",
+    "build:ui": "npm --prefix ../frontend run build -- --outDir ../backend/dist --emptyOutDir",
     "start": "node out/index.js",
     "dev": "node --watch src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",

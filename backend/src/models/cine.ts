@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose from "mongoose";
+import { nombreColeccion } from "../utils/colecciones.ts";
 
 const url = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_NAME || "reactivos-cine";
@@ -46,19 +47,16 @@ const cineSchema = new mongoose.Schema<Cine>(
   },
 );
 
-cineSchema.index({ origen: 1, origenId: 1 }, {
-  unique: true, partialFilterExpression: { origen: "cinemark", origenId: { $type: "string" } },
+// El orden evita conflictos con el indice anterior de Cinemark.
+cineSchema.index({ origenId: 1, origen: 1 }, {
+  unique: true,
+  partialFilterExpression: {
+    origenId: { $type: "string" },
+    origen: { $type: "string" },
+  },
 });
-cineSchema.index({ origenId: 1 }, {
-  unique: true, partialFilterExpression: { origen: "cineplanet", origenId: { $type: "string" } }, name: "cineplanet_origenId",
-});
-for (const origen of ["muvix", "cinestar"]) {
-  cineSchema.index({ origenId: 1 }, {
-    unique: true, partialFilterExpression: { origen, origenId: { $type: "string" } }, name: `${origen}_origenId`,
-  });
-}
 
-const CineModel = mongoose.model<Cine>("Cine", cineSchema, "cines");
+const CineModel = mongoose.model<Cine>("Cine", cineSchema, nombreColeccion("cines"));
 
 cineSchema.set("toJSON", {
   transform: (
