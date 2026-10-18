@@ -96,7 +96,7 @@ Los datos se guardan directamente en MongoDB, sin borrar la base previamente. Se
 
 Opcionalmente, con `TMDB_API_KEY` configurada, ejecuta `npm run sync:tmdb` para actualizar imágenes y sinopsis y fusionar películas duplicadas. Este comando modifica el catálogo y sus referencias.
 
-### Paso Extra:
+### Pasos Extra:
 
 En caso de añadir nuevas peliculas con el scrapper, hay que asegurarse de que no se dupliquen los nuevos nombres de genero incluidos (ej: Añaden una pelicula de terror y dice "horror" en la BD). Para ello, ejecuten el siguiente comando desde `backend/`:
 
@@ -106,6 +106,16 @@ node src/scripts/normalizar-generos.ts
 
 #Para confirmar cambios
 node src/scripts/normalizar-generos.ts --write
+```
+
+Lo mismo aplica para nuevas peliculas con comunas duplicadas, ejecuten el siguiente comando desde `backend/`:
+
+```bash
+#Para checkear que comunas seran cambiados:
+node src/scripts/normalizar-comunas.ts
+
+#Para confirmar cambios
+node src/scripts/normalizar-comunas.ts --write
 ```
 
 #### Importante:
