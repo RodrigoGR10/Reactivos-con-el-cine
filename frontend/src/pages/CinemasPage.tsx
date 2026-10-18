@@ -129,9 +129,9 @@ function CinemasPage() {
                 </div>
 
                 <div className="cines-comunas-selector">
-                    <label htmlFor="comuna-select">Comuna:</label>
                     <select
                         id="comuna-select"
+                        aria-label="Filtrar por comuna"
                         value={comunaSeleccionada}
                         onChange={(e) => setComunaSeleccionada(e.target.value)}
                     >
@@ -144,18 +144,17 @@ function CinemasPage() {
                         ))}
                     </select>
                 </div>
-                {estado !== "listo" && (
-                    <button
-                        type="button"
-                        className="boton-cercania-cine"
-                        onClick={solicitar}
-                        disabled={estado === "cargando"}
-                    >
-                        {estado === "cargando"
-                            ? "Obteniendo ubicación..."
-                            : "Ordenar por cercanía"}
-                    </button>
-                )}
+                <button
+                    type="button"
+                    className={`boton-cercania-cine ${estado === "listo" ? "activo" : ""}`}
+                    onClick={solicitar}
+                    disabled={estado === "cargando" || estado === "listo"}
+                >
+                    <MapPinIcon size={15} />
+                    <span>
+                        {estado === "cargando" ? "Ubicando..." : "Cerca de mí"}
+                    </span>
+                </button>
 
                 {hayFiltrosActivos && (
                     <button
@@ -167,12 +166,6 @@ function CinemasPage() {
                     </button>
                 )}
             </section>
-
-            {estado === "listo" && (
-                <p className="aviso-cercania">
-                    Ordenado por cercanía a tu ubicación.
-                </p>
-            )}
 
             {estado === "denegado" && (
                 <p className="aviso-cercania">
