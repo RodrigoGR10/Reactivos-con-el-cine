@@ -381,6 +381,17 @@ body {
     text-transform: uppercase;
 }
 
+.subtitulo-destacada {
+    max-width: clamp(650px, 45vw, 980px);
+    margin: -4px 0 18px;
+    padding-left: 0.35em;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: clamp(1.1rem, 1.55vw, 2rem);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
 .metadatos-destacada {
     display: flex;
     flex-wrap: wrap;
@@ -396,11 +407,16 @@ body {
 }
 
 .sinopsis-destacada {
+    display: -webkit-box;
     max-width: clamp(630px, 44vw, 950px);
     margin: 0 0 clamp(26px, 1.8vw, 38px);
     color: #bcbcc2;
     font-size: clamp(1.04rem, 1.15vw, 1.5rem);
     line-height: 1.65;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .boton-horarios,

@@ -5,7 +5,7 @@ import { usePeliculas } from "../hooks/usePelicula.ts";
 import { useFiltrosPeliculas } from "../hooks/useFiltrosPeliculas.ts";
 
 function PaginaPrincipal() {
-  const { peliculas, cargando, error } = usePeliculas();
+  const { peliculas, peliculaDestacada, cargando, error } = usePeliculas();
 
   const {
     filtros,
@@ -19,13 +19,13 @@ function PaginaPrincipal() {
 
   if (cargando) return <p className="sin-resultados">Cargando películas...</p>;
   if (error) return <p className="sin-resultados">{error}</p>;
-  if (peliculas.length === 0) {
+  if (!peliculaDestacada) {
     return <p className="sin-resultados">No hay películas disponibles.</p>;
   }
 
   return (
     <>
-      <PeliculaDestacada pelicula={peliculas[0]} />
+      <PeliculaDestacada pelicula={peliculaDestacada} />
 
       <div className="contenido-principal">
         <FiltrosPeliculas
