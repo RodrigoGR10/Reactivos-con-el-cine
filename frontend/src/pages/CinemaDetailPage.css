@@ -327,6 +327,56 @@
     justify-content: center;
 }
 
+.pelicula-cine-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pelicula-cine-header-text {
+    flex: 1;
+    min-width: 180px;
+}
+
+.btn-ver-precios {
+    background: transparent;
+    color: #b0b0b0;
+    border: 1px solid #383838;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-ver-precios:hover:not(:disabled) {
+    background: #252525;
+    border-color: #555555;
+    color: #ffffff;
+}
+
+.btn-ver-precios:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.btn-ver-precios.cargado {
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #10b981;
+}
+
+.btn-ver-precios.cargado:hover:not(:disabled) {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
 .pelicula-cine-header-info h3 {
     margin: 0;
     font-size: 1.35rem;
