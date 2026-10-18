@@ -10,6 +10,7 @@ import { purchaseUrl } from "./vista/client.ts";
 import type { Funcion as FuncionData } from "../models/funcion.ts";
 import type { Horario as HorarioData } from "../models/horario.ts";
 import { areSameCatalogMovie, fetchTmdbMovieMetadata } from "./tmdb.ts";
+import { ESTADOS_ESTRENO } from "../utils/estreno.ts";
 
 export function validateResult(value: unknown, allowPartial = false): asserts value is ScrapeResult {
   if (!value || typeof value !== "object") throw new Error("JSON de cartelera invalido.");
@@ -47,6 +48,8 @@ export function validateResult(value: unknown, allowPartial = false): asserts va
   if (result.meta.cinesDisponibles !== undefined && (!Number.isInteger(result.meta.cinesDisponibles) || result.meta.cinesDisponibles < result.meta.cinesSeleccionados)) throw new Error("Total de cines invalido.");
   if (result.meta.peliculasConFuncionesFuturas !== undefined && (!Array.isArray(result.meta.peliculasConFuncionesFuturas) || result.meta.peliculasConFuncionesFuturas.some((id) => typeof id !== "string" || !id.trim()))) throw new Error("Peliculas futuras invalidas.");
   for (const movie of result.peliculas) {
+    if (movie.estadoEstreno !== undefined && !ESTADOS_ESTRENO.includes(movie.estadoEstreno)) throw new Error("Estado de estreno invalido.");
+    if (movie.fechaEstreno !== undefined && (typeof movie.fechaEstreno !== "string" || !isDate(movie.fechaEstreno))) throw new Error("Fecha de estreno invalida.");
     nonempty(movie, ["titulo", "genero", "clasificacion", "sinopsis", "poster"]);
     if (movie.url !== undefined) {
       const url = new URL(movie.url);
@@ -197,9 +200,15 @@ async function mergeDuplicateMovies({
       await Pelicula.deleteOne({ _id: duplicate._id });
 
       if (extraSources.length > 0) {
+        const sources = new Map((primary.fuentes ?? []).map((source) => [`${source.origen}:${source.origenId}`, source]));
+        for (const source of extraSources) {
+          const key = `${source.origen}:${source.origenId}`;
+          sources.set(key, { ...source, ...sources.get(key) });
+        }
+        primary.fuentes = [...sources.values()];
         await Pelicula.updateOne(
           { _id: primary._id },
-          { $addToSet: { fuentes: { $each: extraSources } } },
+          { $set: { fuentes: primary.fuentes } },
         );
       }
 
@@ -283,7 +292,7 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
     const movies = new Map<string, mongoose.Types.ObjectId>();
     const cinemas = new Map<string, mongoose.Types.ObjectId>();
     const catalog = await Pelicula.find({}).lean();
-    for (const { id, ...movie } of result.peliculas) {
+    for (const { id, estadoEstreno, fechaEstreno, ...movie } of result.peliculas) {
       const source = { origen: origin, origenId: movie.origenId };
       let existing = await Pelicula.findOne({ $or: [source, { fuentes: { $elemMatch: source } }] }).lean();
       if (!existing) {
@@ -325,7 +334,13 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
       }
       const saved = await Pelicula.findOneAndUpdate(
         existing ? { _id: existing._id } : source,
-        { ...(primary ? { $set: enrichedMovie } : {}), $addToSet: { fuentes: source } },
+        { $set: {
+          ...(primary ? enrichedMovie : {}),
+          fuentes: [
+            ...(existing?.fuentes ?? []).filter((item) => item.origen !== origin || item.origenId !== movie.origenId),
+            { ...source, estadoEstreno, fechaEstreno },
+          ],
+        } },
         { upsert: true, returnDocument: "after", runValidators: true },
       );
       if (!saved) throw new Error(`No se pudo guardar la pelicula ${id}.`);

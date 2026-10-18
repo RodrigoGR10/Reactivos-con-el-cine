@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { isDate, scheduleRevision } from "../normalize.ts";
+import { fechaDeEstreno, isDate, scheduleRevision } from "../normalize.ts";
 import { localNow } from "../../utils/localNow.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
 import { cineplanetData, SITE } from "./client.ts";
@@ -30,6 +30,8 @@ export function normalizeMovie(movie: Movie, extractedAt: string): ScrapedMovie 
   return {
     id: `cineplanet:${id}`, origen: "cineplanet", origenId: id, extraidoEn: extractedAt,
     titulo: text(movie.title, "titulo"), duracion: movie.runTime,
+    estadoEstreno: movie.isPreSale ? "preventa" : movie.isComingSoon ? "proximamente" : "cartelera",
+    fechaEstreno: fechaDeEstreno(movie.OpeningDate),
     genero: text(movie.genre, "genero"), clasificacion: text(movie.ratingDescription, "clasificacion"),
     sinopsis: normalizarSinopsis(movie.synopsis), poster: text(movie.posterUrl, "poster"),
     url: `${SITE}/peliculas/${encodeURIComponent(text(movie.movieDetailsUrl, "slug de pelicula"))}`,

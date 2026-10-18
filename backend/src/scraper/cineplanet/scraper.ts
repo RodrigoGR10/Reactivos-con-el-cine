@@ -40,6 +40,7 @@ export async function scrapeCineplanet(options: ScrapeOptions): Promise<ScrapeRe
       const normalizedCinema = normalizeCinema(cinema, startedAt);
       const schedules = new Map<string, ReturnType<typeof normalizeSchedule>>();
       for (const movie of movieResponse.movies) {
+        if (movie.isComingSoon && !movie.isPreSale) continue;
         for (const day of movie.cinemas?.find((item) => item.cinemaId === cinema.ID)?.dates ?? []) {
           for (const sessionId of day.sessions) {
             try {

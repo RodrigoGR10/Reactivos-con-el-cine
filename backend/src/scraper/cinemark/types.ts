@@ -9,6 +9,8 @@ export interface RawCinema {
 }
 
 export interface RawMovie {
+  status?: string;
+  openingDate?: string;
   corporateId: string;
   slug: string;
   title: string;

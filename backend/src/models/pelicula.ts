@@ -6,6 +6,12 @@ import type { Origen } from "../scraper/types.ts";
 import { ORIGENES } from "../scraper/types.ts";
 import { normalizarSinopsis } from "../utils/sinopsis.ts";
 import { nombreColeccion } from "../utils/colecciones.ts";
+import { ESTADOS_ESTRENO, type DatosEstreno } from "../utils/estreno.ts";
+
+export interface FuentePelicula extends DatosEstreno {
+  origen: Origen;
+  origenId: string;
+}
 
 const url = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_NAME || "reactivos-cine";
@@ -31,12 +37,14 @@ export interface Pelicula {
   origen?: string;
   origenId?: string;
   extraidoEn?: string;
-  fuentes?: { origen: Origen; origenId: string }[];
+  fuentes?: FuentePelicula[];
 }
 
 const fuenteSchema = new Schema({
   origen: { type: String, enum: ORIGENES, required: true },
   origenId: { type: String, required: true },
+  estadoEstreno: { type: String, enum: ESTADOS_ESTRENO },
+  fechaEstreno: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
 }, { _id: false });
 
 const peliculaSchema = new mongoose.Schema<Pelicula>(

@@ -33,7 +33,8 @@ async function main() {
   const desde = values.from ?? localNow().slice(0, 10);
   if (!isDate(desde)) throw new Error("--from debe ser una fecha real YYYY-MM-DD.");
   if (values["all-dates"] && values.days) throw new Error("Usa --days o --all-dates, no ambos.");
-  const dias = values["all-dates"] ? null : integer(values.days ?? "7", "--days");
+  // Incluir tambien las preventas lejanas; --days permite acotar una consulta.
+  const dias = values.days ? integer(values.days, "--days") : null;
   if (dias !== null && dias > 365) throw new Error("--days no puede superar 365.");
   const limitePorCine = values.limit ? integer(values.limit, "--limit") : null;
   if (values.import && (limitePorCine !== null || values["list-cinemas"])) throw new Error("--import no se combina con --limit o --list-cinemas.");

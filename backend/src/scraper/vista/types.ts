@@ -12,6 +12,8 @@ export interface Cinema {
 }
 
 export interface Movie {
+  OpeningDate?: string;
+  NationalOpeningDate?: string;
   ID: string;
   ScheduledFilmId: string;
   CinemaId: string;
