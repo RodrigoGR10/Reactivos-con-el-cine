@@ -995,7 +995,43 @@ body {
     }
 
     .pie-tarjeta {
-        align-items: stretch;
+        align-items: center;
         flex-direction: column;
+        gap: 10px;
+    }
+
+    .clasificacion {
+        padding: 4px 9px;
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    .boton-tarjeta {
+        padding: 8px 20px;
+        font-size: 0.95rem;
+        text-align: center;
+    }
+
+    .contenido-tarjeta h3 {
+        min-height: 0;
+    }
+
+    .overlay-fav {
+        inset: 8px 8px auto auto;
+        display: block;
+        background: transparent;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: none;
+    }
+
+    .boton-fav,
+    .poster-pelicula:hover .boton-fav {
+        width: 36px;
+        height: 36px;
+        font-size: 1.4rem;
+        background: rgba(0, 0, 0, 0.55);
+        transform: none;
+        pointer-events: auto;
     }
 }
