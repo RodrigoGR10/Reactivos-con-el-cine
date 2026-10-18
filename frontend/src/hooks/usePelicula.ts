@@ -6,6 +6,9 @@ import peliculaService from "../services/peliculas";
 
 export function usePeliculas() {
   const [peliculas, setPeliculas] = useState<Pelicula[]>([]);
+  const [peliculaDestacada, setPeliculaDestacada] = useState<Pelicula | null>(
+    null,
+  );
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +19,16 @@ export function usePeliculas() {
       try {
         const data = await peliculaService.getCartelera();
 
-        if (!cancelado) setPeliculas(data);
+        if (!cancelado) {
+          setPeliculas(data);
+
+          const conBanner = data.filter((pelicula) => Boolean(pelicula.banner));
+          const candidatas = conBanner.length > 0 ? conBanner : data;
+          if (candidatas.length > 0) {
+            const indice = Math.floor(Math.random() * candidatas.length);
+            setPeliculaDestacada(candidatas[indice]);
+          }
+        }
       } catch {
         if (!cancelado) setError("No se pudieron cargar las películas.");
       } finally {
@@ -31,5 +43,5 @@ export function usePeliculas() {
     };
   }, []);
 
-  return { peliculas, cargando, error };
+  return { peliculas, peliculaDestacada, cargando, error };
 }
