@@ -58,18 +58,19 @@ export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFunc
     precio !== undefined ? `, precio ${precioCLP(precio)}` : ""
   }`;
 
+  const tienePrecio = precio !== undefined || agotada;
+
   const contenido = (
     <>
       <span className="tarjeta-funcion-hora">{hora}</span>
       <span className="tarjeta-funcion-detalles">
         {formato} · {idioma}
       </span>
-      <span
-        className={`tarjeta-funcion-precio ${agotada ? "agotada" : ""}`}
-        aria-hidden={precio === undefined && !agotada}
-      >
-        {agotada ? "Agotada" : precio !== undefined ? precioCLP(precio) : "\u00A0"}
-      </span>
+      {tienePrecio && (
+        <span className={`tarjeta-funcion-precio ${agotada ? "agotada" : ""}`}>
+          {agotada ? "Agotada" : precioCLP(precio!)}
+        </span>
+      )}
     </>
   );
 
