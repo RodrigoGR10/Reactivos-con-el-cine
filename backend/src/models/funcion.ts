@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose, { Schema } from "mongoose";
+import { nombreColeccion } from "../utils/colecciones.ts";
 
 const url = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_NAME || "reactivos-cine";
@@ -69,7 +70,7 @@ funcionSchema.index({ origen: 1, origenId: 1 }, {
 const FuncionModel = mongoose.model<Funcion>(
   "Funcion",
   funcionSchema,
-  "funciones",
+  nombreColeccion("funciones"),
 );
 
 funcionSchema.set("toJSON", {

@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import type { Origen, ScrapedSession } from "../scraper/types.ts";
 import { ORIGENES } from "../scraper/types.ts";
+import { nombreColeccion } from "../utils/colecciones.ts";
 
 export interface Horario {
   peliculaId: mongoose.Types.ObjectId;
@@ -83,4 +84,4 @@ horarioSchema.index({ origen: 1, origenId: 1 }, { unique: true });
 horarioSchema.index({ peliculaId: 1, cineId: 1, fecha: 1, horario: 1 });
 horarioSchema.index({ fecha: 1, horario: 1 });
 
-export default mongoose.model<Horario>("Horario", horarioSchema, "horarios");
+export default mongoose.model<Horario>("Horario", horarioSchema, nombreColeccion("horarios"));

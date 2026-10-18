@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose from "mongoose";
+import { nombreColeccion } from "../utils/colecciones.ts";
 
 const url = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_NAME || "reactivos-cine";
@@ -54,6 +55,6 @@ userSchema.set("toJSON", {
   },
 });
 
-const UserModel = mongoose.model<User>("User", userSchema, "users");
+const UserModel = mongoose.model<User>("User", userSchema, nombreColeccion("users"));
 
 export default UserModel;
