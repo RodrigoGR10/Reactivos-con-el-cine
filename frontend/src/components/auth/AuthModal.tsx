@@ -12,12 +12,14 @@ import "./AuthModal.css";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   initialMode?: "login" | "register";
 }
 
 export const AuthModal = ({
   isOpen,
   onClose,
+  onSuccess,
   initialMode = "login",
 }: AuthModalProps) => {
   const { login, register } = useAuth();
@@ -90,6 +92,10 @@ export const AuthModal = ({
     setCargando(true);
     try {
       await login({ email: emailTrimmed, contrasena: loginPassword });
+      if (onSuccess) {
+        onSuccess();
+        return;
+      }
       setSuccessMsg("¡Sesión iniciada con éxito!");
       // Cierra tras breve delay para que el usuario vea el mensaje de éxito
       setTimeout(() => {
@@ -142,6 +148,10 @@ export const AuthModal = ({
         contrasena: regPassword,
         confirmarContrasena: regConfirmPassword,
       });
+      if (onSuccess) {
+        onSuccess();
+        return;
+      }
       setSuccessMsg("¡Cuenta creada e iniciada con éxito!");
       setTimeout(() => {
         onClose();

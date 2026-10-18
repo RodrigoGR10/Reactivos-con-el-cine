@@ -55,6 +55,13 @@ router.post("/register", async (req, res) => {
   }
 
   const emailNormalizado = email.trim().toLowerCase();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(emailNormalizado)) {
+    return res
+      .status(400)
+      .json({ error: "Ingresa un correo electrónico válido." });
+  }
+
   const existe = await UserModel.findOne({ email: emailNormalizado });
   if (existe) {
     return res

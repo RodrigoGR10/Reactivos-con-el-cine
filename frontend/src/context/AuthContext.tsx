@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -12,9 +13,11 @@ import authService from "../services/authService";
 interface AuthContextType {
   user: Usuario | null;
   isAuthenticated: boolean;
+  isLoadingSession: boolean;
   login: (credenciales: LoginInput) => Promise<void>;
   register: (datos: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
+  invalidateSession: () => void;
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
@@ -24,6 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Usuario | null>(null);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   // Evita que una restauración pendiente sobrescriba un login o logout posterior.
   const restoreController = useRef<AbortController | null>(null);
@@ -33,7 +37,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     restoreController.current = controller;
 
     authService.getCurrentUser(controller.signal).then((usuario) => {
-      if (!controller.signal.aborted) setUser(usuario);
+      if (!controller.signal.aborted) {
+        setUser(usuario);
+        setIsLoadingSession(false);
+      }
     });
 
     return () => controller.abort();
@@ -42,30 +49,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const openAuthModal = (): void => setIsAuthModalOpen(true);
   const closeAuthModal = (): void => setIsAuthModalOpen(false);
 
+  const invalidateSession = useCallback((): void => {
+    restoreController.current?.abort();
+    authService.clearSessionData();
+    setUser(null);
+    setIsLoadingSession(false);
+    setIsAuthModalOpen(false);
+  }, []);
+
   const login = async (credenciales: LoginInput): Promise<void> => {
     restoreController.current?.abort();
-    const usuarioAutenticado = await authService.login(credenciales);
-    setUser(usuarioAutenticado);
+    try {
+      const usuarioAutenticado = await authService.login(credenciales);
+      setUser(usuarioAutenticado);
+    } finally {
+      setIsLoadingSession(false);
+    }
   };
 
   const register = async (datos: RegisterInput): Promise<void> => {
     restoreController.current?.abort();
-    const nuevoUsuario = await authService.register(datos);
-    setUser(nuevoUsuario);
+    try {
+      const nuevoUsuario = await authService.register(datos);
+      setUser(nuevoUsuario);
+    } finally {
+      setIsLoadingSession(false);
+    }
   };
 
   const logout = async (): Promise<void> => {
     restoreController.current?.abort();
-    await authService.logout();
-    setUser(null);
+    try {
+      await authService.logout();
+      setUser(null);
+    } finally {
+      setIsLoadingSession(false);
+    }
   };
 
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
+    isLoadingSession,
     login,
     register,
     logout,
+    invalidateSession,
     isAuthModalOpen,
     openAuthModal,
     closeAuthModal,

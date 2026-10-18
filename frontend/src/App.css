@@ -381,6 +381,17 @@ body {
     text-transform: uppercase;
 }
 
+.subtitulo-destacada {
+    max-width: clamp(650px, 45vw, 980px);
+    margin: -4px 0 18px;
+    padding-left: 0.35em;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: clamp(1.1rem, 1.55vw, 2rem);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
 .metadatos-destacada {
     display: flex;
     flex-wrap: wrap;
@@ -396,11 +407,16 @@ body {
 }
 
 .sinopsis-destacada {
+    display: -webkit-box;
     max-width: clamp(630px, 44vw, 950px);
     margin: 0 0 clamp(26px, 1.8vw, 38px);
     color: #bcbcc2;
     font-size: clamp(1.04rem, 1.15vw, 1.5rem);
     line-height: 1.65;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .boton-horarios,
@@ -795,12 +811,42 @@ body {
 
 @media (max-width: 560px) {
     .sidebar {
-        display: none;
+        top: auto;
+        width: 100%;
+        height: calc(64px + env(safe-area-inset-bottom, 0px));
+        flex-direction: row;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+        background-color: var(--color-superficie);
+        border-top: 1px solid var(--color-borde);
+    }
+
+    .sidebar-top,
+    .sidebar-mid,
+    .sidebar-bottom {
+        flex-direction: row;
+    }
+
+    .sidebar-mid {
+        flex: 1;
+        justify-content: space-evenly;
+        gap: 0;
+    }
+
+    .sidebar-btn {
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+        border-radius: 8px;
+    }
+
+    .sidebar-btn.active {
+        background-color: var(--color-superficie-clara);
     }
 
     .main-principal {
         margin-left: 0;
         width: 100%;
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     }
 
     .contenido-navegacion,
