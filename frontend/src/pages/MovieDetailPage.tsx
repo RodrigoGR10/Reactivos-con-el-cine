@@ -42,6 +42,7 @@ function MovieDetailPage() {
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
     const [fechaSeleccionada, setFechaSeleccionada] = useState("");
     const [busqueda, setBusqueda] = useState("");
+    const [comunaSeleccionada, setComunaSeleccionada] = useState("Todas");
     const [consultandoPrecios, setConsultandoPrecios] = useState<Record<string, boolean>>({});
     const [horariosConPrecios, setHorariosConPrecios] = useState<Record<string, Horario>>({});
 
@@ -110,17 +111,36 @@ function MovieDetailPage() {
                 : a.distancia - b.distancia,
         );
 
-    const gruposFiltrados = busqueda.trim()
-        ? grupos.filter(
-              (g) =>
-                  g.cine.nombre
-                      .toLowerCase()
-                      .includes(busqueda.trim().toLowerCase()) ||
-                  g.cine.comuna
-                      .toLowerCase()
-                      .includes(busqueda.trim().toLowerCase()),
-          )
-        : grupos;
+    const comunasDisponibles = [
+        "Todas",
+        ...new Set(
+            cines
+                .filter((cine) =>
+                    horariosDelDia.some((h) => h.cineId === cine.id),
+                )
+                .map((cine) => cine.comuna)
+                .filter(Boolean),
+        ),
+    ].sort((a, b) =>
+        a === "Todas" ? -1 : b === "Todas" ? 1 : a.localeCompare(b),
+    );
+
+    const comunaActual = comunasDisponibles.includes(comunaSeleccionada)
+        ? comunaSeleccionada
+        : "Todas";
+
+    const gruposFiltrados = grupos.filter((g) => {
+        const coincideBusqueda =
+            !busqueda.trim() ||
+            g.cine.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()) ||
+            g.cine.comuna.toLowerCase().includes(busqueda.trim().toLowerCase());
+
+        const coincideComuna =
+            comunaActual === "Todas" ||
+            g.cine.comuna.toLowerCase() === comunaActual.toLowerCase();
+
+        return coincideBusqueda && coincideComuna;
+    });
 
     if (error) return <Mensaje texto={error} />;
     if (!pelicula) return <Mensaje texto="Cargando película..." />;
@@ -203,24 +223,64 @@ function MovieDetailPage() {
                     }}
                 />
 
-                {/* Filtros de la cartelera: Buscador, Formatos y Cerca de mí */}
+                {/* Filtros de la cartelera: Fila principal y Formatos */}
                 {horarios.length > 0 && (
                     <div className="cartelera-cine-filtros">
-                        <div className="cartelera-search-box">
-                            <SearchIcon size={16} />
-                            <input
-                                type="text"
-                                placeholder="Buscar cine o comuna..."
-                                value={busqueda}
-                                onChange={(e) => setBusqueda(e.target.value)}
-                            />
-                            {busqueda && (
+                        <div className="filtros-barra-principal">
+                            <div className="cartelera-search-box">
+                                <SearchIcon size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por cine o comuna..."
+                                    value={busqueda}
+                                    onChange={(e) => setBusqueda(e.target.value)}
+                                />
+                                {busqueda && (
+                                    <button
+                                        type="button"
+                                        className="btn-clear-inline"
+                                        onClick={() => setBusqueda("")}
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+
+                            {comunasDisponibles.length > 1 && (
+                                <select
+                                    className="selector-comuna-filtro"
+                                    value={comunaActual}
+                                    onChange={(e) =>
+                                        setComunaSeleccionada(e.target.value)
+                                    }
+                                    aria-label="Filtrar por comuna"
+                                >
+                                    <option value="Todas">Todas las comunas</option>
+                                    {comunasDisponibles
+                                        .filter((c) => c !== "Todas")
+                                        .map((comuna) => (
+                                            <option key={comuna} value={comuna}>
+                                                {comuna}
+                                            </option>
+                                        ))}
+                                </select>
+                            )}
+
+                            {grupos.length > 0 && (
                                 <button
                                     type="button"
-                                    className="btn-clear-inline"
-                                    onClick={() => setBusqueda("")}
+                                    className={`boton-cercania-detalle ${estado === "listo" ? "activo" : ""}`}
+                                    onClick={solicitar}
+                                    disabled={
+                                        estado === "cargando" || estado === "listo"
+                                    }
                                 >
-                                    ✕
+                                    <MapPinIcon size={15} />
+                                    <span>
+                                        {estado === "cargando"
+                                            ? "Ubicando..."
+                                            : "Cerca de mí"}
+                                    </span>
                                 </button>
                             )}
                         </div>
@@ -239,24 +299,6 @@ function MovieDetailPage() {
                                 ))}
                             </div>
                         )}
-
-                        {grupos.length > 0 && (
-                            <button
-                                type="button"
-                                className={`boton-cercania-detalle ${estado === "listo" ? "activo" : ""}`}
-                                onClick={solicitar}
-                                disabled={
-                                    estado === "cargando" || estado === "listo"
-                                }
-                            >
-                                <MapPinIcon size={15} />
-                                <span>
-                                    {estado === "cargando"
-                                        ? "Ubicando..."
-                                        : "Cerca de mí"}
-                                </span>
-                            </button>
-                        )}
                     </div>
                 )}
 
@@ -274,6 +316,7 @@ function MovieDetailPage() {
                             className="btn-reset-filtros"
                             onClick={() => {
                                 setBusqueda("");
+                                setComunaSeleccionada("Todas");
                                 setFormatoSeleccionado("Todos");
                             }}
                         >

@@ -165,10 +165,17 @@
 /* Filtros de la cartelera */
 .cartelera-cine-filtros {
     display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 12px;
     width: 100%;
+}
+
+.filtros-barra-principal {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
 }
 
 .cartelera-search-box {
@@ -181,7 +188,8 @@
     padding: 0 12px;
     height: 38px;
     color: #777777;
-    min-width: 240px;
+    flex: 1;
+    min-width: 220px;
     box-sizing: border-box;
     transition: border-color 0.2s ease;
 }
@@ -203,6 +211,34 @@
     color: #666666;
 }
 
+.selector-comuna-filtro {
+    background-color: #121212;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    padding: 0 32px 0 12px;
+    height: 38px;
+    color: #ffffff;
+    font-size: 0.88rem;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.selector-comuna-filtro:focus {
+    border-color: #444444;
+}
+
+.selector-comuna-filtro option {
+    background-color: #141414;
+    color: #ffffff;
+}
+
 .btn-clear-inline {
     background: transparent;
     border: none;
@@ -221,6 +257,7 @@
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .formato-chip {
@@ -459,11 +496,11 @@
     height: 38px;
     padding: 0 14px;
     color: var(--color-texto);
-    background: var(--color-superficie-clara);
-    border: 1px solid #34353e;
+    background: #121212;
+    border: 1px solid #222222;
     border-radius: 8px;
     font-size: 0.86rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
     transition:
@@ -478,8 +515,8 @@
 }
 
 .boton-cercania-detalle:hover:not(:disabled) {
-    border-color: #494a54;
-    background: #1d1e24;
+    border-color: #444444;
+    background: #1a1a1a;
 }
 
 .boton-cercania-detalle.activo {
@@ -554,7 +591,14 @@
         font-size: 2.8rem;
     }
 
-    .cartelera-search-box {
+    .filtros-barra-principal {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cartelera-search-box,
+    .selector-comuna-filtro,
+    .boton-cercania-detalle {
         width: 100%;
         min-width: 0;
     }
