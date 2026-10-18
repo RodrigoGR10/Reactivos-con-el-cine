@@ -257,14 +257,12 @@
 
 .cine-btn-fav:hover {
     color: #e50914;
-    border-color: #e50914;
+    border-color: #3a3a3a;
     transform: scale(1.1);
 }
 
 .cine-btn-fav.active {
     color: #e50914;
-    background-color: rgba(229, 9, 20, 0.12);
-    border-color: rgba(229, 9, 20, 0.35);
 }
 
 .cine-card-body {
@@ -274,10 +272,60 @@
 }
 
 .boton-cercania-cine {
-    padding: 6px 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 14px;
     color: #ffffff;
-    background: var(--color-acento);
-    border-radius: 6px;
+    background-color: #121212;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    box-sizing: border-box;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.boton-cercania-cine svg {
+    color: #e50914;
+    flex-shrink: 0;
+}
+
+.boton-cercania-cine:hover:not(:disabled) {
+    border-color: #3a3a3a;
+    background-color: #181818;
+}
+
+.boton-cercania-cine.activo {
+    color: #ffffff;
+    cursor: default;
+}
+
+.boton-cercania-cine.activo svg path {
+    fill: currentColor;
+}
+
+.boton-cercania-cine.activo svg circle {
+    fill: #121212;
+    stroke: #121212;
+}
+
+.boton-cercania-cine:disabled:not(.activo) {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.aviso-cercania {
+    margin: -12px 0 0;
+    color: #888888;
+    font-size: 0.88rem;
 }
 
 .cine-card-nombre {
@@ -295,6 +343,11 @@
     gap: 6px;
     color: #888888;
     font-size: 0.88rem;
+}
+
+.cine-card-comuna .distancia-cine {
+    font-style: normal;
+    opacity: 0.75;
 }
 
 .cine-card-footer {

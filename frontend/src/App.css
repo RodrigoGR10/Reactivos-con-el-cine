@@ -417,15 +417,67 @@ body {
         transform 160ms ease;
 }
 
+.acciones-destacada {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(12px, 0.9vw, 18px);
+}
+
 .boton-horarios {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: clamp(13px, 0.9vw, 19px) clamp(20px, 1.4vw, 30px);
     font-size: clamp(1rem, 1.1vw, 1.4rem);
+    line-height: 1.15;
+    box-sizing: border-box;
 }
 
 .boton-horarios:hover,
 .boton-tarjeta:hover {
     background: var(--color-acento-oscuro);
     transform: translateY(-1px);
+}
+
+.boton-fav-destacada {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: clamp(12px, 0.85vw, 18px) clamp(20px, 1.4vw, 28px);
+    font-size: clamp(1rem, 1.1vw, 1.4rem);
+    font-weight: 600;
+    line-height: 1.15;
+    color: #ffffff;
+    background-color: rgba(24, 24, 24, 0.85);
+    backdrop-filter: blur(6px);
+    border: 1px solid #2e2e34;
+    border-radius: 8px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.16s ease;
+}
+
+.boton-fav-destacada:hover {
+    border-color: #494a54;
+    background-color: rgba(34, 34, 38, 0.9);
+    transform: translateY(-1px);
+}
+
+.boton-fav-destacada:hover .corazon-destacada,
+.boton-fav-destacada.activo .corazon-destacada {
+    color: var(--color-acento);
+}
+
+.corazon-destacada {
+    font-size: 1.15em;
+    line-height: 1;
+    transition: color 0.18s ease;
 }
 
 .contenido-principal {

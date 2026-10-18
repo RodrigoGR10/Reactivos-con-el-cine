@@ -6,6 +6,7 @@ import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import { usePreciosFunciones } from "../hooks/usePreciosFunciones";
 import { Mensaje } from "../components/common/Mensaje";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
+import { MapPinIcon } from "../components/common/Icons";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import { useUbicacion } from "../hooks/useUbicacion";
 import "./MovieDetailPage.css";
@@ -120,10 +121,14 @@ function MovieDetailPage() {
                         <span>{pelicula.genero}</span>
                         <span aria-hidden="true">•</span>
                         <span>{pelicula.duracion} min</span>
-                        <span aria-hidden="true">•</span>
                         <button
                             type="button"
-                            className="boton-fav-peli"
+                            className={`boton-fav-peli ${isFavoriteMovie(pelicula.id) ? "activo" : ""}`}
+                            title={
+                                isFavoriteMovie(pelicula.id)
+                                    ? "Quitar de películas favoritas"
+                                    : "Guardar en películas favoritas"
+                            }
                             onClick={() => {
                                 if (!user) {
                                     openAuthModal();
@@ -192,6 +197,24 @@ function MovieDetailPage() {
                                 ))}
                             </select>
                         </div>
+
+                        {grupos.length > 0 && (
+                            <button
+                                type="button"
+                                className={`boton-cercania-detalle ${estado === "listo" ? "activo" : ""}`}
+                                onClick={solicitar}
+                                disabled={
+                                    estado === "cargando" || estado === "listo"
+                                }
+                            >
+                                <MapPinIcon size={15} />
+                                <span>
+                                    {estado === "cargando"
+                                        ? "Ubicando..."
+                                        : "Cerca de mí"}
+                                </span>
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -202,40 +225,19 @@ function MovieDetailPage() {
                     </div>
                 ) : (
                     <>
-                        <div className="orden-cercania">
-                            {estado !== "listo" && (
-                                <button
-                                    type="button"
-                                    className="boton-cercania-detalle"
-                                    onClick={solicitar}
-                                    disabled={estado === "cargando"}
-                                >
-                                    {estado === "cargando"
-                                        ? "Obteniendo ubicación..."
-                                        : "Ordenar por cercanía"}
-                                </button>
-                            )}
-
-                            {estado === "listo" && (
-                                <p className="aviso-cercania">
-                                    Ordenado por cercanía a tu ubicación.
-                                </p>
-                            )}
-
-                            {estado === "denegado" && (
-                                <p className="aviso-cercania">
-                                    No pudimos acceder a tu ubicación. Habilita
-                                    el permiso en tu navegador para ordenar por
-                                    cercanía
-                                </p>
-                            )}
-                            {estado === "error" && (
-                                <p className="aviso-cercania">
-                                    No se pudo obtener tu ubicación. Intenta
-                                    nuevamente.
-                                </p>
-                            )}
-                        </div>
+                        {estado === "denegado" && (
+                            <p className="aviso-cercania">
+                                No pudimos acceder a tu ubicación. Habilita el
+                                permiso en tu navegador para ordenar por
+                                cercanía.
+                            </p>
+                        )}
+                        {estado === "error" && (
+                            <p className="aviso-cercania">
+                                No se pudo obtener tu ubicación. Intenta
+                                nuevamente.
+                            </p>
+                        )}
                         <div className="lista-cines">
                             {grupos.map(
                                 ({ cine, horarios: sesiones, distancia }) => (
@@ -304,16 +306,16 @@ function MovieDetailPage() {
                                                         >
                                                             {cine.nombre}
                                                         </Link>
+                                                        {Number.isFinite(
+                                                            distancia,
+                                                        ) && (
+                                                            <span className="distancia-cine">
+                                                                {formatearDistancia(
+                                                                    distancia,
+                                                                )}
+                                                            </span>
+                                                        )}
                                                     </strong>
-                                                    {Number.isFinite(
-                                                        distancia,
-                                                    ) && (
-                                                        <i className="distancia-cine">
-                                                            {formatearDistancia(
-                                                                distancia,
-                                                            )}
-                                                        </i>
-                                                    )}
                                                     <span>
                                                         {cine.comuna} ·{" "}
                                                         {sesiones.length}{" "}
