@@ -1,6 +1,6 @@
 import { SITE } from "./client.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
-import { isDate, scheduleRevision } from "../normalize.ts";
+import { fechaDeEstreno, isDate, scheduleRevision } from "../normalize.ts";
 import type { RawCinema, RawMovie, RawPriceGroup, RawSession, RawTicket } from "./types.ts";
 import type { ScrapedCinema, ScrapedMovie, ScrapedSchedule, ScrapedSession } from "../types.ts";
 
@@ -45,6 +45,8 @@ export function normalizeMovie(movie: RawMovie, extractedAt: string): ScrapedMov
     origenId: movie.corporateId,
     extraidoEn: extractedAt,
     titulo: text(movie.title, "titulo"),
+    estadoEstreno: movie.status === "PRESALE" ? "preventa" : undefined,
+    fechaEstreno: fechaDeEstreno(movie.openingDate),
     duracion: movie.runTime,
     genero: text(movie.genres?.map((genre) => genre.name).join(", "), "genero"),
     clasificacion: text(movie.rating, "clasificacion"),

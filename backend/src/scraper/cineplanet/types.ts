@@ -9,6 +9,9 @@ export interface Cinema {
 }
 
 export interface Movie {
+  isPreSale?: boolean;
+  isComingSoon?: boolean;
+  OpeningDate?: string;
   id: string;
   title: string;
   runTime: number;
