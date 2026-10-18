@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { normalizarGeneros } from "../utils/generos.ts";
 dotenv.config();
 
 import mongoose, { Schema } from "mongoose";
@@ -51,7 +52,7 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
   {
     titulo: { type: String, required: true },
     duracion: { type: Number, required: true },
-    genero: { type: String, required: true },
+    genero: { type: String, required: true, set: normalizarGeneros },
     clasificacion: { type: String, required: true },
     sinopsis: { type: String, required: true, set: normalizarSinopsis },
     poster: { type: String, required: true },

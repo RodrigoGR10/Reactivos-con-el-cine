@@ -58,7 +58,7 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
         </p>
         <div className="pie-tarjeta">
           <span className="clasificacion">{pelicula.clasificacion}</span>
-          <Link to={`/peliculas/${pelicula.id}`} className="boton-tarjeta">
+          <Link to={`/peliculas/${pelicula.id}`} className="boton-tarjeta" aria-label={`Ver horarios de ${pelicula.titulo}`}>
             Ver horarios
           </Link>
         </div>

@@ -65,7 +65,7 @@ function PaginaPrincipal() {
                 {cartelera.length === 1 ? "película" : "películas"}
               </p>
             </div>
-            <Cartelera peliculas={cartelera} />
+            <Cartelera peliculas={cartelera} hayFiltrosActivos={hayFiltrosActivos} />
           </section>
         )}
         {preventas.length > 0 && <Preventas key={preventas.map((pelicula) => pelicula.id).join(",")} peliculas={preventas} />}
