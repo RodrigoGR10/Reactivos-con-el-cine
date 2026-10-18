@@ -20,10 +20,12 @@ export function usePeliculas() {
         const data = await peliculaService.getCartelera();
 
         if (!cancelado) {
-          setPeliculas(data);
+          const disponibles = data.filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
+          setPeliculas(disponibles);
 
-          const conBanner = data.filter((pelicula) => Boolean(pelicula.banner));
-          const candidatas = conBanner.length > 0 ? conBanner : data;
+          const estrenadas = disponibles.filter((pelicula) => pelicula.estadoEstreno !== "preventa");
+          const conBanner = estrenadas.filter((pelicula) => Boolean(pelicula.banner));
+          const candidatas = conBanner.length > 0 ? conBanner : estrenadas;
           if (candidatas.length > 0) {
             const indice = Math.floor(Math.random() * candidatas.length);
             setPeliculaDestacada(candidatas[indice]);

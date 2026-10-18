@@ -44,6 +44,13 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
         </div>
       </div>
       <div className="contenido-tarjeta">
+        {pelicula.estadoEstreno === "preventa" && (
+          <p className="etiqueta-preventa">
+            {pelicula.fechaEstreno
+              ? <>Estreno: <time dateTime={pelicula.fechaEstreno}>{new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${pelicula.fechaEstreno}T00:00:00Z`))}</time></>
+              : "Preventa"}
+          </p>
+        )}
         <h3>{pelicula.titulo}</h3>
         <p className="datos-pelicula">
           {pelicula.genero} <span aria-hidden="true">•</span>{" "}
