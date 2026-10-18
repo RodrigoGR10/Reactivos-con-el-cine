@@ -2,6 +2,10 @@ import { Link } from "react-router-dom";
 import type { Pelicula } from "../../types/types.ts";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
+import {
+  resumirSinopsisDestacada,
+  separarTituloDestacado,
+} from "../../utils/formatearPeliculaDestacada.ts";
 
 interface PeliculaDestacadaProps {
   pelicula: Pelicula;
@@ -11,6 +15,12 @@ function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
   const { user, openAuthModal } = useAuth();
   const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
   const esFavorita = isFavoriteMovie(pelicula.id);
+  const { tituloPrincipal, subtitulo } = separarTituloDestacado(
+    pelicula.titulo,
+  );
+  const sinopsisResumida = pelicula.sinopsis
+    ? resumirSinopsisDestacada(pelicula.sinopsis)
+    : "";
 
   const handleToggleFavorita = () => {
     if (!user) {
@@ -31,16 +41,18 @@ function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
 
       <div className="contenido-destacada">
         <p className="etiqueta-destacada">Destacada de la semana</p>
-        <h1 id="titulo-destacada">{pelicula.titulo}</h1>
+        <h1 id="titulo-destacada">{tituloPrincipal}</h1>
+        {subtitulo && <p className="subtitulo-destacada">{subtitulo}</p>}
         <p className="metadatos-destacada">
+          <span aria-hidden="true">•</span>
           {pelicula.genero}
           <span aria-hidden="true">•</span>
           {pelicula.duracion} min
           <span aria-hidden="true">•</span>
           {pelicula.clasificacion}
         </p>
-        {pelicula.sinopsis && (
-          <p className="sinopsis-destacada">{pelicula.sinopsis}</p>
+        {sinopsisResumida && (
+          <p className="sinopsis-destacada">{sinopsisResumida}</p>
         )}
         <div className="acciones-destacada">
           <Link to={`/peliculas/${pelicula.id}`} className="boton-horarios">
