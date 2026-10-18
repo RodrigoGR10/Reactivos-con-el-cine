@@ -6,7 +6,7 @@ import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import funcionService from "../services/funciones";
 import { Mensaje } from "../components/common/Mensaje";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
-import { MapPinIcon } from "../components/common/Icons";
+import { MapPinIcon, SearchIcon } from "../components/common/Icons";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import { useUbicacion } from "../hooks/useUbicacion";
 import "./MovieDetailPage.css";
@@ -47,6 +47,7 @@ function MovieDetailPage() {
 
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
     const [fechaSeleccionada, setFechaSeleccionada] = useState("");
+    const [busqueda, setBusqueda] = useState("");
     const [consultandoPrecios, setConsultandoPrecios] = useState<Record<string, boolean>>({});
     const [horariosConPrecios, setHorariosConPrecios] = useState<Record<string, Horario>>({});
 
@@ -115,6 +116,18 @@ function MovieDetailPage() {
                 : a.distancia - b.distancia,
         );
 
+    const gruposFiltrados = busqueda.trim()
+        ? grupos.filter(
+              (g) =>
+                  g.cine.nombre
+                      .toLowerCase()
+                      .includes(busqueda.trim().toLowerCase()) ||
+                  g.cine.comuna
+                      .toLowerCase()
+                      .includes(busqueda.trim().toLowerCase()),
+          )
+        : grupos;
+
     if (error) return <Mensaje texto={error} />;
     if (!pelicula) return <Mensaje texto="Cargando película..." />;
 
@@ -180,44 +193,67 @@ function MovieDetailPage() {
                         <h2 id="titulo-funciones">Funciones</h2>
                     </div>
 
-                    <div className="filtros-funciones">
-                        {fechasDisponibles.length > 0 && (
-                            <div className="filtro-formato">
-                                <label htmlFor="fecha-funcion">Fecha</label>
-                                <select
-                                    id="fecha-funcion"
-                                    value={fechaActual}
-                                    onChange={(e) => {
-                                        setFechaSeleccionada(e.target.value);
-                                        setFormatoSeleccionado("Todos");
-                                    }}
+                    <p className="conteo-cines-peli" aria-live="polite">
+                        {gruposFiltrados.length}{" "}
+                        {gruposFiltrados.length === 1 ? "cine" : "cines"}
+                    </p>
+                </div>
+
+                {/* Selector de fechas */}
+                {fechasDisponibles.length > 1 && (
+                    <div className="formatos-chips" style={{ marginBottom: "14px" }}>
+                        {fechasDisponibles.map((fecha) => (
+                            <button
+                                key={fecha}
+                                type="button"
+                                className={`formato-chip ${fechaActual === fecha ? "active" : ""}`}
+                                onClick={() => {
+                                    setFechaSeleccionada(fecha);
+                                    setFormatoSeleccionado("Todos");
+                                }}
+                            >
+                                {mostrarFecha(fecha)}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* Filtros de la cartelera: Buscador, Formatos y Cerca de mí */}
+                {horarios.length > 0 && (
+                    <div className="cartelera-cine-filtros">
+                        <div className="cartelera-search-box">
+                            <SearchIcon size={16} />
+                            <input
+                                type="text"
+                                placeholder="Buscar cine o comuna..."
+                                value={busqueda}
+                                onChange={(e) => setBusqueda(e.target.value)}
+                            />
+                            {busqueda && (
+                                <button
+                                    type="button"
+                                    className="btn-clear-inline"
+                                    onClick={() => setBusqueda("")}
                                 >
-                                    {fechasDisponibles.map((fecha) => (
-                                        <option key={fecha} value={fecha}>
-                                            {mostrarFecha(fecha)}
-                                        </option>
-                                    ))}
-                                </select>
+                                    ✕
+                                </button>
+                            )}
+                        </div>
+
+                        {formatosDisponibles.length > 2 && (
+                            <div className="formatos-chips">
+                                {formatosDisponibles.map((formato) => (
+                                    <button
+                                        key={formato}
+                                        type="button"
+                                        className={`formato-chip ${formatoActual === formato ? "active" : ""}`}
+                                        onClick={() => setFormatoSeleccionado(formato)}
+                                    >
+                                        {formato}
+                                    </button>
+                                ))}
                             </div>
                         )}
-                        <div className="filtro-formato">
-                            <label htmlFor="formato">Formato</label>
-
-                            <select
-                                id="formato"
-                                value={formatoActual}
-                                disabled={formatosDisponibles.length <= 1}
-                                onChange={(e) =>
-                                    setFormatoSeleccionado(e.target.value)
-                                }
-                            >
-                                {formatosDisponibles.map((formato) => (
-                                    <option key={formato} value={formato}>
-                                        {formato}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
 
                         {grupos.length > 0 && (
                             <button
@@ -237,12 +273,27 @@ function MovieDetailPage() {
                             </button>
                         )}
                     </div>
-                </div>
+                )}
 
                 {grupos.length === 0 ? (
                     <div className="sin-funciones">
                         <span aria-hidden="true">🎬</span>
                         <p>No hay funciones vigentes para esta fecha.</p>
+                    </div>
+                ) : gruposFiltrados.length === 0 ? (
+                    <div className="sin-funciones">
+                        <span aria-hidden="true">🎬</span>
+                        <p>No se encontraron cines con los filtros seleccionados.</p>
+                        <button
+                            type="button"
+                            className="btn-reset-filtros"
+                            onClick={() => {
+                                setBusqueda("");
+                                setFormatoSeleccionado("Todos");
+                            }}
+                        >
+                            Restablecer filtros
+                        </button>
                     </div>
                 ) : (
                     <>
@@ -260,7 +311,7 @@ function MovieDetailPage() {
                             </p>
                         )}
                         <div className="lista-cines">
-                            {grupos.map(
+                            {gruposFiltrados.map(
                                 ({ cine, horarios: sesiones, distancia }) => {
                                     const estaConsultando = Boolean(
                                         consultandoPrecios[cine.id],
