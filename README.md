@@ -1,72 +1,63 @@
 # Reactivos con el Cine
 
-Aplicación web fullstack para explorar la cartelera de cine en Chile, comparar horarios y tarifas en tiempo real entre distintas cadenas.
+Aplicación web para explorar la cartelera de cine en Chile, comparar horarios y consultar precios entre distintas cadenas. Permite guardar películas en seguimiento y cines habituales con una cuenta de usuario.
 
----
+**Aplicación desplegada:** [https://fullstack.dcc.uchile.cl:7059/](https://fullstack.dcc.uchile.cl:7059/)
 
 ## Tecnologías utilizadas
 
-### Frontend
-- **React 19** + **TypeScript** + **Vite**
-- **React Router DOM v7** (navegación SPA y rutas protegidas)
-- **Axios** (comunicación con el backend enviando credenciales y cabecera CSRF)
-- **CSS Puro** con diseño adaptable y variables CSS
-
-### Backend
-- **Node.js** + **Express 5** + **TypeScript**
-- **MongoDB** + **Mongoose** (persistencia de películas, cines, horarios, funciones y usuarios)
-- **Autenticación segura**: **JWT** en cookie `httpOnly` (`sameSite: "lax"`) + token **CSRF** (`X-CSRF-Token`) y contraseñas encriptadas con **bcrypt**
-- **Scraper multicadena + TMDB**: extracción de cartelera y consulta de tarifas bajo demanda, complementado con pósters, banners y sinopsis desde **The Movie Database (TMDB)**
-
----
+- **Frontend:** React 19, TypeScript, Vite, React Router, Axios y CSS adaptable, en `frontend/`.
+- **Backend:** Node.js, TypeScript, Express 5, MongoDB y Mongoose, en `backend/`.
+- **Autenticación:** JWT en cookie `httpOnly` con `SameSite=strict`, token CSRF y contraseñas almacenadas como hashes con bcrypt.
+- **Catálogo:** scrapers de Cinemark, Cineplanet, Muvix y Cine Star, con integración opcional con TMDB.
 
 ## Requisitos previos
 
-- **Node.js** (v22 o superior recomendado)
-- **npm**
-- **MongoDB** ejecutándose localmente (por defecto en `mongodb://localhost:27017`) o una instancia remota
-
----
+- Node.js 24 o superior y npm.
+- MongoDB local en ejecución o una instancia remota con permisos de lectura y escritura.
+- Conexión a Internet para los scrapers y las imágenes.
 
 ## Configuración del entorno
 
-1. En la carpeta `backend/`, crea un archivo `.env` copiando la plantilla [`backend/.env.example`](./backend/.env.example):
+Desde la raíz, copia [`backend/.env.example`](./backend/.env.example) a `backend/.env` si todavía no existe.
+
+En PowerShell:
+
+```powershell
+Copy-Item backend/.env.example backend/.env
+```
+
+En Linux o macOS:
 
 ```bash
 cp backend/.env.example backend/.env
 ```
 
-2. Ajusta las variables en `backend/.env` según tu entorno:
+Completa `MONGODB_URI` y `JWT_SECRET`. Para generar el secreto, ejecuta y pega el resultado después de `JWT_SECRET=`:
 
-```env
-NODE_ENV=development
-HOST=localhost
-PORT=3001
-FRONTEND_URL=http://localhost:5173
-
-MONGODB_URI=mongodb://127.0.0.1:27017
-MONGODB_NAME=reactivos-cine
-
-JWT_SECRET=miclavesecreta
-TMDB_API_KEY=tu_api_key_de_tmdb
+```bash
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-| Variable | Descripción | Obligatoria |
-| :--- | :--- | :---: |
-| `NODE_ENV` | Entorno de ejecución (`development` o `production`) | No |
-| `HOST` | Host del servidor Express (por defecto `localhost`) | No |
-| `PORT` | Puerto donde se levanta el servidor Express (por defecto `3001`) | No |
-| `FRONTEND_URL` | Origen permitido por CORS para el frontend (por defecto `http://localhost:5173`) | No |
-| `MONGODB_URI` | URI de conexión a MongoDB | Sí |
-| `MONGODB_NAME` | Nombre de la base de datos en MongoDB (por defecto `reactivos-cine`) | No |
-| `JWT_SECRET` | Clave secreta para firmar y verificar los tokens JWT de sesión | Sí |
-| `TMDB_API_KEY` | API Key de TMDB (v3) para enriquecer pósters, banners y sinopsis de películas | Opcional |
+| Variable | Configuración |
+| :--- | :--- |
+| `MONGODB_URI` | Obligatoria. URI de MongoDB; en local: `mongodb://127.0.0.1:27017`. |
+| `JWT_SECRET` | Obligatoria. Secreto generado para firmar las sesiones. |
+| `MONGODB_NAME` | Nombre de la base; por defecto, `reactivos-cine`. |
+| `NODE_ENV` | `development` para ejecutar en local. |
+| `HOST` | Dirección del backend; por defecto, `localhost`. |
+| `PORT` | Puerto del backend; por defecto, `3001`. |
+| `FRONTEND_URL` | Origen del frontend; por defecto, `http://localhost:5173`. |
+| `MONGODB_COLLECTION_PREFIX` | Vacío en local. Obligatorio y propio del grupo si se usa la base compartida `fullstack`. |
+| `TMDB_API_KEY` | Opcional. Clave API v3 para enriquecer películas con TMDB. |
 
----
+No subas `.env` ni credenciales al repositorio.
 
-## Instalación y Ejecución
+## Instalación y ejecución local
 
-### 1. Levantar el Backend
+### 1. Backend
+
+Desde la raíz del repositorio:
 
 ```bash
 cd backend
@@ -74,11 +65,11 @@ npm install
 npm run dev
 ```
 
-El servidor quedará disponible en `http://localhost:3001`.
+El backend queda en `http://localhost:3001`; sus endpoints comienzan con `/api`.
 
-### 2. Levantar el Frontend
+### 2. Frontend
 
-En otra terminal:
+En otra terminal, también desde la raíz del repositorio:
 
 ```bash
 cd frontend
@@ -86,51 +77,61 @@ npm install
 npm run dev
 ```
 
-La aplicación web estará disponible en `http://localhost:5173`.
+Abre [http://localhost:5173/](http://localhost:5173/). Vite reenvía `/api` al backend en el puerto `3001`. No se necesita un `.env` del frontend con esta configuración.
 
----
+Los scripts también se pueden ejecutar con `pnpm run`.
 
 ## Carga y sincronización de cartelera
 
-Desde la carpeta `backend/`, puedes poblar o actualizar la base de datos ejecutando los comandos del scraper:
+Si la base está vacía o quieres actualizarla, ejecuta las cadenas una por una en otra terminal, desde `backend/`:
 
 ```bash
-# Extraer e importar cartelera por cadena de cine
 npm run sync:cinemark
 npm run sync:cineplanet
 npm run sync:muvix
 npm run sync:cinestar
-
-# Enriquecer pósters, banners y sinopsis con TMDB y unificar catálogo
-npm run sync:tmdb
 ```
 
----
+Los datos se guardan directamente en MongoDB, sin borrar la base previamente. Se consultan 7 días por defecto; agrega `-- --all-dates` para incluir todas las fechas publicadas. Los precios se consultan al abrir el detalle de una película y seleccionar cine y fecha.
+
+Opcionalmente, con `TMDB_API_KEY` configurada, ejecuta `npm run sync:tmdb` para actualizar imágenes y sinopsis y fusionar películas duplicadas. Este comando modifica el catálogo y sus referencias.
 
 ## Vistas de la aplicación
 
-- `/` — **Cartelera Principal**: banner destacado dinámico, búsqueda por título y filtros por género, cadena de cine y formato.
-- `/peliculas/:id` — **Detalle de Película**: sinopsis, clasificación, selector de fecha y complejo (con ordenamiento por cercanía geográfica) y consulta de precios por tarifa con enlace directo de compra.
-- `/cines` — **Directorio de Cines**: listado de complejos cinematográficos con buscador, filtro por cadena/comuna y ordenamiento por ubicación.
-- `/cines/:id` — **Detalle de Cine**: información del complejo, guardado como cine habitual y cartelera disponible por fecha y formato.
-- `/perfil` — **Perfil de Usuario (Ruta Protegida)**: resumen de cuenta y gestión de películas en seguimiento y cines habituales sincronizados en MongoDB.
+| Ruta | Vista |
+| :--- | :--- |
+| `/` | Cartelera con búsqueda y filtros por género, clasificación y duración. |
+| `/peliculas/:id` | Detalle de película, selección de cine y fecha, formatos, precios y enlaces de compra. |
+| `/cines` | Directorio con búsqueda, filtros por cadena y comuna y ordenamiento por cercanía. |
+| `/cines/:id` | Información del cine y cartelera por fecha y formato. |
+| `/login` | Inicio de sesión y registro. |
+| `/perfil` | Ruta protegida con datos de la cuenta, películas en seguimiento y cines habituales. |
 
----
+## Endpoints principales de la API
 
-## Endpoints Principales de la API
+Todas las rutas comienzan con `/api`. Las privadas requieren la cookie JWT y la cabecera `X-CSRF-Token`; en `localStorage` solo se guarda el token CSRF.
 
-| Método | Ruta | Protección | Descripción |
-| :---: | :--- | :---: | :--- |
-| `GET` | `/peliculas` | Pública | Lista todas las películas (`?cartelera=true` filtra las que tienen horarios vigentes). |
-| `GET` | `/peliculas/:id` | Pública | Obtiene el detalle de una película por su ID. |
-| `GET` | `/cines` | Pública | Lista todos los cines registrados. |
-| `GET` | `/cines/:id` | Pública | Obtiene el detalle de un cine por su ID. |
-| `GET` | `/funciones/horarios` | Pública | Obtiene los horarios vigentes filtrados por `peliculaId` y/o `cineId`. |
-| `GET` | `/funciones/precios` | Pública | Consulta y actualiza en tiempo real las tarifas para `peliculaId`, `cineId` y `fecha`. |
-| `POST` | `/auth/register` | Pública | Registra un nuevo usuario e inicia sesión (entrega cookie `httpOnly` + `X-CSRF-Token`). |
-| `POST` | `/auth/login` | Pública | Autentica un usuario existente (entrega cookie `httpOnly` + `X-CSRF-Token`). |
-| `POST` | `/auth/logout` | JWT + CSRF | Cierra la sesión activa eliminando la cookie `token`. |
-| `GET` | `/auth/me` | JWT + CSRF | Verifica la sesión activa y retorna los datos del usuario autenticado. |
-| `GET` | `/perfil/favoritos` | JWT + CSRF | Obtiene los IDs de películas y cines favoritos del usuario autenticado. |
-| `POST` | `/perfil/favoritos/peliculas/:movieId` | JWT + CSRF | Agrega o quita una película de la lista de favoritos del usuario en MongoDB. |
-| `POST` | `/perfil/favoritos/cines/:cinemaId` | JWT + CSRF | Agrega o quita un cine de la lista de favoritos del usuario en MongoDB. |
+| Método | Ruta | Protección | Uso |
+| :---: | :--- | :--- | :--- |
+| `GET` | `/api/peliculas` | Pública | Lista películas; `?cartelera=true` filtra las que tienen horarios vigentes. |
+| `GET` | `/api/peliculas/:id` | Pública | Obtiene una película por ID. |
+| `GET` | `/api/cines` | Pública | Lista los cines. |
+| `GET` | `/api/cines/:id` | Pública | Obtiene un cine por ID. |
+| `GET` | `/api/funciones` | Pública | Lista funciones vigentes; admite filtros `peliculaId` y `cineId`. |
+| `GET` | `/api/funciones/:id` | Pública | Obtiene una función por ID. |
+| `GET` | `/api/funciones/horarios` | Pública | Lista horarios vigentes; requiere `peliculaId`, `cineId` o ambos. |
+| `GET` | `/api/funciones/precios` | Pública | Consulta precios con caché de hasta 15 minutos; requiere `peliculaId`, `cineId` y `fecha` (`YYYY-MM-DD`). |
+| `POST` | `/api/auth/register` | Pública | Registra e inicia sesión con `nombre`, `email` y `contrasena`. |
+| `POST` | `/api/auth/login` | Pública | Inicia sesión con `email` y `contrasena`. |
+| `POST` | `/api/auth/logout` | JWT + CSRF | Cierra la sesión. |
+| `GET` | `/api/auth/me` | JWT + CSRF | Verifica la sesión y devuelve el usuario. |
+| `GET` | `/api/perfil/favoritos` | JWT + CSRF | Obtiene los IDs de películas y cines favoritos. |
+| `POST` | `/api/perfil/favoritos/peliculas/:movieId` | JWT + CSRF | Agrega o quita una película de favoritos. |
+| `POST` | `/api/perfil/favoritos/cines/:cinemaId` | JWT + CSRF | Agrega o quita un cine de favoritos. |
+
+## Integrantes
+
+- Cristóbal Aravena
+- Giorgio Bravo
+- Rodrigo Guerrero
+- Tomás Raggio
