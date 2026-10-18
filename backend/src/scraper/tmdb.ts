@@ -51,7 +51,7 @@ export function parseMovieTitleForSearch(rawTitle: string): {
   const queries = [cleaned];
 
   // Si tiene subtítulo con ":" o " - ", agregamos el título base como segunda opción de búsqueda
-  const separatorMatch = cleaned.split(/\s*[:\-–]\s*/);
+  const separatorMatch = cleaned.split(/\s*:\s*|\s+[-–]\s+/);
   if (separatorMatch.length > 1 && separatorMatch[0]!.trim().length >= 3) {
     const baseTitle = separatorMatch[0]!.trim();
     if (!queries.includes(baseTitle)) {
@@ -60,6 +60,55 @@ export function parseMovieTitleForSearch(rawTitle: string): {
   }
 
   return { queries, year: explicitYear };
+}
+
+function normalizeTitleKey(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+export function areSameCatalogMovie(
+  a: { titulo: string; duracion: number; tmdbId?: number },
+  b: { titulo: string; duracion: number; tmdbId?: number },
+): boolean {
+  if (a.tmdbId && b.tmdbId) {
+    return a.tmdbId === b.tmdbId;
+  }
+
+  if (Math.abs(a.duracion - b.duracion) > 10) {
+    return false;
+  }
+
+  const parsedA = parseMovieTitleForSearch(a.titulo);
+  const parsedB = parseMovieTitleForSearch(b.titulo);
+  const keyA = normalizeTitleKey(parsedA.queries[0] ?? a.titulo);
+  const keyB = normalizeTitleKey(parsedB.queries[0] ?? b.titulo);
+
+  if (keyA && keyA === keyB) {
+    return true;
+  }
+
+  const aTruncated = /:\s*$/.test(a.titulo.trim());
+  const bTruncated = /:\s*$/.test(b.titulo.trim());
+  if (
+    aTruncated &&
+    parsedB.queries[1] &&
+    keyA === normalizeTitleKey(parsedB.queries[1])
+  ) {
+    return true;
+  }
+  if (
+    bTruncated &&
+    parsedA.queries[1] &&
+    keyB === normalizeTitleKey(parsedA.queries[1])
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 async function searchTmdbQuery(
@@ -92,16 +141,9 @@ function scoreCandidate(
     ? Number(candidate.release_date.slice(0, 4))
     : undefined;
 
-  const norm = (str: string) =>
-    str
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "");
-
-  const qNorm = norm(cleanQuery);
-  const titleNorm = norm(candidate.title || "");
-  const origNorm = norm(candidate.original_title || "");
+  const qNorm = normalizeTitleKey(cleanQuery);
+  const titleNorm = normalizeTitleKey(candidate.title || "");
+  const origNorm = normalizeTitleKey(candidate.original_title || "");
 
   if (titleNorm === qNorm || origNorm === qNorm) {
     score += 50;
