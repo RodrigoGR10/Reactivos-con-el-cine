@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
+import path from "node:path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import config from "./utils/config.ts";
@@ -23,14 +24,22 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(express.static("dist"));
 app.use(middleware.requestLogger);
 
-app.use("/peliculas", peliculaRouter);
-app.use("/funciones", funcionRouter);
-app.use("/cines", cineRouter);
-app.use("/auth", authRouter);
-app.use("/perfil", perfilRouter);
+app.use("/api/peliculas", peliculaRouter);
+app.use("/api/funciones", funcionRouter);
+app.use("/api/cines", cineRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/perfil", perfilRouter);
+app.use("/api", middleware.unknownEndpoint);
+
+app.use(express.static("dist"));
+app.get(
+  ["/", "/login", "/perfil", "/cines", "/cines/:id", "/peliculas/:id"],
+  (request, response) => {
+    response.sendFile(path.resolve("dist/index.html"));
+  },
+);
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
