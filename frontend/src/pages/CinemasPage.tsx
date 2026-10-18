@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { SearchIcon, MapPinIcon } from "../components/common/Icons";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
+import { normalizarTexto } from "../utils/normalizarTexto";
 import { useUbicacion } from "../hooks/useUbicacion";
 import "./CinemasPage.css";
 
@@ -47,19 +48,41 @@ function CinemasPage() {
             });
     }, []);
 
+    const comunasPorNombre = new Map<string, string>();
+    for (const cine of cines) {
+        const comuna = cine.comuna.trim().replace(/\s+/g, " ");
+        const clave = normalizarTexto(comuna);
+        if (!clave) continue;
+
+        // Prefiere el nombre con tildes cuando hay varias versiones.
+        if (
+            !comunasPorNombre.has(clave) ||
+            comuna.toLocaleLowerCase("es-CL") !== clave
+        ) {
+            comunasPorNombre.set(clave, comuna);
+        }
+    }
+
     const comunas = [
         "Todas",
-        ...Array.from(new Set(cines.map((c) => c.comuna))).sort(),
+        ...Array.from(comunasPorNombre.values())
+            .map(
+                (comuna) =>
+                    comuna.charAt(0).toLocaleUpperCase("es-CL") +
+                    comuna.slice(1).toLocaleLowerCase("es-CL"),
+            )
+            .sort((a, b) => a.localeCompare(b, "es-CL")),
     ];
 
+    const termino = normalizarTexto(busqueda.trim());
     const cinesFiltrados = cines.filter((cine) => {
-        const termino = busqueda.trim().toLowerCase();
+        const comuna = normalizarTexto(cine.comuna.trim().replace(/\s+/g, " "));
         const coincideNombreOComuna =
-            cine.nombre.toLowerCase().includes(termino) ||
-            cine.comuna.toLowerCase().includes(termino);
+            normalizarTexto(cine.nombre).includes(termino) ||
+            comuna.includes(termino);
         const coincideComuna =
             comunaSeleccionada === "Todas" ||
-            cine.comuna.toLowerCase() === comunaSeleccionada.toLowerCase();
+            comuna === normalizarTexto(comunaSeleccionada);
 
         return coincideNombreOComuna && coincideComuna;
     });
@@ -218,7 +241,10 @@ function CinemasPage() {
                         return (
                             <article key={cine.id} className="cine-card">
                                 <div className="cine-card-header">
-                                    <div className="cine-logo-container">
+                                    <div
+                                        className="cine-logo-container"
+                                        data-origen={cine.origen}
+                                    >
                                         {logo ? (
                                             <img
                                                 src={logo}
