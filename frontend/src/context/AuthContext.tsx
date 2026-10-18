@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -16,6 +17,7 @@ interface AuthContextType {
   login: (credenciales: LoginInput) => Promise<void>;
   register: (datos: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
+  invalidateSession: () => void;
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
@@ -46,6 +48,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const openAuthModal = (): void => setIsAuthModalOpen(true);
   const closeAuthModal = (): void => setIsAuthModalOpen(false);
+
+  const invalidateSession = useCallback((): void => {
+    restoreController.current?.abort();
+    authService.clearSessionData();
+    setUser(null);
+    setIsLoadingSession(false);
+    setIsAuthModalOpen(false);
+  }, []);
 
   const login = async (credenciales: LoginInput): Promise<void> => {
     restoreController.current?.abort();
@@ -84,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login,
     register,
     logout,
+    invalidateSession,
     isAuthModalOpen,
     openAuthModal,
     closeAuthModal,

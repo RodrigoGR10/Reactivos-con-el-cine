@@ -129,4 +129,5 @@ export default {
   register,
   logout,
   getCurrentUser,
+  clearSessionData,
 };

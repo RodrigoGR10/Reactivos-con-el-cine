@@ -14,8 +14,8 @@ import LoginPage from "./pages/LoginPage";
 function App() {
   return (
     <AuthProvider>
-      <FavoritesProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <FavoritesProvider>
           <Routes>
             <Route element={<MainLayout />}>
               <Route path="/" element={<PaginaPrincipal />} />
@@ -28,8 +28,8 @@ function App() {
               </Route>
             </Route>
           </Routes>
-        </BrowserRouter>
-      </FavoritesProvider>
+        </FavoritesProvider>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

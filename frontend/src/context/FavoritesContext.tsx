@@ -1,10 +1,13 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useState,
   useEffect,
   type ReactNode,
 } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import profileService from "../services/profileService";
 
@@ -22,7 +25,8 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 );
 
 export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, invalidateSession } = useAuth();
+  const navigate = useNavigate();
   const [prevUserId, setPrevUserId] = useState<string | undefined>(user?.id);
 
   const [favoriteMovieIds, setFavoriteMovieIds] = useState<string[]>(
@@ -30,6 +34,19 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   );
   const [favoriteCinemaIds, setFavoriteCinemaIds] = useState<string[]>(
     () => user?.cinesFavoritos ?? [],
+  );
+
+  const handleUnauthorized = useCallback(
+    (error: unknown): boolean => {
+      if (!axios.isAxiosError<unknown>(error) || error.response?.status !== 401) {
+        return false;
+      }
+
+      invalidateSession();
+      navigate("/login", { replace: true });
+      return true;
+    },
+    [invalidateSession, navigate],
   );
 
   // Ajusta el estado inmediatamente cuando cambia el usuario activo (login/logout)
@@ -52,12 +69,12 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
           setFavoriteCinemaIds(favoritos.cinesFavoritos);
         }
       })
-      .catch(() => {
-        // Si falla la recarga, conservamos los favoritos entregados por la sesión
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) handleUnauthorized(error);
       });
 
     return () => controller.abort();
-  }, [user]);
+  }, [user, handleUnauthorized]);
 
   const toggleFavoriteMovie = (movieId: string) => {
     if (!user) return;
@@ -66,7 +83,8 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
       .then((updated) => {
         setFavoriteMovieIds(updated);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
+        if (handleUnauthorized(error)) return;
         console.error("Error al actualizar película favorita:", error);
       });
   };
@@ -78,7 +96,8 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
       .then((updated) => {
         setFavoriteCinemaIds(updated);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
+        if (handleUnauthorized(error)) return;
         console.error("Error al actualizar cine favorito:", error);
       });
   };
