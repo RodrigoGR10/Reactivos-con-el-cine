@@ -1,54 +1,85 @@
-import type { Cine, Funcion, Pelicula } from "../../types/types";
+import type { Cine, Funcion, Horario, Pelicula } from "../../types/types";
+import "./TarjetaFuncion.css";
 
 const cadenas: Record<string, { nombre: string; dominios: string[] }> = {
   cinemark: { nombre: "Cinemark", dominios: ["www.cinemark.cl", "cinemark.cl"] },
   cineplanet: { nombre: "Cineplanet", dominios: ["www.cineplanet.cl", "cineplanet.cl"] },
   muvix: { nombre: "Muvix", dominios: ["muvix.cl", "www.muvix.cl"] },
   cinestar: { nombre: "Cinestar", dominios: ["cinestar.cl", "www.cinestar.cl"] },
+  cinepolis: { nombre: "Cinépolis", dominios: ["cinepolis.cl", "www.cinepolis.cl", "hoyts.cl", "www.hoyts.cl"] },
 };
 
-const precioCLP = (precio: number) => new Intl.NumberFormat("es-CL", {
-  style: "currency", currency: "CLP", maximumFractionDigits: 0,
-}).format(precio);
+const precioCLP = (precio: number) =>
+  new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(precio);
 
 function enlaceSeguro(value: string | undefined, origen: string | undefined): string | undefined {
   if (!value) return undefined;
   try {
     const url = new URL(value);
-    const dominios = cadenas[origen ?? "cinemark"]?.dominios ?? [];
-    if (url.protocol !== "https:" || !dominios.includes(url.hostname) || url.username || url.password) return undefined;
+    if (url.protocol !== "https:") return undefined;
+    const dominios = cadenas[origen ?? ""]?.dominios;
+    if (dominios && !dominios.includes(url.hostname)) return undefined;
+    if (url.username || url.password) return undefined;
     return url.href;
   } catch {
     return undefined;
   }
 }
 
-export function TarjetaFuncion({ funcion, pelicula, cine, precioAnterior = false, consultadoEn }: { funcion: Funcion; pelicula: Pelicula; cine: Cine; precioAnterior?: boolean; consultadoEn?: string }) {
-  const enlace = enlaceSeguro(funcion.urlCompra, cine.origen);
-  const cadena = cadenas[cine.origen ?? "cinemark"]?.nombre ?? cine.nombre;
-  const precio = funcion.precioOnline ?? funcion.precio;
-  const etiqueta = `${pelicula.titulo}, ${cine.nombre}, ${funcion.fecha ?? ""} ${funcion.horario}, ${funcion.formato}, ${funcion.idioma}`;
+export interface TarjetaFuncionProps {
+  horario?: Horario;
+  funcion?: Funcion;
+  pelicula?: Pelicula;
+  cine?: Cine;
+  precioAnterior?: boolean;
+  consultadoEn?: string;
+}
+
+export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFuncionProps) {
+  const hora = horario?.horario ?? funcion?.horario ?? "";
+  const formato = horario?.formatoResumen || funcion?.formato || "2D";
+  const idioma = horario?.idioma ?? funcion?.idioma ?? "";
+  const agotada = horario?.agotada ?? funcion?.agotada ?? false;
+
+  const tarifa = horario?.tarifas?.[0];
+  const precio = funcion?.precioOnline ?? funcion?.precio ?? tarifa?.precioOnline ?? tarifa?.precio;
+  const urlCompra = funcion?.urlCompra ?? tarifa?.urlCompra;
+
+  const enlace = enlaceSeguro(urlCompra, cine?.origen);
+  const cadena = cadenas[cine?.origen ?? ""]?.nombre ?? cine?.nombre ?? "Cine";
+  const tituloPelicula = pelicula?.titulo ?? "Película";
+  const nombreCine = cine?.nombre ?? "Cine";
+
+  const etiquetaAria = `${tituloPelicula}, ${nombreCine}, ${hora} ${formato} ${idioma}${
+    precio !== undefined ? `, precio ${precioCLP(precio)}` : ""
+  }`;
+
   const contenido = (
     <>
-      <strong>{funcion.horario}</strong>
-      <span title={funcion.tipoEntrada}>{funcion.formato}</span>
-      <span>{funcion.idioma}</span>
-      <span className="precio-horario">{precio !== undefined ? precioCLP(precio) : "Precio no disponible"}</span>
-      {funcion.precio === undefined && <span className="desglose-precio">Desglose no informado</span>}
-      {precioAnterior && <span className="precio-anterior">Precio anterior, pendiente de actualizar</span>}
-      {consultadoEn && <span className="fecha-precio">Consultado {new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Santiago" }).format(new Date(consultadoEn))}</span>}
-      {funcion.precio !== undefined && funcion.cargoServicio !== undefined && funcion.cargoServicio > 0 && (
-        <span className="desglose-precio">
-          Entrada {precioCLP(funcion.precio)} + servicio {precioCLP(funcion.cargoServicio)}
-        </span>
-      )}
-      {funcion.agotada && <span>Agotada</span>}
+      <span className="tarjeta-funcion-hora">{hora}</span>
+      <span className="tarjeta-funcion-detalles">
+        {formato} · {idioma}
+      </span>
+      <span
+        className={`tarjeta-funcion-precio ${agotada ? "agotada" : ""}`}
+        aria-hidden={precio === undefined && !agotada}
+      >
+        {agotada ? "Agotada" : precio !== undefined ? precioCLP(precio) : "\u00A0"}
+      </span>
     </>
   );
 
-  if (!enlace || funcion.agotada) {
+  if (!enlace || agotada) {
     return (
-      <div className="tarjeta-horario tarjeta-horario-inactiva" aria-disabled="true" title={funcion.agotada ? "Función agotada" : "Sin enlace disponible"}>
+      <div
+        className="tarjeta-funcion tarjeta-funcion-inactiva"
+        aria-label={etiquetaAria}
+        title={agotada ? "Función agotada" : undefined}
+      >
         {contenido}
       </div>
     );
@@ -59,11 +90,13 @@ export function TarjetaFuncion({ funcion, pelicula, cine, precioAnterior = false
       href={enlace}
       target="_blank"
       rel="noopener noreferrer"
-      className="tarjeta-horario"
-      aria-label={`Ver en ${cadena}: ${etiqueta} (nueva pestaña)`}
-      title={`Ver en ${cadena}: ${etiqueta}`}
+      className="tarjeta-funcion"
+      aria-label={`Comprar en ${cadena}: ${etiquetaAria} (abre en nueva pestaña)`}
+      title={`Comprar en ${cadena}`}
     >
       {contenido}
     </a>
   );
 }
+
+export default TarjetaFuncion;
