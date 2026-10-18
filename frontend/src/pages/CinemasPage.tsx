@@ -65,13 +65,9 @@ function CinemasPage() {
 
     const comunas = [
         "Todas",
-        ...Array.from(comunasPorNombre.values())
-            .map(
-                (comuna) =>
-                    comuna.charAt(0).toLocaleUpperCase("es-CL") +
-                    comuna.slice(1).toLocaleLowerCase("es-CL"),
-            )
-            .sort((a, b) => a.localeCompare(b, "es-CL")),
+        ...[...new Set(cines.map((cine) => cine.comuna.trim()))].sort((a, b) =>
+            a.localeCompare(b, "es-CL"),
+        ),
     ];
 
     const termino = normalizarTexto(busqueda.trim());
