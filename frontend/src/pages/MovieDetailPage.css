@@ -187,6 +187,9 @@
     background: var(--color-superficie);
     border: 1px solid var(--color-borde);
     border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
     transition:
         border-color 180ms ease,
         transform 180ms ease;
@@ -200,24 +203,17 @@
 .cabecera-cine {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 0;
-}
-
-.abrir-cine {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
     gap: 16px;
-    flex: 1;
+    flex-wrap: wrap;
+}
+
+.cabecera-cine-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
     min-width: 0;
-    min-height: 58px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--color-texto);
-    text-align: left;
-    cursor: pointer;
+    flex: 1;
 }
 
 .nombre-cine {
@@ -248,60 +244,47 @@
     color: var(--color-texto-secundario);
 }
 
-.indicador-cine {
-    display: grid;
-    place-items: center;
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    font-size: 1.5rem;
-}
-
-.abrir-cine:focus-visible,
-.reintentar-precios:focus-visible {
-    outline: 2px solid var(--color-acento);
-    outline-offset: 4px;
-}
-
-.contenido-horarios {
-    margin-top: 22px;
-    padding-top: 18px;
-    border-top: 1px solid var(--color-borde);
-}
-
-.estado-precios {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    min-height: 32px;
-    margin-bottom: 12px;
-    color: var(--color-texto-secundario);
-    font-size: 0.9rem;
-}
-
-.estado-precios p {
-    margin: 0;
-}
-
-.estado-precios .error-precios,
-.tarjeta-horario .precio-anterior {
-    color: #f5bc70;
-}
-
-.reintentar-precios {
-    margin-left: auto;
-    padding: 6px 0;
-    border: 0;
+.btn-ver-precios {
     background: transparent;
-    color: var(--color-texto);
-    text-decoration: underline;
+    color: #b0b0b0;
+    border: 1px solid #383838;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.mensaje-horarios {
-    color: var(--color-texto-secundario);
+.btn-ver-precios:hover:not(:disabled) {
+    background: #252525;
+    border-color: #555555;
+    color: #ffffff;
+}
+
+.btn-ver-precios:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.btn-ver-precios.cargado {
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #10b981;
+}
+
+.btn-ver-precios.cargado:hover:not(:disabled) {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.horarios-grid-cine {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .filtro-formato select:disabled {
@@ -314,7 +297,7 @@
     transition: color 0.15s ease;
 }
 
-.enlace-cine-detalle:hover h3 {
+.enlace-cine-detalle:hover {
     color: var(--color-acento);
 }
 
@@ -374,71 +357,6 @@
     opacity: 1;
     visibility: visible;
     transform: scale(1);
-}
-.horarios-cine {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
-    gap: 12px;
-}
-
-.tarjeta-horario {
-    display: grid;
-    min-width: 0;
-    padding: 14px 16px;
-    gap: 4px;
-
-    color: var(--color-texto);
-    text-align: left;
-    text-decoration: none;
-    cursor: pointer;
-
-    background: var(--color-superficie-clara);
-    border: 1px solid #34353e;
-    border-radius: 8px;
-
-    transition:
-        border-color 160ms ease,
-        background 160ms ease,
-        transform 160ms ease;
-}
-
-.tarjeta-horario:not(.tarjeta-horario-inactiva):hover {
-    background: #202128;
-    border-color: var(--color-acento);
-    transform: translateY(-2px);
-}
-
-.tarjeta-horario:focus-visible {
-    outline: 2px solid var(--color-acento);
-    outline-offset: 3px;
-}
-
-.tarjeta-horario-inactiva {
-    cursor: default;
-    opacity: 0.65;
-}
-
-.tarjeta-horario strong {
-    color: #ffffff;
-    font-size: 1.2rem;
-}
-
-.tarjeta-horario span {
-    color: var(--color-texto-secundario);
-    font-size: 0.78rem;
-    overflow-wrap: anywhere;
-}
-
-.tarjeta-horario .desglose-precio {
-    font-size: 0.72rem;
-    line-height: 1.5;
-}
-
-.tarjeta-horario .precio-horario {
-    margin-top: 4px;
-    color: var(--color-acento);
-    font-size: 0.9rem;
-    font-weight: 800;
 }
 
 .sin-funciones,

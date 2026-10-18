@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
-import { usePreciosFunciones } from "../hooks/usePreciosFunciones";
+import funcionService from "../services/funciones";
 import { Mensaje } from "../components/common/Mensaje";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { MapPinIcon } from "../components/common/Icons";
@@ -11,7 +11,7 @@ import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import { useUbicacion } from "../hooks/useUbicacion";
 import "./MovieDetailPage.css";
 
-import type { Cine } from "../types/types";
+import type { Cine, Horario } from "../types/types";
 
 const mostrarFecha = (fecha: string) =>
     new Intl.DateTimeFormat("es-CL", {
@@ -47,7 +47,9 @@ function MovieDetailPage() {
 
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
     const [fechaSeleccionada, setFechaSeleccionada] = useState("");
-    const [cineSeleccionado, setCineSeleccionado] = useState("");
+    const [consultandoPrecios, setConsultandoPrecios] = useState<Record<string, boolean>>({});
+    const [horariosConPrecios, setHorariosConPrecios] = useState<Record<string, Horario>>({});
+
     const fechasDisponibles = [
         ...new Set(horarios.map((horario) => horario.fecha)),
     ].sort();
@@ -57,39 +59,61 @@ function MovieDetailPage() {
     const horariosDelDia = horarios.filter(
         (horario) => horario.fecha === fechaActual,
     );
-    const grupos = cines
-        .flatMap((cine) => {
-            const sesiones = horariosDelDia.filter(
-                (horario) => horario.cineId === cine.id,
+
+    const handleConsultarPreciosCine = async (cineId: string) => {
+        if (!id || !fechaActual || consultandoPrecios[cineId]) return;
+
+        setConsultandoPrecios((prev) => ({ ...prev, [cineId]: true }));
+        try {
+            const nuevosHorarios = await funcionService.getPrecios(
+                id,
+                cineId,
+                fechaActual,
             );
-            return sesiones.length
-                ? [{ cine, horarios: sesiones, distancia: distanciaA(cine) }]
-                : [];
-        })
-        .sort((a, b) =>
-            //Si las distancias son iguales, ordena por nombre, si no, por distancias (duh)
-            a.distancia === b.distancia
-                ? a.cine.nombre.localeCompare(b.cine.nombre)
-                : a.distancia - b.distancia,
-        );
-    const cineActual = grupos.some(({ cine }) => cine.id === cineSeleccionado)
-        ? cineSeleccionado
-        : "";
-    const precios = usePreciosFunciones(id, cineActual, fechaActual);
-    const horariosActivos = precios.recibido
-        ? precios.horarios
-        : horariosDelDia.filter((horario) => horario.cineId === cineActual);
+            setHorariosConPrecios((prev) => {
+                const next = { ...prev };
+                for (const h of nuevosHorarios) {
+                    next[h.id] = h;
+                }
+                return next;
+            });
+        } catch (err) {
+            console.error("Error al consultar precios del cine:", err);
+        } finally {
+            setConsultandoPrecios((prev) => ({ ...prev, [cineId]: false }));
+        }
+    };
+
     const formatosDisponibles = [
         "Todos",
         ...new Set(
-            horariosActivos.flatMap((horario) =>
-                horario.tarifas.map((tarifa) => tarifa.formato),
-            ),
+            horariosDelDia.map((horario) => horario.formatoResumen || "2D"),
         ),
     ];
     const formatoActual = formatosDisponibles.includes(formatoSeleccionado)
         ? formatoSeleccionado
         : "Todos";
+
+    const grupos = cines
+        .flatMap((cine) => {
+            const sesiones = horariosDelDia
+                .map((h) => horariosConPrecios[h.id] ?? h)
+                .filter(
+                    (h) =>
+                        h.cineId === cine.id &&
+                        (formatoActual === "Todos" ||
+                            (h.formatoResumen || "2D") === formatoActual),
+                );
+
+            return sesiones.length
+                ? [{ cine, horarios: sesiones, distancia: distanciaA(cine) }]
+                : [];
+        })
+        .sort((a, b) =>
+            a.distancia === b.distancia
+                ? a.cine.nombre.localeCompare(b.cine.nombre)
+                : a.distancia - b.distancia,
+        );
 
     if (error) return <Mensaje texto={error} />;
     if (!pelicula) return <Mensaje texto="Cargando película..." />;
@@ -182,10 +206,7 @@ function MovieDetailPage() {
                             <select
                                 id="formato"
                                 value={formatoActual}
-                                disabled={
-                                    !cineActual ||
-                                    formatosDisponibles.length === 1
-                                }
+                                disabled={formatosDisponibles.length <= 1}
                                 onChange={(e) =>
                                     setFormatoSeleccionado(e.target.value)
                                 }
@@ -240,239 +261,124 @@ function MovieDetailPage() {
                         )}
                         <div className="lista-cines">
                             {grupos.map(
-                                ({ cine, horarios: sesiones, distancia }) => (
-                                    <article
-                                        key={cine.id}
-                                        className="tarjeta-cine"
-                                    >
-                                        <div className="cabecera-cine">
-                                            <div
-                                                className="logo-cine"
-                                                data-origen={cine.origen}
-                                            >
-                                                <button
-                                                    type="button"
-                                                    className="boton-fav-cine"
-                                                    onClick={() => {
-                                                        if (!user) {
-                                                            openAuthModal();
-                                                            return;
-                                                        }
-                                                        toggleFavoriteCinema(
-                                                            cine.id,
-                                                        );
-                                                    }}
-                                                >
-                                                    {isFavoriteCinema(cine.id)
-                                                        ? "♥"
-                                                        : "♡"}
-                                                </button>
-                                                {cine.logo ? (
-                                                    <img
-                                                        src={cine.logo}
-                                                        alt={`Logo de ${cine.nombre}`}
-                                                    />
-                                                ) : (
-                                                    <span>🎬</span>
-                                                )}
-                                            </div>
+                                ({ cine, horarios: sesiones, distancia }) => {
+                                    const estaConsultando = Boolean(
+                                        consultandoPrecios[cine.id],
+                                    );
+                                    const tienePrecios = sesiones.some(
+                                        (h) =>
+                                            h.tarifas?.length &&
+                                            (h.tarifas[0].precioOnline ||
+                                                h.tarifas[0].precio),
+                                    );
 
-                                            <button
-                                                type="button"
-                                                className="abrir-cine"
-                                                aria-expanded={
-                                                    cineActual === cine.id
-                                                }
-                                                aria-controls={`horarios-${cine.id}`}
-                                                onClick={() => {
-                                                    setCineSeleccionado(
-                                                        cineActual === cine.id
-                                                            ? ""
-                                                            : cine.id,
-                                                    );
-                                                    setFormatoSeleccionado(
-                                                        "Todos",
-                                                    );
-                                                }}
-                                            >
-                                                <span className="nombre-cine">
-                                                    <strong>
-                                                        <Link
-                                                            to={`/cines/${cine.id}`}
-                                                            className="enlace-cine-detalle"
-                                                            onClick={(e) =>
-                                                                e.stopPropagation()
-                                                            }
-                                                        >
-                                                            {cine.nombre}
-                                                        </Link>
-                                                        {Number.isFinite(
-                                                            distancia,
-                                                        ) && (
-                                                            <span className="distancia-cine">
-                                                                {formatearDistancia(
-                                                                    distancia,
-                                                                )}
-                                                            </span>
-                                                        )}
-                                                    </strong>
-                                                    <span>
-                                                        {cine.comuna} ·{" "}
-                                                        {sesiones.length}{" "}
-                                                        {sesiones.length === 1
-                                                            ? "horario"
-                                                            : "horarios"}
-                                                    </span>
-                                                </span>
-                                                <span
-                                                    className="indicador-cine"
-                                                    aria-hidden="true"
-                                                >
-                                                    {cineActual === cine.id
-                                                        ? "-"
-                                                        : "+"}
-                                                </span>
-                                            </button>
-                                        </div>
-
-                                        {cineActual === cine.id && (
-                                            <div
-                                                id={`horarios-${cine.id}`}
-                                                className="contenido-horarios"
-                                                aria-busy={precios.cargando}
-                                            >
-                                                <div
-                                                    className="estado-precios"
-                                                    role="status"
-                                                    aria-live="polite"
-                                                >
-                                                    {precios.cargando && (
-                                                        <p>
-                                                            Consultando
-                                                            precios...
-                                                        </p>
-                                                    )}
-                                                    {precios.error && (
-                                                        <p className="error-precios">
-                                                            {precios.error}
-                                                        </p>
-                                                    )}
-                                                    {!precios.cargando && (
+                                    return (
+                                        <article
+                                            key={cine.id}
+                                            className="tarjeta-cine"
+                                        >
+                                            <div className="cabecera-cine">
+                                                <div className="cabecera-cine-left">
+                                                    <div
+                                                        className="logo-cine"
+                                                        data-origen={cine.origen}
+                                                    >
                                                         <button
                                                             type="button"
-                                                            className="reintentar-precios"
-                                                            onClick={
-                                                                precios.reintentar
+                                                            className="boton-fav-cine"
+                                                            onClick={() => {
+                                                                if (!user) {
+                                                                    openAuthModal();
+                                                                    return;
+                                                                }
+                                                                toggleFavoriteCinema(
+                                                                    cine.id,
+                                                                );
+                                                            }}
+                                                            title={
+                                                                isFavoriteCinema(cine.id)
+                                                                    ? "Quitar de cines favoritos"
+                                                                    : "Guardar en cines favoritos"
                                                             }
                                                         >
-                                                            Actualizar precios
+                                                            {isFavoriteCinema(cine.id)
+                                                                ? "♥"
+                                                                : "♡"}
                                                         </button>
-                                                    )}
+                                                        {cine.logo ? (
+                                                            <img
+                                                                src={cine.logo}
+                                                                alt={`Logo de ${cine.nombre}`}
+                                                            />
+                                                        ) : (
+                                                            <span>🎬</span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="nombre-cine">
+                                                        <strong>
+                                                            <Link
+                                                                to={`/cines/${cine.id}`}
+                                                                className="enlace-cine-detalle"
+                                                            >
+                                                                {cine.nombre}
+                                                            </Link>
+                                                            {Number.isFinite(
+                                                                distancia,
+                                                            ) && (
+                                                                <span className="distancia-cine">
+                                                                    {formatearDistancia(
+                                                                        distancia,
+                                                                    )}
+                                                                </span>
+                                                            )}
+                                                        </strong>
+                                                        <span>
+                                                            {cine.comuna} ·{" "}
+                                                            {sesiones.length}{" "}
+                                                            {sesiones.length === 1
+                                                                ? "horario"
+                                                                : "horarios"}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                {horariosActivos.length ===
-                                                    0 && (
-                                                    <p className="mensaje-horarios">
-                                                        Ya no hay horarios
-                                                        vigentes para esta
-                                                        fecha.
-                                                    </p>
-                                                )}
-                                                {formatoActual !== "Todos" &&
-                                                    !horariosActivos.some(
-                                                        (horario) =>
-                                                            horario.tarifas.some(
-                                                                (tarifa) =>
-                                                                    tarifa.formato ===
-                                                                    formatoActual,
-                                                            ),
-                                                    ) && (
-                                                        <p className="mensaje-horarios">
-                                                            No hay funciones
-                                                            disponibles para
-                                                            este formato.
-                                                        </p>
-                                                    )}
-                                                <div className="horarios-cine">
-                                                    {horariosActivos.flatMap(
-                                                        (horario) => {
-                                                            if (
-                                                                !horario.tarifas
-                                                                    .length
-                                                            ) {
-                                                                return [
-                                                                    <div
-                                                                        className="tarjeta-horario tarjeta-horario-inactiva"
-                                                                        key={
-                                                                            horario.id
-                                                                        }
-                                                                    >
-                                                                        <strong>
-                                                                            {
-                                                                                horario.horario
-                                                                            }
-                                                                        </strong>
-                                                                        <span>
-                                                                            {
-                                                                                horario.idioma
-                                                                            }
-                                                                        </span>
-                                                                        <span className="precio-pendiente">
-                                                                            {horario.agotada
-                                                                                ? "Agotada"
-                                                                                : horario.estadoPrecio ===
-                                                                                    "sin_tarifa"
-                                                                                  ? "Sin tarifa normal publicada"
-                                                                                  : horario.estadoPrecio ===
-                                                                                      "error"
-                                                                                    ? "Precio no disponible"
-                                                                                    : "Precio pendiente"}
-                                                                        </span>
-                                                                    </div>,
-                                                                ];
-                                                            }
-                                                            return horario.tarifas
-                                                                .filter(
-                                                                    (tarifa) =>
-                                                                        formatoActual ===
-                                                                            "Todos" ||
-                                                                        tarifa.formato ===
-                                                                            formatoActual,
-                                                                )
-                                                                .map(
-                                                                    (
-                                                                        funcion,
-                                                                    ) => (
-                                                                        <TarjetaFuncion
-                                                                            key={
-                                                                                funcion.id
-                                                                            }
-                                                                            funcion={
-                                                                                funcion
-                                                                            }
-                                                                            pelicula={
-                                                                                pelicula
-                                                                            }
-                                                                            cine={
-                                                                                cine
-                                                                            }
-                                                                            precioAnterior={
-                                                                                horario.estadoPrecio !==
-                                                                                    "disponible" &&
-                                                                                !horario.agotada
-                                                                            }
-                                                                            consultadoEn={
-                                                                                horario.preciosConsultadosEn
-                                                                            }
-                                                                        />
-                                                                    ),
-                                                                );
-                                                        },
-                                                    )}
-                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    className={`btn-ver-precios ${tienePrecios ? "cargado" : ""}`}
+                                                    disabled={estaConsultando}
+                                                    onClick={() =>
+                                                        handleConsultarPreciosCine(
+                                                            cine.id,
+                                                        )
+                                                    }
+                                                    title={
+                                                        tienePrecios
+                                                            ? "Actualizar precios de este cine"
+                                                            : "Consultar precios en tiempo real"
+                                                    }
+                                                >
+                                                    {estaConsultando
+                                                        ? "Consultando..."
+                                                        : tienePrecios
+                                                          ? "Precios cargados"
+                                                          : "Ver precios"}
+                                                </button>
                                             </div>
-                                        )}
-                                    </article>
-                                ),
+
+                                            <div className="horarios-grid-cine">
+                                                {sesiones.map((h) => (
+                                                    <TarjetaFuncion
+                                                        key={h.id}
+                                                        horario={h}
+                                                        pelicula={pelicula}
+                                                        cine={cine}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </article>
+                                    );
+                                },
                             )}
                         </div>
                     </>
