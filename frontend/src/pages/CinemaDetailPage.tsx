@@ -8,15 +8,10 @@ import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { MapPinIcon, SearchIcon } from "../components/common/Icons";
 import { agruparHorariosPorPelicula } from "../utils/agruparFunciones";
+import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
+import { SelectorFechas } from "../components/funciones/SelectorFechas";
 import "./CinemaDetailPage.css";
 
-const mostrarFecha = (fecha: string) =>
-  new Intl.DateTimeFormat("es-CL", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  }).format(new Date(`${fecha}T12:00:00Z`));
 
 /** Resuelve logo de cine: usa el provisto o infiere por nombre conocido */
 const getCinemaLogo = (cine: Cine): string => {
@@ -42,6 +37,7 @@ function CinemaDetailPage() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState("");
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
+  const [consultandoPrecios, setConsultandoPrecios] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!id) {
@@ -103,6 +99,25 @@ function CinemaDetailPage() {
       return;
     }
     toggleFavoriteCinema(cine.id);
+  };
+
+  const handleConsultarPreciosPelicula = async (peliculaId: string) => {
+    if (!cine?.id || !fechaActual || consultandoPrecios[peliculaId]) return;
+
+    setConsultandoPrecios((prev) => ({ ...prev, [peliculaId]: true }));
+    try {
+      const nuevosHorarios = await funcionesService.getPrecios(
+        peliculaId,
+        cine.id,
+        fechaActual,
+      );
+      const mapaNuevos = new Map(nuevosHorarios.map((h) => [h.id, h]));
+      setHorarios((prev) => prev.map((h) => mapaNuevos.get(h.id) ?? h));
+    } catch (error) {
+      console.error("Error al consultar precios de la película:", error);
+    } finally {
+      setConsultandoPrecios((prev) => ({ ...prev, [peliculaId]: false }));
+    }
   };
 
   // Fechas disponibles ordenadas
@@ -222,23 +237,14 @@ function CinemaDetailPage() {
         </div>
 
         {/* Selector de fechas */}
-        {fechasDisponibles.length > 1 && (
-          <div className="formatos-chips" style={{ marginBottom: "14px" }}>
-            {fechasDisponibles.map((fecha) => (
-              <button
-                key={fecha}
-                type="button"
-                className={`formato-chip ${fechaActual === fecha ? "active" : ""}`}
-                onClick={() => {
-                  setFechaSeleccionada(fecha);
-                  setFormatoSeleccionado("Todos");
-                }}
-              >
-                {mostrarFecha(fecha)}
-              </button>
-            ))}
-          </div>
-        )}
+        <SelectorFechas
+          fechas={fechasDisponibles}
+          fechaSeleccionada={fechaActual}
+          onSeleccionarFecha={(fecha) => {
+            setFechaSeleccionada(fecha);
+            setFormatoSeleccionado("Todos");
+          }}
+        />
 
         {/* Filtros de la cartelera del cine */}
         {horarios.length > 0 && (
@@ -302,74 +308,80 @@ function CinemaDetailPage() {
           </div>
         ) : (
           <div className="peliculas-cine-lista">
-            {gruposFiltrados.map(({ pelicula, horarios: horariosPeli }) => (
-              <article key={pelicula.id} className="pelicula-cine-card">
-                {/* Póster de la película */}
-                <Link
-                  to={`/peliculas/${pelicula.id}`}
-                  className="pelicula-cine-poster-link"
-                >
-                  <img
-                    src={pelicula.poster}
-                    alt={`Póster de ${pelicula.titulo}`}
-                    className="pelicula-cine-poster"
-                  />
-                </Link>
+            {gruposFiltrados.map(({ pelicula, horarios: horariosPeli }) => {
+              const estaConsultando = Boolean(consultandoPrecios[pelicula.id]);
+              const tienePrecios = horariosPeli.some(
+                (h) => h.tarifas?.length && (h.tarifas[0].precioOnline || h.tarifas[0].precio),
+              );
 
-                {/* Información y horarios */}
-                <div className="pelicula-cine-content">
-                  <div className="pelicula-cine-header-info">
-                    <Link
-                      to={`/peliculas/${pelicula.id}`}
-                      className="pelicula-cine-titulo-link"
-                    >
-                      <h3>{pelicula.titulo}</h3>
-                    </Link>
-                    <p className="pelicula-cine-metadatos">
-                      <span>{pelicula.genero}</span>
-                      <span aria-hidden="true">•</span>
-                      <span>{pelicula.duracion} min</span>
-                      <span aria-hidden="true">•</span>
-                      <span className="badge-clasif">
-                        {pelicula.clasificacion}
-                      </span>
-                    </p>
-                  </div>
+              return (
+                <article key={pelicula.id} className="pelicula-cine-card">
+                  {/* Póster de la película */}
+                  <Link
+                    to={`/peliculas/${pelicula.id}`}
+                    className="pelicula-cine-poster-link"
+                  >
+                    <img
+                      src={pelicula.poster}
+                      alt={`Póster de ${pelicula.titulo}`}
+                      className="pelicula-cine-poster"
+                    />
+                  </Link>
 
-                  {/* Agrupación de horarios por formato e idioma */}
-                  <div className="horarios-grid-cine">
-                    {horariosPeli.map((h) => {
-                      const tarifaMinima = h.tarifas?.[0];
-                      const precioMostrar =
-                        tarifaMinima?.precioOnline ?? tarifaMinima?.precio;
-                      return (
+                  {/* Información y horarios */}
+                  <div className="pelicula-cine-content">
+                    <div className="pelicula-cine-header-info">
+                      <div className="pelicula-cine-header-text">
                         <Link
-                          key={h.id}
                           to={`/peliculas/${pelicula.id}`}
-                          className="horario-pill-item"
-                          style={{ textDecoration: "none" }}
-                          title="Ver precios y comprar entradas"
+                          className="pelicula-cine-titulo-link"
                         >
-                          <span className="horario-hora">{h.horario}</span>
-                          <span className="horario-detalles">
-                            {h.formatoResumen || "2D"} • {h.idioma}
-                          </span>
-                          <span className="horario-precio">
-                            {h.agotada
-                              ? "Agotada"
-                              : precioMostrar
-                                ? `$${precioMostrar.toLocaleString("es-CL")}`
-                                : h.sala
-                                  ? `Sala ${h.sala}`
-                                  : "Ver precios →"}
-                          </span>
+                          <h3>{pelicula.titulo}</h3>
                         </Link>
-                      );
-                    })}
+                        <p className="pelicula-cine-metadatos">
+                          <span>{pelicula.genero}</span>
+                          <span aria-hidden="true">•</span>
+                          <span>{pelicula.duracion} min</span>
+                          <span aria-hidden="true">•</span>
+                          <span className="badge-clasif">
+                            {pelicula.clasificacion}
+                          </span>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className={`btn-ver-precios ${tienePrecios ? "cargado" : ""}`}
+                        disabled={estaConsultando}
+                        onClick={() => handleConsultarPreciosPelicula(pelicula.id)}
+                        title={
+                          tienePrecios
+                            ? "Actualizar precios de esta película"
+                            : "Consultar precios en tiempo real"
+                        }
+                      >
+                        {estaConsultando
+                          ? "Consultando..."
+                          : tienePrecios
+                            ? "Precios cargados"
+                            : "Ver precios"}
+                      </button>
+                    </div>
+
+                    {/* Agrupación de horarios con TarjetaFuncion */}
+                    <div className="horarios-grid-cine">
+                      {horariosPeli.map((h) => (
+                        <TarjetaFuncion
+                          key={h.id}
+                          horario={h}
+                          pelicula={pelicula}
+                          cine={cine}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
