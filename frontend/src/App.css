@@ -223,8 +223,9 @@ body {
     top: 50%;
     left: clamp(14px, 1vw, 20px);
     color: #8f9098;
+    display: flex;
     font-size: clamp(1.35rem, 1.5vw, 1.8rem);
-    transform: translateY(-53%);
+    transform: translateY(-50%);
     pointer-events: none;
 }
 
@@ -605,7 +606,10 @@ body {
 
 .grilla-peliculas {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(clamp(230px, 16vw, 360px), 1fr));
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(clamp(230px, 16vw, 360px), 1fr)
+    );
     gap: clamp(24px, 1.7vw, 36px);
 }
 
@@ -800,7 +804,8 @@ body {
     }
 
     .decoracion-destacada {
-        left: 34%;
+        left: auto;
+        width: 70%;
         opacity: 0.55;
     }
 
@@ -849,9 +854,7 @@ body {
         padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     }
 
-    .contenido-navegacion,
-    .contenido-destacada,
-    .contenido-principal {
+    .contenido-navegacion {
         width: min(100% - 28px, 1180px);
     }
 
@@ -863,20 +866,114 @@ body {
         display: none;
     }
 
+    .acciones-destacada {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .boton-horarios,
+    .boton-fav-destacada {
+        flex: 1 1 0;
+        max-width: 180px;
+    }
+
     .pelicula-destacada {
-        min-height: 470px;
+        display: flex;
+        align-items: flex-end;
+        min-height: 0;
+        height: clamp(420px, 64svh, 580px);
+        margin: calc(12px + env(safe-area-inset-top, 0px)) 14px 0;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+    }
+
+    .decoracion-destacada {
+        inset: 0;
+        width: 100%;
+        opacity: 1;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .decoracion-destacada img {
+        object-position: center top;
+        filter: brightness(0.8) saturate(0.9);
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .decoracion-destacada::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to bottom,
+            rgba(8, 8, 8, 0.15) 0%,
+            rgba(8, 8, 8, 0) 28%,
+            rgba(8, 8, 8, 0.8) 50%,
+            rgba(8, 8, 8, 0.96) 70%,
+            var(--color-fondo) 100%
+        );
     }
 
     .contenido-destacada {
-        padding: 54px 0;
+        width: 100%;
+        padding: 0 16px 16px;
+        text-align: center;
+    }
+
+    .etiqueta-destacada {
+        margin-bottom: 4px;
+        font-size: 0.68rem;
     }
 
     .contenido-destacada h1 {
-        font-size: clamp(2.8rem, 16vw, 4.4rem);
+        max-width: none;
+        margin: 0 0 6px;
+        font-size: clamp(2.2rem, 12vw, 3.2rem);
     }
 
+    .subtitulo-destacada {
+        max-width: none;
+        margin: 0 0 8px;
+        padding-left: 0;
+        font-size: 0.8rem;
+        letter-spacing: 0.1em;
+    }
+
+    .metadatos-destacada {
+        justify-content: center;
+        gap: 8px;
+        margin: 0 0 14px;
+        font-size: 0.85rem;
+    }
+
+    .metadatos-destacada span:first-child,
     .sinopsis-destacada {
-        font-size: 0.94rem;
+        display: none;
+    }
+
+    .boton-horarios,
+    .boton-fav-destacada {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        border-radius: 999px;
+    }
+
+    .boton-horarios {
+        color: #000000;
+        background: #ffffff;
+    }
+
+    .boton-horarios:hover {
+        background: #e4e4e4;
+    }
+
+    .boton-fav-destacada {
+        background-color: rgba(109, 109, 110, 0.55);
+        border-color: rgba(255, 255, 255, 0.16);
     }
 
     .encabezado-filtros,
