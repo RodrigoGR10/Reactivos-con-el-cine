@@ -6,6 +6,7 @@ import mongoose, { Schema } from "mongoose";
 import type { Origen } from "../scraper/types.ts";
 import { ORIGENES } from "../scraper/types.ts";
 import { normalizarSinopsis } from "../utils/sinopsis.ts";
+import { normalizarClasificacion } from "../utils/clasificaciones.ts";
 import { nombreColeccion } from "../utils/colecciones.ts";
 import { ESTADOS_ESTRENO, type DatosEstreno } from "../utils/estreno.ts";
 
@@ -53,7 +54,7 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
     titulo: { type: String, required: true },
     duracion: { type: Number, required: true },
     genero: { type: String, required: true, set: normalizarGeneros },
-    clasificacion: { type: String, required: true },
+    clasificacion: { type: String, required: true, set: normalizarClasificacion },
     sinopsis: { type: String, required: true, set: normalizarSinopsis },
     poster: { type: String, required: true },
     banner: { type: String },
@@ -86,10 +87,12 @@ peliculaSchema.set("toJSON", {
       _id?: mongoose.Types.ObjectId;
       __v?: number;
       sinopsis?: string;
+      clasificacion?: string;
     },
   ) => {
     returnedObject.id = returnedObject._id?.toString();
     returnedObject.sinopsis = normalizarSinopsis(returnedObject.sinopsis);
+    returnedObject.clasificacion = normalizarClasificacion(returnedObject.clasificacion);
     delete returnedObject._id;
     delete returnedObject.__v;
   },
