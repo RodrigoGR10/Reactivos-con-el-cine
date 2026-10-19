@@ -6,8 +6,13 @@ export interface DatosEstreno {
   fechaEstreno?: string;
 }
 
-export function clasificarEstreno(fuentes: DatosEstreno[], hoy: string): DatosEstreno {
-  const conocidas = fuentes.filter((fuente) => fuente.estadoEstreno || fuente.fechaEstreno);
+export function clasificarEstreno(fuentes: (DatosEstreno | { toObject?: () => DatosEstreno })[], hoy: string): DatosEstreno {
+  const plainFuentes = fuentes.map((fuente) =>
+    fuente && typeof (fuente as { toObject?: () => DatosEstreno }).toObject === "function"
+      ? (fuente as { toObject: () => DatosEstreno }).toObject()
+      : (fuente as DatosEstreno)
+  );
+  const conocidas = plainFuentes.filter((fuente) => fuente.estadoEstreno || fuente.fechaEstreno);
   const estados = conocidas.map((fuente) => ({
     ...fuente,
     estadoEstreno: fuente.estadoEstreno === "proximamente"
