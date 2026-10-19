@@ -10,6 +10,7 @@ import { purchaseUrl } from "./vista/client.ts";
 import type { Funcion as FuncionData } from "../models/funcion.ts";
 import type { Horario as HorarioData } from "../models/horario.ts";
 import { areSameCatalogMovie, fetchTmdbMovieMetadata } from "./tmdb.ts";
+import type { TmdbEnrichment } from "./tmdb.ts";
 import { ESTADOS_ESTRENO } from "../utils/estreno.ts";
 
 export function validateResult(value: unknown, allowPartial = false): asserts value is ScrapeResult {
@@ -299,7 +300,7 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
         const candidates = catalog.filter((item) => areSameCatalogMovie(item, movie));
         if (candidates.length >= 1) existing = candidates[0]!;
       }
-      let tmdb = null;
+      let tmdb: TmdbEnrichment | null = null;
       if (!existing && process.env.TMDB_API_KEY) {
         tmdb = await fetchTmdbMovieMetadata(movie.titulo);
         if (tmdb?.tmdbId) {
