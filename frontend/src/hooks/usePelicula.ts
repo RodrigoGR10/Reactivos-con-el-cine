@@ -23,9 +23,11 @@ export function usePeliculas() {
           const disponibles = data.filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
           setPeliculas(disponibles);
 
-          const estrenadas = disponibles.filter((pelicula) => pelicula.estadoEstreno !== "preventa");
-          const conBanner = estrenadas.filter((pelicula) => Boolean(pelicula.banner));
-          const candidatas = conBanner.length > 0 ? conBanner : estrenadas;
+          const soloPeliculas = disponibles.filter(
+            (pelicula) => !/concierto|live viewing/i.test(pelicula.genero ?? "")
+          );
+          const conBanner = soloPeliculas.filter((pelicula) => Boolean(pelicula.banner));
+          const candidatas = conBanner.length > 0 ? conBanner : soloPeliculas;
           if (candidatas.length > 0) {
             const indice = Math.floor(Math.random() * candidatas.length);
             setPeliculaDestacada(candidatas[indice]);

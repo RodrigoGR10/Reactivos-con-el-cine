@@ -30,6 +30,22 @@ function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
     toggleFavoriteMovie(pelicula.id);
   };
 
+  const formatearFechaEstreno = (fecha?: string) => {
+    if (!fecha) return "Preventa";
+    const date = new Date(`${fecha}T00:00:00Z`);
+    const textoFecha = new Intl.DateTimeFormat("es-CL", {
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC",
+    }).format(date);
+    return `Estreno: ${textoFecha}`;
+  };
+
+  const etiquetaDestacada =
+    pelicula.estadoEstreno === "preventa"
+      ? formatearFechaEstreno(pelicula.fechaEstreno)
+      : "Destacada de la semana";
+
   return (
     <section className="pelicula-destacada" aria-labelledby="titulo-destacada">
       <div className="decoracion-destacada">
@@ -40,7 +56,7 @@ function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
       </div>
 
       <div className="contenido-destacada">
-        <p className="etiqueta-destacada">Destacada de la semana</p>
+        <p className="etiqueta-destacada">{etiquetaDestacada}</p>
         <h1 id="titulo-destacada">{tituloPrincipal}</h1>
         {subtitulo && <p className="subtitulo-destacada">{subtitulo}</p>}
         <p className="metadatos-destacada">
