@@ -30,7 +30,7 @@ function Preventas({ peliculas }: { peliculas: Pelicula[] }) {
       <div className="titulo-cartelera">
         <div>
           <p className="subtitulo-seccion">Asegura tu entrada</p>
-          <h2 id="titulo-preventas">Películas en preventa</h2>
+          <h2 id="titulo-preventas">Preventa</h2>
         </div>
         <div className="controles-preventas">
           <button type="button" aria-label="Ver preventas anteriores" aria-controls="fila-preventas" disabled={actual === 0} onClick={() => mover(-1)}>
@@ -45,9 +45,6 @@ function Preventas({ peliculas }: { peliculas: Pelicula[] }) {
         <p className="sin-resultados" role="status">No hay preventas que coincidan con tu búsqueda y filtros.</p>
       ) : (
         <>
-          <p className="estado-preventas" aria-live="polite">
-            {actual + 1}–{Math.min(actual + visibles, peliculas.length)} de {peliculas.length} películas
-          </p>
           <div className="ventana-preventas"
             onTouchStart={(event) => setInicioToque(event.touches[0]?.clientX ?? null)}
             onTouchEnd={(event) => {
