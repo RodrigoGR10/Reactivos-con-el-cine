@@ -27,18 +27,18 @@ interface TmdbSearchResponse {
 }
 
 /**
- * Limpia sufijos promocionales de los cines (ej. "[2006]", "25° ANIVERSARIO", "BONUS", "PT2")
- * y extrae el año si viene explícito entre corchetes.
+ * Limpia sufijos promocionales de los cines (ej. "[2006]", "(1988)", "25° ANIVERSARIO", "BONUS", "PT2")
+ * y extrae el año si viene explícito entre corchetes o paréntesis.
  */
 export function parseMovieTitleForSearch(rawTitle: string): {
   queries: string[];
   year?: number;
 } {
-  const yearMatch = rawTitle.match(/\[(\d{4})\]/);
+  const yearMatch = rawTitle.match(/[\(\[](\d{4})[\)\]]/);
   const explicitYear = yearMatch ? Number(yearMatch[1]) : undefined;
 
   const cleaned = rawTitle
-    .replace(/\[\d{4}\]/g, "")
+    .replace(/[\(\[]\d{4}[\)\]]/g, "")
     .replace(/\bPT\.?\s*2\b/gi, "PARTE 2")
     .replace(/\bPT\.?\s*1\b/gi, "PARTE 1")
     .replace(/:\s*\d+\s*AÑOS\b/gi, "")
