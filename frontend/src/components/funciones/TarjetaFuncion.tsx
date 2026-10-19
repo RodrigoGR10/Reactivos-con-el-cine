@@ -41,13 +41,13 @@ export interface TarjetaFuncionProps {
 
 export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFuncionProps) {
   const hora = horario?.horario ?? funcion?.horario ?? "";
-  const formato = horario?.formatoResumen || funcion?.formato || "2D";
   const idioma = horario?.idioma ?? funcion?.idioma ?? "";
   const agotada = horario?.agotada ?? funcion?.agotada ?? false;
 
-  const tarifa = horario?.tarifas?.[0];
-  const precio = funcion?.precioOnline ?? funcion?.precio ?? tarifa?.precioOnline ?? tarifa?.precio;
-  const urlCompra = funcion?.urlCompra ?? tarifa?.urlCompra;
+  const tarifa = funcion ?? horario?.tarifas?.[0];
+  const formato = tarifa?.formato || horario?.formatoResumen || "2D";
+  const precio = tarifa?.precioOnline ?? tarifa?.precio;
+  const urlCompra = tarifa?.urlCompra;
 
   const enlace = enlaceSeguro(urlCompra, cine?.origen);
   const cadena = cadenas[cine?.origen ?? ""]?.nombre ?? cine?.nombre ?? "Cine";
