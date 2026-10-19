@@ -1,7 +1,6 @@
 import "./App.css";
-import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
@@ -10,17 +9,7 @@ import MovieDetailPage from "./pages/MovieDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import CinemasPage from "./pages/CinemasPage";
 import CinemaDetailPage from "./pages/CinemaDetailPage";
-
-function LoginRedirect() {
-  const { openAuthModal } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    openAuthModal(() => navigate("/perfil"));
-  }, [openAuthModal, navigate]);
-
-  return <Navigate to="/" replace />;
-}
+import LoginPage from "./pages/LoginPage";
 
 function App() {
   return (
@@ -33,7 +22,7 @@ function App() {
               <Route path="/peliculas/:id" element={<MovieDetailPage />} />
               <Route path="/cines" element={<CinemasPage />} />
               <Route path="/cines/:id" element={<CinemaDetailPage />} />
-              <Route path="/login" element={<LoginRedirect />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/perfil" element={<ProfilePage />} />
               </Route>

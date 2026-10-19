@@ -4,7 +4,7 @@ import { AuthModal } from "../components/auth/AuthModal";
 import { useAuth } from "../context/AuthContext";
 
 function MainLayout() {
-  const { isAuthModalOpen, closeAuthModal, executeAuthSuccess } = useAuth();
+  const { isAuthModalOpen, closeAuthModal } = useAuth();
 
   return (
     <div className="layout-root">
@@ -13,11 +13,7 @@ function MainLayout() {
         <Outlet />
       </main>
       {isAuthModalOpen && (
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={closeAuthModal}
-          onSuccess={executeAuthSuccess}
-        />
+        <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
       )}
     </div>
   );
