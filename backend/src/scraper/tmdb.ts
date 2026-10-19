@@ -39,6 +39,7 @@ export function parseMovieTitleForSearch(rawTitle: string): {
 
   const cleaned = rawTitle
     .replace(/[\(\[]\d{4}[\)\]]/g, "")
+    .replace(/\b(4K|3D|2D|IMAX|XD)\b/gi, "")
     .replace(/\bPT\.?\s*2\b/gi, "PARTE 2")
     .replace(/\bPT\.?\s*1\b/gi, "PARTE 1")
     .replace(/:\s*\d+\s*AÑOS\b/gi, "")
