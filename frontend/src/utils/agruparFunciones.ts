@@ -1,32 +1,30 @@
-import type { Cine, Funcion } from "../types/types";
+import type { Pelicula, Horario } from "../types/types";
 
-export interface GrupoFunciones {
-    cine: Cine;
-    funciones: Funcion[];
+export interface GrupoHorariosPorPelicula {
+  pelicula: Pelicula;
+  horarios: Horario[];
 }
 
-export function agruparFuncionesPorCine(
-    funciones: Funcion[],
-    cines: Cine[]
-): GrupoFunciones[] {
-    return funciones.reduce<GrupoFunciones[]>((grupos, funcion) => {
-        const cine = cines.find(
-            (c) => Number(c.id) === Number(funcion.cineId)
-        );
+export function agruparHorariosPorPelicula(
+  horarios: Horario[],
+  peliculas: Pelicula[],
+): GrupoHorariosPorPelicula[] {
+  return horarios.reduce<GrupoHorariosPorPelicula[]>((grupos, horario) => {
+    const pelicula = peliculas.find((p) => p.id === horario.peliculaId);
 
-        if (!cine) {
-            return grupos;
-        }
+    if (!pelicula) {
+      return grupos;
+    }
 
-        const grupoExistente = grupos.find(
-            (grupo) => Number(grupo.cine.id) === Number(cine.id)
-        );
+    const grupoExistente = grupos.find(
+      (grupo) => grupo.pelicula.id === pelicula.id,
+    );
 
-        if (grupoExistente) {
-            grupoExistente.funciones.push(funcion);
-            return grupos;
-        }
+    if (grupoExistente) {
+      grupoExistente.horarios.push(horario);
+      return grupos;
+    }
 
-        return [...grupos, { cine, funciones: [funcion] }];
-    }, []);
+    return [...grupos, { pelicula, horarios: [horario] }];
+  }, []);
 }

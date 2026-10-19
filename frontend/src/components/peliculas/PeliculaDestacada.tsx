@@ -1,0 +1,98 @@
+import { Link } from "react-router-dom";
+import type { Pelicula } from "../../types/types.ts";
+import { useAuth } from "../../context/AuthContext.tsx";
+import { useFavorites } from "../../context/FavoritesContext.tsx";
+import {
+  resumirSinopsisDestacada,
+  separarTituloDestacado,
+} from "../../utils/formatearPeliculaDestacada.ts";
+
+interface PeliculaDestacadaProps {
+  pelicula: Pelicula;
+}
+
+function PeliculaDestacada({ pelicula }: PeliculaDestacadaProps) {
+  const { user, openAuthModal } = useAuth();
+  const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
+  const esFavorita = isFavoriteMovie(pelicula.id);
+  const { tituloPrincipal, subtitulo } = separarTituloDestacado(
+    pelicula.titulo,
+  );
+  const sinopsisResumida = pelicula.sinopsis
+    ? resumirSinopsisDestacada(pelicula.sinopsis)
+    : "";
+
+  const handleToggleFavorita = () => {
+    if (!user) {
+      openAuthModal();
+      return;
+    }
+    toggleFavoriteMovie(pelicula.id);
+  };
+
+  const formatearFechaEstreno = (fecha?: string) => {
+    if (!fecha) return "Preventa";
+    const date = new Date(`${fecha}T00:00:00Z`);
+    const textoFecha = new Intl.DateTimeFormat("es-CL", {
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC",
+    }).format(date);
+    return `Estreno: ${textoFecha}`;
+  };
+
+  const etiquetaDestacada =
+    pelicula.estadoEstreno === "preventa"
+      ? formatearFechaEstreno(pelicula.fechaEstreno)
+      : "Destacada de la semana";
+
+  return (
+    <section className="pelicula-destacada" aria-labelledby="titulo-destacada">
+      <div className="decoracion-destacada">
+        <img
+          src={pelicula.banner || pelicula.poster}
+          alt={`Banner de ${pelicula.titulo}`}
+        />
+      </div>
+
+      <div className="contenido-destacada">
+        <p className="etiqueta-destacada">{etiquetaDestacada}</p>
+        <h1 id="titulo-destacada">{tituloPrincipal}</h1>
+        {subtitulo && <p className="subtitulo-destacada">{subtitulo}</p>}
+        <p className="metadatos-destacada">
+          <span aria-hidden="true">•</span>
+          {pelicula.genero}
+          <span aria-hidden="true">•</span>
+          {pelicula.duracion} min
+          <span aria-hidden="true">•</span>
+          {pelicula.clasificacion}
+        </p>
+        {sinopsisResumida && (
+          <p className="sinopsis-destacada">{sinopsisResumida}</p>
+        )}
+        <div className="acciones-destacada">
+          <Link to={`/peliculas/${pelicula.id}`} className="boton-horarios">
+            Ver horarios
+          </Link>
+          <button
+            type="button"
+            className={`boton-fav-destacada ${esFavorita ? "activo" : ""}`}
+            onClick={handleToggleFavorita}
+            title={
+              esFavorita
+                ? "Quitar de Mi lista"
+                : "Agregar a Mi lista"
+            }
+          >
+            <span className="corazon-destacada" aria-hidden="true">
+              {esFavorita ? "♥" : "♡"}
+            </span>
+            <span>Mi lista</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default PeliculaDestacada;

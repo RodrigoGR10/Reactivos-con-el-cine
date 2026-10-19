@@ -1,0 +1,87 @@
+.seccion-preventas {
+  margin-top: clamp(48px, 5vw, 80px);
+}
+
+.panel-filtros + .seccion-preventas {
+  margin-top: 0;
+}
+
+.controles-preventas {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.controles-preventas button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-borde);
+  border-radius: 10px;
+  background: var(--color-superficie-clara);
+  color: var(--color-texto);
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.controles-preventas button:hover:not(:disabled),
+.controles-preventas button:focus-visible {
+  border-color: var(--color-acento);
+}
+
+.controles-preventas button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.estado-preventas {
+  color: var(--color-texto-secundario);
+  font-size: 0.9rem;
+}
+
+.ventana-preventas {
+  overflow: hidden;
+  padding-top: 6px;
+  touch-action: pan-y pinch-zoom;
+}
+
+.fila-preventas {
+  --separacion: 24px;
+  display: flex;
+  gap: var(--separacion);
+  transform: translateX(calc(-1 * var(--posicion) * (100% + var(--separacion)) / var(--visibles)));
+  transition: transform 300ms ease;
+}
+
+.elemento-preventa {
+  flex: 0 0 calc((100% - (var(--visibles) - 1) * var(--separacion)) / var(--visibles));
+  min-width: 0;
+}
+
+.elemento-preventa .tarjeta-pelicula {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.elemento-preventa .contenido-tarjeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.elemento-preventa .pie-tarjeta {
+  margin-top: auto;
+}
+
+.etiqueta-preventa {
+  display: inline-block;
+  align-self: flex-start;
+  margin: 0 0 12px;
+  color: var(--color-acento);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fila-preventas { transition: none; }
+}

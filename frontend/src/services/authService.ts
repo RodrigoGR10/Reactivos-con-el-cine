@@ -1,93 +1,133 @@
-import type { Usuario, LoginInput, RegisterInput } from '../types/auth';
+import axios, { type AxiosResponse } from "axios";
+import type { Usuario, LoginInput, RegisterInput } from "../types/auth";
+import { API_BASE_URL } from "./apiConfig";
 
-const STORAGE_KEY_USUARIO_ACTIVO = 'cine_usuario_activo';
-const STORAGE_KEY_USUARIOS = 'cine_usuarios_registrados';
+const STORAGE_KEY_CSRF = "csrfToken";
+const baseUrl = `${API_BASE_URL}/auth`;
 
-/** Lee array de usuarios registrados desde localStorage */
-const obtenerUsuariosRegistrados = (): (Usuario & { contrasena: string })[] => {
-    const data = localStorage.getItem(STORAGE_KEY_USUARIOS);
-    if (!data) return [];
-    try {
-        return JSON.parse(data);
-    } catch {
-        return [];
-    }
+const getAuthConfig = (signal?: AbortSignal) => {
+  const csrfToken = localStorage.getItem(STORAGE_KEY_CSRF);
+  return {
+    withCredentials: true,
+    signal,
+    headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+  };
 };
 
-/** Autentica usuario por email/contraseña; guarda sesión sin contraseña en localStorage */
+const extractErrorMessage = (error: unknown, fallback: string): string => {
+  if (axios.isAxiosError(error)) {
+    const serverError = (error.response?.data as { error?: string } | undefined)
+      ?.error;
+    if (typeof serverError === "string" && serverError.trim()) {
+      return serverError;
+    }
+  }
+  return fallback;
+};
+
+const clearSessionData = (): void => {
+  localStorage.removeItem(STORAGE_KEY_CSRF);
+};
+
+const saveSessionData = (response: AxiosResponse<Usuario>): Usuario => {
+  const csrfToken = response.headers["x-csrf-token"];
+  if (typeof csrfToken !== "string" || !csrfToken) {
+    throw new Error("El servidor no entregó el token CSRF de la sesión.");
+  }
+
+  const usuario = response.data;
+  const datosUsuario: Usuario = {
+    id: usuario.id,
+    nombre: usuario.nombre,
+    email: usuario.email,
+    fechaRegistro: usuario.fechaRegistro,
+    peliculasFavoritas: usuario.peliculasFavoritas ?? [],
+    cinesFavoritos: usuario.cinesFavoritos ?? [],
+  };
+  localStorage.setItem(STORAGE_KEY_CSRF, csrfToken);
+  return datosUsuario;
+};
+
+/** El navegador recibe el JWT en una cookie; en localStorage solo guardamos el token CSRF. */
 const login = async (credenciales: LoginInput): Promise<Usuario> => {
-    const usuarios = obtenerUsuariosRegistrados();
-    const usuario = usuarios.find(
-        (u) => u.email.toLowerCase() === credenciales.email.trim().toLowerCase() && 
-               u.contrasena === credenciales.contrasena
+  try {
+    const response = await axios.post<Usuario>(
+      `${baseUrl}/login`,
+      {
+        email: credenciales.email,
+        contrasena: credenciales.contrasena,
+      },
+      getAuthConfig(),
     );
 
-    if (!usuario) {
-        throw new Error('El correo o la contraseña son incorrectos.');
-    }
-
-    const usuarioSinContrasena: Usuario = {
-        id: usuario.id,
-        nombre: usuario.nombre,
-        email: usuario.email,
-        fechaRegistro: usuario.fechaRegistro
-    };
-    localStorage.setItem(STORAGE_KEY_USUARIO_ACTIVO, JSON.stringify(usuarioSinContrasena));
-    return usuarioSinContrasena;
+    return saveSessionData(response);
+  } catch (error) {
+    throw new Error(
+      extractErrorMessage(error, "El correo o la contraseña son incorrectos."),
+    );
+  }
 };
 
-/** Registra nuevo usuario validando email único; guarda sesión automáticamente */
+/** Mantiene el inicio de sesión automático del formulario de registro existente. */
 const register = async (datos: RegisterInput): Promise<Usuario> => {
-    const usuarios = obtenerUsuariosRegistrados();
-    const emailExiste = usuarios.some(
-        (u) => u.email.toLowerCase() === datos.email.trim().toLowerCase()
+  try {
+    const response = await axios.post<Usuario>(
+      `${baseUrl}/register`,
+      {
+        nombre: datos.nombre,
+        email: datos.email,
+        contrasena: datos.contrasena,
+      },
+      getAuthConfig(),
     );
 
-    if (emailExiste) {
-        throw new Error('Este correo electrónico ya se encuentra registrado.');
-    }
-
-    const nuevoUsuario: Usuario & { contrasena: string } = {
-        id: Date.now(),
-        nombre: datos.nombre.trim(),
-        email: datos.email.trim().toLowerCase(),
-        contrasena: datos.contrasena,
-        fechaRegistro: new Date().toISOString()
-    };
-
-    usuarios.push(nuevoUsuario);
-    localStorage.setItem(STORAGE_KEY_USUARIOS, JSON.stringify(usuarios));
-
-    const usuarioSinContrasena: Usuario = {
-        id: nuevoUsuario.id,
-        nombre: nuevoUsuario.nombre,
-        email: nuevoUsuario.email,
-        fechaRegistro: nuevoUsuario.fechaRegistro
-    };
-    localStorage.setItem(STORAGE_KEY_USUARIO_ACTIVO, JSON.stringify(usuarioSinContrasena));
-    return usuarioSinContrasena;
+    return saveSessionData(response);
+  } catch (error) {
+    throw new Error(
+      extractErrorMessage(error, "Error al registrar el usuario."),
+    );
+  }
 };
 
-/** Cierra sesión eliminando usuario activo de localStorage */
-const logout = (): void => {
-    localStorage.removeItem(STORAGE_KEY_USUARIO_ACTIVO);
+/** Limpia los datos locales solo cuando el backend confirma el cierre de sesión. */
+const logout = async (): Promise<void> => {
+  try {
+    await axios.post(`${baseUrl}/logout`, {}, getAuthConfig());
+    clearSessionData();
+  } catch (error) {
+    throw new Error(
+      extractErrorMessage(error, "No se pudo cerrar la sesión."),
+    );
+  }
 };
 
-/** Recupera usuario activo si hay sesión válida; limpia storage si hay dato corrupto */
-const getCurrentUser = (): Usuario | null => {
-    const data = localStorage.getItem(STORAGE_KEY_USUARIO_ACTIVO);
-    if (!data) return null;
-    try {
-        return JSON.parse(data) as Usuario;
-    } catch {
-        logout();
-        return null;
+/** La sesión se verifica con el servidor, en lugar de confiar en localStorage. */
+const getCurrentUser = async (
+  signal?: AbortSignal,
+): Promise<Usuario | null> => {
+  try {
+    const response = await axios.get<Usuario>(
+      `${baseUrl}/me`,
+      getAuthConfig(signal),
+    );
+    if (signal?.aborted) return null;
+    return saveSessionData(response);
+  } catch (error) {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      !signal?.aborted
+    ) {
+      clearSessionData();
     }
+    return null;
+  }
 };
 
 export default {
-    login,
-    register,
-    logout,
-    getCurrentUser
+  login,
+  register,
+  logout,
+  getCurrentUser,
+  clearSessionData,
 };

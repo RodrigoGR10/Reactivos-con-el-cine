@@ -1,65 +1,112 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { Usuario, LoginInput, RegisterInput } from '../types/auth';
-import authService from '../services/authService';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import type { Usuario, LoginInput, RegisterInput } from "../types/auth";
+import authService from "../services/authService";
 
 interface AuthContextType {
-    user: Usuario | null;
-    isAuthenticated: boolean;
-    login: (credenciales: LoginInput) => Promise<void>;
-    register: (datos: RegisterInput) => Promise<void>;
-    logout: () => void;
-    isAuthModalOpen: boolean;
-    openAuthModal: () => void;
-    closeAuthModal: () => void;
+  user: Usuario | null;
+  isAuthenticated: boolean;
+  isLoadingSession: boolean;
+  login: (credenciales: LoginInput) => Promise<void>;
+  register: (datos: RegisterInput) => Promise<void>;
+  logout: () => Promise<void>;
+  invalidateSession: () => void;
+  isAuthModalOpen: boolean;
+  openAuthModal: () => void;
+  closeAuthModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    // Inicialización perezosa: lee localStorage solo una vez al montar la app
-    const [user, setUser] = useState<Usuario | null>(() => authService.getCurrentUser());
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<Usuario | null>(null);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  // Evita que una restauración pendiente sobrescriba un login o logout posterior.
+  const restoreController = useRef<AbortController | null>(null);
 
-    const openAuthModal = (): void => setIsAuthModalOpen(true);
-    const closeAuthModal = (): void => setIsAuthModalOpen(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    restoreController.current = controller;
 
-    const login = async (credenciales: LoginInput): Promise<void> => {
-        const usuarioAutenticado = await authService.login(credenciales);
-        setUser(usuarioAutenticado);
-    };
+    authService.getCurrentUser(controller.signal).then((usuario) => {
+      if (!controller.signal.aborted) {
+        setUser(usuario);
+        setIsLoadingSession(false);
+      }
+    });
 
-    const register = async (datos: RegisterInput): Promise<void> => {
-        const nuevoUsuario = await authService.register(datos);
-        setUser(nuevoUsuario);
-    };
+    return () => controller.abort();
+  }, []);
 
-    const logout = (): void => {
-        authService.logout();
-        setUser(null);
-    };
+  const openAuthModal = (): void => setIsAuthModalOpen(true);
+  const closeAuthModal = (): void => setIsAuthModalOpen(false);
 
-    const value: AuthContextType = {
-        user,
-        isAuthenticated: !!user,
-        login,
-        register,
-        logout,
-        isAuthModalOpen,
-        openAuthModal,
-        closeAuthModal
-    };
+  const invalidateSession = useCallback((): void => {
+    restoreController.current?.abort();
+    authService.clearSessionData();
+    setUser(null);
+    setIsLoadingSession(false);
+    setIsAuthModalOpen(false);
+  }, []);
 
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const login = async (credenciales: LoginInput): Promise<void> => {
+    restoreController.current?.abort();
+    try {
+      const usuarioAutenticado = await authService.login(credenciales);
+      setUser(usuarioAutenticado);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  };
+
+  const register = async (datos: RegisterInput): Promise<void> => {
+    restoreController.current?.abort();
+    try {
+      const nuevoUsuario = await authService.register(datos);
+      setUser(nuevoUsuario);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    restoreController.current?.abort();
+    try {
+      await authService.logout();
+      setUser(null);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated: !!user,
+    isLoadingSession,
+    login,
+    register,
+    logout,
+    invalidateSession,
+    isAuthModalOpen,
+    openAuthModal,
+    closeAuthModal,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth debe ser utilizado dentro de un AuthProvider');
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth debe ser utilizado dentro de un AuthProvider");
+  }
+  return context;
 };

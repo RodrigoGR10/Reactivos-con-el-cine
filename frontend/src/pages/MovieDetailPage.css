@@ -1,7 +1,8 @@
 .detalle-pelicula {
-    width: min(1180px, calc(100% - 40px));
+    width: 100%;
     margin: 0 auto;
-    padding: 52px 0 80px;
+    padding: 36px 48px 80px;
+    box-sizing: border-box;
 }
 
 .hero-detalle {
@@ -13,9 +14,7 @@
     margin-bottom: 62px;
 
     background:
-        linear-gradient(135deg,
-            rgba(230, 45, 63, 0.14),
-            transparent 45%),
+        linear-gradient(135deg, rgba(230, 45, 63, 0.14), transparent 45%),
         var(--color-superficie);
 
     border: 1px solid var(--color-borde);
@@ -45,17 +44,16 @@
     font-size: 4rem;
 
     background:
-        radial-gradient(circle at 50% 35%,
+        radial-gradient(
+            circle at 50% 35%,
             rgba(230, 45, 63, 0.55),
-            transparent 32%),
-        linear-gradient(145deg,
-            #22232a,
-            #531923 60%,
-            #17181d);
+            transparent 32%
+        ),
+        linear-gradient(145deg, #22232a, #531923 60%, #17181d);
 }
 
 .contenido-detalle {
-    max-width: 700px;
+    width: 100%;
 }
 
 .contenido-detalle h1 {
@@ -89,62 +87,216 @@
 }
 
 .sinopsis-detalle {
-    max-width: 650px;
+    width: 100%;
     color: var(--color-texto-secundario);
     font-size: 1.05rem;
     line-height: 1.75;
 }
 
 .boton-fav-peli {
-    padding: 5px 9px;
-    color: #ffffff;
-    background: var(--color-acento);
-    border-radius: 6px;
+    width: 34px;
+    height: 34px;
+    margin-left: 4px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #34353e;
+    background-color: var(--color-superficie-clara);
+    color: var(--color-texto-secundario);
+    font-size: 1.15rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+        color 0.15s ease,
+        border-color 0.15s ease,
+        background-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.boton-fav-peli:hover {
+    color: var(--color-acento);
+    border-color: #494a54;
+    transform: scale(1.08);
+}
+
+.boton-fav-peli.activo {
+    color: var(--color-acento);
 }
 
 .seccion-funciones {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
     padding-bottom: 20px;
+    width: 100%;
 }
 
 .encabezado-funciones {
     display: flex;
-    align-items: end;
     justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 28px;
+    align-items: flex-end;
+    border-bottom: 1px solid #1c1c1c;
+    padding-bottom: 12px;
+    gap: 16px;
 }
 
 .encabezado-funciones h2 {
-    margin: 0;
-    color: var(--color-texto);
-    font-size: 1.9rem;
-    letter-spacing: -0.03em;
+    margin: 4px 0 0 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.4px;
 }
 
-.filtro-formato {
+.conteo-cines-peli {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #888888;
+    background-color: #141414;
+    border: 1px solid #222222;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* Filtros de la cartelera */
+.cartelera-cine-filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.filtros-barra-principal {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
 }
 
-.filtro-formato label {
-    color: var(--color-texto);
-    font-size: 0.86rem;
-    font-weight: 800;
-}
-
-.filtro-formato select {
-    min-width: 130px;
-    padding: 10px 36px 10px 12px;
-    color: var(--color-texto);
-    background: var(--color-superficie-clara);
-    border: 1px solid #34353e;
+.cartelera-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #121212;
+    border: 1px solid #222222;
     border-radius: 8px;
+    padding: 0 12px;
+    height: 38px;
+    color: #777777;
+    flex: 1;
+    min-width: 220px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
 }
 
-.filtro-formato select:focus {
-    border-color: var(--color-acento);
-    outline: 3px solid rgba(230, 45, 63, 0.14);
+.cartelera-search-box:focus-within {
+    border-color: #444444;
+}
+
+.cartelera-search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-size: 0.88rem;
+    width: 100%;
+}
+
+.cartelera-search-box input::placeholder {
+    color: #666666;
+}
+
+.selector-comuna-filtro {
+    background-color: #121212;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    padding: 0 32px 0 12px;
+    height: 38px;
+    color: #ffffff;
+    font-size: 0.88rem;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.selector-comuna-filtro:focus {
+    border-color: #444444;
+}
+
+.selector-comuna-filtro option {
+    background-color: #141414;
+    color: #ffffff;
+}
+
+.btn-clear-inline {
+    background: transparent;
+    border: none;
+    color: #777777;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 4px;
+}
+
+.btn-clear-inline:hover {
+    color: #ffffff;
+}
+
+.formatos-chips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.formato-chip {
+    background-color: #141414;
+    border: 1px solid #262626;
+    color: #888888;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.formato-chip:hover {
+    border-color: #444444;
+    color: #ffffff;
+}
+
+.formato-chip.active {
+    background-color: #e50914;
+    border-color: #e50914;
+    color: #ffffff;
+}
+
+.btn-reset-filtros {
+    margin-top: 14px;
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-reset-filtros:hover {
+    background-color: #242424;
 }
 
 .lista-cines {
@@ -157,6 +309,9 @@
     background: var(--color-superficie);
     border: 1px solid var(--color-borde);
     border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
     transition:
         border-color 180ms ease,
         transform 180ms ease;
@@ -170,8 +325,99 @@
 .cabecera-cine {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 16px;
-    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.cabecera-cine-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    flex: 1;
+}
+
+.nombre-cine {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.nombre-cine strong {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 1.2rem;
+}
+
+.distancia-cine {
+    color: var(--color-texto-secundario);
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-style: normal;
+    opacity: 0.75;
+}
+
+.nombre-cine > span {
+    font-size: 0.9rem;
+    color: var(--color-texto-secundario);
+}
+
+.btn-ver-precios {
+    background: transparent;
+    color: #b0b0b0;
+    border: 1px solid #383838;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-ver-precios:hover:not(:disabled) {
+    background: #252525;
+    border-color: #555555;
+    color: #ffffff;
+}
+
+.btn-ver-precios:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.btn-ver-precios.cargado {
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #10b981;
+}
+
+.btn-ver-precios.cargado:hover:not(:disabled) {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.horarios-grid-cine {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+
+.enlace-cine-detalle {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.15s ease;
+}
+
+.enlace-cine-detalle:hover {
+    color: var(--color-acento);
 }
 
 .logo-cine {
@@ -185,6 +431,10 @@
 
     background: #ffffff;
     border-radius: 10px;
+}
+
+.logo-cine[data-origen="cinestar"] {
+    background: #121212;
 }
 
 .logo-cine img {
@@ -211,79 +461,21 @@
     padding: 0;
     border: none;
     border-radius: 50%;
-    background:#531923;
+    background: #531923;
     color: white;
     cursor: pointer;
-    
+
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
     transform: scale(0.8);
-    
 }
 .logo-cine:hover .boton-fav-cine {
     opacity: 1;
     visibility: visible;
     transform: scale(1);
-}
-.cabecera-cine h3 {
-    margin: 0 0 4px;
-    color: var(--color-texto);
-    font-size: 1.2rem;
-}
-
-.cabecera-cine p {
-    margin: 0;
-    color: var(--color-texto-secundario);
-    font-size: 0.9rem;
-}
-
-.horarios-cine {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.tarjeta-horario {
-    display: grid;
-    min-width: 150px;
-    padding: 14px 16px;
-    gap: 4px;
-
-    color: var(--color-texto);
-    text-align: left;
-
-    background: var(--color-superficie-clara);
-    border: 1px solid #34353e;
-    border-radius: 10px;
-
-    transition:
-        border-color 160ms ease,
-        background 160ms ease,
-        transform 160ms ease;
-}
-
-.tarjeta-horario:hover {
-    background: #202128;
-    border-color: var(--color-acento);
-    transform: translateY(-2px);
-}
-
-.tarjeta-horario strong {
-    color: #ffffff;
-    font-size: 1.2rem;
-}
-
-.tarjeta-horario span {
-    color: var(--color-texto-secundario);
-    font-size: 0.78rem;
-}
-
-.tarjeta-horario .precio-horario {
-    margin-top: 4px;
-    color: var(--color-acento);
-    font-size: 0.9rem;
-    font-weight: 800;
 }
 
 .sin-funciones,
@@ -294,6 +486,62 @@
     background: var(--color-superficie);
     border: 1px dashed #3b3c45;
     border-radius: 12px;
+}
+
+.boton-cercania-detalle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    color: var(--color-texto);
+    background: #121212;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    font-size: 0.86rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.boton-cercania-detalle svg {
+    color: var(--color-acento);
+    flex-shrink: 0;
+}
+
+.boton-cercania-detalle:hover:not(:disabled) {
+    border-color: #444444;
+    background: #1a1a1a;
+}
+
+.boton-cercania-detalle.activo {
+    color: #ffffff;
+    cursor: default;
+}
+
+.boton-cercania-detalle.activo svg path {
+    fill: currentColor;
+}
+
+.boton-cercania-detalle.activo svg circle {
+    fill: var(--color-superficie-clara);
+    stroke: var(--color-superficie-clara);
+}
+
+.boton-cercania-detalle:disabled:not(.activo) {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.aviso-cercania {
+    margin: 0 0 16px;
+    color: var(--color-texto-secundario);
+    font-size: 0.88rem;
 }
 
 .sin-funciones span {
@@ -343,17 +591,15 @@
         font-size: 2.8rem;
     }
 
-    .filtro-formato {
-        width: 100%;
-        align-items: stretch;
+    .filtros-barra-principal {
         flex-direction: column;
+        align-items: stretch;
     }
 
-    .filtro-formato select {
+    .cartelera-search-box,
+    .selector-comuna-filtro,
+    .boton-cercania-detalle {
         width: 100%;
-    }
-
-    .tarjeta-horario {
-        width: 100%;
+        min-width: 0;
     }
 }

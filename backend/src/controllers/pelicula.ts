@@ -1,0 +1,50 @@
+import PeliculaModel from "../models/pelicula.ts";
+import HorarioModel from "../models/horario.ts";
+import { horariosVigentes } from "../services/preciosFunciones.ts";
+import express from "express";
+import { clasificarEstreno } from "../utils/estreno.ts";
+import { localNow } from "../utils/localNow.ts";
+
+const router = express.Router();
+
+router.get("/", async (req, res, next) => {
+  const { cartelera } = req.query;
+  if (cartelera !== undefined && cartelera !== "true" && cartelera !== "false") {
+    res.status(400).json({ error: "cartelera debe ser true o false" });
+    return;
+  }
+  if (cartelera === "true") {
+    const horarios = await HorarioModel.find({ ...horariosVigentes(), agotada: { $ne: true } })
+      .select("peliculaId origen peliculaOrigenId").lean();
+    const fuentesVigentes = new Map<string, Set<string>>();
+    for (const horario of horarios) {
+      const id = horario.peliculaId.toString();
+      const fuentes = fuentesVigentes.get(id) ?? new Set<string>();
+      fuentes.add(`${horario.origen}:${horario.peliculaOrigenId}`);
+      fuentesVigentes.set(id, fuentes);
+    }
+    const peliculas = await PeliculaModel.find({ _id: { $in: [...fuentesVigentes.keys()] } });
+    const hoy = localNow().slice(0, 10);
+    const disponibles = peliculas.map((pelicula) => {
+      const fuentes = (pelicula.fuentes ?? []).filter((fuente) =>
+        fuentesVigentes.get(pelicula._id.toString())?.has(`${fuente.origen}:${fuente.origenId}`));
+      return { ...pelicula.toJSON(), ...clasificarEstreno(fuentes, hoy) };
+    }).filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
+    res.json(disponibles);
+    return;
+  }
+  const peliculas = await PeliculaModel.find({});
+
+  res.json(peliculas);
+});
+
+router.get("/:id", async (req, res, next) => {
+  const pelicula = await PeliculaModel.findById(req.params.id);
+
+  if (!pelicula) {
+    return res.status(404).json({ error: "Pelicula no encontrada" });
+  }
+  return res.json(pelicula);
+});
+
+export default router;
