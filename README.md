@@ -92,8 +92,6 @@ npm run sync:muvix
 npm run sync:cinestar
 ```
 
-Los datos se guardan directamente en MongoDB, sin borrar la base previamente. Se consultan todas las fechas publicadas para incluir las preventas; agrega `-- --days=7` si necesitas limitar la consulta a una semana. `--all-dates` sigue disponible. Los precios se consultan al abrir el detalle de una película y seleccionar cine y fecha.
-
 La página principal separa la cartelera de las películas en preventa, que aparecen debajo en un carrusel con flechas y desplazamiento táctil. El buscador y los filtros se aplican a ambas secciones. Solo se listan películas con horarios vigentes no agotados; los próximos estrenos sin venta se omiten.
 
 El estado y la fecha de estreno se guardan por cadena en las fuentes de cada película. Cinemark y Cineplanet aportan indicadores de preventa; Muvix y Cinestar aportan la fecha de estreno y sus funciones con venta web habilitada. El backend compara las fechas con el día actual en Chile. Si una película ya se estrenó en alguna cadena con horarios disponibles, aparece una sola vez en cartelera.
@@ -126,7 +124,7 @@ node src/scripts/normalizar-comunas.ts --write
 
 #### Importante:
 
-Si se ven nombres raros o duplicados al ejecutar sin `--write`, hay que implementar nuevos aliases en `backend/utils/generos.ts`
+Si se ven nombres raros o duplicados al ejecutar sin `--write`, agrega los alias correspondientes en `backend/src/utils/generos.ts` para géneros o en `backend/src/utils/comunas.ts` para comunas.
 
 ## Vistas de la aplicación
 
