@@ -1,6 +1,6 @@
 import type { DatosEstreno } from "../utils/estreno.ts";
 
-export const ORIGENES = ["cinemark", "cineplanet", "muvix", "cinestar"] as const;
+export const ORIGENES = ["cinemark", "cineplanet", "muvix", "cinestar", "cinepolis"] as const;
 export type Origen = typeof ORIGENES[number];
 
 export interface ScrapeOptions {
