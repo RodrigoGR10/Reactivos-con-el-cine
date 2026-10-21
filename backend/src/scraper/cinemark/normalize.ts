@@ -74,7 +74,10 @@ export function normalizeSchedule(session: RawSession, extractedAt: string): Scr
     peliculaId: `cinemark:${text(session.corporateId, "id de pelicula")}`,
     cineId: `cinemark:${cinemaId}`, sesionId: sessionId,
     fecha, horario, fechaCartelera: session.sessionDisplayDate,
-    formatoResumen: text(session.sessionFormat, "formato de sesion"),
+    formatoResumen: text(session.sessionFormat, "formato de sesion")
+      .replace(/\bIV\b/g, "INFINITY VISION")
+      .replace(/\bPRE\b/g, "PREMIER")
+      .trim(),
     idioma: text(session.language?.name, "idioma"),
     sala: text(session.theaterRoom, "sala"),
     agotada: session.occupation?.availableSeats === 0,

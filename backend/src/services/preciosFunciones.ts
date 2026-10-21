@@ -42,6 +42,7 @@ export function horarioPublico(schedule: HorarioGuardado) {
     agotada: schedule.agotada, estadoPrecio,
     preciosConsultadosEn: compatible ? schedule.preciosConsultadosEn?.toISOString() : undefined,
     reintentarEn: schedule.preciosErrorRevision === schedule.revision ? schedule.preciosErrorHasta?.toISOString() : undefined,
+    urlCompra: schedule.urlCompra ?? schedule.peliculaUrl,
     tarifas: tarifas.map((tarifa) => ({
       ...tarifa, peliculaId: schedule.peliculaId.toString(),
       cineId: schedule.cineId.toString(), agotada: schedule.agotada,
@@ -82,6 +83,8 @@ async function consultarHorario(schedule: HorarioGuardado, movieId: string, movi
           ...schedule, id: `${schedule.origen}:${schedule.origenId}`,
           peliculaId: `${schedule.origen}:${movieId}`, cineId: `${schedule.origen}:${cinemaId}`,
         });
+      } else if (schedule.origen === "cinepolis") {
+        tarifas = [];
       } else {
         await ensureCinemark();
         const prices = await cinemarkData<RawPriceGroup[]>("/get-prices", {
