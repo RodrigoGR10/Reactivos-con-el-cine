@@ -146,9 +146,7 @@ Todas las rutas comienzan con `/api`. Las privadas requieren la cookie JWT y la 
 | `GET`  | `/api/peliculas`                           | Pública    | Lista películas; `?cartelera=true` filtra las que tienen horarios vigentes.                               |
 | `GET`  | `/api/peliculas/:id`                       | Pública    | Obtiene una película por ID.                                                                              |
 | `GET`  | `/api/cines`                               | Pública    | Lista los cines.                                                                                          |
-| `GET`  | `/api/cines/:id`                           | Pública    | Obtiene un cine por ID.                                                                                   |
-| `GET`  | `/api/funciones`                           | Pública    | Lista funciones vigentes; admite filtros `peliculaId` y `cineId`.                                         |
-| `GET`  | `/api/funciones/:id`                       | Pública    | Obtiene una función por ID.                                                                               |
+| `GET`  | `/api/cines/:id`                           | Pública    | Obtiene un cine por ID.                                                                                                                                                                  |
 | `GET`  | `/api/funciones/horarios`                  | Pública    | Lista horarios vigentes; requiere `peliculaId`, `cineId` o ambos.                                         |
 | `GET`  | `/api/funciones/precios`                   | Pública    | Consulta precios con caché de hasta 15 minutos; requiere `peliculaId`, `cineId` y `fecha` (`YYYY-MM-DD`). |
 | `POST` | `/api/auth/register`                       | Pública    | Registra e inicia sesión con `nombre`, `email` y `contrasena`.                                            |
