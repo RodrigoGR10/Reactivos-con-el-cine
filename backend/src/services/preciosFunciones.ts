@@ -8,6 +8,7 @@ import { normalizeSessions } from "../scraper/cinemark/normalize.ts";
 import { localNow } from "../utils/localNow.ts";
 import { pricesForSchedule } from "../scraper/cineplanet/normalize.ts";
 import { pricesForSchedule as vistaPrices } from "../scraper/vista/normalize.ts";
+import { pricesForSchedule as cinepolisPrices } from "../scraper/cinepolis/prices.ts";
 import { ORIGENES } from "../scraper/types.ts";
 import type { RawPriceGroup, RawSession } from "../scraper/cinemark/types.ts";
 import type { ScrapedSession } from "../scraper/types.ts";
@@ -84,7 +85,10 @@ async function consultarHorario(schedule: HorarioGuardado, movieId: string, movi
           peliculaId: `${schedule.origen}:${movieId}`, cineId: `${schedule.origen}:${cinemaId}`,
         });
       } else if (schedule.origen === "cinepolis") {
-        tarifas = [];
+        tarifas = await cinepolisPrices({
+          ...schedule, id: `cinepolis:${schedule.origenId}`,
+          peliculaId: `cinepolis:${movieId}`, cineId: `cinepolis:${cinemaId}`,
+        });
       } else {
         await ensureCinemark();
         const prices = await cinemarkData<RawPriceGroup[]>("/get-prices", {
@@ -102,7 +106,10 @@ async function consultarHorario(schedule: HorarioGuardado, movieId: string, movi
       }
       await new HorarioModel({ ...schedule, tarifas }).validate();
       await HorarioModel.updateOne({ _id: schedule._id, revision: schedule.revision, consultaPreciosToken: token }, {
-        $set: { tarifas, preciosRevision: schedule.revision, preciosConsultadosEn: new Date() },
+        $set: {
+          tarifas, preciosRevision: schedule.revision, preciosConsultadosEn: new Date(),
+          ...(schedule.origen === "cinepolis" && tarifas[0] ? { urlCompra: tarifas[0].urlCompra } : {}),
+        },
         $unset: { preciosErrorHasta: 1, preciosErrorRevision: 1 },
       }, { runValidators: true });
     } catch (error) {

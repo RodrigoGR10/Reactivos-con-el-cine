@@ -11,6 +11,9 @@ export function findChromePath(): string {
   if (envPath && fs.existsSync(envPath)) return envPath;
 
   const paths = [
+    ...[process.env.PROGRAMFILES, process.env["PROGRAMFILES(X86)"], process.env.LOCALAPPDATA]
+      .filter((directory): directory is string => Boolean(directory))
+      .map((directory) => path.join(directory, "Google", "Chrome", "Application", "chrome.exe")),
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Chromium.app/Contents/MacOS/Chromium",
     "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
@@ -40,7 +43,7 @@ function conTimeout<T>(promesa: Promise<T>, ms: number, mensaje: () => string): 
 }
 
 export async function startChromeSession(
-  opts: { url?: string; esperaMs?: number } = {},
+  opts: { url?: string; esperaMs?: number; profileDir?: string } = {},
 ): Promise<ChromeSession> {
   if (typeof WebSocket === "undefined") {
     throw new Error("Se requiere Node.js 22 o superior (WebSocket global).");
@@ -49,6 +52,7 @@ export async function startChromeSession(
   // Perfil dedicado para el scraper: evita conflictos con un Chrome abierto del usuario
   // y a la vez conserva cookies y clearance de Cloudflare entre ejecuciones para evitar bloqueos.
   const perfil =
+    opts.profileDir ||
     process.env.CHROME_USER_DATA_DIR ||
     path.join(os.tmpdir(), "cinepolis-chrome-scraper-profile");
   fs.mkdirSync(perfil, { recursive: true });

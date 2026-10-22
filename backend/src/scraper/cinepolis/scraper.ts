@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { CINES_CINEPOLIS, SITE } from "./client.ts";
+import { API_KEY, CINES_CINEPOLIS, purchaseUrl } from "./client.ts";
 import { normalizeCinema, normalizeMovie, normalizeSchedule } from "./normalize.ts";
 import { startChromeSession } from "./browser.ts";
 import { localNow } from "../../utils/localNow.ts";
@@ -11,8 +11,6 @@ type Incidencia = NonNullable<ScrapeResult["incidencias"]>[number];
 type Severidad = "error" | "aviso" | "info";
 
 const API_URL = "https://api-g.cinepolis.com/v2/billboards/graphql";
-// Clave observada en el sitio público. Preferible definirla en la variable CINEPOLIS_API_KEY.
-const API_KEY = process.env.CINEPOLIS_API_KEY || "lQM6Mkvri1iHksKKCfpAiwGXq0YUZA7Nn6XAXRPr4i13LwXo";
 const COUNTRY_ID = "CL";
 const ZONA = "America/Santiago";
 const DEBUG = process.env.CINEPOLIS_DEBUG === "1";
@@ -539,7 +537,7 @@ export async function scrapeCinepolis(options: ScrapeOptions): Promise<ScrapeRes
               agotada: disponibilidad !== null && AGOTADA_RE.test(disponibilidad),
               vistaCinemaId: txt(st.cinemaVistaId) ?? cinema.vistaId,
               vistaMovieId: txt(st.movieVistaId),
-              purchaseUrl: `${SITE}/horarios?movie=${encodeURIComponent(movie.slug)}&cinema=${encodeURIComponent(cinema.slug)}`,
+              purchaseUrl: purchaseUrl(movie.slug, cinema.slug, sessionId),
             };
 
             try {
