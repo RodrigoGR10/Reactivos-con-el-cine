@@ -54,17 +54,27 @@ export function validateResult(value: unknown, allowPartial = false): asserts va
     nonempty(movie, ["titulo", "genero", "clasificacion", "sinopsis", "poster"]);
     if (movie.url !== undefined) {
       const url = new URL(movie.url);
-      const path = origin === "cinemark" ? /^\/pelicula\/[^/]+$/ : origin === "cineplanet" ? /^\/peliculas\/[^/]+$/ : /^\/Browsing\/Movies\/Details\/h-[^/]+$/;
-      const hostname = origin === "muvix" || origin === "cinestar" ? `${origin}.cl` : `www.${origin}.cl`;
-      if (url.protocol !== "https:" || url.hostname !== hostname || !path.test(url.pathname) || url.username || url.password) throw new Error("Enlace de pelicula invalido.");
+      const path = origin === "cinepolis"
+        ? /^\/(?:cl\/detalle|pelicula\/[^/]+)$/
+        : origin === "cinemark"
+          ? /^\/pelicula\/[^/]+$/
+          : origin === "cineplanet"
+            ? /^\/peliculas\/[^/]+$/
+            : /^\/Browsing\/Movies\/Details\/h-[^/]+$/;
+      const validHost = origin === "cinepolis"
+        ? ["www.cinepolis.cl", "cinepolis.cl", "www.cinepolis.com", "cinepolis.com"].includes(url.hostname)
+        : url.hostname === (origin === "muvix" || origin === "cinestar" ? `${origin}.cl` : `www.${origin}.cl`);
+      if (url.protocol !== "https:" || !validHost || !path.test(url.pathname) || url.username || url.password) throw new Error("Enlace de pelicula invalido.");
     }
     if (!Number.isInteger(movie.duracion) || movie.duracion <= 0) throw new Error("Duracion invalida.");
   }
   for (const cinema of result.cines) {
     nonempty(cinema, ["nombre", "comuna", "ciudad", "direccion", "url"]);
     const url = new URL(cinema.url);
-    const hostname = origin === "muvix" || origin === "cinestar" ? `${origin}.cl` : `www.${origin}.cl`;
-    if (url.protocol !== "https:" || url.hostname !== hostname || url.username || url.password) throw new Error("Enlace de cine invalido.");
+    const validHost = origin === "cinepolis"
+      ? ["cinepolis.com", "www.cinepolis.com", "cinehoyts.cl", "www.cinehoyts.cl", "cinepolis.cl", "www.cinepolis.cl"].includes(url.hostname)
+      : url.hostname === (origin === "muvix" || origin === "cinestar" ? `${origin}.cl` : `www.${origin}.cl`);
+    if (url.protocol !== "https:" || !validHost || url.username || url.password) throw new Error("Enlace de cine invalido.");
   }
   if (result.meta.modo === "cartelera") {
     sourceIds(result.horarios!, "horarios");
@@ -80,6 +90,11 @@ export function validateResult(value: unknown, allowPartial = false): asserts va
         if (url.origin !== "https://www.cineplanet.cl" || url.username || url.password || !/^\d+$/.test(schedule.sesionId) || !url.pathname.endsWith(`/${schedule.cineId.slice(prefix.length)}/${schedule.sesionId}/asientos`)) throw new Error("Enlace de funcion de Cineplanet invalido.");
       }
       if ((origin === "muvix" || origin === "cinestar") && schedule.urlCompra !== purchaseUrl(origin, schedule.cineId.slice(prefix.length), schedule.sesionId)) throw new Error("Enlace de funcion invalido.");
+      if (origin === "cinepolis") {
+        const url = new URL(schedule.urlCompra!);
+        const allowedHosts = ["compra.cinepolis.com", "cinepolis.com", "www.cinepolis.com", "cinepolis.cl", "www.cinepolis.cl", "cinehoyts.cl", "www.cinehoyts.cl"];
+        if (url.protocol !== "https:" || !allowedHosts.includes(url.hostname) || url.username || url.password) throw new Error("Enlace de funcion de Cinepolis invalido.");
+      }
     }
   } else if (result.horarios !== undefined) {
     throw new Error("Los horarios requieren el modo cartelera.");
