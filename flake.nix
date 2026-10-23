@@ -22,7 +22,7 @@
         default = pkgs.mkShell {
           packages = [ pkgs.postgresql ];
 
-          # Esto es lo que se ejecuta cuando ocupan el comando nix use
+          # Esto es lo que se ejecuta cuando ocupan el comando use flake (del .envrc)
           # No es muy importante los detalles, solo saber que esta ejecucion
           # pregunta si postgre esta corriendo. Si no esta corriendo lo arranca
           # Aparte de eso, crea la carpeta pgdata si no existe
