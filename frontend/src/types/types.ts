@@ -56,5 +56,6 @@ export interface Horario {
   estadoPrecio: "pendiente" | "consultando" | "disponible" | "desactualizado" | "error" | "sin_tarifa" | "agotada";
   preciosConsultadosEn?: string;
   reintentarEn?: string;
+  urlCompra?: string;
   tarifas: Funcion[];
 }

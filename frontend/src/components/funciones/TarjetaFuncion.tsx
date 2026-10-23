@@ -6,7 +6,18 @@ const cadenas: Record<string, { nombre: string; dominios: string[] }> = {
   cineplanet: { nombre: "Cineplanet", dominios: ["www.cineplanet.cl", "cineplanet.cl"] },
   muvix: { nombre: "Muvix", dominios: ["muvix.cl", "www.muvix.cl"] },
   cinestar: { nombre: "Cinestar", dominios: ["cinestar.cl", "www.cinestar.cl"] },
-  cinepolis: { nombre: "Cinépolis", dominios: ["cinepolis.cl", "www.cinepolis.cl", "hoyts.cl", "www.hoyts.cl"] },
+  cinepolis: {
+    nombre: "Cinépolis",
+    dominios: [
+      "cinepolis.cl",
+      "www.cinepolis.cl",
+      "hoyts.cl",
+      "www.hoyts.cl",
+      "cinepolis.com",
+      "www.cinepolis.com",
+      "compra.cinepolis.com",
+    ],
+  },
 };
 
 const precioCLP = (precio: number) =>
@@ -47,7 +58,7 @@ export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFunc
   const tarifa = funcion ?? horario?.tarifas?.[0];
   const formato = tarifa?.formato || horario?.formatoResumen || "2D";
   const precio = tarifa?.precioOnline ?? tarifa?.precio;
-  const urlCompra = tarifa?.urlCompra;
+  const urlCompra = tarifa?.urlCompra ?? horario?.urlCompra;
 
   const enlace = enlaceSeguro(urlCompra, cine?.origen);
   const cadena = cadenas[cine?.origen ?? ""]?.nombre ?? cine?.nombre ?? "Cine";
