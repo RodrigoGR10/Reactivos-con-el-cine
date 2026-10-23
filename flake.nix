@@ -28,6 +28,7 @@
           # Aparte de eso, crea la carpeta pgdata si no existe
           shellHook = ''
             export PGDATA="$PWD/.pgdata"
+            export PGPORT=5433
             [ -d "$PGDATA" ] || initdb -U postgres --auth=trust >/dev/null
             pg_ctl status >/dev/null || pg_ctl -o "-c unix_socket_directories=" -l "$PGDATA/log" start
           '';
