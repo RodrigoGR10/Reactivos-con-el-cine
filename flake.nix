@@ -27,7 +27,7 @@
           # pregunta si postgre esta corriendo. Si no esta corriendo lo arranca
           # Aparte de eso, crea la carpeta pgdata si no existe
           shellHook = ''
-            export PGDATA=$PWD/.pgdata
+            export PGDATA="$PWD/.pgdata"
             [ -d "$PGDATA" ] || initdb -U postgres --auth=trust >/dev/null
             pg_ctl status >/dev/null || pg_ctl -o "-k $PGDATA" -l $PGDATA/log start
           '';
