@@ -95,6 +95,10 @@ Sin direnv, puedes entrar al mismo entorno a mano con:
 nix develop
 ```
 
+### Ojo:
+
+Al crear la carpeta pgdata el servidor se levantara inmediatamente, abre una nueva terminal en la raiz del proyecto para los siguientes pasos
+
 ### Crear la base de datos (solo la primera vez)
 
 ```bash
