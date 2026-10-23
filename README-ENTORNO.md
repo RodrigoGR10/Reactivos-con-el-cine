@@ -104,7 +104,7 @@ createdb -h localhost -U postgres cine
 Conexión desde el backend:
 
 ```
-postgresql://postgres@localhost:5432/cine
+postgresql://postgres@localhost:5433/cine
 ```
 
 PostgreSQL queda **sin contraseña** (autenticación `trust`). Es una configuración solo para desarrollo local: el servidor escucha únicamente en `localhost`, pero cualquier programa de tu máquina puede conectarse sin credenciales. No uses esta configuración en un servidor.
