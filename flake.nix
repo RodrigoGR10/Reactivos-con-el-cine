@@ -29,7 +29,7 @@
           shellHook = ''
             export PGDATA="$PWD/.pgdata"
             [ -d "$PGDATA" ] || initdb -U postgres --auth=trust >/dev/null
-            pg_ctl status >/dev/null || pg_ctl -o "-k $PGDATA" -l $PGDATA/log start
+            pg_ctl status >/dev/null || pg_ctl -o "-c unix_socket_directories=" -l "$PGDATA/log" start
           '';
 
           #Una cosa a prestar muchisima atencion. NO hacer despliegue por ahora, porque esa BDD no pide contrasenia
