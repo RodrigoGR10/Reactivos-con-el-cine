@@ -1,101 +1,191 @@
 import express from "express";
-import mongoose from "mongoose";
-import UserModel from "../models/user.ts";
-import PeliculaModel from "../models/pelicula.ts";
-import CineModel from "../models/cine.ts";
 import middleware from "../utils/middleware.ts";
+import { query, isUuid } from "../db.ts";
 
 const router = express.Router();
 
 router.use((req, res, next) => {
-  res.setHeader("Cache-Control", "no-store");
-  next();
+    res.setHeader("Cache-Control", "no-store");
+    next();
 });
 
 router.get("/favoritos", middleware.withUser, async (req, res) => {
-  const user = await UserModel.findById(req.userId);
-  if (!user) {
-    return res.status(401).json({ error: "El usuario de la sesión no existe" });
-  }
+    const userId = req.userId;
+    if (!userId || !isUuid(userId)) {
+        return res
+            .status(401)
+            .json({ error: "El usuario de la sesión no existe" });
+    }
 
-  return res.json({
-    peliculasFavoritas: user.peliculasFavoritas ?? [],
-    cinesFavoritos: user.cinesFavoritos ?? [],
-  });
+    //Verificar la existencia del usuario (por si acaso)
+    const checkUser = await query("SELECT id FROM users WHERE id = $1;", [
+        userId,
+    ]);
+
+    if (checkUser.rows.length === 0) {
+        return res
+            .status(401)
+            .json({ error: "El usuario de la sesion no existe" });
+    }
+
+    // Consultar arreglos de ids desde las tablas relacionales
+    const sql = `
+        SELECT
+            COALESCE(
+            (SELECT
+                ARRAY_AGG(pelicula_id::text)
+                FROM favoritos_peliculas WHERE user_id = $1),
+                '{}')
+            AS "peliculasFavoritas",
+            COALESCE(
+            (SELECT
+                ARRAY_AGG(cine_id::text)
+                FROM favoritos_cines WHERE user_id = $1),
+                '{}')
+            AS "cinesFavoritos";
+        `;
+
+    const { rows } = await query(sql, [userId]);
+    return res.json(rows[0]);
 });
 
 router.post(
-  "/favoritos/peliculas/:movieId",
-  middleware.withUser,
-  async (req, res) => {
-    const { movieId } = req.params;
-    if (typeof movieId !== "string" || !mongoose.isValidObjectId(movieId)) {
-      return res.status(400).json({ error: "ID de película inválido" });
-    }
-    const peliculaId = movieId.toLowerCase();
+    "/favoritos/peliculas/:movieId",
+    middleware.withUser,
+    async (req, res) => {
+        const userId = req.userId;
+        const { movieId } = req.params;
 
-    const user = await UserModel.findById(req.userId);
-    if (!user) {
-      return res
-        .status(401)
-        .json({ error: "El usuario de la sesión no existe" });
-    }
+        if (!userId || !isUuid(userId)) {
+            return res
+                .status(401)
+                .json({ error: "El usuario de la sesión no existe" });
+        }
 
-    const actuales = user.peliculasFavoritas ?? [];
-    const existe = actuales.includes(peliculaId);
+        if (typeof movieId !== "string" || !movieId || !isUuid(movieId)) {
+            return res.status(400).json({ error: "ID de película inválido" });
+        }
 
-    if (!existe) {
-      const pelicula = await PeliculaModel.findById(peliculaId);
-      if (!pelicula) {
-        return res.status(404).json({ error: "Película no encontrada" });
-      }
-    }
+        const userCheck = await query("SELECT id FROM users WHERE id = $1;", [
+            userId,
+        ]);
 
-    user.peliculasFavoritas = existe
-      ? actuales.filter((id) => id !== peliculaId)
-      : [...actuales, peliculaId];
+        if (userCheck.rows.length === 0) {
+            return res
+                .status(401)
+                .json({ error: "El usuario de la sesión no existe" });
+        }
 
-    await user.save();
+        const favCheck = await query(
+            "SELECT 1 FROM favoritos_peliculas WHERE user_id = $1 AND pelicula_id = $2;",
+            [userId, movieId],
+        );
 
-    return res.json({ peliculasFavoritas: user.peliculasFavoritas });
-  },
+        if (favCheck.rows.length > 0) {
+            //Si existe, se elimina
+            await query(
+                "DELETE FROM favoritos_peliculas WHERE user_id = $1 AND pelicula_id = $2;",
+                [userId, movieId],
+            );
+        } else {
+            //no existe, verificar que la peli exista en la BDD
+            const movieCheck = await query(
+                "SELECT id FROM peliculas WHERE id = $1;",
+                [movieId],
+            );
+            if (movieCheck.rows.length === 0) {
+                return res
+                    .status(404)
+                    .json({ error: "Película no encontrada" });
+            }
+
+            //insertar en favs
+            await query(
+                "INSERT INTO favoritos_peliculas (user_id, pelicula_id) VALUES ($1, $2);",
+                [userId, movieId],
+            );
+        }
+
+        //Obtener lista actualizada de ids
+        const updatedSql = `
+            SELECT COALESCE(ARRAY_AGG(pelicula_id::text),'{}') AS "peliculasFavoritas"
+            FROM favoritos_peliculas
+            WHERE user_id = $1;
+            `;
+
+        const { rows } = await query(updatedSql, [userId]);
+
+        return res.json({ peliculasFavoritas: rows[0].peliculasFavoritas });
+    },
 );
 
 router.post(
-  "/favoritos/cines/:cinemaId",
-  middleware.withUser,
-  async (req, res) => {
-    const { cinemaId } = req.params;
-    if (typeof cinemaId !== "string" || !mongoose.isValidObjectId(cinemaId)) {
-      return res.status(400).json({ error: "ID de cine inválido" });
-    }
-    const cineId = cinemaId.toLowerCase();
+    "/favoritos/cines/:cinemaId",
+    middleware.withUser,
+    async (req, res) => {
+        const userId = req.userId;
+        const { cinemaId } = req.params;
 
-    const user = await UserModel.findById(req.userId);
-    if (!user) {
-      return res
-        .status(401)
-        .json({ error: "El usuario de la sesión no existe" });
-    }
+        if (!userId || !isUuid(userId)) {
+            return res
+                .status(401)
+                .json({ error: "El usuario de la sesión no existe" });
+        }
 
-    const actuales = user.cinesFavoritos ?? [];
-    const existe = actuales.includes(cineId);
+        if (typeof cinemaId !== "string" || !cinemaId || !isUuid(cinemaId)) {
+            return res.status(400).json({ error: "ID de película inválido" });
+        }
 
-    if (!existe) {
-      const cine = await CineModel.findById(cineId);
-      if (!cine) {
-        return res.status(404).json({ error: "Cine no encontrado" });
-      }
-    }
+        const userCheck = await query("SELECT id FROM users WHERE id = $1;", [
+            userId,
+        ]);
 
-    user.cinesFavoritos = existe
-      ? actuales.filter((id) => id !== cineId)
-      : [...actuales, cineId];
+        if (userCheck.rows.length === 0) {
+            return res
+                .status(401)
+                .json({ error: "El usuario de la sesión no existe" });
+        }
 
-    await user.save();
+        const favCheck = await query(
+            "SELECT 1 FROM favoritos_cines WHERE user_id = $1 AND pelicula_id = $2;",
+            [userId, cinemaId],
+        );
 
-    return res.json({ cinesFavoritos: user.cinesFavoritos });
-  },
+        if (favCheck.rows.length > 0) {
+            //Si existe, se elimina
+            await query(
+                "DELETE FROM favoritos_cines WHERE user_id = $1 AND pelicula_id = $2;",
+                [userId, cinemaId],
+            );
+        } else {
+            //no existe, verificar que la peli exista en la BDD
+            const movieCheck = await query(
+                "SELECT id FROM peliculas WHERE id = $1;",
+                [cinemaId],
+            );
+            if (movieCheck.rows.length === 0) {
+                return res
+                    .status(404)
+                    .json({ error: "Película no encontrada" });
+            }
+
+            //insertar en favs
+            await query(
+                "INSERT INTO favoritos_cines (user_id, pelicula_id) VALUES ($1, $2);",
+                [userId, cinemaId],
+            );
+        }
+        //Obtener lista actualizada de ids
+        const updatedSql = `
+            SELECT COALESCE(ARRAY_AGG(cine_id::text),'{}') AS "peliculasFavoritas"
+            FROM favoritos_cines
+            WHERE user_id = $1;
+            `;
+
+        const { rows } = await query(updatedSql, [userId]);
+
+        return res.json({ peliculasFavoritas: rows[0].cinesFavoritos });
+    },
 );
 
 export default router;

@@ -1,50 +1,98 @@
-import PeliculaModel from "../models/pelicula.ts";
-import HorarioModel from "../models/horario.ts";
-import { horariosVigentes } from "../services/preciosFunciones.ts";
 import express from "express";
-import { clasificarEstreno } from "../utils/estreno.ts";
-import { localNow } from "../utils/localNow.ts";
+import { query, isUuid } from "../db.ts";
+import middleware from "../utils/middleware.ts";
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const { cartelera } = req.query;
-  if (cartelera !== undefined && cartelera !== "true" && cartelera !== "false") {
-    res.status(400).json({ error: "cartelera debe ser true o false" });
-    return;
-  }
-  if (cartelera === "true") {
-    const horarios = await HorarioModel.find({ ...horariosVigentes(), agotada: { $ne: true } })
-      .select("peliculaId origen peliculaOrigenId").lean();
-    const fuentesVigentes = new Map<string, Set<string>>();
-    for (const horario of horarios) {
-      const id = horario.peliculaId.toString();
-      const fuentes = fuentesVigentes.get(id) ?? new Set<string>();
-      fuentes.add(`${horario.origen}:${horario.peliculaOrigenId}`);
-      fuentesVigentes.set(id, fuentes);
-    }
-    const peliculas = await PeliculaModel.find({ _id: { $in: [...fuentesVigentes.keys()] } });
-    const hoy = localNow().slice(0, 10);
-    const disponibles = peliculas.map((pelicula) => {
-      const fuentes = (pelicula.fuentes ?? []).filter((fuente) =>
-        fuentesVigentes.get(pelicula._id.toString())?.has(`${fuente.origen}:${fuente.origenId}`));
-      return { ...pelicula.toJSON(), ...clasificarEstreno(fuentes, hoy) };
-    }).filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
-    res.json(disponibles);
-    return;
-  }
-  const peliculas = await PeliculaModel.find({});
+router.use((req, res, next) => {
+    res.setHeader("Cache-Control", "no-store");
+    next();
+});
 
-  res.json(peliculas);
+//Catalogo completo
+router.get("/", async (req, res, next) => {
+    const { cartelera } = req.query;
+
+    if (
+        cartelera !== undefined &&
+        cartelera !== "true" &&
+        cartelera !== "false"
+    ) {
+        return res
+            .status(400)
+            .json({ error: "cartelera debe ser true o false" });
+    }
+
+    if (cartelera !== "true") {
+        const sql = `
+            SELECT
+                id,
+                titulo,
+                sinopsis,
+                duracion,
+                genero,
+                clasificacion,
+                imagen_url AS "imagenUrl",
+                fecha_estreno AS "fechaEstreno"
+            FROM peliculas
+            ORDER BY titulo ASC;
+            `;
+
+        const { rows } = await query(sql);
+        return res.json(rows);
+    }
+
+    //Si cartelera === true entonces hacemos joins, deduplicacion y filtrado de horarios vigentes
+    const sql = `
+        SELECT
+          p.id,
+          p.titulo,
+          p.sinopsis,
+          p.duracion,
+          p.genero,
+          p.clasificacion,
+          p.imagen_url AS "imagenUrl",
+          p.fecha_estreno AS "fechaEstreno"
+        FROM peliculas p
+        INNER JOIN funciones f ON f.pelicula_id = p.id
+        WHERE f.fecha_hora >= CURRENT_TIMESTAMP
+          AND f.agotada = FALSE
+        GROUP BY p.id
+        ORDER BY p.titulo ASC;
+        `;
+
+    const { rows } = await query(sql);
+    return res.json(rows);
 });
 
 router.get("/:id", async (req, res, next) => {
-  const pelicula = await PeliculaModel.findById(req.params.id);
+    const { id } = req.params;
 
-  if (!pelicula) {
-    return res.status(404).json({ error: "Pelicula no encontrada" });
-  }
-  return res.json(pelicula);
+    if (!id || typeof id !== "string" || !isUuid(id)) {
+        return res.status(400).json({ error: "ID de película inválido" });
+    }
+
+    const sql = `
+        SELECT
+            id,
+            titulo,
+            sinopsis,
+            duracion,
+            genero,
+            clasificacion,
+            imagen_url AS "imagenUrl",
+            fecha_estreno AS "fechaEstreno"
+        FROM peliculas
+        WHERE id = $1;
+        `;
+
+    const { rows } = await query(sql, [id]);
+
+    if (rows.length === 0) {
+        return res.status(404).json({ error: "Película no encontrada" });
+    }
+
+    return res.json(rows[0]);
 });
 
 export default router;
