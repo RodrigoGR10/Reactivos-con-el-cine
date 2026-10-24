@@ -117,7 +117,7 @@ PostgreSQL queda **sin contraseña** (autenticación `trust`). Es una configurac
 
 ```bash
 pg_ctl status          # ¿está corriendo?
-pg_ctl stop            # apagar PostgreSQL
+pg_ctl -D .pgdata stop -m fast # Apagar postgre
 psql -h localhost -U postgres cine   # entrar a la base
 direnv reload          # recargar el entorno
 ```
