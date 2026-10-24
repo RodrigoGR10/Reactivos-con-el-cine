@@ -3,6 +3,17 @@ import express from "express";
 
 const router = express.Router();
 
+const CINE_COLUMNS = `
+    id,
+    nombre,
+    ciudad,
+    direccion,
+    latitud,
+    longitud,
+    logo_url AS logo,
+    cadena AS origen
+    `;
+
 router.get("/", async (req, res, next) => {
     const { cadena, comuna } = req.query;
     const conditions: string[] = [];
@@ -24,18 +35,7 @@ router.get("/", async (req, res, next) => {
         conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const sql = `
-        SELECT
-        id,
-        nombre,
-        cadena,
-        comuna,
-        direccion,
-        latitud,
-        longitud,
-        origen,
-        origen_id AS "origenId",
-        created_at AS "createdAt",
-        updated_at AS "updatedAt"
+        SELECT ${CINE_COLUMNS}
         FROM cines
         ${whereClause}
         ORDER BY nombre ASC;
@@ -54,18 +54,7 @@ router.get("/:id", async (req, res, next) => {
 
     //Aca $1 accede al id que se le ingresa en rows mediante un arreglo: [id]
     const sql = `
-        SELECT
-        id,
-        nombre,
-        cadena,
-        comuna,
-        direccion,
-        latitud,
-        longitud,
-        origen,
-        origen_id AS "origenId",
-        created_at AS "createdAt",
-        updated_at AS "updatedAt"
+        SELECT ${CINE_COLUMNS}
         FROM cines
         WHERE id = $1;
         `;
