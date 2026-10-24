@@ -1,6 +1,5 @@
 import express from "express";
-import { query, isUuid } from "../db.ts";
-import middleware from "../utils/middleware.ts";
+import { query, isSourceId } from "../db.ts";
 
 const router = express.Router();
 
@@ -68,7 +67,7 @@ router.get("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     const { id } = req.params;
 
-    if (!id || typeof id !== "string" || !isUuid(id)) {
+    if (!id || typeof id !== "string" || !isSourceId(id)) {
         return res.status(400).json({ error: "ID de película inválido" });
     }
 

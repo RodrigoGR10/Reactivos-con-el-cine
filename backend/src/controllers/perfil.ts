@@ -1,6 +1,6 @@
 import express from "express";
 import middleware from "../utils/middleware.ts";
-import { query, isUuid } from "../db.ts";
+import { query, isUuid, isSourceId } from "../db.ts";
 
 const router = express.Router();
 
@@ -62,7 +62,7 @@ router.post(
                 .json({ error: "El usuario de la sesión no existe" });
         }
 
-        if (typeof movieId !== "string" || !movieId || !isUuid(movieId)) {
+        if (!isSourceId(movieId)) {
             return res.status(400).json({ error: "ID de película inválido" });
         }
 
@@ -132,7 +132,7 @@ router.post(
                 .json({ error: "El usuario de la sesión no existe" });
         }
 
-        if (typeof cinemaId !== "string" || !cinemaId || !isUuid(cinemaId)) {
+        if (!isSourceId(cinemaId)) {
             return res.status(400).json({ error: "ID de película inválido" });
         }
 

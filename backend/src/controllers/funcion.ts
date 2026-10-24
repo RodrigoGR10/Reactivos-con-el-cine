@@ -1,5 +1,5 @@
 import express from "express";
-import { query, isUuid } from "../db.ts";
+import { query, isSourceId } from "../db.ts";
 
 const router = express.Router();
 
@@ -19,16 +19,16 @@ router.get("/", async (req, res) => {
 
     const params: unknown[] = [];
 
-    if (peliculaId && typeof peliculaId === "string") {
-        if (!isUuid(peliculaId)) {
+    if (peliculaId !== undefined) {
+        if (!isSourceId(peliculaId)) {
             return res.status(400).json({ error: "peliculaId inválido" });
         }
         params.push(peliculaId);
         conditions.push(`f.pelicula_id = $${params.length}`);
     }
 
-    if (cineId && typeof cineId === "string") {
-        if (!isUuid(cineId)) {
+    if (cineId !== undefined) {
+        if (!isSourceId(cineId)) {
             return res.status(400).json({ error: "cineId inválido" });
         }
         params.push(cineId);
@@ -65,7 +65,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
-    if (!id || typeof id !== "string" || !isUuid(id)) {
+    if (!isSourceId(id, 150)) {
         return res.status(400).json({ error: "ID de funcion invalido" });
     }
     const sql = `
@@ -109,7 +109,7 @@ router.get("/horarios", async (req, res) => {
     const params: unknown[] = [];
 
     if (peliculaId !== undefined) {
-        if (typeof peliculaId !== "string" || !isUuid(peliculaId)) {
+        if (!isSourceId(peliculaId)) {
             return res.status(400).json({ error: "peliculaId invalido" });
         }
         params.push(peliculaId);
@@ -117,7 +117,7 @@ router.get("/horarios", async (req, res) => {
     }
 
     if (cineId !== undefined) {
-        if (typeof cineId !== "string" || !isUuid(cineId)) {
+        if (!isSourceId(cineId)) {
             return res.status(400).json({ error: "cineId invalido" });
         }
         params.push(cineId);
@@ -159,10 +159,8 @@ router.get("/precios", async (req, res) => {
     const isDate = (d: string) => !isNaN(Date.parse(d));
 
     if (
-        typeof peliculaId !== "string" ||
-        !isUuid(peliculaId) ||
-        typeof cineId !== "string" ||
-        !isUuid(cineId) ||
+        !isSourceId(peliculaId) ||
+        !isSourceId(cineId) ||
         typeof fecha !== "string" ||
         !isDate(fecha)
     ) {

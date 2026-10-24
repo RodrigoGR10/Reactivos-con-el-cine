@@ -1,5 +1,4 @@
-import CineModel from "../models/cine.ts";
-import { query, isUuid } from "../db.ts";
+import { query, isSourceId } from "../db.ts";
 import express from "express";
 
 const router = express.Router();
@@ -49,7 +48,7 @@ router.get("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     const { id } = req.params;
 
-    if (!isUuid(id)) {
+    if (!isSourceId(id)) {
         return res.status(400).json({ error: "ID de cine invalido" });
     }
 
