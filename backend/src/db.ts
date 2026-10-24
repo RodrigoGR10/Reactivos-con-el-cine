@@ -50,3 +50,10 @@ export const query = async <T extends QueryResultRow = any>(
 const UUID_REGEX = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 
 export const isUuid = (val: string): boolean => UUID_REGEX.test(val);
+
+// Los IDs de cines, peliculas y funciones vienen del scraper con formato
+// "cadena:idOrigen" (ej. "cinemark:123"), no son UUID. Solo users.id es UUID.
+// El limite de largo evita pasar basura a la BDD (las columnas son VARCHAR(100)
+// en cines/peliculas y VARCHAR(150) en funciones).
+export const isSourceId = (val: unknown, maxLength = 100): val is string =>
+    typeof val === "string" && val.length > 0 && val.length <= maxLength;
