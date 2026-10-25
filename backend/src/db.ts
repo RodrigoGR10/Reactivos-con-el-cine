@@ -11,7 +11,8 @@
 //consulta hacia la BDD implica costos de autenticacion, negociacion de sockets y
 //carga de config de sesion
 
-import { Pool, QueryResult, QueryResultRow, PoolClient } from "pg";
+import { Pool } from "pg";
+import type { QueryResult, QueryResultRow } from "pg";
 import config from "./utils/config.ts";
 import logger from "./utils/logger.ts";
 
