@@ -78,7 +78,7 @@ router.get("/:id", async (req, res, next) => {
 
     const sql = `
         SELECT ${PELICULA_COLUMNS}
-        FROM peliculas
+        FROM peliculas p
         WHERE id = $1;
         `;
 
