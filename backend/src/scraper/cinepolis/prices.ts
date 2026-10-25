@@ -1,8 +1,5 @@
-import os from "node:os";
-import path from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
-import { startChromeSession, type ChromeSession } from "./browser.ts";
-import { API_KEY, CINES_CINEPOLIS, purchaseUrl } from "./client.ts";
+import { CINES_CINEPOLIS, purchaseUrl } from "./client.ts";
+import { consultaCinepolis } from "./consulta.ts";
 import type { ScrapedSchedule, ScrapedSession } from "../types.ts";
 
 interface Ticket {
@@ -37,64 +34,6 @@ const TICKETS_QUERY = `query Tickets($countryId: String!, $sessionId: String!, $
     }
   }
 }`;
-
-let browser: ChromeSession | undefined;
-let queue = Promise.resolve();
-let pending = 0;
-let idle: ReturnType<typeof setTimeout> | undefined;
-let lastRequest = 0;
-let cooldownUntil = 0;
-
-async function ticketData(cinemaVistaId: string, sessionId: string): Promise<Prices> {
-  if (pending >= 100) throw new Error("Hay muchas consultas de Cinepolis en curso. Intenta mas tarde.");
-  pending++;
-  clearTimeout(idle);
-  const queuedAt = Date.now();
-  // Un solo navegador para el lote de horarios, separado del perfil de la sincronizacion.
-  const task = queue.then(async () => {
-    if (Date.now() - queuedAt > 60_000) throw new Error("La consulta de Cinepolis tardo demasiado. Intenta nuevamente.");
-    if (Date.now() < cooldownUntil) throw new Error("Cinepolis no permite consultar ahora. Intenta mas tarde.");
-    browser ??= await startChromeSession({
-      profileDir: path.join(process.env.CHROME_USER_DATA_DIR || os.tmpdir(), "cinepolis-chrome-prices-profile"),
-    });
-    const cfg = {
-      apiKey: API_KEY, query: TICKETS_QUERY,
-      variables: { countryId: "CL", cinemaVistaId, sessionId },
-    };
-    await delay(Math.max(0, lastRequest + 500 - Date.now()));
-    lastRequest = Date.now();
-    const response = await browser.evaluate<{ status: number; json: Prices | null }>(`(async (cfg) => {
-      const response = await fetch("https://api-g.cinepolis.com/v1/ticket/graphql", {
-        method: "POST",
-        headers: { "content-type": "application/json", "country-id": "CL", "x-apikey": cfg.apiKey },
-        body: JSON.stringify({ operationName: "Tickets", query: cfg.query, variables: cfg.variables }),
-        signal: AbortSignal.timeout(30000),
-      });
-      let json = null;
-      try { json = await response.json(); } catch {}
-      return { status: response.status, json };
-    })(${JSON.stringify(cfg)})`);
-    if (response.status === 403 || response.status === 429) cooldownUntil = Date.now() + 60_000;
-    if (response.status !== 200 || !response.json || response.json.errors?.length || !Array.isArray(response.json.data?.tickets)) {
-      throw new Error(`Cinepolis no devolvio las tarifas de la funcion (HTTP ${response.status}).`);
-    }
-    return response.json;
-  }).catch((error: unknown) => {
-    browser?.close();
-    browser = undefined;
-    throw error;
-  }).finally(() => {
-    pending--;
-    if (pending === 0) {
-      idle = setTimeout(() => {
-        browser?.close();
-        browser = undefined;
-      }, 2000);
-    }
-  });
-  queue = task.then(() => {}, () => {});
-  return task;
-}
 
 function pesos(cents: number, field: string): number {
   if (!Number.isSafeInteger(cents) || cents < 0 || cents % 100 !== 0) {
@@ -160,7 +99,7 @@ export async function pricesForSchedule(schedule: ScrapedSchedule): Promise<Scra
   if (schedule.origen !== "cinepolis" || !schedule.cineId.startsWith("cinepolis:") || !schedule.peliculaId.startsWith("cinepolis:") || !cinema || !movieId || !/^\d+$/.test(schedule.sesionId)) {
     throw new Error("Identidad de funcion de Cinepolis invalida.");
   }
-  const response = await ticketData(cinema.vistaId, schedule.sesionId);
+  const response = await consultaCinepolis<Prices>("Tickets", TICKETS_QUERY, { countryId: "CL", cinemaVistaId: cinema.vistaId, sessionId: schedule.sesionId });
   return normalizePrices(response, {
     ...schedule, urlCompra: purchaseUrl(movieId, cinema.slug, schedule.sesionId),
   });

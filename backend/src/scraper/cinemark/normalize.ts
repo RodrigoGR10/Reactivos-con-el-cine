@@ -130,13 +130,15 @@ export function normalizePrices(groups: RawPriceGroup[], session: RawSession): {
 }[] {
   if (!Array.isArray(groups)) throw new Error("La respuesta de precios no es una lista.");
   const byArea = new Map<string, { ticket: RawTicket; option: RawTicket["buyOptions"][number]; rank: number }>();
+  const ambiguousAreas = new Set<string>();
   for (const group of groups) {
     if (normalized(group.title) !== "GENERAL") continue;
     if (!Array.isArray(group.tickets)) throw new Error("Grupo de tarifas invalido.");
     for (const ticket of group.tickets) {
       const title = normalized(ticket.title);
-      const rank = /^ADULTO\b/.test(title) ? 3 : /^(MATINE|LUNES|MARTES|MIERCOLES|JUEVES|VIERNES|SABADO|DOMINGO)\b/.test(title) ? 2 : /^(GENERAL|NORMAL|ENTRADA (GENERAL|UNICA)|TARIFA NORMAL)\b/.test(title) ? 1 : 0;
-      if (/\b(NINO|NINA|3ERA|TERCERA|ESTUDIANTE|PROMO|CANJE)\b/.test(title)) continue;
+      // Los eventos especiales pueden publicar ENTRADA 2D/3D en lugar de ADULTO.
+      const rank = /^ADULTO\b/.test(title) ? 3 : /^(MATINE|LUNES|MARTES|MIERCOLES|JUEVES|VIERNES|SABADO|DOMINGO)\b/.test(title) ? 2 : /^(GENERAL|NORMAL|ENTRADA (GENERAL|UNICA|2D|3D)|TARIFA NORMAL)\b/.test(title) ? 1 : 0;
+      if (/\b(NINO|NINA|3ERA|TERCERA|ESTUDIANTE|PROMO|CANJE|PACK|COMBO|CONVENIO|DESCUENTO|CUPON|2X1|BANCO)\b/.test(title)) continue;
       if (!rank || ticket.isPackageTicket || ticket.isBinPromotion || ticket.isThirdPartyMemberTicket || ticket.isPaymentByCreditCardOnly || ticket.partnershipName || ticket.recognitionId || (ticket.ticketsQty ?? 1) !== 1) continue;
       if (ticket.internalTicketType && normalized(ticket.internalTicketType) !== "GENERAL") continue;
       const options = ticket.buyOptions?.filter((option) => !option.promoId && !option.recogId && !option.level && !option.type && Number.isFinite(option.priceInCents) && option.priceInCents > 0 && Number.isFinite(option.totalWithFee) && option.totalWithFee >= option.priceInCents);
@@ -144,10 +146,15 @@ export function normalizePrices(groups: RawPriceGroup[], session: RawSession): {
       const option = options[0];
       const area = text(ticket.areaCategoryCode, "area de tarifa");
       const previous = byArea.get(area);
-      if (!previous || rank > previous.rank) byArea.set(area, { ticket, option, rank });
-      else if (rank === previous.rank && (option.priceInCents !== previous.option.priceInCents || option.totalWithFee !== previous.option.totalWithFee)) throw new Error(`Tarifas normales ambiguas para area ${area}.`);
+      if (!previous || rank > previous.rank) {
+        byArea.set(area, { ticket, option, rank });
+        ambiguousAreas.delete(area);
+      } else if (rank === previous.rank && (option.priceInCents !== previous.option.priceInCents || option.totalWithFee !== previous.option.totalWithFee)) {
+        ambiguousAreas.add(area);
+      }
     }
   }
+  for (const area of ambiguousAreas) throw new Error(`Tarifas normales ambiguas para area ${area}.`);
   return [...byArea].map(([areaId, { ticket, option }]) => {
     const precio = option.priceInCents / 100;
     const precioOnline = option.totalWithFee / 100;
