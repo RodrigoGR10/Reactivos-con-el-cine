@@ -327,7 +327,7 @@ function MovieDetailPage() {
                             )}
                         </div>
 
-                        {formatosDisponibles.length > 2 && (
+                        {formatosDisponibles.length > 1 && (
                             <div className="formatos-chips">
                                 {formatosDisponibles.map((formato) => (
                                     <button

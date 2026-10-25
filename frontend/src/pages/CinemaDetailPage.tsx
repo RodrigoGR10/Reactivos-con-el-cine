@@ -290,7 +290,7 @@ function CinemaDetailPage() {
             </div>
 
             {/* Selector de formato (2D, 3D, etc.) */}
-            {formatosDisponibles.length > 2 && (
+            {formatosDisponibles.length > 1 && (
               <div className="cartelera-cine-formatos-fila">
                 <span className="cartelera-cine-formato-label">Formato</span>
                 <div className="formatos-chips" role="group" aria-label="Filtrar por formato">
