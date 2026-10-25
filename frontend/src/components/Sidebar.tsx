@@ -14,17 +14,13 @@ function Sidebar() {
   return (
     <aside className="sidebar" aria-label="Navegación principal">
       <div className="sidebar-top">
-        <NavLink
-          to="/"
-          className="sidebar-btn logo-btn"
-          title="Reactivos con el Cine"
-        >
+        <div className="sidebar-logo">
           <img
             src="/logo.jpg"
             alt="Reactivos con el Cine"
             className="sidebar-logo-img"
           />
-        </NavLink>
+        </div>
       </div>
 
       <div className="sidebar-mid">

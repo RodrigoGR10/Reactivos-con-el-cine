@@ -121,7 +121,9 @@ body {
     background: transparent;
 }
 
-.logo-btn {
+.sidebar-logo {
+    width: clamp(48px, 3.4vw, 64px);
+    height: clamp(48px, 3.4vw, 64px);
     padding: 0;
     overflow: hidden;
     display: flex;
@@ -135,14 +137,6 @@ body {
     border-radius: 8px;
     object-fit: cover;
     display: block;
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.logo-btn:hover .sidebar-logo-img {
-    transform: scale(1.08);
-    box-shadow: 0 0 10px rgba(204, 18, 11, 0.45);
 }
 
 .main-principal {
