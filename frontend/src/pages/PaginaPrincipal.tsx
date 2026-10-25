@@ -1,12 +1,12 @@
 import Cartelera from "../components/peliculas/Cartelera.tsx";
 import FiltrosPeliculas from "../components/peliculas/FiltrosPeliculas.tsx";
-import PeliculaDestacada from "../components/peliculas/PeliculaDestacada.tsx";
+import { CarruselDestacadas } from "../components/peliculas/CarruselDestacadas.tsx";
 import Preventas from "../components/peliculas/Preventas.tsx";
 import { usePeliculas } from "../hooks/usePelicula.ts";
 import { useFiltrosPeliculas } from "../hooks/useFiltrosPeliculas.ts";
 
 function PaginaPrincipal() {
-  const { peliculas, peliculaDestacada, cargando, error } = usePeliculas();
+  const { peliculas, peliculasDestacadas, cargando, error } = usePeliculas();
 
   const {
     filtros,
@@ -30,7 +30,7 @@ function PaginaPrincipal() {
 
   return (
     <>
-      {peliculaDestacada && <PeliculaDestacada pelicula={peliculaDestacada} />}
+      {peliculasDestacadas.length > 0 && <CarruselDestacadas peliculas={peliculasDestacadas} />}
 
       <div className="contenido-principal">
         <FiltrosPeliculas

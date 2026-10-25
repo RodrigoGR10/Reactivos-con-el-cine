@@ -9,6 +9,7 @@ export interface Pelicula {
   banner?: string;
   estadoEstreno?: "cartelera" | "preventa" | "proximamente";
   fechaEstreno?: string;
+  totalFavoritos?: number;
 }
 
 export interface Cine {

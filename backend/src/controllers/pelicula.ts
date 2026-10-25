@@ -4,8 +4,14 @@ import { horariosVigentes } from "../services/preciosFunciones.ts";
 import express from "express";
 import { clasificarEstreno } from "../utils/estreno.ts";
 import { localNow } from "../utils/localNow.ts";
+import { incluirPopularidad } from "../services/popularidadPeliculas.ts";
 
 const router = express.Router();
+
+router.use((req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 
 router.get("/", async (req, res, next) => {
   const { cartelera } = req.query;
@@ -28,14 +34,14 @@ router.get("/", async (req, res, next) => {
     const disponibles = peliculas.map((pelicula) => {
       const fuentes = (pelicula.fuentes ?? []).filter((fuente) =>
         fuentesVigentes.get(pelicula._id.toString())?.has(`${fuente.origen}:${fuente.origenId}`));
-      return { ...pelicula.toJSON(), ...clasificarEstreno(fuentes, hoy) };
+      return { ...pelicula.toJSON(), id: pelicula._id.toString(), ...clasificarEstreno(fuentes, hoy) };
     }).filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
-    res.json(disponibles);
+    res.json(await incluirPopularidad(disponibles));
     return;
   }
   const peliculas = await PeliculaModel.find({});
 
-  res.json(peliculas);
+  res.json(await incluirPopularidad(peliculas.map((pelicula) => ({ ...pelicula.toJSON(), id: pelicula._id.toString() }))));
 });
 
 router.get("/:id", async (req, res, next) => {
@@ -44,7 +50,8 @@ router.get("/:id", async (req, res, next) => {
   if (!pelicula) {
     return res.status(404).json({ error: "Pelicula no encontrada" });
   }
-  return res.json(pelicula);
+  const [publica] = await incluirPopularidad([{ ...pelicula.toJSON(), id: pelicula._id.toString() }]);
+  return res.json(publica);
 });
 
 export default router;
