@@ -6,8 +6,9 @@ import funcionesService from "../services/funciones";
 import peliculasService from "../services/peliculas";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
-import { MapPinIcon, SearchIcon } from "../components/common/Icons";
+import { CloseIcon, MapPinIcon, SearchIcon } from "../components/common/Icons";
 import { agruparHorariosPorPelicula } from "../utils/agruparFunciones";
+import { normalizarTexto } from "../utils/normalizarTexto";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
 import "./CinemaDetailPage.css";
@@ -163,9 +164,10 @@ function CinemaDetailPage() {
   );
 
   // Filtra grupos por búsqueda de título
-  const gruposFiltrados = busqueda.trim()
+  const terminoBusqueda = normalizarTexto(busqueda.trim());
+  const gruposFiltrados = terminoBusqueda
     ? grupos.filter((g) =>
-        g.pelicula.titulo.toLowerCase().includes(busqueda.trim().toLowerCase()),
+        normalizarTexto(g.pelicula.titulo).includes(terminoBusqueda),
       )
     : grupos;
 
@@ -181,7 +183,7 @@ function CinemaDetailPage() {
       {/* Header / Hero del Cine */}
       <header className="detalle-cine-header">
         <div className="detalle-cine-header-main">
-          <div className="detalle-cine-logo-wrap">
+          <div className="detalle-cine-logo-wrap" data-origen={cine.origen}>
             {logo ? (
               <img
                 src={logo}
@@ -250,38 +252,58 @@ function CinemaDetailPage() {
         {horarios.length > 0 && (
           <div className="cartelera-cine-filtros">
             {/* Buscador de película en este cine */}
-            <div className="cartelera-search-box">
-              <SearchIcon size={16} />
-              <input
-                type="text"
-                placeholder="Buscar película en este cine..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-              />
-              {busqueda && (
-                <button
-                  type="button"
-                  className="btn-clear-inline"
-                  onClick={() => setBusqueda("")}
-                >
-                  ✕
-                </button>
-              )}
+            <div className="cartelera-cine-busqueda-fila">
+              <div className="cartelera-search-box">
+                <SearchIcon size={18} />
+                <input
+                  type="text"
+                  aria-label="Buscar película en este cine"
+                  placeholder="Buscar película en este cine..."
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                />
+                {busqueda && (
+                  <button
+                    type="button"
+                    className="btn-clear-inline"
+                    aria-label="Borrar búsqueda"
+                    title="Borrar búsqueda"
+                    onClick={() => setBusqueda("")}
+                  >
+                    <CloseIcon size={14} />
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                className="cartelera-cine-restablecer"
+                disabled={!busqueda && formatoActual === "Todos"}
+                aria-label="Restablecer filtros de cartelera"
+                title="Restablecer filtros"
+                onClick={() => { setBusqueda(""); setFormatoSeleccionado("Todos"); }}
+              >
+                <CloseIcon size={16} />
+                <span>Restablecer</span>
+              </button>
             </div>
 
             {/* Selector de formato (2D, 3D, etc.) */}
             {formatosDisponibles.length > 2 && (
-              <div className="formatos-chips">
-                {formatosDisponibles.map((formato) => (
-                  <button
-                    key={formato}
-                    type="button"
-                    className={`formato-chip ${formatoActual === formato ? "active" : ""}`}
-                    onClick={() => setFormatoSeleccionado(formato)}
-                  >
-                    {formato}
-                  </button>
-                ))}
+              <div className="cartelera-cine-formatos-fila">
+                <span className="cartelera-cine-formato-label">Formato</span>
+                <div className="formatos-chips" role="group" aria-label="Filtrar por formato">
+                  {formatosDisponibles.map((formato) => (
+                    <button
+                      key={formato}
+                      type="button"
+                      className={`formato-chip ${formatoActual === formato ? "active" : ""}`}
+                      aria-pressed={formatoActual === formato}
+                      onClick={() => setFormatoSeleccionado(formato)}
+                    >
+                      {formato}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
