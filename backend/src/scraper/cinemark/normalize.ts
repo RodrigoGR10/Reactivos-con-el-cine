@@ -1,4 +1,5 @@
 import { SITE } from "./client.ts";
+import { normalizarButacas } from "../butacas.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
 import { fechaDeEstreno, isDate, scheduleRevision } from "../normalize.ts";
 import type { RawCinema, RawMovie, RawPriceGroup, RawSession, RawTicket } from "./types.ts";
@@ -81,6 +82,7 @@ export function normalizeSchedule(session: RawSession, extractedAt: string): Scr
     idioma: text(session.language?.name, "idioma"),
     sala: text(session.theaterRoom, "sala"),
     agotada: session.occupation?.availableSeats === 0,
+    butacas: normalizarButacas(session.occupation?.availableSeats, session.occupation?.capacity, extractedAt),
   };
   return { ...schedule, revision: scheduleRevision(schedule) };
 }

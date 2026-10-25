@@ -12,6 +12,7 @@ import { pricesForSchedule as cinepolisPrices } from "../scraper/cinepolis/price
 import { ORIGENES } from "../scraper/types.ts";
 import type { RawPriceGroup, RawSession } from "../scraper/cinemark/types.ts";
 import type { ScrapedSession } from "../scraper/types.ts";
+import { butacasPublicas } from "./estadoButacas.ts";
 
 export const CACHE_PRECIOS_MS = 15 * 60_000;
 const RETRY_MS = 60_000;
@@ -41,6 +42,7 @@ export function horarioPublico(schedule: HorarioGuardado) {
     fecha: schedule.fecha, fechaCartelera: schedule.fechaCartelera,
     horario: schedule.horario, formatoResumen: schedule.formatoResumen, idioma: schedule.idioma, sala: schedule.sala,
     agotada: schedule.agotada, estadoPrecio,
+    ...butacasPublicas(schedule),
     preciosConsultadosEn: compatible ? schedule.preciosConsultadosEn?.toISOString() : undefined,
     reintentarEn: schedule.preciosErrorRevision === schedule.revision ? schedule.preciosErrorHasta?.toISOString() : undefined,
     urlCompra: schedule.urlCompra ?? schedule.peliculaUrl,

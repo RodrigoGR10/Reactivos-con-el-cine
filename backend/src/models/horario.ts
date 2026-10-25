@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import type { Origen, ScrapedSession } from "../scraper/types.ts";
 import { ORIGENES } from "../scraper/types.ts";
 import { nombreColeccion } from "../utils/colecciones.ts";
+import type { Butacas } from "../scraper/butacas.ts";
 
 export interface Horario {
   peliculaId: mongoose.Types.ObjectId;
@@ -29,6 +30,11 @@ export interface Horario {
   consultaPreciosHasta?: Date;
   consultaPreciosRevision?: string;
   consultaPreciosToken?: string;
+  butacas?: Butacas;
+  butacasRevision?: string;
+  butacasActualizadasEn?: Date;
+  butacasErrorHasta?: Date;
+  butacasErrorRevision?: string;
 }
 
 const tarifaSchema = new Schema<ScrapedSession>({
@@ -78,6 +84,18 @@ const horarioSchema = new Schema<Horario>({
   consultaPreciosHasta: Date,
   consultaPreciosRevision: String,
   consultaPreciosToken: String,
+  butacas: {
+    type: new Schema<Butacas>({
+      disponibles: { type: Number, min: 0, required: true, validate: Number.isSafeInteger },
+      total: { type: Number, min: 1, validate: Number.isSafeInteger },
+      consultadasEn: { type: String, required: true },
+    }, { _id: false, id: false }),
+    default: undefined,
+  },
+  butacasRevision: String,
+  butacasActualizadasEn: Date,
+  butacasErrorHasta: Date,
+  butacasErrorRevision: String,
 }, { timestamps: true });
 
 horarioSchema.index({ origen: 1, origenId: 1 }, { unique: true });

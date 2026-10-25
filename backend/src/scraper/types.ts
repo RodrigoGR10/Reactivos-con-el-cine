@@ -1,4 +1,5 @@
 import type { DatosEstreno } from "../utils/estreno.ts";
+import type { Butacas } from "./butacas.ts";
 
 export const ORIGENES = ["cinemark", "cineplanet", "muvix", "cinestar", "cinepolis"] as const;
 export type Origen = typeof ORIGENES[number];
@@ -68,6 +69,7 @@ export interface ScrapedSchedule extends SourceRecord {
   agotada: boolean;
   revision: string;
   urlCompra?: string;
+  butacas?: Butacas;
 }
 
 export interface Incident {

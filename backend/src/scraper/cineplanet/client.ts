@@ -52,7 +52,7 @@ export async function initializeCineplanet(delayMs = 500) {
 }
 
 export async function cineplanetData<T>(path: string): Promise<T> {
-  if (!/^\/api\/(?:cache\/(?:cinemas|movies|session)cache|gettickets\/cinema\/\d+\/session\/\d+\/usersessionid\/[a-f\d]{32})$/.test(path)) throw new Error("Consulta de Cineplanet no permitida.");
+  if (!/^\/api\/(?:cache\/(?:cinemas|movies|session)cache|sessionavailable\/cinema\/\d+\/session\/\d+|gettickets\/cinema\/\d+\/session\/\d+\/usersessionid\/[a-f\d]{32})$/.test(path)) throw new Error("Consulta de Cineplanet no permitida.");
   for (let attempt = 0; attempt < 2; attempt++) {
     if (!config || Date.now() - config.loadedAt >= 60 * 60_000) await initializeCineplanet();
     const current = config!;

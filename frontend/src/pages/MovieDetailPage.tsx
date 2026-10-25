@@ -10,6 +10,7 @@ import { SelectorFechas } from "../components/funciones/SelectorFechas";
 import { MapPinIcon, SearchIcon } from "../components/common/Icons";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import { useUbicacion } from "../hooks/useUbicacion";
+import { useButacasFunciones, claveButacas } from "../hooks/useButacasFunciones";
 import "./MovieDetailPage.css";
 
 import type { Cine, Horario } from "../types/types";
@@ -38,6 +39,7 @@ function MovieDetailPage() {
             : Infinity;
 
     const { pelicula, horarios, cines, error } = useDetallePelicula(id);
+    const butacas = useButacasFunciones();
 
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
     const [fechaSeleccionada, setFechaSeleccionada] = useState("");
@@ -93,7 +95,7 @@ function MovieDetailPage() {
     const grupos = cines
         .flatMap((cine) => {
             const sesiones = horariosDelDia
-                .map((h) => horariosConPrecios[h.id] ?? h)
+                .map((h) => ({ ...(horariosConPrecios[h.id] ?? h), ...butacas.porHorario[h.id] }))
                 .filter(
                     (h) =>
                         h.cineId === cine.id &&
@@ -350,6 +352,8 @@ function MovieDetailPage() {
                                             (h.tarifas[0].precioOnline ||
                                                 h.tarifas[0].precio),
                                     );
+                                    const clave = claveButacas(pelicula.id, cine.id, fechaActual);
+                                    const tieneButacas = sesiones.some(h => h.butacas || h.estadoButacas === "sin_datos");
 
                                     return (
                                         <article
@@ -422,6 +426,7 @@ function MovieDetailPage() {
                                                     </div>
                                                 </div>
 
+                                                <div className="funciones-acciones">
                                                 <button
                                                     type="button"
                                                     className={`btn-ver-precios ${tienePrecios ? "cargado" : ""}`}
@@ -443,8 +448,16 @@ function MovieDetailPage() {
                                                           ? "Precios cargados"
                                                           : "Ver precios"}
                                                 </button>
+                                                <button type="button" className="btn-ver-butacas"
+                                                    disabled={butacas.cargando[clave]}
+                                                    aria-label={`Consultar butacas en ${cine.nombre}`}
+                                                    title="Consultar disponibilidad de butacas de estas funciones"
+                                                    onClick={() => butacas.consultar(pelicula.id, cine.id, fechaActual)}>
+                                                    {butacas.cargando[clave] ? "Consultando butacas..." : tieneButacas ? "Actualizar butacas" : "Ver butacas"}
+                                                </button>
+                                                </div>
                                             </div>
-
+                                            {butacas.errores[clave] && <p className="error-butacas" role="alert">{butacas.errores[clave]}</p>}
                                             <div className="horarios-grid-cine">
                                                 {sesiones.map((h) => (
                                                     <TarjetaFuncion

@@ -1,5 +1,6 @@
 import type { Cine, Funcion, Horario, Pelicula } from "../../types/types";
 import "./TarjetaFuncion.css";
+import { ButacasFuncion } from "./ButacasFuncion";
 
 const cadenas: Record<string, { nombre: string; dominios: string[] }> = {
   cinemark: { nombre: "Cinemark", dominios: ["www.cinemark.cl", "cinemark.cl"] },
@@ -64,10 +65,13 @@ export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFunc
   const cadena = cadenas[cine?.origen ?? ""]?.nombre ?? cine?.nombre ?? "Cine";
   const tituloPelicula = pelicula?.titulo ?? "Película";
   const nombreCine = cine?.nombre ?? "Cine";
+  const butacas = horario?.butacas;
+  const resumenButacas = butacas && Number.isSafeInteger(butacas.disponibles) && butacas.disponibles >= 0
+    ? `, última consulta de butacas: ${butacas.disponibles}${butacas.total ? ` de ${butacas.total}` : ""} libres` : "";
 
   const etiquetaAria = `${tituloPelicula}, ${nombreCine}, ${hora} ${formato} ${idioma}${
     precio !== undefined ? `, precio ${precioCLP(precio)}` : ""
-  }`;
+  }${resumenButacas}`;
 
   const tienePrecio = precio !== undefined || agotada;
 
@@ -82,6 +86,7 @@ export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFunc
           {agotada ? "Agotada" : precioCLP(precio!)}
         </span>
       )}
+      {horario && <ButacasFuncion horario={horario} />}
     </>
   );
 

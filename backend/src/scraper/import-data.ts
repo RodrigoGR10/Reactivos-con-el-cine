@@ -85,6 +85,7 @@ export function validateResult(value: unknown, allowPartial = false): asserts va
       if (!movies.has(schedule.peliculaId) || !cinemas.has(schedule.cineId)) throw new Error("Horario con referencias inexistentes.");
       if (!isDate(schedule.fecha) || !isDate(schedule.fechaCartelera) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(schedule.horario)) throw new Error("Fecha u hora de cartelera invalida.");
       if (typeof schedule.agotada !== "boolean" || schedule.origenId !== `${schedule.cineId.slice(prefix.length)}:${schedule.sesionId}` || schedule.revision !== scheduleRevision(schedule)) throw new Error("Identidad o revision de horario invalida.");
+      if (schedule.butacas && (!Number.isSafeInteger(schedule.butacas.disponibles) || schedule.butacas.disponibles < 0 || Number.isNaN(Date.parse(schedule.butacas.consultadasEn)) || (schedule.butacas.total !== undefined && (!Number.isSafeInteger(schedule.butacas.total) || schedule.butacas.total < 1 || schedule.butacas.total < schedule.butacas.disponibles)))) throw new Error("Disponibilidad de butacas invalida.");
       if (origin === "cineplanet") {
         const url = new URL(schedule.urlCompra!);
         if (url.origin !== "https://www.cineplanet.cl" || url.username || url.password || !/^\d+$/.test(schedule.sesionId) || !url.pathname.endsWith(`/${schedule.cineId.slice(prefix.length)}/${schedule.sesionId}/asientos`)) throw new Error("Enlace de funcion de Cineplanet invalido.");
@@ -382,7 +383,9 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
         const cineId = cinemas.get(schedule.cineId);
         if (!peliculaId || !cineId) throw new Error(`Referencias incompletas para el horario ${id}.`);
         const movie = result.peliculas.find((movie) => movie.id === schedule.peliculaId)!;
-        const document = { ...schedule, peliculaId, cineId, peliculaOrigenId: movie.origenId, peliculaUrl: movie.url };
+        const document = { ...schedule, peliculaId, cineId, peliculaOrigenId: movie.origenId, peliculaUrl: movie.url,
+          ...(schedule.butacas ? { butacasRevision: schedule.revision, butacasActualizadasEn: new Date(schedule.butacas.consultadasEn) } : {}),
+        };
         await new Horario(document).validate();
         operations.push({ updateOne: {
           filter: { origen: origin, origenId: schedule.origenId },

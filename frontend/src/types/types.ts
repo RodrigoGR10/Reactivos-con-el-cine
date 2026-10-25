@@ -59,4 +59,12 @@ export interface Horario {
   reintentarEn?: string;
   urlCompra?: string;
   tarifas: Funcion[];
+  estadoButacas?: "pendiente" | "disponible" | "desactualizado" | "error" | "sin_datos";
+  butacas?: {
+    disponibles: number;
+    total?: number;
+    porcentajeNoDisponible?: number;
+    consultadasEn: string;
+  };
+  butacasReintentarEn?: string;
 }
