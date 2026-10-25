@@ -211,7 +211,8 @@
     color: #666666;
 }
 
-.selector-comuna-filtro {
+.selector-comuna-filtro,
+.detalle-pelicula .selector-cadena-filtro {
     background-color: #121212;
     border: 1px solid #222222;
     border-radius: 8px;
@@ -230,13 +231,32 @@
     background-position: right 12px center;
 }
 
-.selector-comuna-filtro:focus {
+.selector-comuna-filtro:focus,
+.detalle-pelicula .selector-cadena-filtro:focus {
     border-color: #444444;
 }
 
-.selector-comuna-filtro option {
+.selector-comuna-filtro option,
+.detalle-pelicula .selector-cadena-filtro option {
     background-color: #141414;
     color: #ffffff;
+}
+
+.detalle-pelicula .selector-cadena-filtro {
+    width: 180px;
+    max-width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
+}
+
+.detalle-pelicula .selector-cadena-filtro:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.detalle-pelicula .filtros-barra-principal :focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 3px;
 }
 
 .btn-clear-inline {
@@ -521,7 +541,8 @@
 
 .boton-cercania-detalle.activo {
     color: #ffffff;
-    cursor: default;
+    border-color: var(--color-acento);
+    background: #251014;
 }
 
 .boton-cercania-detalle.activo svg path {
@@ -596,8 +617,14 @@
         align-items: stretch;
     }
 
+    .detalle-pelicula .filtros-barra-principal > * {
+        flex: none;
+        min-height: 44px;
+    }
+
     .cartelera-search-box,
     .selector-comuna-filtro,
+    .detalle-pelicula .selector-cadena-filtro,
     .boton-cercania-detalle {
         width: 100%;
         min-width: 0;
