@@ -6,6 +6,7 @@ const router = express.Router();
 const CINE_COLUMNS = `
     id,
     nombre,
+    comuna,
     ciudad,
     direccion,
     latitud,
