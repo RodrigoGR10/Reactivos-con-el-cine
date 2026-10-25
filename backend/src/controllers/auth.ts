@@ -7,6 +7,18 @@ import config from "../utils/config.ts";
 import middleware from "../utils/middleware.ts";
 const router = express.Router();
 
+const usuarioPublico = (u: {
+    id: string;
+    email: string;
+    nombre: string | null;
+    fechaRegistro?: Date;
+}) => ({
+    id: u.id,
+    nombre: u.nombre,
+    email: u.email,
+    fechaRegistro: u.fechaRegistro?.toISOString(),
+});
+
 const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -83,26 +95,20 @@ router.post("/register", async (req, res) => {
     const insertSql = `
         INSERT INTO users (email, password_hash, nombre)
         VALUES ($1, $2, $3)
-        RETURNING id, email, nombre;
+        RETURNING id, email, nombre, creado_en AS "fechaRegistro";
         `;
 
     const { rows } = await query(insertSql, [
         emailNormalizado,
         passwordHash,
-        nombre || null,
+        nombre.trim(),
     ]);
 
     const user = rows[0];
 
     createSession(res, { id: user.id, email: user.email });
 
-    return res.status(201).json({
-        user: {
-            id: user.id,
-            email: user.email,
-            nombre: user.nombre,
-        },
-    });
+    return res.status(201).json(usuarioPublico(user));
 });
 
 router.post("/login", async (req, res) => {
@@ -122,7 +128,7 @@ router.post("/login", async (req, res) => {
     const emailNormalizado = email.trim().toLowerCase();
 
     const sql = `
-        SELECT id, email, nombre, password_hash
+        SELECT id, email, nombre, password_hash, creado_en AS "fechaRegistro"
         FROM users
         WHERE email = $1;
         `;
@@ -140,22 +146,9 @@ router.post("/login", async (req, res) => {
             .json({ error: "El correo o la contraseña son incorrectos." });
     }
 
-    const token = jwt.sign(
-        { id: user.id, email: user.email },
-        config.JWT_SECRET,
-        {
-            expiresIn: "7d",
-        },
-    );
+    createSession(res, { id: user.id, email: user.email });
 
-    return res.json({
-        token,
-        user: {
-            id: user.id,
-            email: user.email,
-            nombre: user.nombre,
-        },
-    });
+    return res.json(usuarioPublico(user));
 });
 
 router.get("/me", middleware.withUser, async (req, res) => {
@@ -166,7 +159,12 @@ router.get("/me", middleware.withUser, async (req, res) => {
             .json({ error: "El usuario de la sesión no existe" });
     }
 
-    const sql = `SELECT id, email, nombre FROM users WHERE id = $1;`;
+    const sql = `
+        SELECT id, email, nombre, creado_en AS "fechaRegistro"
+        FROM users
+        WHERE id = $1;
+        `;
+
     const { rows } = await query(sql, [userId]);
 
     if (rows.length === 0) {
