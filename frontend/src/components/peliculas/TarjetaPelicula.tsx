@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { Pelicula } from "../../types/types.ts";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useAuth } from "../../context/AuthContext.tsx";
+import { ChevronRightIcon } from "../common/Icons.tsx";
 interface TarjetaPeliculaProps {
   pelicula: Pelicula;
 }
@@ -21,7 +22,7 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
     <article className="tarjeta-pelicula">
       <div className="poster-pelicula">
         {pelicula.poster ? (
-          <img src={pelicula.poster} alt={`Póster de ${pelicula.titulo}`} />
+          <img src={pelicula.poster} alt={`Póster de ${pelicula.titulo}`} loading="lazy" decoding="async" />
         ) : (
           <div className="poster-placeholder" aria-hidden="true">
             <span className="icono-pelicula">🎬</span>
@@ -32,6 +33,7 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
           <button
             type="button"
             className="boton-fav"
+            aria-pressed={isFavoriteMovie(pelicula.id)}
             onClick={handleToggleFavorito}
             aria-label={
               isFavoriteMovie(pelicula.id)
@@ -60,6 +62,7 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
           <span className="clasificacion">{pelicula.clasificacion}</span>
           <Link to={`/peliculas/${pelicula.id}`} className="boton-tarjeta" aria-label={`Ver horarios de ${pelicula.titulo}`}>
             Ver horarios
+            {pelicula.estadoEstreno === "preventa" && <ChevronRightIcon size={16} />}
           </Link>
         </div>
       </div>
