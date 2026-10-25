@@ -70,6 +70,7 @@ export const AuthModal = ({
 
   const handleLoginSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
+    if (cargando) return;
     setErrorMsg(null);
     setSuccessMsg(null);
 
@@ -112,6 +113,7 @@ export const AuthModal = ({
 
   const handleRegisterSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
+    if (cargando) return;
     setErrorMsg(null);
     setSuccessMsg(null);
 
@@ -187,11 +189,11 @@ export const AuthModal = ({
           <CloseIcon size={20} />
         </button>
 
-        <div className="auth-form-box login">
+        <div className="auth-form-box login" inert={isRegisterActive}>
           <h2>Iniciar Sesión</h2>
 
           {errorMsg && !isRegisterActive && (
-            <div className="auth-alert error">{errorMsg}</div>
+            <div className="auth-alert error" role="alert">{errorMsg}</div>
           )}
           {successMsg && !isRegisterActive && (
             <div className="auth-alert success">{successMsg}</div>
@@ -203,13 +205,15 @@ export const AuthModal = ({
                 <MailIcon size={18} />
               </span>
               <input
+                id="login-email"
                 type="email"
+                autoComplete="username"
                 required
                 placeholder=" "
                 value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
+                onChange={(e) => { setLoginEmail(e.target.value); setErrorMsg(null); }}
               />
-              <label>Correo Electrónico</label>
+              <label htmlFor="login-email">Correo Electrónico</label>
             </div>
 
             <div
@@ -219,6 +223,7 @@ export const AuthModal = ({
                 type="button"
                 className="icon auth-btn-toggle-password"
                 onClick={() => setShowLoginPassword((prev) => !prev)}
+                aria-pressed={showLoginPassword}
                 aria-label={
                   showLoginPassword ? "Ocultar contraseña" : "Ver contraseña"
                 }
@@ -227,19 +232,21 @@ export const AuthModal = ({
                 }
               >
                 {showLoginPassword ? (
-                  <EyeOffIcon size={19} />
-                ) : (
                   <EyeIcon size={19} />
+                ) : (
+                  <EyeOffIcon size={19} />
                 )}
               </button>
               <input
+                id="login-password"
                 type={showLoginPassword ? "text" : "password"}
+                autoComplete="current-password"
                 required
                 placeholder=" "
                 value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
+                onChange={(e) => { setLoginPassword(e.target.value); setErrorMsg(null); }}
               />
-              <label>Contraseña</label>
+              <label htmlFor="login-password">Contraseña</label>
             </div>
 
             <button
@@ -267,11 +274,11 @@ export const AuthModal = ({
           </form>
         </div>
 
-        <div className="auth-form-box register">
+        <div className="auth-form-box register" inert={!isRegisterActive}>
           <h2>Registrarse</h2>
 
           {errorMsg && isRegisterActive && (
-            <div className="auth-alert error">{errorMsg}</div>
+            <div className="auth-alert error" role="alert">{errorMsg}</div>
           )}
           {successMsg && isRegisterActive && (
             <div className="auth-alert success">{successMsg}</div>
@@ -283,13 +290,15 @@ export const AuthModal = ({
                 <PersonIcon size={18} />
               </span>
               <input
+                id="register-username"
                 type="text"
+                autoComplete="nickname"
                 required
                 placeholder=" "
                 value={regUsername}
-                onChange={(e) => setRegUsername(e.target.value)}
+                onChange={(e) => { setRegUsername(e.target.value); setErrorMsg(null); }}
               />
-              <label>Usuario</label>
+              <label htmlFor="register-username">Usuario</label>
             </div>
 
             <div className={`auth-input-box ${regEmail ? "has-value" : ""}`}>
@@ -297,13 +306,15 @@ export const AuthModal = ({
                 <MailIcon size={18} />
               </span>
               <input
+                id="register-email"
                 type="email"
+                autoComplete="email"
                 required
                 placeholder=" "
                 value={regEmail}
-                onChange={(e) => setRegEmail(e.target.value)}
+                onChange={(e) => { setRegEmail(e.target.value); setErrorMsg(null); }}
               />
-              <label>Correo Electrónico</label>
+              <label htmlFor="register-email">Correo Electrónico</label>
             </div>
 
             <div className={`auth-input-box ${regPassword ? "has-value" : ""}`}>
@@ -311,6 +322,7 @@ export const AuthModal = ({
                 type="button"
                 className="icon auth-btn-toggle-password"
                 onClick={() => setShowRegPassword((prev) => !prev)}
+                aria-pressed={showRegPassword}
                 aria-label={
                   showRegPassword ? "Ocultar contraseña" : "Ver contraseña"
                 }
@@ -319,19 +331,21 @@ export const AuthModal = ({
                 }
               >
                 {showRegPassword ? (
-                  <EyeOffIcon size={19} />
-                ) : (
                   <EyeIcon size={19} />
+                ) : (
+                  <EyeOffIcon size={19} />
                 )}
               </button>
               <input
+                id="register-password"
                 type={showRegPassword ? "text" : "password"}
+                autoComplete="new-password"
                 required
                 placeholder=" "
                 value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
+                onChange={(e) => { setRegPassword(e.target.value); setErrorMsg(null); }}
               />
-              <label>Contraseña</label>
+              <label htmlFor="register-password">Contraseña</label>
             </div>
 
             <div
@@ -341,6 +355,7 @@ export const AuthModal = ({
                 type="button"
                 className="icon auth-btn-toggle-password"
                 onClick={() => setShowRegConfirmPassword((prev) => !prev)}
+                aria-pressed={showRegConfirmPassword}
                 aria-label={
                   showRegConfirmPassword
                     ? "Ocultar confirmación de contraseña"
@@ -353,19 +368,21 @@ export const AuthModal = ({
                 }
               >
                 {showRegConfirmPassword ? (
-                  <EyeOffIcon size={19} />
-                ) : (
                   <EyeIcon size={19} />
+                ) : (
+                  <EyeOffIcon size={19} />
                 )}
               </button>
               <input
+                id="register-confirm-password"
                 type={showRegConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
                 required
                 placeholder=" "
                 value={regConfirmPassword}
-                onChange={(e) => setRegConfirmPassword(e.target.value)}
+                onChange={(e) => { setRegConfirmPassword(e.target.value); setErrorMsg(null); }}
               />
-              <label>Confirmar Contraseña</label>
+              <label htmlFor="register-confirm-password">Confirmar Contraseña</label>
             </div>
 
             <button

@@ -51,7 +51,7 @@ const requestLogger = (
 };
 
 const errorHandler = (
-  error: { name: string; message: string; status?: number; type?: string },
+  error: { name: string; message: string; status?: number; type?: string; code?: number; keyPattern?: Record<string, unknown> },
   request: Request,
   response: Response,
   next: NextFunction,
@@ -72,11 +72,13 @@ const errorHandler = (
   } else if (error.name === "TokenExpiredError") {
     return response.status(401).json({ error: "La sesión ha expirado" });
   } else if (
-    error.name === "MongoServerError" &&
-    error.message.includes("E11000 duplicate key error")
+    error.code === 11000
   ) {
-    return response.status(400).json({
-      error: "Este correo electrónico ya se encuentra registrado.",
+    const campos = Object.keys(error.keyPattern ?? {});
+    return response.status(409).json({
+      error: campos.length === 1 && campos[0] === "email"
+        ? "Este correo electrónico ya se encuentra registrado."
+        : "Ya existe un registro con esos datos.",
     });
   } else if (error.type === "entity.parse.failed") {
     return response.status(400).json({

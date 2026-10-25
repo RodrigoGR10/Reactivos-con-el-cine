@@ -33,17 +33,9 @@ body:has(.auth-modal-overlay) {
     position: relative;
     width: 410px;
     height: 465px;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.12) 0%,
-            rgba(255, 255, 255, 0.02) 100%
-        ),
-        rgba(14, 18, 26, 0.32);
+    background: #1b1b1d;
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 20px;
-    backdrop-filter: blur(10px) saturate(190%);
-    -webkit-backdrop-filter: blur(10px) saturate(190%);
     box-shadow:
         0 24px 50px -10px rgba(0, 0, 0, 0.75),
         inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
@@ -227,6 +219,11 @@ body:has(.auth-modal-overlay) {
     box-sizing: border-box;
 }
 
+.auth-input-box input::-ms-reveal,
+.auth-input-box input::-ms-clear {
+    display: none;
+}
+
 .auth-input-box .icon {
     position: absolute;
     right: 8px;
@@ -245,7 +242,8 @@ body:has(.auth-modal-overlay) {
 
 .auth-input-box .auth-btn-toggle-password {
     position: absolute;
-    right: 8px;
+    right: 0;
+    z-index: 1;
     background: transparent;
     border: none;
     outline: none;
@@ -256,10 +254,17 @@ body:has(.auth-modal-overlay) {
     align-items: center;
     justify-content: center;
     height: 100%;
+    width: 36px;
     padding: 0;
     transition:
         color 0.2s ease,
         transform 0.15s ease;
+}
+
+.auth-input-box .auth-btn-toggle-password:focus-visible {
+    outline: 2px solid #ff6570;
+    outline-offset: -4px;
+    border-radius: 4px;
 }
 
 .auth-input-box .auth-btn-toggle-password:hover {
