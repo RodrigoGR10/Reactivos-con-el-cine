@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { isUuid, query } from "../db.ts";
 import config from "../utils/config.ts";
 import middleware from "../utils/middleware.ts";
+
 const router = express.Router();
 
 const usuarioPublico = (u: {
@@ -83,6 +84,7 @@ router.post("/register", async (req, res) => {
     const checkEmail = await query("SELECT id FROM users WHERE email = $1", [
         emailNormalizado,
     ]);
+    
     if (checkEmail.rows.length > 0) {
         return res.status(400).json({
             error: "Este correo electrónico ya se encuentra registrado.",
@@ -96,7 +98,7 @@ router.post("/register", async (req, res) => {
         INSERT INTO users (email, password_hash, nombre)
         VALUES ($1, $2, $3)
         RETURNING id, email, nombre, creado_en AS "fechaRegistro";
-        `;
+    `;
 
     const { rows } = await query(insertSql, [
         emailNormalizado,
@@ -131,7 +133,7 @@ router.post("/login", async (req, res) => {
         SELECT id, email, nombre, password_hash, creado_en AS "fechaRegistro"
         FROM users
         WHERE email = $1;
-        `;
+    `;
 
     const { rows } = await query(sql, [emailNormalizado]);
     const user = rows[0];
@@ -153,7 +155,8 @@ router.post("/login", async (req, res) => {
 
 router.get("/me", middleware.withUser, async (req, res) => {
     const userId = req.userId;
-    if (!userId || !isUuid(userId)) {
+    
+    if (typeof userId !== "string" || !isUuid(userId)) {
         return res
             .status(401)
             .json({ error: "El usuario de la sesión no existe" });
@@ -163,7 +166,7 @@ router.get("/me", middleware.withUser, async (req, res) => {
         SELECT id, email, nombre, creado_en AS "fechaRegistro"
         FROM users
         WHERE id = $1;
-        `;
+    `;
 
     const { rows } = await query(sql, [userId]);
 
