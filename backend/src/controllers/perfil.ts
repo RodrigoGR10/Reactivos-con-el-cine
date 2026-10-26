@@ -133,7 +133,7 @@ router.post(
         }
 
         if (!isSourceId(cinemaId)) {
-            return res.status(400).json({ error: "ID de película inválido" });
+            return res.status(400).json({ error: "ID de cine inválido" });
         }
 
         const userCheck = await query("SELECT id FROM users WHERE id = $1;", [
@@ -166,7 +166,7 @@ router.post(
             if (movieCheck.rows.length === 0) {
                 return res
                     .status(404)
-                    .json({ error: "Película no encontrada" });
+                    .json({ error: "favoritos_cines no encontrada" });
             }
 
             //insertar en favs
