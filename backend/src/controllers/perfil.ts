@@ -184,7 +184,7 @@ router.post(
 
         const { rows } = await query(updatedSql, [userId]);
 
-        return res.json({ peliculasFavoritas: rows[0].cinesFavoritos });
+        return res.json({ cinesFavoritos: rows[0].cinesFavoritos });
     },
 );
 
