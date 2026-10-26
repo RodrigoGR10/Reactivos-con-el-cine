@@ -1,54 +1,49 @@
-import { readFileSync } from "fs";
-import { resolve } from "path";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
 import { pool } from "../db.ts";
 import { importarDatosScraped } from "./import-data.ts";
-import type { ScrapeResult } from "./types.ts";
+import { validarScrapeResult } from "./validate.ts";
 
 async function main() {
-    const args = process.argv.slice(2);
-    const jsonPath = args[0];
+    const jsonPath = process.argv[2];
 
     if (!jsonPath) {
-        console.error(
-            "Error: Debes proporcionar la ruta a un archivo JSON de scraping.",
-        );
-        console.log("Uso: pnpm tsx src/scraper/import-cli.ts <ruta-al-json>");
-        process.exit(1);
+        throw new Error("Uso: pnpm import:scrape <ruta-al-json>");
     }
 
-    try {
-        const absolutePath = resolve(process.cwd(), jsonPath);
-        console.log(`Leyendo archivo: ${absolutePath}`);
+    const absolutePath = resolve(process.cwd(), jsonPath);
 
-        const rawData = readFileSync(absolutePath, "utf-8");
-        const data = JSON.parse(rawData) as ScrapeResult;
+    console.log(`Leyendo: ${absolutePath}`);
 
-        console.log(
-            `Datos extraídos: ${data.cines.length} cines, ${data.peliculas.length} películas, ${data.horarios.length} funciones.`,
+    const rawData = await readFile(absolutePath, "utf8");
+    const data: unknown = JSON.parse(rawData);
+
+    validarScrapeResult(data);
+
+    console.log(
+        `${data.cines.length} cines, ` +
+            `${data.peliculas.length} películas, ` +
+            `${data.horarios.length} horarios.`,
+    );
+
+    if (!data.meta.completo) {
+        console.warn(
+            "JSON parcial: se importarán los registros, " +
+                "pero no se limpiarán horarios anteriores.",
         );
-
-        if (
-            data.cines.length === 0 &&
-            data.peliculas.length === 0 &&
-            data.horarios.length === 0
-        ) {
-            console.warn(
-                "El archivo JSON no contiene registros para importar.",
-            );
-            process.exit(0);
-        }
-
-        console.log("Iniciando importación a PostgreSQL...");
-        await importarDatosScraped(data);
-
-        console.log("Proceso finalizado correctamente.");
-    } catch (error) {
-        console.error("Falló la ejecución del CLI de importación:", error);
-        process.exit(1);
-    } finally {
-        // Cerrar el pool de conexiones para permitir que el proceso Node finalice de forma limpia
-        await pool.end();
     }
+
+    const summary = await importarDatosScraped(data);
+
+    console.table(summary);
 }
 
-main();
+main()
+    .catch((error: unknown) => {
+        console.error("Error de importación:", error);
+        process.exitCode = 1;
+    })
+    .finally(async () => {
+        await pool.end();
+    });
