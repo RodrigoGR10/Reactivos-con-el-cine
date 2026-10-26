@@ -1,97 +1,109 @@
-import { readFileSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { pool } from "../db.ts";
+
+import { scrapeCinemark } from "./cinemark/scraper.ts";
+import { scrapeCineplanet } from "./cineplanet/scraper.ts";
+import { scrapeVista } from "./vista/scraper.ts";
+
 import { importarDatosScraped } from "./import-data.ts";
-import type { ScrapeResult } from "./types.ts";
+import { validarScrapeResult } from "./validate.ts";
 
-function validarScrapeResult(data: unknown): asserts data is ScrapeResult {
-    if (!data || typeof data !== "object") {
-        throw new Error("El JSON no contiene un objeto de scraping válido.");
+import type { Origen, ScrapeOptions } from "./types.ts";
+import { localNow } from "../utils/localNow.ts";
+import { pool } from "../db.ts";
+
+type Mode = "scrape" | "sync";
+
+async function main() {
+    const args = process.argv.slice(2);
+
+    const mode: Mode = args.includes("--sync") ? "sync" : "scrape";
+
+    const chainArg = args.find((arg) => arg.startsWith("--chain="));
+    const origen = (chainArg?.split("=")[1] ?? "cinemark") as Origen;
+
+    const options: ScrapeOptions = {
+        desde: localNow().slice(0, 10),
+        dias: 7,
+        cines: args
+            .filter((arg) => arg.startsWith("--cine="))
+            .map((arg) => arg.slice("--cine=".length)),
+        limitePorCine: null,
+    };
+
+    const desdeArg = args.find((arg) => arg.startsWith("--desde="));
+    if (desdeArg) options.desde = desdeArg.split("=")[1];
+
+    const diasArg = args.find((arg) => arg.startsWith("--dias="));
+    if (diasArg) {
+        const value = diasArg.split("=")[1];
+        options.dias = value === "todos" ? null : Number(value);
     }
 
-    const result = data as Partial<ScrapeResult>;
-
-    if (
-        !Array.isArray(result.cines) ||
-        !Array.isArray(result.peliculas) ||
-        !Array.isArray(result.horarios) ||
-        !Array.isArray(result.incidencias)
-    ) {
-        throw new Error(
-            "El JSON debe contener cines, peliculas, horarios e incidencias como listas.",
-        );
+    const limiteArg = args.find((arg) => arg.startsWith("--limite-por-cine="));
+    if (limiteArg) {
+        options.limitePorCine = Number(limiteArg.split("=")[1]);
     }
 
-    if (
-        !result.meta ||
-        typeof result.meta.origen !== "string" ||
-        typeof result.meta.completo !== "boolean" ||
-        typeof result.meta.desde !== "string" ||
-        !Number.isInteger(result.meta.cinesSeleccionados) ||
-        !Number.isInteger(result.meta.cinesProcesados)
-    ) {
-        throw new Error("Faltan metadatos obligatorios del scraping.");
+    if (!["cinemark", "cineplanet", "muvix", "cinestar"].includes(origen)) {
+        throw new Error(`Cadena desconocida: ${origen}`);
     }
 
-    if (
-        !["cinemark", "cineplanet", "muvix", "cinestar"].includes(
-            result.meta.origen,
-        )
-    ) {
-        throw new Error(`Origen desconocido: ${result.meta.origen}.`);
-    }
-}
+    console.log(`Iniciando extracción: ${origen}`);
 
-async function main(): Promise<void> {
-    const jsonPath = process.argv[2];
+    const scrapers = {
+        cinemark: () => scrapeCinemark(options),
+        cineplanet: () => scrapeCineplanet(options),
+        muvix: () => scrapeVista("muvix", options),
+        cinestar: () => scrapeVista("cinestar", options),
+    };
 
-    if (!jsonPath) {
-        throw new Error(
-            "Uso: pnpm tsx src/scraper/import-cli.ts <ruta-al-json>",
-        );
-    }
-
-    const absolutePath = resolve(process.cwd(), jsonPath);
-
-    console.log(`Leyendo archivo: ${absolutePath}`);
-
-    const rawData = readFileSync(absolutePath, "utf8");
-    const data: unknown = JSON.parse(rawData);
+    const data = await scrapers[origen]();
 
     validarScrapeResult(data);
 
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+
+    const outputArg = args.find((arg) => arg.startsWith("--output="));
+
+    const outputPath = resolve(
+        process.cwd(),
+        outputArg
+            ? outputArg.slice("--output=".length)
+            : `data/scrapes/${origen}-${timestamp}.json`,
+    );
+
+    await mkdir(resolve(outputPath, ".."), { recursive: true });
+
+    await writeFile(outputPath, JSON.stringify(data, null, 2), "utf8");
+
+    console.log(`JSON guardado: ${outputPath}`);
     console.log(
-        `Datos recibidos: ${data.cines.length} cines, ` +
+        `${data.cines.length} cines, ` +
             `${data.peliculas.length} películas, ` +
             `${data.horarios.length} horarios.`,
     );
 
-    if (!data.horarios.length && !data.peliculas.length && !data.cines.length) {
-        console.warn("El archivo no contiene registros para importar.");
+    if (!data.meta.completo) {
+        console.warn("Extracción parcial: no se considera completa.");
+    }
+
+    if (mode === "scrape") {
+        console.log("Extracción finalizada. No se importaron datos.");
         return;
     }
 
-    if (!data.meta.completo) {
-        console.warn(
-            "La extracción es parcial. Se importarán los registros válidos, " +
-                "pero no se eliminarán horarios anteriores.",
-        );
-    }
-
-    console.log("Iniciando importación a PostgreSQL...");
+    console.log("Importando a PostgreSQL...");
 
     const summary = await importarDatosScraped(data);
 
-    console.log("Importación completada:");
+    console.log("Sincronización finalizada:");
     console.table(summary);
 }
 
 main()
     .catch((error: unknown) => {
-        console.error(
-            "Falló la importación:",
-            error instanceof Error ? error.message : error,
-        );
+        console.error("Error:", error instanceof Error ? error.message : error);
         process.exitCode = 1;
     })
     .finally(async () => {
