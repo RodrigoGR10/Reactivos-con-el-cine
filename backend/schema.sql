@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS cines (
 -- 3. TABLA PELICULAS
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS peliculas (
-    id VARCHAR(100) PRIMARY KEY, -- id canonico: el de la primera fuente
+    id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     sinopsis TEXT,
     duracion INT, -- En minutos
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS peliculas (
 CREATE TABLE IF NOT EXISTS pelicula_fuentes (
     origen VARCHAR(20) NOT NULL,
     origen_id VARCHAR(100) NOT NULL,
-    pelicula_id VARCHAR(100) NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
+    pelicula_id INT NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
     url TEXT,
     estado_estreno VARCHAR(20) CHECK (estado_estreno IN ('cartelera', 'preventa', 'proximamente')),
     fecha_estreno DATE,
@@ -63,8 +63,9 @@ CREATE TABLE IF NOT EXISTS pelicula_fuentes (
 -- 4. TABLA FUNCIONES (CARTELERA Y HORARIOS)
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS horarios (
-    id VARCHAR(150) PRIMARY KEY,            -- id del horario en el scraper
-    pelicula_id VARCHAR(100) NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    orign_id VARCHAR(150) NOT NULL, -- Conservamos el ID del scraper para sincronización
+    pelicula_id INT NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
     cine_id VARCHAR(100) NOT NULL REFERENCES cines(id) ON DELETE CASCADE,
     origen VARCHAR(20) NOT NULL,
     pelicula_origen_id VARCHAR(100) NOT NULL,   -- id de la pelicula en ESTA cadena
@@ -88,8 +89,9 @@ CREATE TABLE IF NOT EXISTS horarios (
 );
 
 CREATE TABLE IF NOT EXISTS tarifas (
-    id VARCHAR(200) NOT NULL,               -- id de la tarifa en el scraper
-    horario_id VARCHAR(150) NOT NULL REFERENCES horarios(id) ON DELETE CASCADE,
+    id SERIAL NOT NULL,
+    origen_id VARCHAR(200) NOT NULL, -- ID de la tarifa en el scraper
+    horario_id INT NOT NULL REFERENCES horarios(id) ON DELETE CASCADE,
     tipo_entrada VARCHAR(100) NOT NULL,
     formato VARCHAR(100) NOT NULL,
     precio INT,                             -- CLP, enteros
@@ -109,7 +111,7 @@ CREATE OR REPLACE VIEW horarios_vigentes AS
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS favoritos_peliculas (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    pelicula_id VARCHAR(100) NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
+    pelicula_id INT NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
     agregado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, pelicula_id)
 );
@@ -129,7 +131,7 @@ CREATE TABLE IF NOT EXISTS favoritos_cines (
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS vistas_peliculas (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    pelicula_id VARCHAR(100) NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
+    pelicula_id INT NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
     marcado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, pelicula_id)
 );
