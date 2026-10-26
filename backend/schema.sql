@@ -32,15 +32,6 @@ CREATE TABLE IF NOT EXISTS cines (
 );
 
 
-CREATE TABLE IF NOT EXISTS pelicula_fuentes (
-    origen VARCHAR(20) NOT NULL,
-    origen_id VARCHAR(100) NOT NULL,
-    pelicula_id VARCHAR(100) NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
-    url TEXT,
-    estado_estreno VARCHAR(20) CHECK (estado_estreno IN ('cartelera', 'preventa', 'proximamente')),
-    fecha_estreno DATE,
-    PRIMARY KEY (origen, origen_id)         -- una fuente pertenece a una sola pelicula
-);
 
 --------------------------------------------------
 -- 3. TABLA PELICULAS
@@ -56,6 +47,16 @@ CREATE TABLE IF NOT EXISTS peliculas (
     banner TEXT,
     tmdb_id INT,
     creado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS pelicula_fuentes (
+    origen VARCHAR(20) NOT NULL,
+    origen_id VARCHAR(100) NOT NULL,
+    pelicula_id VARCHAR(100) NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
+    url TEXT,
+    estado_estreno VARCHAR(20) CHECK (estado_estreno IN ('cartelera', 'preventa', 'proximamente')),
+    fecha_estreno DATE,
+    PRIMARY KEY (origen, origen_id)         -- una fuente pertenece a una sola pelicula
 );
 
 --------------------------------------------------
