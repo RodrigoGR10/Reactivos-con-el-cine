@@ -1,6 +1,6 @@
 import express from "express";
 import middleware from "../utils/middleware.ts";
-import { query, isUuid, isSourceId } from "../db.ts";
+import { query, isUuid, isNumericId, isCineId } from "../db.ts";
 
 const router = express.Router();
 
@@ -30,21 +30,16 @@ router.get("/favoritos", middleware.withUser, async (req, res) => {
 
     // Consultar arreglos de ids desde las tablas relacionales
     const sql = `
-        SELECT
-            COALESCE(
-            (SELECT
-                ARRAY_AGG(pelicula_id::text)
-                FROM favoritos_peliculas WHERE user_id = $1),
-                '{}')
-            AS "peliculasFavoritas",
-            COALESCE(
-            (SELECT
-                ARRAY_AGG(cine_id::text)
-                FROM favoritos_cines WHERE user_id = $1),
-                '{}')
-            AS "cinesFavoritos";
+            SELECT
+                COALESCE(
+                    (SELECT ARRAY_AGG(pelicula_id) FROM favoritos_peliculas WHERE user_id = $1),
+                    '{}'
+                ) AS "peliculasFavoritas",
+                COALESCE(
+                    (SELECT ARRAY_AGG(cine_id) FROM favoritos_cines WHERE user_id = $1),
+                    '{}'
+                ) AS "cinesFavoritos";
         `;
-
     const { rows } = await query(sql, [userId]);
     return res.json(rows[0]);
 });
@@ -62,9 +57,11 @@ router.post(
                 .json({ error: "El usuario de la sesión no existe" });
         }
 
-        if (!isSourceId(movieId)) {
+        if (typeof movieId !== "string" || !isNumericId(movieId)) {
             return res.status(400).json({ error: "ID de película inválido" });
         }
+
+        const parsedMovieId = parseInt(movieId, 10);
 
         const userCheck = await query("SELECT id FROM users WHERE id = $1;", [
             userId,
@@ -85,13 +82,13 @@ router.post(
             //Si existe, se elimina
             await query(
                 "DELETE FROM favoritos_peliculas WHERE user_id = $1 AND pelicula_id = $2;",
-                [userId, movieId],
+                [userId, parsedMovieId],
             );
         } else {
             //no existe, verificar que la peli exista en la BDD
             const movieCheck = await query(
                 "SELECT id FROM peliculas WHERE id = $1;",
-                [movieId],
+                [parsedMovieId],
             );
             if (movieCheck.rows.length === 0) {
                 return res
@@ -102,13 +99,13 @@ router.post(
             //insertar en favs
             await query(
                 "INSERT INTO favoritos_peliculas (user_id, pelicula_id) VALUES ($1, $2);",
-                [userId, movieId],
+                [userId, parsedMovieId],
             );
         }
 
         //Obtener lista actualizada de ids
         const updatedSql = `
-            SELECT COALESCE(ARRAY_AGG(pelicula_id::text),'{}') AS "peliculasFavoritas"
+            SELECT COALESCE(ARRAY_AGG(pelicula_id),'{}') AS "peliculasFavoritas"
             FROM favoritos_peliculas
             WHERE user_id = $1;
             `;
@@ -132,7 +129,7 @@ router.post(
                 .json({ error: "El usuario de la sesión no existe" });
         }
 
-        if (!isSourceId(cinemaId)) {
+        if (!isCineId(cinemaId)) {
             return res.status(400).json({ error: "ID de cine inválido" });
         }
 
@@ -159,14 +156,12 @@ router.post(
             );
         } else {
             //no existe, verificar que la peli exista en la BDD
-            const movieCheck = await query(
+            const cinemaCheck = await query(
                 "SELECT id FROM cine WHERE id = $1;",
                 [cinemaId],
             );
-            if (movieCheck.rows.length === 0) {
-                return res
-                    .status(404)
-                    .json({ error: "favoritos_cines no encontrada" });
+            if (cinemaCheck.rows.length === 0) {
+                return res.status(404).json({ error: "Cine no encontrado" });
             }
 
             //insertar en favs
@@ -177,7 +172,7 @@ router.post(
         }
         //Obtener lista actualizada de ids
         const updatedSql = `
-            SELECT COALESCE(ARRAY_AGG(cine_id::text),'{}') AS "cinesFavoritos"
+            SELECT COALESCE(ARRAY_AGG(cine_id),'{}') AS "cinesFavoritos"
             FROM favoritos_cines
             WHERE user_id = $1;
             `;
