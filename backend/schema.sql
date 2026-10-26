@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS pelicula_fuentes (
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS horarios (
     id SERIAL PRIMARY KEY,
-    orign_id VARCHAR(150) NOT NULL, -- Conservamos el ID del scraper para sincronización
+    origen_id VARCHAR(150) NOT NULL, -- Conservamos el ID del scraper para sincronización
     pelicula_id INT NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
     cine_id VARCHAR(100) NOT NULL REFERENCES cines(id) ON DELETE CASCADE,
     origen VARCHAR(20) NOT NULL,
