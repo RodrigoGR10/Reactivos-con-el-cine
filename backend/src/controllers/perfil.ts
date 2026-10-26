@@ -157,7 +157,7 @@ router.post(
         } else {
             //no existe, verificar que la peli exista en la BDD
             const cinemaCheck = await query(
-                "SELECT id FROM cine WHERE id = $1;",
+                "SELECT id FROM cines WHERE id = $1;",
                 [cinemaId],
             );
             if (cinemaCheck.rows.length === 0) {
