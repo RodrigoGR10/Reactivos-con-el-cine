@@ -147,20 +147,20 @@ router.post(
         }
 
         const favCheck = await query(
-            "SELECT 1 FROM favoritos_cines WHERE user_id = $1 AND pelicula_id = $2;",
+            "SELECT 1 FROM favoritos_cines WHERE user_id = $1 AND cine_id = $2;",
             [userId, cinemaId],
         );
 
         if (favCheck.rows.length > 0) {
             //Si existe, se elimina
             await query(
-                "DELETE FROM favoritos_cines WHERE user_id = $1 AND pelicula_id = $2;",
+                "DELETE FROM favoritos_cines WHERE user_id = $1 AND cine_id = $2;",
                 [userId, cinemaId],
             );
         } else {
             //no existe, verificar que la peli exista en la BDD
             const movieCheck = await query(
-                "SELECT id FROM peliculas WHERE id = $1;",
+                "SELECT id FROM cine WHERE id = $1;",
                 [cinemaId],
             );
             if (movieCheck.rows.length === 0) {
@@ -171,13 +171,13 @@ router.post(
 
             //insertar en favs
             await query(
-                "INSERT INTO favoritos_cines (user_id, pelicula_id) VALUES ($1, $2);",
+                "INSERT INTO favoritos_cines (user_id, cine_id) VALUES ($1, $2);",
                 [userId, cinemaId],
             );
         }
         //Obtener lista actualizada de ids
         const updatedSql = `
-            SELECT COALESCE(ARRAY_AGG(cine_id::text),'{}') AS "peliculasFavoritas"
+            SELECT COALESCE(ARRAY_AGG(cine_id::text),'{}') AS "cinesFavoritos"
             FROM favoritos_cines
             WHERE user_id = $1;
             `;
