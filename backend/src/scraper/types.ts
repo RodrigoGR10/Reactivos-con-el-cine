@@ -86,8 +86,10 @@ export interface Incident {
 export interface ScrapeResult {
     peliculas: ScrapedMovie[];
     cines: ScrapedCinema[];
+    //TO DO: Borrar funciones, ahora el flujo funcionara con horarios
     funciones: ScrapedSession[];
-    horarios?: ScrapedSchedule[];
+
+    horarios: ScrapedSchedule[];
     incidencias: Incident[];
     meta: {
         origen: Origen;
