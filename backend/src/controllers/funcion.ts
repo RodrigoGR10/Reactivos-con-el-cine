@@ -94,7 +94,7 @@ router.get("/:id", async (req, res) => {
     const { rows } = await query(sql, [parseInt(id, 10)]);
 
     if (rows.length === 0) {
-        res.status(404).json({ error: "Funcion no encontrada" });
+        return res.status(404).json({ error: "Funcion no encontrada" });
     }
 
     return res.json(rows[0]);
