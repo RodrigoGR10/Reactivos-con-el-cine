@@ -1,5 +1,5 @@
 import express from "express";
-import { query, isSourceId } from "../db.ts";
+import { query, isNumericId, isCineId } from "../db.ts";
 
 const router = express.Router();
 
@@ -13,50 +13,50 @@ router.get("/", async (req, res) => {
 
     //Constr dinamica de filtros
     const conditions: string[] = [
-        "f.fecha_hora >= CURRENT_TIMESTAMP",
-        "f.agotada = FALSE",
+        "(h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')",
+        "h.agotada = FALSE",
     ];
 
     const params: unknown[] = [];
 
     if (peliculaId !== undefined) {
-        if (!isSourceId(peliculaId)) {
+        if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
             return res.status(400).json({ error: "peliculaId inválido" });
         }
-        params.push(peliculaId);
-        conditions.push(`f.pelicula_id = $${params.length}`);
+        params.push(parseInt(peliculaId, 10));
+        conditions.push(`h.pelicula_id = $${params.length}`);
     }
 
     if (cineId !== undefined) {
-        if (!isSourceId(cineId)) {
+        if (typeof cineId !== "string" || !isCineId(cineId)) {
             return res.status(400).json({ error: "cineId inválido" });
         }
         params.push(cineId);
-        conditions.push(`f.cine_id = $${params.length}`);
+        conditions.push(`h.cine_id = $${params.length}`);
     }
 
     const whereClause =
         conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const sql = `
-        SELECT
-          f.id,
-          f.fecha_hora AS "fechaHora",
-          f.precio,
-          f.sala,
-          f.formato,
-          f.agotada,
-          p.id AS "peliculaId",
-          p.titulo AS "peliculaTitulo",
-          p.imagen_url AS "peliculaImagenUrl",
-          c.id AS "cineId",
-          c.nombre AS "cineNombre"
-        FROM funciones f
-        INNER JOIN peliculas p ON f.pelicula_id = p.id
-        INNER JOIN cines c ON f.cine_id = c.id
-        ${whereClause}
-        ORDER BY f.fecha_hora ASC;
-      `;
+            SELECT
+              h.id,
+              (h.fecha + h.horario) AS "fechaHora",
+              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
+              h.sala,
+              h.formato_resumen AS formato,
+              h.agotada,
+              p.id AS "peliculaId",
+              p.titulo AS "peliculaTitulo",
+              p.imagen_url AS "peliculaImagenUrl",
+              c.id AS "cineId",
+              c.nombre AS "cineNombre"
+            FROM horarios h
+            INNER JOIN peliculas p ON h.pelicula_id = p.id
+            INNER JOIN cines c ON h.cine_id = c.id
+            ${whereClause}
+            ORDER BY (h.fecha + h.horario) ASC;
+          `;
 
     const { rows } = await query(sql, params);
     return res.json(rows);
@@ -65,32 +65,33 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
-    if (!isSourceId(id, 150)) {
+    if (!isNumericId(id)) {
         return res.status(400).json({ error: "ID de funcion invalido" });
     }
-    const sql = `
-        SELECT
-          f.id,
-          f.fecha_hora AS "fechaHora",
-          f.precio,
-          f.sala,
-          f.formato,
-          f.agotada,
-          p.id AS "peliculaId",
-          p.titulo AS "peliculaTitulo",
-          p.duracion AS "peliculaDuracion",
-          p.clasificacion AS "peliculaClasificacion",
-          p.imagen_url AS "peliculaImagenUrl",
-          c.id AS "cineId",
-          c.nombre AS "cineNombre",
-          c.direccion AS "cineDireccion"
-        FROM funciones f
-        INNER JOIN peliculas p ON f.pelicula_id = p.id
-        INNER JOIN cines c ON f.cine_id = c.id
-        WHERE f.id = $1;
-      `;
 
-    const { rows } = await query(sql, [id]);
+    const sql = `
+            SELECT
+              h.id,
+              (h.fecha + h.horario) AS "fechaHora",
+              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
+              h.sala,
+              h.formato_resumen AS formato,
+              h.agotada,
+              p.id AS "peliculaId",
+              p.titulo AS "peliculaTitulo",
+              p.duracion AS "peliculaDuracion",
+              p.clasificacion AS "peliculaClasificacion",
+              p.imagen_url AS "peliculaImagenUrl",
+              c.id AS "cineId",
+              c.nombre AS "cineNombre",
+              c.direccion AS "cineDireccion"
+            FROM horarios h
+            INNER JOIN peliculas p ON h.pelicula_id = p.id
+            INNER JOIN cines c ON h.cine_id = c.id
+            WHERE h.id = $1;
+          `;
+
+    const { rows } = await query(sql, [parseInt(id, 10)]);
 
     if (rows.length === 0) {
         res.status(404).json({ error: "Funcion no encontrada" });
@@ -103,25 +104,26 @@ router.get("/horarios", async (req, res) => {
     const { peliculaId, cineId } = req.query;
 
     const conditions: string[] = [
-        "f.fecha_hora >= CURRENT_TIMESTAMP",
-        "f.agotada = FALSE",
+        "(h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')",
+        "h.agotada = FALSE",
     ];
+
     const params: unknown[] = [];
 
     if (peliculaId !== undefined) {
-        if (!isSourceId(peliculaId)) {
-            return res.status(400).json({ error: "peliculaId invalido" });
+        if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
+            return res.status(400).json({ error: "peliculaId inválido" });
         }
-        params.push(peliculaId);
-        conditions.push(`f.pelicula_id = $${params.length}`);
+        params.push(parseInt(peliculaId, 10));
+        conditions.push(`h.pelicula_id = $${params.length}`);
     }
 
     if (cineId !== undefined) {
-        if (!isSourceId(cineId)) {
-            return res.status(400).json({ error: "cineId invalido" });
+        if (typeof cineId !== "string" || !isCineId(cineId)) {
+            return res.status(400).json({ error: "cineId inválido" });
         }
         params.push(cineId);
-        conditions.push(`f.cine_id = $${params.length}`);
+        conditions.push(`h.cine_id = $${params.length}`);
     }
 
     // Validación: Al menos uno de los dos debe estar presente
@@ -130,23 +132,23 @@ router.get("/horarios", async (req, res) => {
     }
 
     const sql = `
-    SELECT
-      f.id,
-      f.fecha_hora AS "fechaHora",
-      f.precio,
-      f.sala,
-      f.formato,
-      f.agotada,
-      p.id AS "peliculaId",
-      p.titulo AS "peliculaTitulo",
-      c.id AS "cineId",
-      c.nombre AS "cineNombre"
-    FROM funciones f
-    INNER JOIN peliculas p ON f.pelicula_id = p.id
-    INNER JOIN cines c ON f.cine_id = c.id
-    WHERE ${conditions.join(" AND ")}
-    ORDER BY f.fecha_hora ASC;
-  `;
+            SELECT
+              h.id,
+              (h.fecha + h.horario) AS "fechaHora",
+              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
+              h.sala,
+              h.formato_resumen AS formato,
+              h.agotada,
+              p.id AS "peliculaId",
+              p.titulo AS "peliculaTitulo",
+              c.id AS "cineId",
+              c.nombre AS "cineNombre"
+            FROM horarios h
+            INNER JOIN peliculas p ON h.pelicula_id = p.id
+            INNER JOIN cines c ON h.cine_id = c.id
+            WHERE ${conditions.join(" AND ")}
+            ORDER BY (h.fecha + h.horario) ASC;
+        `;
 
     const { rows } = await query(sql, params);
     return res.json(rows);
@@ -159,8 +161,10 @@ router.get("/precios", async (req, res) => {
     const isDate = (d: string) => !isNaN(Date.parse(d));
 
     if (
-        !isSourceId(peliculaId) ||
-        !isSourceId(cineId) ||
+        typeof peliculaId !== "string" ||
+        !isNumericId(peliculaId) ||
+        typeof cineId !== "string" ||
+        !isCineId(cineId) ||
         typeof fecha !== "string" ||
         !isDate(fecha)
     ) {
@@ -170,20 +174,20 @@ router.get("/precios", async (req, res) => {
     }
 
     const sql = `
-    SELECT
-      f.id,
-      f.fecha_hora AS "fechaHora",
-      f.precio,
-      f.sala,
-      f.formato,
-      f.agotada
-    FROM funciones f
-    WHERE f.pelicula_id = $1
-      AND f.cine_id = $2
-      AND DATE(f.fecha_hora) = $3
-      AND f.fecha_hora >= CURRENT_TIMESTAMP
-    ORDER BY f.fecha_hora ASC;
-  `;
+            SELECT
+              h.id,
+              (h.fecha + h.horario) AS "fechaHora",
+              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
+              h.sala,
+              h.formato_resumen AS formato,
+              h.agotada
+            FROM horarios h
+            WHERE h.pelicula_id = $1
+              AND h.cine_id = $2
+              AND h.fecha = $3
+              AND (h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')
+            ORDER BY h.horario ASC;
+        `;
 
     const { rows } = await query(sql, [peliculaId, cineId, fecha]);
 
