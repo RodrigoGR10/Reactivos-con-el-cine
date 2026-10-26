@@ -150,3 +150,7 @@ CREATE INDEX IF NOT EXISTS idx_horarios_cine_fecha ON horarios(cine_id, fecha, h
 CREATE INDEX IF NOT EXISTS idx_horarios_sync ON horarios(origen, cine_id, fecha_cartelera);
 CREATE INDEX IF NOT EXISTS idx_pelicula_fuentes_pelicula ON pelicula_fuentes(pelicula_id);
 CREATE INDEX IF NOT EXISTS idx_peliculas_tmdb ON peliculas(tmdb_id);
+
+-- Una sesión de una cadena en un cine solo puede existir una vez.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_horarios_origen_cine_sesion
+ON horarios (origen, cine_id, sesion_id);
