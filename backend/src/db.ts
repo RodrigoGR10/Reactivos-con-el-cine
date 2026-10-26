@@ -22,7 +22,7 @@ export const pool = new Pool({
     connectionString: config.DATABASE_URL,
     options: `-c search_path=${schema},public`,
     max: 10,
-    idelTimeoutMillis: 30000,
+    idleTimeoutMillis: 30000,
 });
 
 pool.on("error", (err: Error) => {
@@ -52,9 +52,12 @@ const UUID_REGEX = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 
 export const isUuid = (val: string): boolean => UUID_REGEX.test(val);
 
-// Los IDs de cines, peliculas y funciones vienen del scraper con formato
-// "cadena:idOrigen" (ej. "cinemark:123"), no son UUID. Solo users.id es UUID.
-// El limite de largo evita pasar basura a la BDD (las columnas son VARCHAR(100)
-// en cines/peliculas y VARCHAR(150) en funciones).
-export const isSourceId = (val: unknown, maxLength = 100): val is string =>
+//Validacion exclusiva para cines.id ("cadena:idOrigen")
+export const isCineId = (val: unknown, maxLength = 100): val is string =>
     typeof val === "string" && val.length > 0 && val.length <= maxLength;
+
+//Validación para peliculas.id, horarios.id y tarifas.id (SERIAL)
+export const isNumericId = (val: string | number): boolean => {
+    const num = typeof val === "string" ? parseInt(val, 10) : val;
+    return !isNaN(num) && num > 0;
+};
