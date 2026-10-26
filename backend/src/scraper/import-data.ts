@@ -12,51 +12,60 @@ export async function importarDatosScraped(
         // 1. Iniciar transacción atómica
         await client.query("BEGIN");
 
-        // 2. Insertar / Actualizar Cines (Upsert)
+        // 1. Insertar / Actualizar Cines (Upsert)
         for (const cine of cines) {
             const sqlCine = `
-        INSERT INTO cines (id, nombre, direccion, comuna, ciudad, cadena, logo_url, latitud, longitud)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        ON CONFLICT (id) DO UPDATE SET
-          nombre = EXCLUDED.nombre,
-          direccion = EXCLUDED.direccion,
-          comuna = EXCLUDED.comuna,
-          ciudad = EXCLUDED.ciudad,
-          cadena = EXCLUDED.cadena,
-          logo_url = EXCLUDED.logo_url,
-          latitud = EXCLUDED.latitud,
-          longitud = EXCLUDED.longitud;
-      `;
-
+                INSERT INTO cines (id, nombre, direccion, comuna, ciudad, cadena, origen_id, logo_url, latitud, longitud)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                ON CONFLICT (id) DO UPDATE SET
+                  nombre = EXCLUDED.nombre,
+                  direccion = EXCLUDED.direccion,
+                  comuna = EXCLUDED.comuna,
+                  ciudad = EXCLUDED.ciudad,
+                  logo_url = EXCLUDED.logo_url,
+                  latitud = EXCLUDED.latitud,
+                  longitud = EXCLUDED.longitud;
+            `;
             await client.query(sqlCine, [
                 cine.id,
                 cine.nombre,
                 cine.direccion,
                 cine.comuna,
                 cine.ciudad,
-                cine.origen, // 'origen' mapea a la columna 'cadena' en la BD
-                cine.logo, // 'logo' es la URL de la imagen del cine
+                cine.origen,
+                cine.origenId || cine.id,
+                cine.logo,
                 cine.latitud ?? null,
                 cine.longitud ?? null,
             ]);
         }
 
-        // 3. Insertar / Actualizar Películas (Upsert)
+        const mapaPeliculasId = new Map<string, number>();
+
+        // 2. Insertar / Actualizar Películas y Fuentes
         for (const pelicula of peliculas) {
             const sqlPelicula = `
-        INSERT INTO peliculas (id, titulo, sinopsis, duracion, genero, clasificacion, imagen_url, fecha_estreno)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        ON CONFLICT (id) DO UPDATE SET
-          titulo = EXCLUDED.titulo,
-          sinopsis = EXCLUDED.sinopsis,
-          duracion = EXCLUDED.duracion,
-          genero = EXCLUDED.genero,
-          clasificacion = EXCLUDED.clasificacion,
-          imagen_url = EXCLUDED.imagen_url,
-          fecha_estreno = EXCLUDED.fecha_estreno;
-      `;
+                INSERT INTO peliculas (titulo, sinopsis, duracion, genero, clasificacion, imagen_url, banner, tmdb_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                RETURNING id;
+            `;
 
-            // Mapeo seguro para la fecha de estreno desde DatosEstreno
+            const resultPeli = await client.query(sqlPelicula, [
+                pelicula.titulo,
+                pelicula.sinopsis,
+                pelicula.duracion,
+                pelicula.genero,
+                pelicula.clasificacion,
+                pelicula.poster,
+                null,
+                null,
+            ]);
+
+            const internalPeliId = resultPeli.rows[0].id;
+            mapaPeliculasId.set(pelicula.id, internalPeliId);
+
+            const [origenExtraido, origenIdExtraido] = pelicula.id.split(":");
+
             const fechaEstrenoValida =
                 "fechaEstreno" in pelicula &&
                 typeof pelicula.fechaEstreno === "string"
@@ -66,53 +75,81 @@ export async function importarDatosScraped(
                       ? (pelicula as any).fechaEstrenoISO
                       : null;
 
-            await client.query(sqlPelicula, [
-                pelicula.id,
-                pelicula.titulo,
-                pelicula.sinopsis,
-                pelicula.duracion,
-                pelicula.genero,
-                pelicula.clasificacion,
-                pelicula.poster, // 'poster' mapea a la columna 'imagen_url'
+            const estadoEstreno =
+                (pelicula as any).estadoEstreno || "cartelera";
+
+            const sqlFuente = `
+                INSERT INTO pelicula_fuentes (origen, origen_id, pelicula_id, url, estado_estreno, fecha_estreno)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                ON CONFLICT (origen, origen_id) DO UPDATE SET
+                    url = EXCLUDED.url,
+                    estado_estreno = EXCLUDED.estado_estreno,
+                    fecha_estreno = EXCLUDED.fecha_estreno;
+            `;
+            await client.query(sqlFuente, [
+                origenExtraido || "desconocido",
+                origenIdExtraido || pelicula.id,
+                internalPeliId,
+                pelicula.url || null,
+                estadoEstreno,
                 fechaEstrenoValida,
             ]);
         }
 
-        // 4. Limpiar funciones obsoletas pasadas
-        await client.query("DELETE FROM funciones WHERE fecha_hora < NOW();");
+        // 3. Limpiar horarios pasados
+        await client.query(
+            "DELETE FROM horarios WHERE (fecha + horario) < (NOW() AT TIME ZONE 'America/Santiago');",
+        );
 
-        // 5. Insertar Funciones masivamente
+        // 4. Insertar Horarios y Tarifas masivamente
         for (const funcion of funciones) {
-            const sqlFuncion = `
-        INSERT INTO funciones (id, pelicula_id, cine_id, fecha_hora, precio, sala, formato, agotada)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        ON CONFLICT (id) DO UPDATE SET
-          precio = EXCLUDED.precio,
-          sala = EXCLUDED.sala,
-          formato = EXCLUDED.formato,
-          agotada = EXCLUDED.agotada;
-      `;
+            const internalPeliId = mapaPeliculasId.get(funcion.peliculaId);
+            if (!internalPeliId) {
+                console.warn(
+                    `Pelicula ID ${funcion.peliculaId} no encontrado para la funcion ${funcion.id}`,
+                );
+                continue;
+            }
 
-            // Concatenar fecha ("YYYY-MM-DD") y horario ("HH:MM") para formar un ISO String de Timestamp válido
-            const fechaHoraISO =
-                funcion.fecha && funcion.horario
-                    ? new Date(
-                          `${funcion.fecha}T${funcion.horario}:00`,
-                      ).toISOString()
-                    : new Date().toISOString();
+            const [origenFuncion, origenIdFuncion] = funcion.id.split(":");
 
-            // Priorizar el precio online o el precio normal, defaulteando a 0
-            const precioFinal = funcion.precioOnline ?? funcion.precio ?? 0;
+            const sqlHorario = `
+                INSERT INTO horarios (origen_id, pelicula_id, cine_id, origen, pelicula_origen_id, sesion_id, fecha, horario, fecha_cartelera, formato_resumen, sala, agotada, revision, extraido_en)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+                RETURNING id;
+            `;
 
-            await client.query(sqlFuncion, [
+            const resultHorario = await client.query(sqlHorario, [
                 funcion.id,
-                funcion.peliculaId,
+                internalPeliId,
                 funcion.cineId,
-                fechaHoraISO,
-                precioFinal,
-                funcion.sala,
+                origenFuncion || "desconocido",
+                funcion.peliculaId,
+                funcion.id, // Usamos el id de la función como sesion_id
+                funcion.fecha,
+                funcion.horario,
+                funcion.fecha,
                 funcion.formato,
+                funcion.sala,
                 funcion.agotada ?? false,
+                "rev-1",
+            ]);
+
+            const internalHorarioId = resultHorario.rows[0].id;
+
+            const precioFinal = funcion.precioOnline ?? funcion.precio ?? 0;
+            const sqlTarifa = `
+                INSERT INTO tarifas (origen_id, horario_id, tipo_entrada, formato, precio, precio_online, url_compra, extraido_en)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, NOW());
+            `;
+            await client.query(sqlTarifa, [
+                `tarifa-${funcion.id}`,
+                internalHorarioId,
+                "General",
+                funcion.formato,
+                funcion.precio || precioFinal,
+                precioFinal,
+                "#",
             ]);
         }
 
