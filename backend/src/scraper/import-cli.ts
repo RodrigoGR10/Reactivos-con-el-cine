@@ -21,20 +21,16 @@ async function main() {
         console.log(`Leyendo archivo: ${absolutePath}`);
 
         const rawData = readFileSync(absolutePath, "utf-8");
-        const data: ScrapeResult = JSON.parse(rawData);
-
-        const cines = data.cines ?? [];
-        const peliculas = data.peliculas ?? [];
-        const funciones = data.funciones ?? [];
+        const data = JSON.parse(rawData) as ScrapeResult;
 
         console.log(
-            `Datos extraídos: ${cines.length} cines, ${peliculas.length} películas, ${funciones.length} funciones.`,
+            `Datos extraídos: ${data.cines.length} cines, ${data.peliculas.length} películas, ${data.horarios.length} funciones.`,
         );
 
         if (
-            cines.length === 0 &&
-            peliculas.length === 0 &&
-            funciones.length === 0
+            data.cines.length === 0 &&
+            data.peliculas.length === 0 &&
+            data.horarios.length === 0
         ) {
             console.warn(
                 "El archivo JSON no contiene registros para importar.",
@@ -43,7 +39,7 @@ async function main() {
         }
 
         console.log("Iniciando importación a PostgreSQL...");
-        await importarDatosScraped(cines, peliculas, funciones);
+        await importarDatosScraped(data);
 
         console.log("Proceso finalizado correctamente.");
     } catch (error) {
