@@ -1,4 +1,4 @@
-import { query, isSourceId } from "../db.ts";
+import { query, isCineId } from "../db.ts";
 import express from "express";
 
 const router = express.Router();
@@ -49,7 +49,7 @@ router.get("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     const { id } = req.params;
 
-    if (!isSourceId(id)) {
+    if (!isCineId(id)) {
         return res.status(400).json({ error: "ID de cine invalido" });
     }
 
