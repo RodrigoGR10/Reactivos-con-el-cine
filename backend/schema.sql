@@ -22,42 +22,87 @@ CREATE TABLE IF NOT EXISTS cines (
     comuna VARCHAR(100) NOT NULL,
     ciudad VARCHAR(100),
     cadena VARCHAR(50) NOT NULL, -- "cinemark", "cineplanet", "vista", etc.
+    origen_id VARCHAR(100) NOT NULL, -- id del cine en la cadena
+    url TEXT,                        -- pagina del cine (de ahi sale el slug)
     logo_url TEXT,
     latitud DOUBLE PRECISION,
     longitud DOUBLE PRECISION,
-    creado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    creado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (cadena, origen_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS pelicula_fuentes (
+    origen VARCHAR(20) NOT NULL,
+    origen_id VARCHAR(100) NOT NULL,
+    pelicula_id VARCHAR(100) NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
+    url TEXT,
+    estado_estreno VARCHAR(20) CHECK (estado_estreno IN ('cartelera', 'preventa', 'proximamente')),
+    fecha_estreno DATE,
+    PRIMARY KEY (origen, origen_id)         -- una fuente pertenece a una sola pelicula
 );
 
 --------------------------------------------------
 -- 3. TABLA PELICULAS
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS peliculas (
-    id VARCHAR(100) PRIMARY KEY, -- ID del scraper u origen
+    id VARCHAR(100) PRIMARY KEY, -- id canonico: el de la primera fuente
     titulo VARCHAR(255) NOT NULL,
     sinopsis TEXT,
     duracion INT, -- En minutos
-    genero VARCHAR(100),
+    genero VARCHAR(150),
     clasificacion VARCHAR(20),
     imagen_url TEXT,
-    fecha_estreno DATE,
+    banner TEXT,
+    tmdb_id INT,
     creado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 --------------------------------------------------
 -- 4. TABLA FUNCIONES (CARTELERA Y HORARIOS)
 --------------------------------------------------
-CREATE TABLE IF NOT EXISTS funciones (
-    id VARCHAR(150) PRIMARY KEY, -- ID de la sesión/función
+CREATE TABLE IF NOT EXISTS horarios (
+    id VARCHAR(150) PRIMARY KEY,            -- id del horario en el scraper
     pelicula_id VARCHAR(100) NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
     cine_id VARCHAR(100) NOT NULL REFERENCES cines(id) ON DELETE CASCADE,
-    fecha_hora TIMESTAMP WITH TIME ZONE NOT NULL,
-    precio NUMERIC(10, 2) DEFAULT 0.00,
-    sala VARCHAR(50),
-    formato VARCHAR(50), -- "2D", "3D", "IMAX", etc.
-    agotada BOOLEAN DEFAULT FALSE,
-    creado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    origen VARCHAR(20) NOT NULL,
+    pelicula_origen_id VARCHAR(100) NOT NULL,   -- id de la pelicula en ESTA cadena
+    pelicula_url TEXT,
+    sesion_id VARCHAR(100) NOT NULL,
+    fecha DATE NOT NULL,                    -- hora local de Chile
+    horario TIME NOT NULL,                  -- hora local de Chile
+    fecha_cartelera DATE NOT NULL,
+    formato_resumen VARCHAR(100),
+    idioma VARCHAR(50),
+    sala VARCHAR(50) NOT NULL DEFAULT '',
+    agotada BOOLEAN NOT NULL DEFAULT FALSE,
+    url_compra TEXT,
+    revision VARCHAR(100) NOT NULL,
+    extraido_en TIMESTAMP WITH TIME ZONE NOT NULL,
+    -- estado de la consulta de precios bajo demanda
+    precios_consultados_en TIMESTAMP WITH TIME ZONE,
+    precios_error_hasta TIMESTAMP WITH TIME ZONE,
+    consulta_precios_hasta TIMESTAMP WITH TIME ZONE,   -- candado con vencimiento
+    consulta_precios_token VARCHAR(100)
 );
 
+CREATE TABLE IF NOT EXISTS tarifas (
+    id VARCHAR(200) NOT NULL,               -- id de la tarifa en el scraper
+    horario_id VARCHAR(150) NOT NULL REFERENCES horarios(id) ON DELETE CASCADE,
+    tipo_entrada VARCHAR(100) NOT NULL,
+    formato VARCHAR(100) NOT NULL,
+    precio INT,                             -- CLP, enteros
+    cargo_servicio INT,
+    precio_online INT NOT NULL,
+    url_compra TEXT NOT NULL,
+    extraido_en TIMESTAMP WITH TIME ZONE NOT NULL,
+    PRIMARY KEY (horario_id, id)
+);
+
+-- Horarios que aun no han pasado, en hora de Chile (fecha + hora local).
+CREATE OR REPLACE VIEW horarios_vigentes AS
+    SELECT * FROM horarios
+    WHERE (fecha + horario) >= (NOW() AT TIME ZONE 'America/Santiago');
 --------------------------------------------------
 -- 5. TABLA PIVOTE: FAVORITOS PELICULAS
 --------------------------------------------------
@@ -92,16 +137,13 @@ CREATE TABLE IF NOT EXISTS vistas_peliculas (
 -- INDICES PARA OPTIMIZAR CONSULTAS
 --------------------------------------------------
 
--- Búsquedas y consultas de cartelera por fecha y disponibilidad
-CREATE INDEX IF NOT EXISTS idx_funciones_fecha_hora ON funciones(fecha_hora);
-CREATE INDEX IF NOT EXISTS idx_funciones_pelicula ON funciones(pelicula_id);
-CREATE INDEX IF NOT EXISTS idx_funciones_cine ON funciones(cine_id);
-
--- Búsquedas combinadas en funciones (ej. cartelera vigentes)
-CREATE INDEX IF NOT EXISTS idx_funciones_pelicula_fecha
-    ON funciones(pelicula_id, fecha_hora)
-    WHERE agotada = FALSE;
-
 -- Filtros de cines por ubicación o cadena
 CREATE INDEX IF NOT EXISTS idx_cines_comuna ON cines(comuna);
 CREATE INDEX IF NOT EXISTS idx_cines_cadena ON cines(cadena);
+
+
+CREATE INDEX IF NOT EXISTS idx_horarios_pelicula_fecha ON horarios(pelicula_id, fecha, horario);
+CREATE INDEX IF NOT EXISTS idx_horarios_cine_fecha ON horarios(cine_id, fecha, horario);
+CREATE INDEX IF NOT EXISTS idx_horarios_sync ON horarios(origen, cine_id, fecha_cartelera);
+CREATE INDEX IF NOT EXISTS idx_pelicula_fuentes_pelicula ON pelicula_fuentes(pelicula_id);
+CREATE INDEX IF NOT EXISTS idx_peliculas_tmdb ON peliculas(tmdb_id);
