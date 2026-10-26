@@ -1,5 +1,5 @@
 import express from "express";
-import { query, isSourceId } from "../db.ts";
+import { query } from "../db.ts";
 
 const router = express.Router();
 
@@ -16,13 +16,23 @@ const PELICULA_COLUMNS = `
     p.genero,
     p.clasificacion,
     p.imagen_url AS poster,
-    to_char(p.fecha_estreno, 'YYYY-MM-DD') AS "fechaEstreno",
-    CASE
-        WHEN p.fecha_estreno > (NOW() AT TIME ZONE 'America/Santiago')::date
-        THEN 'preventa'
-        ELSE 'cartelera'
-    END AS "estadoEstreno"
-`;
+    p.banner,
+    p.tmbd_id AS "tmbdId",
+    (
+        SELECT to_char(MIN(fecha_estreno), 'YYYY-MM-DD')
+        FROM pelicula_fuentes pf
+        WHERE pf.pelicula_id = p.id
+    ) AS "fechaEstreno",
+    (
+        SELECT CASE
+                WHEN MIN(fecha_estreno) > (NOW() AT TIME ZONE 'America/Santiago')::date
+                THEN 'preventa'
+                ELSE 'cartelera'
+        END
+        FROM pelicula_fuentes pf
+        WHERE pf.pelicula_id = p.id
+    ) AS "estadoEstreno"
+    `;
 
 router.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
@@ -46,8 +56,8 @@ router.get("/", async (req, res, next) => {
     if (cartelera !== "true") {
         const sql = `
             SELECT ${PELICULA_COLUMNS}
-            FROM peliculas
-            ORDER BY titulo ASC;
+            FROM peliculas p
+            ORDER BY p.titulo ASC;
             `;
 
         const { rows } = await query(sql);
@@ -58,9 +68,8 @@ router.get("/", async (req, res, next) => {
     const sql = `
         SELECT ${PELICULA_COLUMNS}
         FROM peliculas p
-        INNER JOIN funciones f ON f.pelicula_id = p.id
-        WHERE f.fecha_hora >= CURRENT_TIMESTAMP
-          AND f.agotada = FALSE
+        INNER JOIN horarios_vigentes h ON h.pelicula_id = p.id
+        WHERE h.agotada = FALSE
         GROUP BY p.id
         ORDER BY p.titulo ASC;
         `;
@@ -70,16 +79,16 @@ router.get("/", async (req, res, next) => {
 });
 
 router.get("/:id", async (req, res, next) => {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10);
 
-    if (!id || typeof id !== "string" || !isSourceId(id)) {
+    if (isNaN(id) || id <= 0) {
         return res.status(400).json({ error: "ID de película inválido" });
     }
 
     const sql = `
         SELECT ${PELICULA_COLUMNS}
         FROM peliculas p
-        WHERE id = $1;
+        WHERE p.id = $1;
         `;
 
     const { rows } = await query(sql, [id]);
