@@ -17,7 +17,7 @@ const PELICULA_COLUMNS = `
     p.clasificacion,
     p.imagen_url AS poster,
     p.banner,
-    p.tmbd_id AS "tmbdId",
+    p.tmdb_id AS "tmdbId",
     (
         SELECT to_char(MIN(fecha_estreno), 'YYYY-MM-DD')
         FROM pelicula_fuentes pf
