@@ -477,10 +477,6 @@ export async function preciosPorCine(
     );
 
     return updated
-        .filter(
-            (schedule): schedule is ScheduleWithPrices =>
-                schedule !== null &&
-                fechaHora(schedule) >= new Date().toISOString().slice(0, 16),
-        )
+        .filter((schedule): schedule is ScheduleWithPrices => schedule !== null)
         .map(horarioPublico);
 }
