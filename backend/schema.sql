@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS horarios (
     sala VARCHAR(50) NOT NULL DEFAULT '',
     agotada BOOLEAN NOT NULL DEFAULT FALSE,
     url_compra TEXT,
-    revision VARCHAR(100) NOT NULL,
+    revision VARCHAR(300) NOT NULL,
     extraido_en TIMESTAMP WITH TIME ZONE NOT NULL,
     -- estado de la consulta de precios bajo demanda
     precios_consultados_en TIMESTAMP WITH TIME ZONE,
