@@ -102,7 +102,17 @@ async function exportarDiagnosticoHtml(
                 <td>${escaparHtml(r.titulo)}</td>
                 <td><span class="badge ${clase}">${estado}</span></td>
                 <td>${escaparHtml(r.decision)}</td>
-                <td>${r.tmdbId ?? "—"}</td>
+                <td>
+                    ${
+                        r.tmdbId !== null
+                            ? `<a href="https://www.themoviedb.org/movie/${r.tmdbId}"
+                                 target="_blank"
+                                 rel="noopener noreferrer">
+                                 ${r.tmdbId}
+                               </a>`
+                            : "—"
+                    }
+                </td>
                 <td>${escaparHtml(r.tituloTmdb)}</td>
                 <td>${escaparHtml(r.fechaEstreno?.slice(0, 4) ?? "—")}</td>
                 <td>${r.duracionLocal ?? "—"}</td>
