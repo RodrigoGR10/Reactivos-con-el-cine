@@ -1,12 +1,30 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-
+import { sincronizarMetadatosTmdb } from "./sync-tmdb.ts";
 import { pool } from "../db.ts";
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
 
 async function main() {
-    const jsonPath = process.argv[2];
+    const args = process.argv.slice(2);
+
+    if (args.includes("--tmdb")) {
+        if (!args.includes("--dry-run")) {
+            throw new Error(
+                "La sincronización TMDB solo está habilitada en modo seguro. " +
+                    "Ejecuta: npm run sync:tmdb -- --dry-run",
+            );
+        }
+
+        if (args.includes("--apply")) {
+            throw new Error("--apply todavía no está implementado.");
+        }
+
+        await sincronizarMetadatosTmdb();
+        return;
+    }
+
+    const jsonPath = args[0];
 
     if (!jsonPath) {
         throw new Error("Uso: pnpm import:scrape <ruta-al-json>");
