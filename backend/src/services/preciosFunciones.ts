@@ -65,6 +65,18 @@ type ScheduleWithPrices = ScheduleRow & {
 
 const consultas = new Map<string, Promise<ScheduleWithPrices | null>>();
 
+function fechaISO(fecha: Date | string): string {
+    if (fecha instanceof Date) {
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, "0");
+        const day = String(fecha.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    return fecha.slice(0, 10);
+}
+
 function fechaHora(row: ScheduleRow): string {
     return `${row.fecha}T${String(row.horario).slice(0, 5)}`;
 }
@@ -233,8 +245,8 @@ async function extraerTarifas(row: ScheduleRow): Promise<ScrapedSession[]> {
         sessionId: row.sesion_id,
         theaterRoom: row.sala,
         sessionFormat: row.formato_resumen,
-        sessionDateTime: `${row.fecha}T${String(row.horario).slice(0, 5)}:00`,
-        sessionDisplayDate: row.fecha_cartelera,
+        sessionDateTime: `${fechaISO(row.fecha)}T${String(row.horario).slice(0, 5)}:00`,
+        sessionDisplayDate: fechaISO(row.fecha_cartelera),
         language: { name: row.idioma },
     };
 
