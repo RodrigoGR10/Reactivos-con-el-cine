@@ -1,5 +1,6 @@
 import express from "express";
 import { query, isNumericId, isCineId } from "../db.ts";
+import { preciosPorCine } from "../services/preciosFunciones.ts";
 
 const router = express.Router();
 
@@ -157,42 +158,23 @@ router.get("/horarios", async (req, res) => {
 router.get("/precios", async (req, res) => {
     const { peliculaId, cineId, fecha } = req.query;
 
-    // Validación de tipos y formato UUID/Fecha (YYYY-MM-DD)
-    const isDate = (d: string) => !isNaN(Date.parse(d));
-
     if (
         typeof peliculaId !== "string" ||
         !isNumericId(peliculaId) ||
         typeof cineId !== "string" ||
         !isCineId(cineId) ||
         typeof fecha !== "string" ||
-        !isDate(fecha)
+        !/^\d{4}-\d{2}-\d{2}$/.test(fecha)
     ) {
         return res.status(400).json({
-            error: "Indica peliculaId, cineId y una fecha valida.",
+            error: "Indica peliculaId, cineId y una fecha válida.",
         });
     }
 
-    const sql = `
-            SELECT
-              h.id,
-              (h.fecha + h.horario) AS "fechaHora",
-              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
-              h.sala,
-              h.formato_resumen AS formato,
-              h.agotada
-            FROM horarios h
-            WHERE h.pelicula_id = $1
-              AND h.cine_id = $2
-              AND h.fecha = $3
-              AND (h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')
-            ORDER BY h.horario ASC;
-        `;
-
-    const { rows } = await query(sql, [peliculaId, cineId, fecha]);
+    const horarios = await preciosPorCine(peliculaId, cineId, fecha);
 
     return res.json({
-        horarios: rows,
+        horarios,
         cacheMinutos: 15,
     });
 });
