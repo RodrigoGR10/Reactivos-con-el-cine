@@ -17,7 +17,14 @@ async function main() {
     console.log(`Leyendo: ${absolutePath}`);
 
     const rawData = await readFile(absolutePath, "utf8");
-    const data: unknown = JSON.parse(rawData);
+
+    let data: unknown;
+
+    try {
+        data = JSON.parse(rawData);
+    } catch {
+        throw new Error(`El archivo no contiene JSON válido: ${absolutePath}`);
+    }
 
     validarScrapeResult(data);
 
