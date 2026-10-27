@@ -1,12 +1,24 @@
 import type { Cine, Funcion, Horario, Pelicula } from "../../types/types";
 import "./TarjetaFuncion.css";
+import { ButacasFuncion } from "./ButacasFuncion";
 
 const cadenas: Record<string, { nombre: string; dominios: string[] }> = {
   cinemark: { nombre: "Cinemark", dominios: ["www.cinemark.cl", "cinemark.cl"] },
   cineplanet: { nombre: "Cineplanet", dominios: ["www.cineplanet.cl", "cineplanet.cl"] },
   muvix: { nombre: "Muvix", dominios: ["muvix.cl", "www.muvix.cl"] },
   cinestar: { nombre: "Cinestar", dominios: ["cinestar.cl", "www.cinestar.cl"] },
-  cinepolis: { nombre: "Cinépolis", dominios: ["cinepolis.cl", "www.cinepolis.cl", "hoyts.cl", "www.hoyts.cl"] },
+  cinepolis: {
+    nombre: "Cinépolis",
+    dominios: [
+      "cinepolis.cl",
+      "www.cinepolis.cl",
+      "hoyts.cl",
+      "www.hoyts.cl",
+      "cinepolis.com",
+      "www.cinepolis.com",
+      "compra.cinepolis.com",
+    ],
+  },
 };
 
 const precioCLP = (precio: number) =>
@@ -47,16 +59,19 @@ export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFunc
   const tarifa = funcion ?? horario?.tarifas?.[0];
   const formato = tarifa?.formato || horario?.formatoResumen || "2D";
   const precio = tarifa?.precioOnline ?? tarifa?.precio;
-  const urlCompra = tarifa?.urlCompra;
+  const urlCompra = tarifa?.urlCompra ?? horario?.urlCompra;
 
   const enlace = enlaceSeguro(urlCompra, cine?.origen);
   const cadena = cadenas[cine?.origen ?? ""]?.nombre ?? cine?.nombre ?? "Cine";
   const tituloPelicula = pelicula?.titulo ?? "Película";
   const nombreCine = cine?.nombre ?? "Cine";
+  const butacas = horario?.butacas;
+  const resumenButacas = butacas && Number.isSafeInteger(butacas.disponibles) && butacas.disponibles >= 0
+    ? `, última consulta de butacas: ${butacas.disponibles}${butacas.total ? ` de ${butacas.total}` : ""} libres` : "";
 
   const etiquetaAria = `${tituloPelicula}, ${nombreCine}, ${hora} ${formato} ${idioma}${
     precio !== undefined ? `, precio ${precioCLP(precio)}` : ""
-  }`;
+  }${resumenButacas}`;
 
   const tienePrecio = precio !== undefined || agotada;
 
@@ -71,6 +86,7 @@ export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFunc
           {agotada ? "Agotada" : precioCLP(precio!)}
         </span>
       )}
+      {horario && <ButacasFuncion horario={horario} />}
     </>
   );
 

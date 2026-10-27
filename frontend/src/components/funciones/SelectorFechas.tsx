@@ -11,7 +11,7 @@ export function SelectorFechas({
   fechaSeleccionada,
   onSeleccionarFecha,
 }: SelectorFechasProps) {
-  if (fechas.length <= 1) return null;
+  if (fechas.length === 0) return null;
 
   const ahora = new Date();
   const hoyLocal = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-${String(ahora.getDate()).padStart(2, "0")}`;

@@ -30,7 +30,7 @@ export interface RawSession {
   sessionDateTime: string;
   sessionDisplayDate: string;
   language: { name: string };
-  occupation?: { availableSeats: number };
+  occupation?: { availableSeats: number; capacity?: number; status?: string };
 }
 
 export interface RawTicket {

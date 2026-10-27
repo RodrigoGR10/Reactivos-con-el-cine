@@ -7,9 +7,11 @@ import funcionService from "../services/funciones";
 import { Mensaje } from "../components/common/Mensaje";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
-import { MapPinIcon, SearchIcon } from "../components/common/Icons";
+import { CloseIcon, MapPinIcon, SearchIcon } from "../components/common/Icons";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
+import { obtenerCadena } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
+import { useButacasFunciones, claveButacas } from "../hooks/useButacasFunciones";
 import "./MovieDetailPage.css";
 
 import type { Cine, Horario } from "../types/types";
@@ -26,9 +28,11 @@ function MovieDetailPage() {
     const { user, openAuthModal } = useAuth();
 
     const { ubicacion, estado, solicitar } = useUbicacion();
+    const [cercaniaActiva, setCercaniaActiva] = useState(false);
+    const ordenarPorCercania = cercaniaActiva && estado === "listo" && ubicacion !== null;
 
     const distanciaA = (cine: Cine) =>
-        ubicacion && cine.latitud != null && cine.longitud != null
+        ordenarPorCercania && ubicacion && cine.latitud != null && cine.longitud != null
             ? distanciaKM(
                   ubicacion.latitud,
                   ubicacion.longitud,
@@ -38,11 +42,13 @@ function MovieDetailPage() {
             : Infinity;
 
     const { pelicula, horarios, cines, error } = useDetallePelicula(id);
+    const butacas = useButacasFunciones();
 
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
     const [fechaSeleccionada, setFechaSeleccionada] = useState("");
     const [busqueda, setBusqueda] = useState("");
     const [comunaSeleccionada, setComunaSeleccionada] = useState("Todas");
+    const [cadenaSeleccionada, setCadenaSeleccionada] = useState("");
     const [consultandoPrecios, setConsultandoPrecios] = useState<Record<string, boolean>>({});
     const [horariosConPrecios, setHorariosConPrecios] = useState<Record<string, Horario>>({});
 
@@ -93,7 +99,7 @@ function MovieDetailPage() {
     const grupos = cines
         .flatMap((cine) => {
             const sesiones = horariosDelDia
-                .map((h) => horariosConPrecios[h.id] ?? h)
+                .map((h) => ({ ...(horariosConPrecios[h.id] ?? h), ...butacas.porHorario[h.id] }))
                 .filter(
                     (h) =>
                         h.cineId === cine.id &&
@@ -105,11 +111,14 @@ function MovieDetailPage() {
                 ? [{ cine, horarios: sesiones, distancia: distanciaA(cine) }]
                 : [];
         })
-        .sort((a, b) =>
-            a.distancia === b.distancia
-                ? a.cine.nombre.localeCompare(b.cine.nombre)
-                : a.distancia - b.distancia,
-        );
+        .sort((a, b) => {
+            const prioridad = ordenarPorCercania
+                ? a.distancia === b.distancia ? 0 : a.distancia - b.distancia
+                : Number(isFavoriteCinema(b.cine.id)) - Number(isFavoriteCinema(a.cine.id));
+            return prioridad
+                || a.cine.nombre.localeCompare(b.cine.nombre, "es-CL", { sensitivity: "base", numeric: true })
+                || a.cine.id.localeCompare(b.cine.id);
+        });
 
     const comunasDisponibles = [
         "Todas",
@@ -129,6 +138,14 @@ function MovieDetailPage() {
         ? comunaSeleccionada
         : "Todas";
 
+    const cadenasDisponibles = [...new Map(grupos.map(({ cine }) => {
+        const cadena = obtenerCadena(cine);
+        return [cadena.id, cadena] as const;
+    })).values()].sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CL"));
+    const cadenaActual = cadenasDisponibles.some((cadena) => cadena.id === cadenaSeleccionada)
+        ? cadenaSeleccionada
+        : "";
+
     const gruposFiltrados = grupos.filter((g) => {
         const coincideBusqueda =
             !busqueda.trim() ||
@@ -139,7 +156,9 @@ function MovieDetailPage() {
             comunaActual === "Todas" ||
             g.cine.comuna.toLowerCase() === comunaActual.toLowerCase();
 
-        return coincideBusqueda && coincideComuna;
+        const coincideCadena = !cadenaActual || obtenerCadena(g.cine).id === cadenaActual;
+
+        return coincideBusqueda && coincideComuna && coincideCadena;
     });
 
     if (error) return <Mensaje texto={error} />;
@@ -231,6 +250,7 @@ function MovieDetailPage() {
                                 <SearchIcon size={16} />
                                 <input
                                     type="text"
+                                    aria-label="Buscar por cine o comuna"
                                     placeholder="Buscar por cine o comuna..."
                                     value={busqueda}
                                     onChange={(e) => setBusqueda(e.target.value)}
@@ -239,20 +259,35 @@ function MovieDetailPage() {
                                     <button
                                         type="button"
                                         className="btn-clear-inline"
+                                        aria-label="Borrar búsqueda"
+                                        title="Borrar búsqueda"
                                         onClick={() => setBusqueda("")}
                                     >
-                                        ✕
+                                        <CloseIcon size={14} />
                                     </button>
                                 )}
                             </div>
+
+                            <select
+                                className="selector-cadena-filtro"
+                                value={cadenaActual}
+                                onChange={(e) => setCadenaSeleccionada(e.target.value)}
+                                aria-label="Filtrar por cadena"
+                                disabled={cadenasDisponibles.length === 0}
+                            >
+                                <option value="">Todas las cadenas</option>
+                                {cadenasDisponibles.map((cadena) => (
+                                    <option key={cadena.id} value={cadena.id}>
+                                        {cadena.nombre}
+                                    </option>
+                                ))}
+                            </select>
 
                             {comunasDisponibles.length > 1 && (
                                 <select
                                     className="selector-comuna-filtro"
                                     value={comunaActual}
-                                    onChange={(e) =>
-                                        setComunaSeleccionada(e.target.value)
-                                    }
+                                    onChange={(e) => setComunaSeleccionada(e.target.value)}
                                     aria-label="Filtrar por comuna"
                                 >
                                     <option value="Todas">Todas las comunas</option>
@@ -269,11 +304,18 @@ function MovieDetailPage() {
                             {grupos.length > 0 && (
                                 <button
                                     type="button"
-                                    className={`boton-cercania-detalle ${estado === "listo" ? "activo" : ""}`}
-                                    onClick={solicitar}
-                                    disabled={
-                                        estado === "cargando" || estado === "listo"
-                                    }
+                                    className={`boton-cercania-detalle ${ordenarPorCercania ? "activo" : ""}`}
+                                    aria-pressed={ordenarPorCercania}
+                                    title={ordenarPorCercania ? "Volver al orden por favoritos" : "Ordenar por cercanía"}
+                                    onClick={() => {
+                                        if (ordenarPorCercania) {
+                                            setCercaniaActiva(false);
+                                            return;
+                                        }
+                                        setCercaniaActiva(true);
+                                        solicitar();
+                                    }}
+                                    disabled={estado === "cargando"}
                                 >
                                     <MapPinIcon size={15} />
                                     <span>
@@ -285,7 +327,7 @@ function MovieDetailPage() {
                             )}
                         </div>
 
-                        {formatosDisponibles.length > 2 && (
+                        {formatosDisponibles.length > 1 && (
                             <div className="formatos-chips">
                                 {formatosDisponibles.map((formato) => (
                                     <button
@@ -318,6 +360,7 @@ function MovieDetailPage() {
                                 setBusqueda("");
                                 setComunaSeleccionada("Todas");
                                 setFormatoSeleccionado("Todos");
+                                setCadenaSeleccionada("");
                             }}
                         >
                             Restablecer filtros
@@ -350,6 +393,8 @@ function MovieDetailPage() {
                                             (h.tarifas[0].precioOnline ||
                                                 h.tarifas[0].precio),
                                     );
+                                    const clave = claveButacas(pelicula.id, cine.id, fechaActual);
+                                    const tieneButacas = sesiones.some(h => h.butacas || h.estadoButacas === "sin_datos");
 
                                     return (
                                         <article
@@ -422,6 +467,7 @@ function MovieDetailPage() {
                                                     </div>
                                                 </div>
 
+                                                <div className="funciones-acciones">
                                                 <button
                                                     type="button"
                                                     className={`btn-ver-precios ${tienePrecios ? "cargado" : ""}`}
@@ -443,8 +489,16 @@ function MovieDetailPage() {
                                                           ? "Precios cargados"
                                                           : "Ver precios"}
                                                 </button>
+                                                <button type="button" className="btn-ver-butacas"
+                                                    disabled={butacas.cargando[clave]}
+                                                    aria-label={`Consultar butacas en ${cine.nombre}`}
+                                                    title="Consultar disponibilidad de butacas de estas funciones"
+                                                    onClick={() => butacas.consultar(pelicula.id, cine.id, fechaActual)}>
+                                                    {butacas.cargando[clave] ? "Consultando butacas..." : tieneButacas ? "Actualizar butacas" : "Ver butacas"}
+                                                </button>
+                                                </div>
                                             </div>
-
+                                            {butacas.errores[clave] && <p className="error-butacas" role="alert">{butacas.errores[clave]}</p>}
                                             <div className="horarios-grid-cine">
                                                 {sesiones.map((h) => (
                                                     <TarjetaFuncion

@@ -9,6 +9,7 @@ export interface Pelicula {
   banner?: string;
   estadoEstreno?: "cartelera" | "preventa" | "proximamente";
   fechaEstreno?: string;
+  totalFavoritos?: number;
 }
 
 export interface Cine {
@@ -56,5 +57,14 @@ export interface Horario {
   estadoPrecio: "pendiente" | "consultando" | "disponible" | "desactualizado" | "error" | "sin_tarifa" | "agotada";
   preciosConsultadosEn?: string;
   reintentarEn?: string;
+  urlCompra?: string;
   tarifas: Funcion[];
+  estadoButacas?: "pendiente" | "disponible" | "desactualizado" | "error" | "sin_datos";
+  butacas?: {
+    disponibles: number;
+    total?: number;
+    porcentajeNoDisponible?: number;
+    consultadasEn: string;
+  };
+  butacasReintentarEn?: string;
 }

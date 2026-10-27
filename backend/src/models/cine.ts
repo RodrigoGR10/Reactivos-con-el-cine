@@ -71,11 +71,16 @@ cineSchema.set("toJSON", {
         _,
         returnedObject: {
             id?: string;
+            comuna?: string;
             _id?: mongoose.Types.ObjectId;
             __v?: number;
         },
     ) => {
         returnedObject.id = returnedObject._id?.toString();
+        // Normaliza tambien los registros guardados antes de corregir el scraper.
+        if (typeof returnedObject.comuna === "string") {
+            returnedObject.comuna = normalizarComuna(returnedObject.comuna);
+        }
         delete returnedObject._id;
         delete returnedObject.__v;
     },

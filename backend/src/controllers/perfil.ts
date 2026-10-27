@@ -7,6 +7,22 @@ import middleware from "../utils/middleware.ts";
 
 const router = express.Router();
 
+function alternarFavorito(userId: string, campo: "peliculasFavoritas" | "cinesFavoritos", recursoId: string) {
+  const actuales = { $ifNull: [`$${campo}`, []] };
+  // La alternancia usa el estado actual de MongoDB, no una copia leida antes de otra peticion.
+  return UserModel.findByIdAndUpdate(userId, [{
+    $set: {
+      [campo]: {
+        $cond: [
+          { $in: [recursoId, actuales] },
+          { $filter: { input: actuales, as: "favorito", cond: { $ne: ["$$favorito", recursoId] } } },
+          { $concatArrays: [actuales, [recursoId]] },
+        ],
+      },
+    },
+  }], { returnDocument: "after", updatePipeline: true });
+}
+
 router.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   next();
@@ -51,13 +67,11 @@ router.post(
       }
     }
 
-    user.peliculasFavoritas = existe
-      ? actuales.filter((id) => id !== peliculaId)
-      : [...actuales, peliculaId];
-
-    await user.save();
-
-    return res.json({ peliculasFavoritas: user.peliculasFavoritas });
+    const actualizado = await alternarFavorito(user._id.toString(), "peliculasFavoritas", peliculaId);
+    if (!actualizado) {
+      return res.status(401).json({ error: "El usuario de la sesión no existe" });
+    }
+    return res.json({ peliculasFavoritas: actualizado.peliculasFavoritas });
   },
 );
 
@@ -88,13 +102,11 @@ router.post(
       }
     }
 
-    user.cinesFavoritos = existe
-      ? actuales.filter((id) => id !== cineId)
-      : [...actuales, cineId];
-
-    await user.save();
-
-    return res.json({ cinesFavoritos: user.cinesFavoritos });
+    const actualizado = await alternarFavorito(user._id.toString(), "cinesFavoritos", cineId);
+    if (!actualizado) {
+      return res.status(401).json({ error: "El usuario de la sesión no existe" });
+    }
+    return res.json({ cinesFavoritos: actualizado.cinesFavoritos });
   },
 );
 

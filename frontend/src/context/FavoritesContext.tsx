@@ -14,7 +14,7 @@ import profileService from "../services/profileService";
 interface FavoritesContextType {
   favoriteMovieIds: string[];
   favoriteCinemaIds: string[];
-  toggleFavoriteMovie: (movieId: string) => void;
+  toggleFavoriteMovie: (movieId: string) => Promise<boolean>;
   toggleFavoriteCinema: (cinemaId: string) => void;
   isFavoriteMovie: (movieId: string) => boolean;
   isFavoriteCinema: (cinemaId: string) => boolean;
@@ -76,17 +76,16 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     return () => controller.abort();
   }, [user, handleUnauthorized]);
 
-  const toggleFavoriteMovie = (movieId: string) => {
-    if (!user) return;
-    profileService
-      .toggleFavoriteMovie(movieId)
-      .then((updated) => {
-        setFavoriteMovieIds(updated);
-      })
-      .catch((error: unknown) => {
-        if (handleUnauthorized(error)) return;
-        console.error("Error al actualizar película favorita:", error);
-      });
+  const toggleFavoriteMovie = async (movieId: string): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const updated = await profileService.toggleFavoriteMovie(movieId);
+      setFavoriteMovieIds(updated);
+      return true;
+    } catch (error: unknown) {
+      if (!handleUnauthorized(error)) console.error("Error al actualizar película favorita:", error);
+      return false;
+    }
   };
 
   const toggleFavoriteCinema = (cinemaId: string) => {
