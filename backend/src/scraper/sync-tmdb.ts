@@ -443,6 +443,17 @@ export async function sincronizarMetadatosTmdb(
         segundoFechaEstreno: string | null;
     }> = [];
 
+    const generarReporte = async () => {
+        const reportPath = await exportarDiagnosticoHtml(
+            resultados,
+            summary,
+            apply,
+        );
+
+        console.log("\n===== REPORTE HTML GENERADO =====");
+        console.log(`Reporte ubicado en: ${reportPath}`);
+    };
+
     for (const movie of movies) {
         summary.revisadas++;
 
@@ -657,26 +668,19 @@ export async function sincronizarMetadatosTmdb(
         }
     }
 
-    const reportPath = await exportarDiagnosticoHtml(
-        resultados,
-        summary,
-        apply,
-    );
-
-    console.log("\n===== REPORTE HTML GENERADO =====");
-
-    console.log(`\nReporte ubicado en: ${reportPath}`);
-
     // DRY-RUN termina aquí: no abre una transacción ni ejecuta UPDATE.
     if (!apply) {
+        await generarReporte();
         console.log("\n===== RESUMEN DRY-RUN =====");
         console.table(summary);
 
         return { summary, resultados };
     }
-
     if (candidatosAplicables.length === 0) {
         console.log("No hay coincidencias seguras para aplicar.");
+
+        await generarReporte();
+
         console.table(summary);
         return { summary, resultados };
     }
@@ -732,6 +736,8 @@ export async function sincronizarMetadatosTmdb(
     } finally {
         client.release();
     }
+
+    await generarReporte();
 
     console.log("\n===== RESUMEN APPLY =====");
     console.table(summary);
