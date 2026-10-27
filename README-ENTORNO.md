@@ -120,6 +120,8 @@ pg_ctl status          # ¿está corriendo?
 pg_ctl -D .pgdata stop -m fast # Apagar postgre
 psql -h localhost -U postgres cine   # entrar a la base
 direnv reload          # recargar el entorno
+psql -h 127.0.0.1 -p 5433 -U TU_USUARIO -d cine -f backend/schema.sql #inicializar schemas - Reemplaza TU_USUARIO por el usuario con el que entraste al server
+#(por defecto es postgres)
 ```
 
 Al salir de la carpeta, direnv descarga las variables, pero PostgreSQL sigue corriendo hasta que lo apagues con `pg_ctl stop`.
