@@ -17,7 +17,8 @@
         "sync:muvix": "node src/scraper/cli.ts --chain=muvix --sync",
         "scrape:cinestar": "node src/scraper/cli.ts --chain=cinestar",
         "sync:cinestar": "node src/scraper/cli.ts --chain=cinestar --sync",
-        "import:scrape": "node src/scraper/import-cli.ts"
+        "import:scrape": "node src/scraper/import-cli.ts",
+        "sync:tmdb": "node src/scraper/import-cli.ts --tmdb"
     },
     "keywords": [],
     "author": "",
