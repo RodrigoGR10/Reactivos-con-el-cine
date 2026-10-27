@@ -13,6 +13,7 @@ interface MovieRow {
 interface DiagnosticSummary {
     revisadas: number;
     seguras: number;
+    segurasAplicables: number;
     dudosas: number;
     sinCoincidencia: number;
     errores: number;
@@ -392,6 +393,7 @@ export async function sincronizarMetadatosTmdb(
     const summary: DiagnosticSummary = {
         revisadas: 0,
         seguras: 0,
+        segurasAplicables: 0,
         dudosas: 0,
         sinCoincidencia: 0,
         errores: 0,
@@ -660,6 +662,8 @@ export async function sincronizarMetadatosTmdb(
 
         return true;
     });
+
+    summary.segurasAplicables = candidatosAplicables.length;
 
     for (const resultado of resultados) {
         if (conflictos.has(resultado.peliculaId)) {
