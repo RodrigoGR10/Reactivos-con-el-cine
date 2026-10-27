@@ -9,18 +9,18 @@ async function main() {
     const args = process.argv.slice(2);
 
     if (args.includes("--tmdb")) {
-        if (!args.includes("--dry-run")) {
+        const dryRun = args.includes("--dry-run");
+        const apply = args.includes("--apply");
+
+        if (dryRun === apply) {
             throw new Error(
-                "La sincronización TMDB solo está habilitada en modo seguro. " +
-                    "Ejecuta: npm run sync:tmdb -- --dry-run",
+                "Debes indicar exactamente un modo:\n" +
+                    "npm run sync:tmdb -- --dry-run\n" +
+                    "npm run sync:tmdb -- --apply",
             );
         }
 
-        if (args.includes("--apply")) {
-            throw new Error("--apply todavía no está implementado.");
-        }
-
-        await sincronizarMetadatosTmdb();
+        await sincronizarMetadatosTmdb({ apply });
         return;
     }
 
