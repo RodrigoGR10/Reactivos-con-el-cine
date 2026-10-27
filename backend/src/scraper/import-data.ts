@@ -427,6 +427,28 @@ function canCleanStaleSchedules(data: ScrapeResult): boolean {
 export async function importarDatosScraped(
     data: ScrapeResult,
 ): Promise<ImportSummary> {
+    for (const cine of data.cines) {
+        if (cine.origen !== data.meta.origen) {
+            throw new Error(`El cine ${cine.id} pertenece a otro origen.`);
+        }
+    }
+
+    for (const pelicula of data.peliculas) {
+        if (pelicula.origen !== data.meta.origen) {
+            throw new Error(
+                `La película ${pelicula.id} pertenece a otro origen.`,
+            );
+        }
+    }
+
+    for (const horario of data.horarios) {
+        if (horario.origen !== data.meta.origen) {
+            throw new Error(
+                `El horario ${horario.id} pertenece a otro origen.`,
+            );
+        }
+    }
+
     const client = await pool.connect();
 
     const summary: ImportSummary = {
