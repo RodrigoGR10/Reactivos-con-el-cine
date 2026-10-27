@@ -19,6 +19,7 @@ interface DiagnosticSummary {
     errores: number;
     aplicadas: number;
     omitidasPorConflicto: number;
+    omitidasPorActualizacionConcurrente: number;
 }
 
 interface CandidatoSeguro {
@@ -399,6 +400,7 @@ export async function sincronizarMetadatosTmdb(
         errores: 0,
         aplicadas: 0,
         omitidasPorConflicto: 0,
+        omitidasPorActualizacionConcurrente: 0,
     };
 
     // Solo diagnosticar películas que todavía no tienen TMDB ID.
@@ -728,8 +730,12 @@ export async function sincronizarMetadatosTmdb(
             if (update.rowCount === 1) {
                 summary.aplicadas++;
             } else {
-                // Otro proceso pudo haber actualizado el registro.
-                summary.omitidasPorConflicto++;
+                summary.omitidasPorActualizacionConcurrente++;
+
+                console.warn(
+                    `Película ${candidato.peliculaId}: no se actualizó. ` +
+                        "El registro pudo haber sido modificado por otro proceso.",
+                );
             }
         }
 
