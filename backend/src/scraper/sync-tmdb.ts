@@ -233,13 +233,24 @@ async function exportarDiagnosticoHtml(
     }
     .stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 12px;
     }
+
     .stat {
-        background: #f5f6f8;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow-wrap: anywhere;
         padding: 14px;
-        border-radius: 8px;
+        background: #f3f4f6;
+        border-radius: 9px;
+    }
+
+    .stat span {
+        display: block;
+        font-size: 14px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
     }
     .stat strong {
         display: block;
