@@ -325,14 +325,27 @@ async function exportarDiagnosticoHtml(
         <p><strong>Modo:</strong> ${apply ? "APPLY" : "DRY-RUN"}</p>
         <div class="stats">
             ${Object.entries(summary)
-                .map(
-                    ([key, value]) => `
+                .map(([key, value]) => {
+                    const labels: Record<string, string> = {
+                        revisadas: "Películas revisadas",
+                        seguras: "Coincidencias seguras",
+                        segurasAplicables: "Seguras aplicables",
+                        dudosas: "Coincidencias dudosas",
+                        sinCoincidencia: "Sin coincidencia",
+                        errores: "Errores",
+                        aplicadas: "Aplicadas",
+                        omitidasPorConflicto: "Omitidas por conflicto",
+                        omitidasPorActualizacionConcurrente:
+                            "Omitidas por actualización concurrente",
+                    };
+
+                    return `
                 <div class="stat">
-                    <span>${escaparHtml(key)}</span>
+                    <span>${labels[key] ?? key}</span>
                     <strong>${value}</strong>
                 </div>
-            `,
-                )
+            `;
+                })
                 .join("")}
         </div>
     </section>
