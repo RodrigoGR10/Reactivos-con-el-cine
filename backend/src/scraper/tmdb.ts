@@ -18,16 +18,27 @@ export interface TmdbMatchDiagnostic {
     tituloOriginal: string;
     fechaEstreno?: string;
     score: number;
+    duracionTmdb?: number;
+    diferenciaDuracion?: number;
     segundoCandidato?: {
         tmdbId: number;
         titulo: string;
+        tituloOriginal: string;
         fechaEstreno?: string;
         score: number;
+        duracionTmdb?: number;
+        diferenciaDuracion?: number;
     };
     poster?: string;
     banner?: string;
     sinopsis?: string;
+    consultaCoincidente: string;
+    coincideConsultaPrincipal: boolean;
     estado: "SEGURO" | "DUDOSO";
+}
+
+interface TmdbMovieDetail {
+    runtime?: number | null;
 }
 
 interface TmdbMovieResult {
@@ -43,6 +54,30 @@ interface TmdbMovieResult {
 
 interface TmdbSearchResponse {
     results?: TmdbMovieResult[];
+}
+
+async function fetchTmdbRuntime(
+    movieId: number,
+    apiKey: string,
+): Promise<number | undefined> {
+    const url = new URL(`${TMDB_BASE_URL}/movie/${movieId}`);
+
+    url.searchParams.set("api_key", apiKey);
+    url.searchParams.set("language", "es-MX");
+
+    const response = await fetch(url, {
+        signal: AbortSignal.timeout(15000),
+    });
+
+    if (!response.ok) {
+        return undefined;
+    }
+
+    const detail = (await response.json()) as TmdbMovieDetail;
+
+    return typeof detail.runtime === "number" && detail.runtime > 0
+        ? detail.runtime
+        : undefined;
 }
 
 /**
@@ -94,32 +129,41 @@ export type TipoContenido =
     "PELICULA" | "ANIVERSARIO" | "CONCIERTO" | "EVENTO" | "DESCONOCIDO";
 
 export function detectarTipoContenido(titulo: string): TipoContenido {
-    const value = titulo.toUpperCase();
+    const value = titulo
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase();
 
     if (
-        /\b(WORLD TOUR|LIVE VIEWING|LIVE IN|CONCERT|CONCIERTO|TOUR)\b/.test(
+        /\b(WORLD TOUR|LIVE VIEWING|LIVE IN|LIVE CONCERT|CONCERT|CONCIERTO|TOUR)\b/.test(
             value,
         ) ||
         /\b(BTS|BLACKPINK|ENHYPEN|SEVENTEEN|TXT|TOMORROW X TOGETHER)\b/.test(
             value,
-        )
+        ) ||
+        /\b(OZZY|BLACK SABBATH|HYBE)\b/.test(value)
     ) {
         return "CONCIERTO";
     }
 
-    if (/\b(ANIVERSARIO|ANNIVERSARY|25°|20°)\b/.test(value)) {
+    if (
+        /\b(ANIVERSARIO|ANNIVERSARY)\b/.test(value) ||
+        /\b\d+\s*(?:°|º)?\s*(?:ANOS|YEARS)\b/.test(value) ||
+        /\b\d+(?:ST|ND|RD|TH)\s+ANNIVERSARY\b/.test(value)
+    ) {
         return "ANIVERSARIO";
     }
 
     if (
-        /\b(BONUS|INFINITY VISION|CHEERING PARTY|SPECIAL EVENT)\b/.test(value)
+        /\b(BONUS|INFINITY VISION|CHEERING PARTY|SPECIAL EVENT|FAN EVENT|EXPERIENCE EVENT)\b/.test(
+            value,
+        )
     ) {
         return "EVENTO";
     }
 
     return "DESCONOCIDO";
 }
-
 export function areSameCatalogMovie(
     a: { titulo: string; duracion: number; tmdbId?: number },
     b: { titulo: string; duracion: number; tmdbId?: number },
@@ -175,6 +219,19 @@ async function searchTmdbQuery(
 
     return Array.isArray(data.results) ? data.results : [];
 }
+function isExactTitleMatch(
+    candidate: TmdbMovieResult,
+    cleanQuery: string,
+): boolean {
+    const queryNorm = normalizeTitleKey(cleanQuery);
+    const titleNorm = normalizeTitleKey(candidate.title || "");
+    const originalNorm = normalizeTitleKey(candidate.original_title || "");
+
+    return (
+        queryNorm.length > 0 &&
+        (titleNorm === queryNorm || originalNorm === queryNorm)
+    );
+}
 
 function scoreCandidate(
     candidate: TmdbMovieResult,
@@ -191,35 +248,34 @@ function scoreCandidate(
     const titleNorm = normalizeTitleKey(candidate.title || "");
     const originalNorm = normalizeTitleKey(candidate.original_title || "");
 
-    // La identidad se basa principalmente en el título.
-    if (titleNorm === queryNorm || originalNorm === queryNorm) {
+    if (!queryNorm) return -100;
+
+    if (isExactTitleMatch(candidate, cleanQuery)) {
         score += 70;
     } else if (
-        titleNorm.includes(queryNorm) ||
-        originalNorm.includes(queryNorm)
+        queryNorm.length >= 6 &&
+        (titleNorm.includes(queryNorm) || originalNorm.includes(queryNorm))
     ) {
         score += 25;
+    } else {
+        score -= 30;
     }
 
-    // Si el título del cine incluye un año, debe coincidir.
-    if (explicitYear && releaseYear) {
+    if (explicitYear !== undefined) {
         if (releaseYear === explicitYear) {
             score += 50;
-        } else if (Math.abs(releaseYear - explicitYear) === 1) {
-            score += 20;
         } else {
-            score -= 40;
+            score -= 100;
         }
     }
 
-    // No se usa popularidad ni disponibilidad de imágenes
-    // como evidencia de identidad.
     return score;
 }
 
 export async function diagnosticarPeliculaTmdb(
     titulo: string,
     apiKey = process.env.TMDB_API_KEY,
+    duracionEsperada?: number | null,
 ): Promise<TmdbMatchDiagnostic | null> {
     if (!apiKey?.trim()) {
         throw new Error("Falta configurar TMDB_API_KEY");
@@ -232,34 +288,109 @@ export async function diagnosticarPeliculaTmdb(
         {
             movie: TmdbMovieResult;
             score: number;
+            matchedPrimary: boolean;
+            exactPrimaryTitle: boolean;
+            query: string;
         }
     >();
 
-    for (const query of queries) {
+    for (let queryIndex = 0; queryIndex < queries.length; queryIndex++) {
+        const query = queries[queryIndex]!;
+        const isPrimaryQuery = queryIndex === 0;
+
         const results = await searchTmdbQuery(query, apiKey.trim(), "es-MX");
 
         for (const movie of results) {
-            const score = Math.max(
-                ...queries.map((query) => scoreCandidate(movie, query, year)),
-            );
+            const exactPrimaryTitle = isExactTitleMatch(movie, queries[0]!);
+            // Cada resultado se evalúa contra la consulta que realmente lo encontró.
+            const score = scoreCandidate(movie, query, year);
+
             const previous = candidates.get(movie.id);
 
-            if (!previous || score > previous.score) {
-                candidates.set(movie.id, { movie, score });
+            if (!previous) {
+                candidates.set(movie.id, {
+                    movie,
+                    score,
+                    matchedPrimary: isPrimaryQuery,
+                    exactPrimaryTitle,
+                    query,
+                });
+                continue;
+            }
+            const shouldReplace =
+                (isPrimaryQuery && !previous.matchedPrimary) ||
+                (isPrimaryQuery === previous.matchedPrimary &&
+                    score > previous.score);
+
+            if (shouldReplace) {
+                candidates.set(movie.id, {
+                    movie,
+                    score,
+                    matchedPrimary: isPrimaryQuery,
+                    exactPrimaryTitle,
+                    query,
+                });
             }
         }
     }
 
-    const ranked = [...candidates.values()].sort((a, b) => b.score - a.score);
+    const ranked = [...candidates.values()].sort(
+        (a, b) =>
+            b.score - a.score ||
+            Number(b.exactPrimaryTitle) - Number(a.exactPrimaryTitle) ||
+            Number(b.matchedPrimary) - Number(a.matchedPrimary),
+    );
 
     if (ranked.length === 0) {
         return null;
     }
 
     const best = ranked[0]!;
-    const second = ranked[1];
+
+    // Los candidatos que coinciden con el título completo
+    // tienen prioridad sobre los que solo coinciden con el título base.
+    const exactPrimaryRanked = ranked.filter(
+        (candidate) => candidate.exactPrimaryTitle,
+    );
+
+    const second =
+        exactPrimaryRanked.length > 1 ? exactPrimaryRanked[1] : undefined;
 
     const movie = best.movie;
+
+    const duracionLocal =
+        typeof duracionEsperada === "number" &&
+        Number.isFinite(duracionEsperada) &&
+        duracionEsperada > 0
+            ? duracionEsperada
+            : undefined;
+
+    let duracionTmdb: number | undefined;
+    let segundaDuracionTmdb: number | undefined;
+
+    if (duracionLocal !== undefined) {
+        const [runtimeBest, runtimeSecond] = await Promise.all([
+            fetchTmdbRuntime(movie.id, apiKey.trim()).catch(() => undefined),
+            second
+                ? fetchTmdbRuntime(second.movie.id, apiKey.trim()).catch(
+                      () => undefined,
+                  )
+                : Promise.resolve(undefined),
+        ]);
+
+        duracionTmdb = runtimeBest;
+        segundaDuracionTmdb = runtimeSecond;
+    }
+
+    const diferenciaDuracion =
+        duracionLocal !== undefined && duracionTmdb !== undefined
+            ? Math.abs(duracionLocal - duracionTmdb)
+            : undefined;
+
+    const segundaDiferenciaDuracion =
+        duracionLocal !== undefined && segundaDuracionTmdb !== undefined
+            ? Math.abs(duracionLocal - segundaDuracionTmdb)
+            : undefined;
 
     let sinopsis = movie.overview?.trim() || undefined;
 
@@ -288,10 +419,39 @@ export async function diagnosticarPeliculaTmdb(
 
     const tipoDetectado = detectarTipoContenido(titulo);
 
+    const anioCoincide =
+        year === undefined ||
+        (movie.release_date !== undefined &&
+            Number(movie.release_date.slice(0, 4)) === year);
+
+    const exactPrimaryMatches = ranked.filter(
+        (candidate) => candidate.exactPrimaryTitle,
+    );
+
+    const uniqueExactMatch =
+        best.exactPrimaryTitle &&
+        exactPrimaryMatches.length === 1 &&
+        exactPrimaryMatches[0]!.movie.id === best.movie.id;
+
+    const sufficientMargin =
+        second !== undefined && best.score - second.score >= 15;
+
+    const runtimeDistinguishesCandidate =
+        diferenciaDuracion !== undefined &&
+        segundaDiferenciaDuracion !== undefined &&
+        diferenciaDuracion <= 10 &&
+        segundaDiferenciaDuracion >= 15 &&
+        segundaDiferenciaDuracion - diferenciaDuracion >= 10;
+
     const seguro =
         best.score >= 70 &&
-        (!second || best.score - second.score >= 15) &&
+        best.matchedPrimary &&
+        (uniqueExactMatch ||
+            sufficientMargin ||
+            runtimeDistinguishesCandidate) &&
+        anioCoincide &&
         tipoDetectado === "DESCONOCIDO";
+
     return {
         tmdbId: movie.id,
         tituloTmdb: movie.title,
@@ -299,12 +459,19 @@ export async function diagnosticarPeliculaTmdb(
         tituloOriginal: movie.original_title,
         fechaEstreno: movie.release_date,
         score: best.score,
+        duracionTmdb,
+        diferenciaDuracion,
+        consultaCoincidente: best.query,
+        coincideConsultaPrincipal: best.matchedPrimary,
         segundoCandidato: second
             ? {
                   tmdbId: second.movie.id,
                   titulo: second.movie.title,
+                  tituloOriginal: second.movie.original_title,
                   fechaEstreno: second.movie.release_date,
                   score: second.score,
+                  duracionTmdb: segundaDuracionTmdb,
+                  diferenciaDuracion: segundaDiferenciaDuracion,
               }
             : undefined,
         poster: movie.poster_path
