@@ -1,5 +1,6 @@
 import { fechaDeEstreno, scheduleRevision } from "../normalize.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
+import { normalizarComuna } from "../../utils/comunas.ts";
 import { SITE } from "./client.ts";
 import type { ScrapedCinema, ScrapedMovie, ScrapedSchedule } from "../types.ts";
 import type {
@@ -52,7 +53,7 @@ export function normalizeCinema(cinema: CinepolisCinema, extractedAt: string): C
     origenId: id,
     extraidoEn: extractedAt,
     nombre: text(cinema.name, "nombre de cine"),
-    comuna: text(cinema.comuna, "comuna"),
+    comuna: normalizarComuna(text(cinema.comuna, "comuna")),
     ciudad: text(cinema.city, "ciudad"),
     direccion: text(cinema.address, "direccion"),
     url: `${SITE}/horarios?cinema=${encodeURIComponent(text(cinema.slug, "slug de cine"))}`,
