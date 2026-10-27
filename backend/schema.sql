@@ -84,8 +84,11 @@ CREATE TABLE IF NOT EXISTS horarios (
     -- estado de la consulta de precios bajo demanda
     precios_consultados_en TIMESTAMP WITH TIME ZONE,
     precios_error_hasta TIMESTAMP WITH TIME ZONE,
-    consulta_precios_hasta TIMESTAMP WITH TIME ZONE,   -- candado con vencimiento
-    consulta_precios_token VARCHAR(100)
+    consulta_precios_hasta TIMESTAMP WITH TIME ZONE,
+    consulta_precios_token VARCHAR(100),
+    precios_revision VARCHAR(300),
+    consulta_precios_revision VARCHAR(300),
+    precios_error_revision VARCHAR(300)
 );
 
 CREATE TABLE IF NOT EXISTS tarifas (
