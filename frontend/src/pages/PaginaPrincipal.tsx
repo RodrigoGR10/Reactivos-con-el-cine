@@ -4,9 +4,13 @@ import { CarruselDestacadas } from "../components/peliculas/CarruselDestacadas.t
 import Preventas from "../components/peliculas/Preventas.tsx";
 import { usePeliculas } from "../hooks/usePelicula.ts";
 import { useFiltrosPeliculas } from "../hooks/useFiltrosPeliculas.ts";
+import { useFavorites } from "../context/FavoritesContext.tsx";
+import { totalFavoritos } from "../utils/seleccionarDestacadas.ts";
+import type { Pelicula } from "../types/types.ts";
 
 function PaginaPrincipal() {
   const { peliculas, peliculasDestacadas, cargando, error } = usePeliculas();
+  const { isFavoriteMovie } = useFavorites();
 
   const {
     filtros,
@@ -18,9 +22,16 @@ function PaginaPrincipal() {
     clasificacionesDisponibles,
   } = useFiltrosPeliculas(peliculas);
 
-  const cartelera = peliculasFiltradas.filter((pelicula) => pelicula.estadoEstreno !== "preventa");
+  const compararPrioridad = (a: Pelicula, b: Pelicula) =>
+    Number(isFavoriteMovie(b.id)) - Number(isFavoriteMovie(a.id))
+    || (totalFavoritos(b) ?? 0) - (totalFavoritos(a) ?? 0);
+
+  const cartelera = peliculasFiltradas.filter((pelicula) => pelicula.estadoEstreno !== "preventa")
+    .sort(compararPrioridad);
   const preventas = peliculasFiltradas.filter((pelicula) => pelicula.estadoEstreno === "preventa")
-    .sort((a, b) => (a.fechaEstreno ?? "9999").localeCompare(b.fechaEstreno ?? "9999") || a.titulo.localeCompare(b.titulo));
+    .sort((a, b) => compararPrioridad(a, b)
+      || (a.fechaEstreno ?? "9999").localeCompare(b.fechaEstreno ?? "9999")
+      || a.titulo.localeCompare(b.titulo));
 
   if (cargando) return <p className="sin-resultados">Cargando películas...</p>;
   if (error) return <p className="sin-resultados">{error}</p>;
@@ -65,7 +76,7 @@ function PaginaPrincipal() {
                 {cartelera.length === 1 ? "película" : "películas"}
               </p>
             </div>
-            <Cartelera peliculas={cartelera} hayFiltrosActivos={hayFiltrosActivos} />
+            <Cartelera peliculas={cartelera} hayFiltrosActivos={hayFiltrosActivos} compararPrioridad={compararPrioridad} />
           </section>
         )}
         {preventas.length > 0 && <Preventas key={preventas.map((pelicula) => pelicula.id).join(",")} peliculas={preventas} />}

@@ -6,10 +6,11 @@ import TarjetaPelicula from "./TarjetaPelicula.tsx";
 interface CarteleraProps {
     peliculas: Pelicula[];
     hayFiltrosActivos?: boolean;
+    compararPrioridad: (a: Pelicula, b: Pelicula) => number;
 }
 
 //Una pelicula con varios generos aparece en cada cinta
-function agruparPorGenero(peliculas: Pelicula[]): [string, Pelicula[]][] {
+function agruparPorGenero(peliculas: Pelicula[], compararPrioridad: CarteleraProps["compararPrioridad"]): [string, Pelicula[]][] {
     const grupos = new Map<string, Pelicula[]>();
 
     for (const pelicula of peliculas) {
@@ -23,13 +24,15 @@ function agruparPorGenero(peliculas: Pelicula[]): [string, Pelicula[]][] {
     }
 
     return [...grupos.entries()].sort(
-        (a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "es"),
+        (a, b) => compararPrioridad(a[1][0], b[1][0])
+            || b[1].length - a[1].length
+            || a[0].localeCompare(b[0], "es"),
     );
 }
 
-function Cartelera({ peliculas, hayFiltrosActivos = false }: CarteleraProps) {
+function Cartelera({ peliculas, hayFiltrosActivos = false, compararPrioridad }: CarteleraProps) {
     const esMovil = useMediaQuery("(max-width: 560px)");
-    const grupos = useMemo(() => agruparPorGenero(peliculas), [peliculas]);
+    const grupos = useMemo(() => agruparPorGenero(peliculas, compararPrioridad), [peliculas, compararPrioridad]);
 
     if (peliculas.length === 0) {
         return (
