@@ -63,44 +63,6 @@ router.get("/", async (req, res) => {
     return res.json(rows);
 });
 
-router.get("/:id", async (req, res) => {
-    const { id } = req.params;
-
-    if (!isNumericId(id)) {
-        return res.status(400).json({ error: "ID de funcion invalido" });
-    }
-
-    const sql = `
-            SELECT
-              h.id,
-              (h.fecha + h.horario) AS "fechaHora",
-              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
-              h.sala,
-              h.formato_resumen AS formato,
-              h.agotada,
-              p.id AS "peliculaId",
-              p.titulo AS "peliculaTitulo",
-              p.duracion AS "peliculaDuracion",
-              p.clasificacion AS "peliculaClasificacion",
-              p.imagen_url AS "peliculaImagenUrl",
-              c.id AS "cineId",
-              c.nombre AS "cineNombre",
-              c.direccion AS "cineDireccion"
-            FROM horarios h
-            INNER JOIN peliculas p ON h.pelicula_id = p.id
-            INNER JOIN cines c ON h.cine_id = c.id
-            WHERE h.id = $1;
-          `;
-
-    const { rows } = await query(sql, [parseInt(id, 10)]);
-
-    if (rows.length === 0) {
-        return res.status(404).json({ error: "Funcion no encontrada" });
-    }
-
-    return res.json(rows[0]);
-});
-
 router.get("/horarios", async (req, res) => {
     const { peliculaId, cineId } = req.query;
 
@@ -178,4 +140,43 @@ router.get("/precios", async (req, res) => {
         cacheMinutos: 15,
     });
 });
+
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    if (!isNumericId(id)) {
+        return res.status(400).json({ error: "ID de funcion invalido" });
+    }
+
+    const sql = `
+            SELECT
+              h.id,
+              (h.fecha + h.horario) AS "fechaHora",
+              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
+              h.sala,
+              h.formato_resumen AS formato,
+              h.agotada,
+              p.id AS "peliculaId",
+              p.titulo AS "peliculaTitulo",
+              p.duracion AS "peliculaDuracion",
+              p.clasificacion AS "peliculaClasificacion",
+              p.imagen_url AS "peliculaImagenUrl",
+              c.id AS "cineId",
+              c.nombre AS "cineNombre",
+              c.direccion AS "cineDireccion"
+            FROM horarios h
+            INNER JOIN peliculas p ON h.pelicula_id = p.id
+            INNER JOIN cines c ON h.cine_id = c.id
+            WHERE h.id = $1;
+          `;
+
+    const { rows } = await query(sql, [parseInt(id, 10)]);
+
+    if (rows.length === 0) {
+        return res.status(404).json({ error: "Funcion no encontrada" });
+    }
+
+    return res.json(rows[0]);
+});
+
 export default router;
