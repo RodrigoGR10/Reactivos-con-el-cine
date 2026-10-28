@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { DiagnosticSummary, ResultadoDiagnostico } from "../tipos.ts";
+import type { DiagnosticSummary, ResultadoDiagnostico } from "../types.ts";
 import { construirDocumento } from "./plantilla.ts";
 
 function dosDigitos(n: number): string {
