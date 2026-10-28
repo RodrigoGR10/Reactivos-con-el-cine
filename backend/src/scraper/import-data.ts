@@ -1,11 +1,11 @@
 import { pool } from "../db.ts";
 
-import { sourceId } from "./import-data/identificadores.ts";
 import { upsertSchedule } from "./import-data/horarios.ts";
 import { upsertCinema } from "./import-data/cines.ts";
 import { upsertMovie } from "./import-data/peliculas.ts";
+import { resolveCinemaId, resolveMovieId } from "./import-data/referencias.ts";
 
-import type { ScrapeResult, ScrapedSchedule } from "./types.ts";
+import type { ScrapeResult } from "./types.ts";
 
 interface ImportSummary {
     cines: number;
@@ -25,62 +25,6 @@ function fechaLimite(desde: string, dias: number | null): string | null {
     date.setUTCDate(date.getUTCDate() + dias);
 
     return date.toISOString().slice(0, 10);
-}
-
-async function resolveMovieId(
-    client: Awaited<ReturnType<typeof pool.connect>>,
-    schedule: ScrapedSchedule,
-    movieIds: Map<string, number>,
-): Promise<number> {
-    const cached = movieIds.get(schedule.peliculaId);
-    if (cached) return cached;
-
-    const externalId = sourceId(schedule.peliculaId, schedule.origen);
-
-    const result = await client.query<{ pelicula_id: number }>(
-        `
-        SELECT pelicula_id
-        FROM pelicula_fuentes
-        WHERE origen = $1 AND origen_id = $2;
-        `,
-        [schedule.origen, externalId],
-    );
-
-    if (!result.rows[0]) {
-        throw new Error(
-            `No existe la película ${schedule.peliculaId} en pelicula_fuentes.`,
-        );
-    }
-
-    movieIds.set(schedule.peliculaId, result.rows[0].pelicula_id);
-    return result.rows[0].pelicula_id;
-}
-
-async function resolveCinemaId(
-    client: Awaited<ReturnType<typeof pool.connect>>,
-    schedule: ScrapedSchedule,
-    cinemaIds: Map<string, string>,
-): Promise<string> {
-    const cached = cinemaIds.get(schedule.cineId);
-    if (cached) return cached;
-
-    const externalId = sourceId(schedule.cineId, schedule.origen);
-
-    const result = await client.query<{ id: string }>(
-        `
-        SELECT id
-        FROM cines
-        WHERE cadena = $1 AND origen_id = $2;
-        `,
-        [schedule.origen, externalId],
-    );
-
-    if (!result.rows[0]) {
-        throw new Error(`No existe el cine ${schedule.cineId} en PostgreSQL.`);
-    }
-
-    cinemaIds.set(schedule.cineId, result.rows[0].id);
-    return result.rows[0].id;
 }
 
 function canCleanStaleSchedules(data: ScrapeResult): boolean {
