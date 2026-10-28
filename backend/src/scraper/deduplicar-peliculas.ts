@@ -138,6 +138,29 @@ async function fusionarGrupo(grupo: GrupoDuplicado): Promise<void> {
             throw new Error("El grupo cambió mientras se preparaba la fusión.");
         }
 
+        // Verificar que los TMDB IDs no hayan cambiado desde el diagnóstico.
+        const tmdbEsperados = new Map<number, number | null>([
+            [grupo.canonica.id, grupo.canonica.tmdb_id],
+            ...grupo.duplicadas.map(
+                (pelicula) => [pelicula.id, pelicula.tmdb_id] as const,
+            ),
+        ]);
+
+        for (const pelicula of bloqueadas.rows as {
+            id: number;
+            tmdb_id: number | null;
+        }[]) {
+            const tmdbEsperado = tmdbEsperados.get(pelicula.id);
+
+            if (pelicula.tmdb_id !== tmdbEsperado) {
+                throw new Error(
+                    `El TMDB ID de la película #${pelicula.id} cambió ` +
+                        `desde el diagnóstico. Esperado: ${tmdbEsperado}, ` +
+                        `actual: ${pelicula.tmdb_id}.`,
+                );
+            }
+        }
+
         // No fusionar si los registros tienen TMDB IDs incompatibles.
         const tmdbIds = new Set(
             bloqueadas.rows
