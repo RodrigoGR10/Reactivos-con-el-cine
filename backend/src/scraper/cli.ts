@@ -7,6 +7,7 @@ import { scrapeVista } from "./vista/scraper.ts";
 
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
+import { deduplicarCatalogoPeliculas } from "./deduplicar-peliculas.ts";
 
 import type { Origen, ScrapeOptions } from "./types.ts";
 import { localNow } from "../utils/localNow.ts";
@@ -44,6 +45,14 @@ function validarOpciones(options: ScrapeOptions) {
 
 async function main() {
     const args = process.argv.slice(2);
+
+    // Modo independiente para deduplicar películas.
+    if (args.includes("--deduplicar")) {
+        const apply = args.includes("--apply");
+
+        await deduplicarCatalogoPeliculas({ apply });
+        return;
+    }
 
     const mode: Mode = args.includes("--sync") ? "sync" : "scrape";
 
