@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { sincronizarMetadatosTmdb } from "./sync-tmdb.ts";
+import { sincronizarMetadatosTmdb } from "./sync-tmdb/index.ts";
 import { pool } from "../db.ts";
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
