@@ -15,11 +15,7 @@ export { CACHE_PRECIOS_MS } from "./preciosFunciones/estado.ts";
 
 import type { RawPriceGroup, RawSession } from "../scraper/cinemark/types.ts";
 
-import type {
-    Origen,
-    ScrapedSchedule,
-    ScrapedSession,
-} from "../scraper/types.ts";
+import type { ScrapedSchedule, ScrapedSession } from "../scraper/types.ts";
 
 import type {
     ScheduleRow,
