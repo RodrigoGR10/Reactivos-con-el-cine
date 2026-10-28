@@ -76,8 +76,6 @@ async function main() {
         limitePorCine: null,
     };
 
-    validarOpciones(options);
-
     const desdeArg = args.find((arg) => arg.startsWith("--desde="));
     if (desdeArg) options.desde = desdeArg.split("=")[1];
 
@@ -91,6 +89,9 @@ async function main() {
     if (limiteArg) {
         options.limitePorCine = Number(limiteArg.split("=")[1]);
     }
+
+    // Validar las opciones definitivas, después de aplicar los argumentos CLI.
+    validarOpciones(options);
 
     if (!["cinemark", "cineplanet", "muvix", "cinestar"].includes(origen)) {
         throw new Error(`Cadena desconocida: ${origen}`);
