@@ -485,6 +485,77 @@ export async function diagnosticarPeliculaTmdb(
     };
 }
 
+export async function fetchTmdbMovieMetadataById(
+    tmdbId: number,
+    apiKey = process.env.TMDB_API_KEY,
+): Promise<{
+    tmdbId: number;
+    tituloTmdb: string;
+    tituloOriginal: string;
+    fechaEstreno?: string;
+    duracionTmdb?: number;
+    poster?: string;
+    banner?: string;
+    sinopsis?: string;
+} | null> {
+    if (!Number.isSafeInteger(tmdbId) || tmdbId <= 0) {
+        throw new Error(`TMDB ID inválido: ${tmdbId}`);
+    }
+
+    if (!apiKey?.trim()) {
+        throw new Error("Falta configurar TMDB_API_KEY");
+    }
+
+    const url = new URL(`${TMDB_BASE_URL}/movie/${tmdbId}`);
+    url.searchParams.set("api_key", apiKey.trim());
+    url.searchParams.set("language", "es-MX");
+
+    const response = await fetch(url, {
+        signal: AbortSignal.timeout(15000),
+    });
+
+    if (response.status === 404) {
+        return null;
+    }
+
+    if (!response.ok) {
+        throw new Error(`TMDB HTTP ${response.status} para ID ${tmdbId}`);
+    }
+
+    const movie = (await response.json()) as {
+        id: number;
+        title: string;
+        original_title: string;
+        overview?: string;
+        poster_path?: string | null;
+        backdrop_path?: string | null;
+        release_date?: string;
+        runtime?: number | null;
+    };
+
+    if (movie.id !== tmdbId || !movie.title?.trim()) {
+        throw new Error(`Respuesta inválida de TMDB para ID ${tmdbId}`);
+    }
+
+    return {
+        tmdbId: movie.id,
+        tituloTmdb: movie.title,
+        tituloOriginal: movie.original_title,
+        fechaEstreno: movie.release_date || undefined,
+        duracionTmdb:
+            typeof movie.runtime === "number" && movie.runtime > 0
+                ? movie.runtime
+                : undefined,
+        poster: movie.poster_path
+            ? `${TMDB_IMAGE_BASE}/w780${movie.poster_path}`
+            : undefined,
+        banner: movie.backdrop_path
+            ? `${TMDB_IMAGE_BASE}/original${movie.backdrop_path}`
+            : undefined,
+        sinopsis: movie.overview?.trim() || undefined,
+    };
+}
+
 export async function fetchTmdbMovieMetadata(
     titulo: string,
     apiKey = process.env.TMDB_API_KEY,
