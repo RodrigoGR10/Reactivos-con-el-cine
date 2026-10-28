@@ -35,12 +35,18 @@ function sonDuplicadas(a: PeliculaRow, b: PeliculaRow): boolean {
         return false;
     }
 
-    // Si ambas tienen TMDB ID, ese dato tiene prioridad.
+    // Si ambos tienen TMDB, debe coincidir.
     if (a.tmdb_id !== null && b.tmdb_id !== null) {
         return a.tmdb_id === b.tmdb_id;
     }
 
-    // Evita fusionar películas de duraciones claramente diferentes.
+    // Si solo uno tiene TMDB, no hay evidencia suficiente
+    // para fusionarlos automáticamente.
+    if (a.tmdb_id !== null || b.tmdb_id !== null) {
+        return false;
+    }
+
+    // Sin TMDB: comparar duración y título.
     if (
         a.duracion !== null &&
         b.duracion !== null &&
