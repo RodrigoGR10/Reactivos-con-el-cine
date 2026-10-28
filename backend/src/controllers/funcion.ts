@@ -1,6 +1,9 @@
 import express from "express";
 import { query, isNumericId, isCineId } from "../db.ts";
 import { preciosPorCine } from "../services/preciosFunciones.ts";
+import { cargarHorarios } from "../services/preciosFunciones/horarios.ts";
+
+import { horarioPublico } from "../services/preciosFunciones/estado.ts";
 
 const router = express.Router();
 
@@ -66,55 +69,32 @@ router.get("/", async (req, res) => {
 router.get("/horarios", async (req, res) => {
     const { peliculaId, cineId } = req.query;
 
-    const conditions: string[] = [
-        "(h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')",
-        "h.agotada = FALSE",
-    ];
-
-    const params: unknown[] = [];
+    let parsedPeliculaId: number | undefined;
 
     if (peliculaId !== undefined) {
         if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
             return res.status(400).json({ error: "peliculaId inválido" });
         }
-        params.push(parseInt(peliculaId, 10));
-        conditions.push(`h.pelicula_id = $${params.length}`);
+
+        parsedPeliculaId = parseInt(peliculaId, 10);
     }
 
     if (cineId !== undefined) {
         if (typeof cineId !== "string" || !isCineId(cineId)) {
             return res.status(400).json({ error: "cineId inválido" });
         }
-        params.push(cineId);
-        conditions.push(`h.cine_id = $${params.length}`);
     }
 
-    // Validación: Al menos uno de los dos debe estar presente
-    if (!params.length) {
+    if (parsedPeliculaId === undefined && cineId === undefined) {
         return res.status(400).json({ error: "Indica peliculaId o cineId" });
     }
 
-    const sql = `
-            SELECT
-              h.id,
-              (h.fecha + h.horario) AS "fechaHora",
-              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
-              h.sala,
-              h.formato_resumen AS formato,
-              h.agotada,
-              p.id AS "peliculaId",
-              p.titulo AS "peliculaTitulo",
-              c.id AS "cineId",
-              c.nombre AS "cineNombre"
-            FROM horarios h
-            INNER JOIN peliculas p ON h.pelicula_id = p.id
-            INNER JOIN cines c ON h.cine_id = c.id
-            WHERE ${conditions.join(" AND ")}
-            ORDER BY (h.fecha + h.horario) ASC;
-        `;
+    const horarios = await cargarHorarios(
+        parsedPeliculaId,
+        typeof cineId === "string" ? cineId : undefined,
+    );
 
-    const { rows } = await query(sql, params);
-    return res.json(rows);
+    return res.json(horarios.map(horarioPublico));
 });
 
 router.get("/precios", async (req, res) => {
