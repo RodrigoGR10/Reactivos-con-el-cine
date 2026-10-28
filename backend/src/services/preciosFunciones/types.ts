@@ -35,6 +35,7 @@ export type ScheduleRow = {
 export type TarifaRow = {
     id: number;
     origen_id: string;
+    horario_id: number;
     tipo_entrada: string;
     formato: string;
     precio: number | null;
