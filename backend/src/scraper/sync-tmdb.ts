@@ -9,37 +9,6 @@ import {
 
 import { resolucionesManuales } from "./resoluciones-tmdb.ts";
 
-interface MovieRow {
-    id: number;
-    titulo: string;
-    duracion: number | null;
-    tmdb_id: number | null;
-}
-
-interface DiagnosticSummary {
-    revisadas: number;
-    seguras: number;
-    segurasAplicables: number;
-    dudosas: number;
-    sinCoincidencia: number;
-    errores: number;
-    aplicadas: number;
-    omitidasPorConflicto: number;
-    omitidasPorActualizacionConcurrente: number;
-    asignadasManualmente: number;
-    omitidasManualmente: number;
-    conflictosManuales: number;
-    erroresManuales: number;
-}
-
-interface CandidatoSeguro {
-    peliculaId: number;
-    tmdbId: number;
-    poster?: string;
-    banner?: string;
-    sinopsis?: string;
-}
-
 function escaparHtml(value: unknown): string {
     return String(value ?? "—")
         .replace(/&/g, "&amp;")
