@@ -22,7 +22,8 @@ El repositorio separa el frontend y el backend en sus respectivas carpetas.
 
 - Git.
 - Node.js 24 o superior.
-- pnpm.
+- npm.
+- pnpm (opcional).
 - Nix con soporte para flakes.
 - direnv y nix-direnv.
 - Conexión a Internet para ejecutar los scrapers y consultar recursos externos.
@@ -205,9 +206,17 @@ El frontend y el backend tienen sus propias dependencias y archivos de configura
 Desde la raíz:
 
 ```bash
+
+# Opción A: npm
+cd backend
+npm install
+npm run dev
+
+# Opción B: pnpm
 cd backend
 pnpm install
 pnpm run dev
+
 ```
 
 El backend queda disponible en:
@@ -224,8 +233,17 @@ En otra terminal:
 
 ```bash
 cd frontend
+
+# Opción A: npm
+cd backend
+npm install
+npm run dev
+
+# Opción B: npm
+cd backend
 pnpm install
 pnpm run dev
+
 ```
 
 Abre:
@@ -240,14 +258,14 @@ Frontend:
 
 ```bash
 cd frontend
-pnpm run build
+npm run build
 ```
 
 Backend:
 
 ```bash
 cd backend
-pnpm run build
+npm run build
 ```
 
 El frontend genera su compilación de producción mediante Vite. El backend compila TypeScript a `backend/out/`.
@@ -283,10 +301,10 @@ Una extracción parcial se puede importar, pero no se considera completa y no ej
 Desde `backend/`, ejecuta:
 
 ```bash
-pnpm run sync:cinemark
-pnpm run sync:cineplanet
-pnpm run sync:muvix
-pnpm run sync:cinestar
+npm run sync:cinemark
+npm run sync:cineplanet
+npm run sync:muvix
+npm run sync:cinestar
 ```
 
 Conviene ejecutarlos secuencialmente para facilitar el diagnóstico y poder identificar qué cadena produjo un problema.
@@ -298,10 +316,10 @@ Cada comando utiliza por defecto la fecha actual en Chile y consulta los próxim
 Si se necesita inspeccionar una extracción antes de modificar la base:
 
 ```bash
-pnpm run scrape:cinemark
-pnpm run scrape:cineplanet
-pnpm run scrape:muvix
-pnpm run scrape:cinestar
+npm run scrape:cinemark
+npm run scrape:cineplanet
+npm run scrape:muvix
+npm run scrape:cinestar
 ```
 
 Los archivos JSON se guardan en:
@@ -317,7 +335,7 @@ La extracción no actualiza PostgreSQL.
 Para importar un JSON generado anteriormente:
 
 ```bash
-pnpm run import:scrape -- data/scrapes/ARCHIVO.json
+npm run import:scrape -- data/scrapes/ARCHIVO.json
 ```
 
 Reemplaza `ARCHIVO.json` por el nombre real del archivo.
@@ -405,7 +423,7 @@ Requiere configurar `TMDB_API_KEY` en `backend/.env`.
 Primero ejecuta el diagnóstico:
 
 ```bash
-pnpm run sync:tmdb -- --dry-run
+npm run sync:tmdb -- --dry-run
 ```
 
 Este modo:
@@ -425,7 +443,7 @@ backend/reports/
 Después de revisar el reporte, si las coincidencias son correctas, se pueden aplicar las actualizaciones:
 
 ```bash
-pnpm run sync:tmdb -- --apply
+npm run sync:tmdb -- --apply
 ```
 
 El modo `--apply` actualiza únicamente las coincidencias consideradas seguras y no resuelve automáticamente los conflictos manuales.
@@ -605,34 +623,34 @@ Para una base nueva, vuelve a activar el entorno, crea la base con `createdb` y 
 
 Todos los comandos de esta sección se ejecutan desde `backend/`, salvo que se indique lo contrario.
 
-| Comando                                               | Función                               | Efecto sobre PostgreSQL                                      |
-| ----------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
-| `pnpm run dev`                                        | Inicia el backend en modo desarrollo. | Lectura y escritura según las solicitudes.                   |
-| `pnpm run build`                                      | Compila TypeScript.                   | Ninguno.                                                     |
-| `pnpm run scrape:cinemark`                            | Extrae Cinemark y guarda JSON.        | Ninguno.                                                     |
-| `pnpm run scrape:cineplanet`                          | Extrae Cineplanet y guarda JSON.      | Ninguno.                                                     |
-| `pnpm run scrape:muvix`                               | Extrae Muvix y guarda JSON.           | Ninguno.                                                     |
-| `pnpm run scrape:cinestar`                            | Extrae Cine Star y guarda JSON.       | Ninguno.                                                     |
-| `pnpm run sync:cinemark`                              | Extrae e importa Cinemark.            | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
-| `pnpm run sync:cineplanet`                            | Extrae e importa Cineplanet.          | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
-| `pnpm run sync:muvix`                                 | Extrae e importa Muvix.               | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
-| `pnpm run sync:cinestar`                              | Extrae e importa Cine Star.           | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
-| `pnpm run import:scrape -- data/scrapes/ARCHIVO.json` | Importa un JSON existente.            | Inserta y actualiza datos.                                   |
-| `pnpm run sync:tmdb -- --dry-run`                     | Diagnostica coincidencias TMDB.       | Ninguno.                                                     |
-| `pnpm run sync:tmdb -- --apply`                       | Aplica coincidencias TMDB seguras.    | Actualiza metadatos.                                         |
-| `node src/scraper/cli.ts --deduplicar`                | Diagnostica duplicados.               | Ninguno.                                                     |
-| `node src/scraper/cli.ts --deduplicar --apply`        | Fusiona duplicados.                   | Modifica películas y relaciones.                             |
-| `node src/scripts/normalizar-generos.ts`              | Diagnostica géneros.                  | Ninguno.                                                     |
-| `node src/scripts/normalizar-generos.ts --write`      | Normaliza géneros.                    | Actualiza películas.                                         |
-| `node src/scripts/normalizar-comunas.ts`              | Diagnostica comunas.                  | Ninguno.                                                     |
-| `node src/scripts/normalizar-comunas.ts --write`      | Normaliza comunas.                    | Actualiza cines.                                             |
+| Comando                                              | Función                               | Efecto sobre PostgreSQL                                      |
+| ---------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
+| `npm run dev`                                        | Inicia el backend en modo desarrollo. | Lectura y escritura según las solicitudes.                   |
+| `npm run build`                                      | Compila TypeScript.                   | Ninguno.                                                     |
+| `npm run scrape:cinemark`                            | Extrae Cinemark y guarda JSON.        | Ninguno.                                                     |
+| `npm run scrape:cineplanet`                          | Extrae Cineplanet y guarda JSON.      | Ninguno.                                                     |
+| `npm run scrape:muvix`                               | Extrae Muvix y guarda JSON.           | Ninguno.                                                     |
+| `npm run scrape:cinestar`                            | Extrae Cine Star y guarda JSON.       | Ninguno.                                                     |
+| `npm run sync:cinemark`                              | Extrae e importa Cinemark.            | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
+| `npm run sync:cineplanet`                            | Extrae e importa Cineplanet.          | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
+| `npm run sync:muvix`                                 | Extrae e importa Muvix.               | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
+| `npm run sync:cinestar`                              | Extrae e importa Cine Star.           | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
+| `npm run import:scrape -- data/scrapes/ARCHIVO.json` | Importa un JSON existente.            | Inserta y actualiza datos.                                   |
+| `npm run sync:tmdb -- --dry-run`                     | Diagnostica coincidencias TMDB.       | Ninguno.                                                     |
+| `npm run sync:tmdb -- --apply`                       | Aplica coincidencias TMDB seguras.    | Actualiza metadatos.                                         |
+| `node src/scraper/cli.ts --deduplicar`               | Diagnostica duplicados.               | Ninguno.                                                     |
+| `node src/scraper/cli.ts --deduplicar --apply`       | Fusiona duplicados.                   | Modifica películas y relaciones.                             |
+| `node src/scripts/normalizar-generos.ts`             | Diagnostica géneros.                  | Ninguno.                                                     |
+| `node src/scripts/normalizar-generos.ts --write`     | Normaliza géneros.                    | Actualiza películas.                                         |
+| `node src/scripts/normalizar-comunas.ts`             | Diagnostica comunas.                  | Ninguno.                                                     |
+| `node src/scripts/normalizar-comunas.ts --write`     | Normaliza comunas.                    | Actualiza cines.                                             |
 
 ### 9.1. Opciones de los scrapers
 
 Los comandos de extracción y sincronización aceptan opciones adicionales:
 
 ```bash
-pnpm run scrape:cinemark -- --desde=2026-10-28 --dias=7
+npm run scrape:cinemark -- --desde=2026-10-28 --dias=7
 ```
 
 Opciones disponibles en el CLI:
@@ -649,7 +667,7 @@ Opciones disponibles en el CLI:
 Para sincronizar, se puede utilizar el mismo conjunto de opciones:
 
 ```bash
-pnpm run sync:cinemark -- --desde=2026-10-28 --dias=7
+npm run sync:cinemark -- --desde=2026-10-28 --dias=7
 ```
 
 Los parámetros de fecha y cantidad de días permiten acotar la extracción. Antes de realizar sincronizaciones extensas, es preferible comenzar con un período acotado y revisar el resultado.
