@@ -235,12 +235,10 @@ En otra terminal:
 cd frontend
 
 # Opción A: npm
-cd backend
 npm install
 npm run dev
 
 # Opción B: npm
-cd backend
 pnpm install
 pnpm run dev
 
