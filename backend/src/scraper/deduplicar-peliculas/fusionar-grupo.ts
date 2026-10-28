@@ -9,7 +9,7 @@ import {
     trasladarHorarios,
 } from "./fusionar-relaciones.ts";
 
-import type { GrupoDuplicado } from "./types.ts";
+import type { DbClient, GrupoDuplicado } from "./types.ts";
 
 interface PeliculaBloqueada {
     id: number;
@@ -17,7 +17,7 @@ interface PeliculaBloqueada {
 }
 
 async function bloquearPeliculas(
-    client: Awaited<ReturnType<typeof pool.connect>>,
+    client: DbClient,
     grupo: GrupoDuplicado,
 ): Promise<PeliculaBloqueada[]> {
     const ids = [
@@ -79,7 +79,7 @@ function validarTmdbIds(
 }
 
 async function ejecutarFusion(
-    client: Awaited<ReturnType<typeof pool.connect>>,
+    client: DbClient,
     grupo: GrupoDuplicado,
 ): Promise<void> {
     const canonicaId = grupo.canonica.id;
