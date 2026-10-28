@@ -1,50 +1,103 @@
-import PeliculaModel from "../models/pelicula.ts";
-import HorarioModel from "../models/horario.ts";
-import { horariosVigentes } from "../services/preciosFunciones.ts";
 import express from "express";
-import { clasificarEstreno } from "../utils/estreno.ts";
-import { localNow } from "../utils/localNow.ts";
+import { query } from "../db.ts";
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const { cartelera } = req.query;
-  if (cartelera !== undefined && cartelera !== "true" && cartelera !== "false") {
-    res.status(400).json({ error: "cartelera debe ser true o false" });
-    return;
-  }
-  if (cartelera === "true") {
-    const horarios = await HorarioModel.find({ ...horariosVigentes(), agotada: { $ne: true } })
-      .select("peliculaId origen peliculaOrigenId").lean();
-    const fuentesVigentes = new Map<string, Set<string>>();
-    for (const horario of horarios) {
-      const id = horario.peliculaId.toString();
-      const fuentes = fuentesVigentes.get(id) ?? new Set<string>();
-      fuentes.add(`${horario.origen}:${horario.peliculaOrigenId}`);
-      fuentesVigentes.set(id, fuentes);
-    }
-    const peliculas = await PeliculaModel.find({ _id: { $in: [...fuentesVigentes.keys()] } });
-    const hoy = localNow().slice(0, 10);
-    const disponibles = peliculas.map((pelicula) => {
-      const fuentes = (pelicula.fuentes ?? []).filter((fuente) =>
-        fuentesVigentes.get(pelicula._id.toString())?.has(`${fuente.origen}:${fuente.origenId}`));
-      return { ...pelicula.toJSON(), ...clasificarEstreno(fuentes, hoy) };
-    }).filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
-    res.json(disponibles);
-    return;
-  }
-  const peliculas = await PeliculaModel.find({});
+// Alias para que la respuesta calce con la interfaz Pelicula del frontend.
+// - fecha_estreno es DATE: to_char evita que pg lo convierta en un Date de JS
+//   (que se serializaria con hora y zona) y entrega "YYYY-MM-DD".
+// - estadoEstreno se deriva de la fecha de estreno, comparada contra el dia
+//   actual en Chile.
+const PELICULA_COLUMNS = `
+    p.id,
+    p.titulo,
+    p.sinopsis,
+    p.duracion,
+    p.genero,
+    p.clasificacion,
+    p.imagen_url AS poster,
+    p.banner,
+    p.tmdb_id AS "tmdbId",
+    (
+        SELECT to_char(MIN(fecha_estreno), 'YYYY-MM-DD')
+        FROM pelicula_fuentes pf
+        WHERE pf.pelicula_id = p.id
+    ) AS "fechaEstreno",
+    (
+        SELECT CASE
+                WHEN MIN(fecha_estreno) > (NOW() AT TIME ZONE 'America/Santiago')::date
+                THEN 'preventa'
+                ELSE 'cartelera'
+        END
+        FROM pelicula_fuentes pf
+        WHERE pf.pelicula_id = p.id
+    ) AS "estadoEstreno"
+    `;
 
-  res.json(peliculas);
+router.use((req, res, next) => {
+    res.setHeader("Cache-Control", "no-store");
+    next();
+});
+
+//Catalogo completo
+router.get("/", async (req, res, next) => {
+    const { cartelera } = req.query;
+
+    if (
+        cartelera !== undefined &&
+        cartelera !== "true" &&
+        cartelera !== "false"
+    ) {
+        return res
+            .status(400)
+            .json({ error: "cartelera debe ser true o false" });
+    }
+
+    if (cartelera !== "true") {
+        const sql = `
+            SELECT ${PELICULA_COLUMNS}
+            FROM peliculas p
+            ORDER BY p.titulo ASC;
+            `;
+
+        const { rows } = await query(sql);
+        return res.json(rows);
+    }
+
+    //Si cartelera === true entonces hacemos joins, deduplicacion y filtrado de horarios vigentes
+    const sql = `
+        SELECT ${PELICULA_COLUMNS}
+        FROM peliculas p
+        INNER JOIN horarios_vigentes h ON h.pelicula_id = p.id
+        WHERE h.agotada = FALSE
+        GROUP BY p.id
+        ORDER BY p.titulo ASC;
+        `;
+
+    const { rows } = await query(sql);
+    return res.json(rows);
 });
 
 router.get("/:id", async (req, res, next) => {
-  const pelicula = await PeliculaModel.findById(req.params.id);
+    const id = parseInt(req.params.id, 10);
 
-  if (!pelicula) {
-    return res.status(404).json({ error: "Pelicula no encontrada" });
-  }
-  return res.json(pelicula);
+    if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ error: "ID de película inválido" });
+    }
+
+    const sql = `
+        SELECT ${PELICULA_COLUMNS}
+        FROM peliculas p
+        WHERE p.id = $1;
+        `;
+
+    const { rows } = await query(sql, [id]);
+
+    if (rows.length === 0) {
+        return res.status(404).json({ error: "Película no encontrada" });
+    }
+
+    return res.json(rows[0]);
 });
 
 export default router;
