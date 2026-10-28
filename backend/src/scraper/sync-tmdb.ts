@@ -1,14 +1,12 @@
 import { pool } from "../db.ts";
-import {
-    fetchTmdbMovieMetadataById,
-    diagnosticarPeliculaTmdb,
-    detectarTipoContenido,
-} from "./tmdb.ts";
-import { resolucionesManuales } from "./resoluciones-tmdb.ts";
+
 import { exportarDiagnosticoHtml } from "./sync-tmdb/reporte-html/index.ts";
+import { evaluarPelicula } from "./sync-tmdb/evaluar-pelicula.ts";
+import { indexarResoluciones } from "./sync-tmdb/resoluciones.ts";
+import { crearResumenVacio } from "./sync-tmdb/resultados.ts";
+
 import type {
     CandidatoSeguro,
-    DiagnosticSummary,
     MovieRow,
     ResultadoDiagnostico,
 } from "./sync-tmdb/types.ts";
@@ -22,27 +20,17 @@ function normalizarTitulo(titulo: string): string {
         .replace(/\b(4K|3D|2D|IMAX|XD)\b/g, "")
         .replace(/[^A-Z0-9]/g, "");
 }
+const PAUSA_ENTRE_CONSULTAS_MS = 250;
+
+function pausa(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export async function sincronizarMetadatosTmdb(
     options: { apply?: boolean } = {},
 ) {
     const apply = options.apply === true;
-
-    const summary: DiagnosticSummary = {
-        revisadas: 0,
-        seguras: 0,
-        segurasAplicables: 0,
-        dudosas: 0,
-        sinCoincidencia: 0,
-        errores: 0,
-        aplicadas: 0,
-        omitidasPorConflicto: 0,
-        omitidasPorActualizacionConcurrente: 0,
-        asignadasManualmente: 0,
-        omitidasManualmente: 0,
-        conflictosManuales: 0,
-        erroresManuales: 0,
-    };
+    const summary = crearResumenVacio();
 
     // Solo diagnosticar películas que todavía no tienen TMDB ID.
     const result = await pool.query<MovieRow>(`
@@ -53,48 +41,10 @@ export async function sincronizarMetadatosTmdb(
     `);
 
     const movies = result.rows;
-
     const moviesById = new Map(movies.map((movie) => [movie.id, movie]));
 
-    const resolucionesPorId = new Map<
-        number,
-        (typeof resolucionesManuales)[number]
-    >();
-    const resolucionesInvalidas = new Map<number, string>();
-
-    for (const resolucion of resolucionesManuales) {
-        const { peliculaId, tmdbId, motivo } = resolucion;
-
-        if (!Number.isSafeInteger(peliculaId) || peliculaId <= 0) {
-            console.error(
-                `Resolución manual con peliculaId inválido: ${peliculaId}`,
-            );
-            continue;
-        }
-
-        if (resolucionesPorId.has(peliculaId)) {
-            resolucionesInvalidas.set(
-                peliculaId,
-                "Hay más de una resolución manual para esta película.",
-            );
-            continue;
-        }
-
-        resolucionesPorId.set(peliculaId, resolucion);
-
-        if (
-            !moviesById.has(peliculaId) ||
-            (tmdbId !== null &&
-                (!Number.isSafeInteger(tmdbId) || tmdbId <= 0)) ||
-            typeof motivo !== "string" ||
-            !motivo.trim()
-        ) {
-            resolucionesInvalidas.set(
-                peliculaId,
-                "La resolución manual tiene un ID inexistente o inválido, o no tiene un motivo.",
-            );
-        }
-    }
+    const { porId: resolucionesPorId, invalidas: resolucionesInvalidas } =
+        indexarResoluciones(movies);
 
     console.log(`Películas pendientes de TMDB: ${movies.length}`);
     console.log(
@@ -118,289 +68,27 @@ export async function sincronizarMetadatosTmdb(
     };
 
     for (const movie of movies) {
+        const resolucion = resolucionesPorId.get(movie.id);
+
+        const veredicto = await evaluarPelicula(
+            movie,
+            resolucion,
+            resolucionesInvalidas.get(movie.id),
+        );
+
         summary.revisadas++;
+        summary[veredicto.contador]++;
+        resultados.push(veredicto.resultado);
 
-        try {
-            const tipoDetectado = detectarTipoContenido(movie.titulo);
-
-            const resolucion = resolucionesPorId.get(movie.id);
-
-            if (resolucion) {
-                const motivo = resolucionesInvalidas.get(movie.id);
-
-                if (motivo) {
-                    summary.erroresManuales++;
-
-                    resultados.push({
-                        peliculaId: movie.id,
-                        titulo: movie.titulo,
-                        tmdbId: resolucion.tmdbId,
-                        tituloTmdb: null,
-                        score: null,
-                        duracionLocal: movie.duracion,
-                        duracionTmdb: null,
-                        diferenciaDuracion: null,
-                        segundoDuracionTmdb: null,
-                        segundoTmdbId: null,
-                        segundaDiferenciaDuracion: null,
-                        segundoCandidato: null,
-                        segundoScore: null,
-                        estado: "ERROR_MANUAL",
-                        tipoDetectado: detectarTipoContenido(movie.titulo),
-                        decision: "REVISAR_RESOLUCION",
-                        consultaCoincidente: null,
-                        coincideConsultaPrincipal: null,
-                        tituloOriginalTmdb: null,
-                        fechaEstreno: null,
-                        segundoTituloOriginal: null,
-                        segundoFechaEstreno: null,
-                        motivoManual: motivo,
-                    });
-
-                    continue;
-                }
-
-                if (resolucion.tmdbId === null) {
-                    summary.omitidasManualmente++;
-
-                    resultados.push({
-                        peliculaId: movie.id,
-                        titulo: movie.titulo,
-                        tmdbId: null,
-                        tituloTmdb: null,
-                        score: null,
-                        duracionLocal: movie.duracion,
-                        duracionTmdb: null,
-                        diferenciaDuracion: null,
-                        segundoDuracionTmdb: null,
-                        segundoTmdbId: null,
-                        segundaDiferenciaDuracion: null,
-                        segundoCandidato: null,
-                        segundoScore: null,
-                        estado: "OMITIDO_MANUALMENTE",
-                        tipoDetectado: detectarTipoContenido(movie.titulo),
-                        decision: "OMITIR",
-                        consultaCoincidente: null,
-                        coincideConsultaPrincipal: null,
-                        tituloOriginalTmdb: null,
-                        fechaEstreno: null,
-                        segundoTituloOriginal: null,
-                        segundoFechaEstreno: null,
-                        motivoManual: resolucion.motivo,
-                    });
-
-                    continue;
-                }
-
-                try {
-                    const metadata = await fetchTmdbMovieMetadataById(
-                        resolucion.tmdbId,
-                    );
-
-                    if (!metadata) {
-                        throw new Error(
-                            `TMDB no encontró el ID ${resolucion.tmdbId}.`,
-                        );
-                    }
-
-                    candidatos.push({
-                        peliculaId: movie.id,
-                        tmdbId: metadata.tmdbId,
-                        poster: metadata.poster,
-                        banner: metadata.banner,
-                        sinopsis: metadata.sinopsis,
-                    });
-
-                    summary.asignadasManualmente++;
-
-                    resultados.push({
-                        peliculaId: movie.id,
-                        titulo: movie.titulo,
-                        tmdbId: metadata.tmdbId,
-                        tituloTmdb: metadata.tituloTmdb,
-                        tituloOriginalTmdb: metadata.tituloOriginal,
-                        fechaEstreno: metadata.fechaEstreno ?? null,
-                        score: null,
-                        duracionLocal: movie.duracion,
-                        duracionTmdb: metadata.duracionTmdb ?? null,
-                        diferenciaDuracion:
-                            movie.duracion !== null &&
-                            metadata.duracionTmdb !== undefined
-                                ? Math.abs(
-                                      movie.duracion - metadata.duracionTmdb,
-                                  )
-                                : null,
-                        segundoDuracionTmdb: null,
-                        segundoTmdbId: null,
-                        segundaDiferenciaDuracion: null,
-                        segundoCandidato: null,
-                        segundoScore: null,
-                        estado: "ASIGNADO_MANUALMENTE",
-                        tipoDetectado: detectarTipoContenido(movie.titulo),
-                        decision: "APLICAR",
-                        consultaCoincidente: null,
-                        coincideConsultaPrincipal: null,
-                        segundoTituloOriginal: null,
-                        segundoFechaEstreno: null,
-                        motivoManual: resolucion.motivo,
-                    });
-                } catch (error) {
-                    summary.erroresManuales++;
-
-                    resultados.push({
-                        peliculaId: movie.id,
-                        titulo: movie.titulo,
-                        tmdbId: resolucion.tmdbId,
-                        tituloTmdb: null,
-                        score: null,
-                        duracionLocal: movie.duracion,
-                        duracionTmdb: null,
-                        diferenciaDuracion: null,
-                        segundoDuracionTmdb: null,
-                        segundoTmdbId: null,
-                        segundaDiferenciaDuracion: null,
-                        segundoCandidato: null,
-                        segundoScore: null,
-                        estado: "ERROR_MANUAL",
-                        tipoDetectado: detectarTipoContenido(movie.titulo),
-                        decision: "REVISAR_RESOLUCION",
-                        consultaCoincidente: null,
-                        coincideConsultaPrincipal: null,
-                        tituloOriginalTmdb: null,
-                        fechaEstreno: null,
-                        segundoTituloOriginal: null,
-                        segundoFechaEstreno: null,
-                        motivoManual:
-                            error instanceof Error
-                                ? error.message
-                                : String(error),
-                    });
-                }
-
-                continue;
-            }
-
-            const diagnostic = await diagnosticarPeliculaTmdb(
-                movie.titulo,
-                undefined,
-                movie.duracion,
-            );
-            if (!diagnostic) {
-                summary.sinCoincidencia++;
-
-                resultados.push({
-                    peliculaId: movie.id,
-                    titulo: movie.titulo,
-                    tmdbId: null,
-                    tituloTmdb: null,
-                    score: null,
-                    segundoCandidato: null,
-                    segundoScore: null,
-                    estado: "SIN_COINCIDENCIA",
-                    tipoDetectado,
-                    decision: "REVISAR",
-                    consultaCoincidente: null,
-                    coincideConsultaPrincipal: null,
-                    tituloOriginalTmdb: null,
-                    fechaEstreno: null,
-                    segundoTituloOriginal: null,
-                    segundoFechaEstreno: null,
-                    duracionLocal: movie.duracion,
-                    duracionTmdb: null,
-                    diferenciaDuracion: null,
-                    segundoDuracionTmdb: null,
-                    segundaDiferenciaDuracion: null,
-                    segundoTmdbId: null,
-                });
-            } else {
-                const seguro =
-                    diagnostic.estado === "SEGURO" &&
-                    diagnostic.tipoDetectado === "DESCONOCIDO" &&
-                    tipoDetectado === "DESCONOCIDO";
-
-                if (seguro) {
-                    summary.seguras++;
-
-                    candidatos.push({
-                        peliculaId: movie.id,
-                        tmdbId: diagnostic.tmdbId,
-                        poster: diagnostic.poster,
-                        banner: diagnostic.banner,
-                        sinopsis: diagnostic.sinopsis,
-                    });
-                } else {
-                    summary.dudosas++;
-                }
-
-                resultados.push({
-                    peliculaId: movie.id,
-                    titulo: movie.titulo,
-                    tmdbId: diagnostic.tmdbId,
-                    tituloTmdb: diagnostic.tituloTmdb,
-                    tituloOriginalTmdb: diagnostic.tituloOriginal,
-                    fechaEstreno: diagnostic.fechaEstreno ?? null,
-                    score: diagnostic.score,
-                    segundoCandidato:
-                        diagnostic.segundoCandidato?.titulo ?? null,
-                    segundoTituloOriginal:
-                        diagnostic.segundoCandidato?.tituloOriginal ?? null,
-                    segundoFechaEstreno:
-                        diagnostic.segundoCandidato?.fechaEstreno ?? null,
-                    segundoScore: diagnostic.segundoCandidato?.score ?? null,
-                    estado: seguro ? "SEGURO" : "DUDOSO",
-                    tipoDetectado,
-                    decision: seguro ? "APLICAR" : "REVISAR",
-                    consultaCoincidente:
-                        diagnostic?.consultaCoincidente ?? null,
-                    coincideConsultaPrincipal:
-                        diagnostic?.coincideConsultaPrincipal ?? null,
-                    duracionLocal: movie.duracion,
-                    duracionTmdb: diagnostic.duracionTmdb ?? null,
-                    diferenciaDuracion: diagnostic.diferenciaDuracion ?? null,
-                    segundoDuracionTmdb:
-                        diagnostic.segundoCandidato?.duracionTmdb ?? null,
-                    segundaDiferenciaDuracion:
-                        diagnostic.segundoCandidato?.diferenciaDuracion ?? null,
-                    segundoTmdbId: diagnostic.segundoCandidato?.tmdbId ?? null,
-                });
-            }
-        } catch (error) {
-            summary.errores++;
-
-            console.error(
-                `Error en película ${movie.id}:`,
-                error instanceof Error ? error.message : error,
-            );
-
-            resultados.push({
-                peliculaId: movie.id,
-                titulo: movie.titulo,
-                tmdbId: null,
-                tituloTmdb: null,
-                score: null,
-                segundoCandidato: null,
-                segundoScore: null,
-                estado: "ERROR",
-                tipoDetectado: detectarTipoContenido(movie.titulo),
-                decision: "REVISAR",
-                consultaCoincidente: null,
-                coincideConsultaPrincipal: null,
-                tituloOriginalTmdb: null,
-                fechaEstreno: null,
-                segundoTituloOriginal: null,
-                segundoFechaEstreno: null,
-                duracionLocal: movie.duracion,
-                duracionTmdb: null,
-                diferenciaDuracion: null,
-                segundoDuracionTmdb: null,
-                segundaDiferenciaDuracion: null,
-                segundoTmdbId: null,
-            });
+        if (veredicto.candidato) {
+            candidatos.push(veredicto.candidato);
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 250));
+        // Solo las búsquedas automáticas necesitan espaciarse (igual que antes).
+        if (!resolucion) {
+            await pausa(PAUSA_ENTRE_CONSULTAS_MS);
+        }
     }
-
     // Los registros locales pueden compartir TMDB ID.
     // Esto es informativo y nunca provoca una fusión.
     const grupos = new Map<number, number[]>();
