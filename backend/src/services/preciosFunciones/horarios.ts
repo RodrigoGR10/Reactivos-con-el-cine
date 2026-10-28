@@ -7,7 +7,10 @@ export async function cargarHorario(
 ): Promise<ScheduleWithPrices | null> {
     const result = await query<ScheduleRow>(
         `
-        SELECT h.*,
+        SELECT
+               h.*,
+               h.fecha::text AS fecha,
+               h.fecha_cartelera::text AS fecha_cartelera,
                c.origen_id AS cine_origen_id,
                c.nombre AS cine_nombre,
                c.url AS cine_url,
@@ -84,7 +87,10 @@ export async function cargarHorarios(
 
     const result = await query<ScheduleRow>(
         `
-        SELECT h.*,
+        SELECT
+               h.*,
+               h.fecha::text AS fecha,
+               h.fecha_cartelera::text AS fecha_cartelera,
                c.origen_id AS cine_origen_id,
                c.nombre AS cine_nombre,
                c.url AS cine_url,
