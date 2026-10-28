@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { pool, query } from "../db.ts";
+
 import { cinemarkData, ensureCinemark } from "../scraper/cinemark/client.ts";
 import { normalizeSessions } from "../scraper/cinemark/normalize.ts";
 import { pricesForSchedule } from "../scraper/cineplanet/normalize.ts";
@@ -11,17 +12,17 @@ import {
     isFresh,
 } from "./preciosFunciones/estado.ts";
 
-export { CACHE_PRECIOS_MS } from "./preciosFunciones/estado.ts";
+import { buildSchedule, cargarHorario } from "./preciosFunciones/horarios.ts";
 
 import type { RawPriceGroup, RawSession } from "../scraper/cinemark/types.ts";
-
-import type { ScrapedSchedule, ScrapedSession } from "../scraper/types.ts";
+import type { ScrapedSession } from "../scraper/types.ts";
 
 import type {
     ScheduleRow,
     ScheduleWithPrices,
-    TarifaRow,
 } from "./preciosFunciones/types.ts";
+
+export { CACHE_PRECIOS_MS } from "./preciosFunciones/estado.ts";
 
 const RETRY_MS = 60_000;
 const LOCK_MS = 5 * 60_000;
@@ -42,63 +43,6 @@ function fechaISO(fecha: Date | string): string {
 
 function fechaHora(row: ScheduleRow): string {
     return `${row.fecha}T${String(row.horario).slice(0, 5)}`;
-}
-
-async function cargarHorario(id: number): Promise<ScheduleWithPrices | null> {
-    const result = await query<ScheduleRow>(
-        `
-        SELECT h.*,
-               c.origen_id AS cine_origen_id,
-               c.nombre AS cine_nombre,
-               c.url AS cine_url,
-               pf.url AS pelicula_url_fuente,
-               pf.origen_id AS pelicula_origen_id_fuente
-        FROM horarios h
-        INNER JOIN cines c ON c.id = h.cine_id
-        LEFT JOIN pelicula_fuentes pf
-          ON pf.pelicula_id = h.pelicula_id
-         AND pf.origen = h.origen
-        WHERE h.id = $1;
-        `,
-        [id],
-    );
-
-    if (!result.rows[0]) return null;
-
-    const row = result.rows[0];
-    const prices = await query<TarifaRow>(
-        `
-        SELECT id, origen_id, tipo_entrada, formato, precio,
-               cargo_servicio, precio_online, url_compra, extraido_en
-        FROM tarifas
-        WHERE horario_id = $1
-        ORDER BY id;
-        `,
-        [id],
-    );
-
-    return { ...row, tarifas: prices.rows } as ScheduleWithPrices;
-}
-
-function buildSchedule(row: ScheduleRow): ScrapedSchedule {
-    return {
-        id: `${row.origen}:${row.origen_id}`,
-        origen: row.origen,
-        origenId: row.origen_id,
-        extraidoEn: new Date().toISOString(),
-        peliculaId: `${row.origen}:${row.pelicula_origen_id}`,
-        cineId: `${row.origen}:${row.cine_origen_id}`,
-        sesionId: row.sesion_id,
-        fecha: row.fecha,
-        fechaCartelera: row.fecha_cartelera,
-        horario: String(row.horario).slice(0, 5),
-        formatoResumen: row.formato_resumen,
-        idioma: row.idioma,
-        sala: row.sala,
-        agotada: row.agotada,
-        revision: row.revision,
-        urlCompra: row.url_compra ?? undefined,
-    };
 }
 
 async function extraerTarifas(row: ScheduleRow): Promise<ScrapedSession[]> {
