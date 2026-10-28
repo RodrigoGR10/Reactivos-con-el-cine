@@ -4,64 +4,31 @@ import { cinemarkData, ensureCinemark } from "../scraper/cinemark/client.ts";
 import { normalizeSessions } from "../scraper/cinemark/normalize.ts";
 import { pricesForSchedule } from "../scraper/cineplanet/normalize.ts";
 import { pricesForSchedule as vistaPrices } from "../scraper/vista/normalize.ts";
+
+import {
+    CACHE_PRECIOS_MS,
+    horarioPublico,
+    isFresh,
+} from "./preciosFunciones/estado.ts";
+
+export { CACHE_PRECIOS_MS } from "./preciosFunciones/estado.ts";
+
 import type { RawPriceGroup, RawSession } from "../scraper/cinemark/types.ts";
+
 import type {
     Origen,
     ScrapedSchedule,
     ScrapedSession,
 } from "../scraper/types.ts";
 
-export const CACHE_PRECIOS_MS = 15 * 60_000;
+import type {
+    ScheduleRow,
+    ScheduleWithPrices,
+    TarifaRow,
+} from "./preciosFunciones/types.ts";
+
 const RETRY_MS = 60_000;
 const LOCK_MS = 5 * 60_000;
-
-type ScheduleRow = {
-    id: number;
-    origen_id: string;
-    pelicula_id: number;
-    cine_id: string;
-    origen: Origen;
-    pelicula_origen_id: string;
-    pelicula_url: string | null;
-    sesion_id: string;
-    fecha: string;
-    horario: string;
-    fecha_cartelera: string;
-    formato_resumen: string;
-    idioma: string;
-    sala: string;
-    agotada: boolean;
-    url_compra: string | null;
-    revision: string;
-    precios_revision: string | null;
-    precios_consultados_en: Date | null;
-    precios_error_revision: string | null;
-    precios_error_hasta: Date | null;
-    consulta_precios_revision: string | null;
-    consulta_precios_hasta: Date | null;
-    consulta_precios_token: string | null;
-    cine_origen_id: string;
-    cine_nombre: string;
-    cine_url: string | null;
-    pelicula_url_fuente: string | null;
-    pelicula_origen_id_fuente: string;
-};
-
-type TarifaRow = {
-    id: number;
-    origen_id: string;
-    tipo_entrada: string;
-    formato: string;
-    precio: number | null;
-    cargo_servicio: number | null;
-    precio_online: number;
-    url_compra: string;
-    extraido_en: Date;
-};
-
-type ScheduleWithPrices = ScheduleRow & {
-    tarifas: TarifaRow[];
-};
 
 const consultas = new Map<string, Promise<ScheduleWithPrices | null>>();
 
@@ -79,86 +46,6 @@ function fechaISO(fecha: Date | string): string {
 
 function fechaHora(row: ScheduleRow): string {
     return `${row.fecha}T${String(row.horario).slice(0, 5)}`;
-}
-
-function isFresh(row: ScheduleRow, now = Date.now()): boolean {
-    return (
-        row.precios_revision === row.revision &&
-        row.precios_consultados_en !== null &&
-        now - new Date(row.precios_consultados_en).getTime() < CACHE_PRECIOS_MS
-    );
-}
-
-function horarioPublico(row: ScheduleWithPrices) {
-    const compatible =
-        row.precios_revision === row.revision &&
-        row.precios_consultados_en !== null;
-    const fresh =
-        compatible &&
-        Date.now() - new Date(row.precios_consultados_en!).getTime() <
-            CACHE_PRECIOS_MS;
-
-    const tarifas = compatible ? row.tarifas : [];
-
-    const estadoPrecio = row.agotada
-        ? "agotada"
-        : fresh
-          ? tarifas.length
-              ? "disponible"
-              : "sin_tarifa"
-          : row.consulta_precios_revision === row.revision &&
-              row.consulta_precios_hasta !== null &&
-              new Date(row.consulta_precios_hasta).getTime() > Date.now()
-            ? "consultando"
-            : row.precios_error_revision === row.revision &&
-                row.precios_error_hasta !== null &&
-                new Date(row.precios_error_hasta).getTime() > Date.now()
-              ? "error"
-              : tarifas.length
-                ? "desactualizado"
-                : "pendiente";
-
-    return {
-        id: String(row.id),
-        peliculaId: String(row.pelicula_id),
-        cineId: row.cine_id,
-        fecha: row.fecha,
-        fechaCartelera: row.fecha_cartelera,
-        horario: String(row.horario).slice(0, 5),
-        formatoResumen: row.formato_resumen,
-        idioma: row.idioma,
-        sala: row.sala,
-        agotada: row.agotada,
-        estadoPrecio,
-        preciosConsultadosEn: compatible
-            ? new Date(row.precios_consultados_en!).toISOString()
-            : undefined,
-        reintentarEn:
-            row.precios_error_revision === row.revision &&
-            row.precios_error_hasta
-                ? new Date(row.precios_error_hasta).toISOString()
-                : undefined,
-        tarifas: tarifas.map((tarifa) => ({
-            id: String(tarifa.id),
-            origenId: tarifa.origen_id,
-            tipoEntrada: tarifa.tipo_entrada,
-            formato: tarifa.formato,
-            precio: tarifa.precio === null ? undefined : Number(tarifa.precio),
-            cargoServicio:
-                tarifa.cargo_servicio === null
-                    ? undefined
-                    : Number(tarifa.cargo_servicio),
-            precioOnline: Number(tarifa.precio_online),
-            urlCompra:
-                row.origen === "cineplanet"
-                    ? tarifa.url_compra.replace(/\/entradas$/, "/asientos")
-                    : tarifa.url_compra,
-            extraidoEn: new Date(tarifa.extraido_en).toISOString(),
-            peliculaId: String(row.pelicula_id),
-            cineId: row.cine_id,
-            agotada: row.agotada,
-        })),
-    };
 }
 
 async function cargarHorario(id: number): Promise<ScheduleWithPrices | null> {
