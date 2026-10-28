@@ -1,7 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pool } from "../db.ts";
-import { diagnosticarPeliculaTmdb, detectarTipoContenido } from "./tmdb.ts";
+import {
+    fetchTmdbMovieMetadataById,
+    diagnosticarPeliculaTmdb,
+    detectarTipoContenido,
+} from "./tmdb.ts";
+
+import { resolucionesManuales } from "./resoluciones-tmdb.ts";
 
 interface MovieRow {
     id: number;
@@ -20,6 +26,10 @@ interface DiagnosticSummary {
     aplicadas: number;
     omitidasPorConflicto: number;
     omitidasPorActualizacionConcurrente: number;
+    asignadasManualmente: number;
+    omitidasManualmente: number;
+    conflictosManuales: number;
+    erroresManuales: number;
 }
 
 interface CandidatoSeguro {
@@ -435,6 +445,10 @@ export async function sincronizarMetadatosTmdb(
         aplicadas: 0,
         omitidasPorConflicto: 0,
         omitidasPorActualizacionConcurrente: 0,
+        asignadasManualmente: 0,
+        omitidasManualmente: 0,
+        conflictosManuales: 0,
+        erroresManuales: 0,
     };
 
     // Solo diagnosticar películas que todavía no tienen TMDB ID.
