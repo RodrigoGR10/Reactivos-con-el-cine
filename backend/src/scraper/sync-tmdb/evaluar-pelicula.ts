@@ -2,7 +2,7 @@ import {
     detectarTipoContenido,
     diagnosticarPeliculaTmdb,
     fetchTmdbMovieMetadataById,
-} from "../tmdb.ts";
+} from "../tmdb/index.ts";
 import type { ResolucionManual } from "../resoluciones-tmdb.ts";
 import type { MovieRow } from "./types.ts";
 import { crearResultado, mensajeDeError } from "./resultados.ts";
