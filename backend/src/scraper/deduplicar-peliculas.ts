@@ -30,6 +30,11 @@ function normalizarTitulo(titulo: string): string {
 }
 
 function sonDuplicadas(a: PeliculaRow, b: PeliculaRow): boolean {
+    // Nunca mezclar ediciones diferentes.
+    if (obtenerTipoEdicion(a.titulo) !== obtenerTipoEdicion(b.titulo)) {
+        return false;
+    }
+
     // Si ambas tienen TMDB ID, ese dato tiene prioridad.
     if (a.tmdb_id !== null && b.tmdb_id !== null) {
         return a.tmdb_id === b.tmdb_id;
@@ -55,6 +60,12 @@ function elegirCanonica(grupo: PeliculaRow[]): PeliculaRow {
         grupo.find((p) => p.tiene_cinemark) ??
         [...grupo].sort((a, b) => a.id - b.id)[0]
     );
+}
+
+function obtenerTipoEdicion(titulo: string): "original" | "aniversario" {
+    return /\b\d+\s*(?:°|º)?\s*ANIVERSARIO\b/i.test(titulo)
+        ? "aniversario"
+        : "original";
 }
 
 function detectarGrupos(peliculas: PeliculaRow[]): GrupoDuplicado[] {
