@@ -17,7 +17,11 @@ const getCartelera = async (): Promise<Pelicula[]> => {
     const { data } = await axios.get<Pelicula[]>(baseUrl, {
         params: { cartelera: true },
     });
-    return data;
+
+    return data.map((pelicula) => ({
+        ...pelicula,
+        id: String(pelicula.id),
+    }));
 };
 
 const getById = async (id: string): Promise<Pelicula> => {
