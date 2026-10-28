@@ -69,24 +69,11 @@ const errorHandler = (
     logger.error(error.message);
 
     logger.error(error.name);
-    if (error.name === "CastError") {
-        return response.status(400).json({ error: "Identificador inválido" });
-    } else if (error.name === "ValidationError") {
-        return response.status(400).json({ error: error.message });
-    } else if (
-        error.name === "JsonWebTokenError" ||
-        error.name === "NotBeforeError"
-    ) {
+
+    if (error.name === "JsonWebTokenError" || error.name === "NotBeforeError") {
         return response.status(401).json({ error: "Sesión inválida" });
     } else if (error.name === "TokenExpiredError") {
         return response.status(401).json({ error: "La sesión ha expirado" });
-    } else if (
-        error.name === "MongoServerError" &&
-        error.message.includes("E11000 duplicate key error")
-    ) {
-        return response.status(400).json({
-            error: "Este correo electrónico ya se encuentra registrado.",
-        });
     } else if (error.type === "entity.parse.failed") {
         return response.status(400).json({
             error: "El JSON de la solicitud es inválido",
