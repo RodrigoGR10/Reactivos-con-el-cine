@@ -4,6 +4,7 @@ import { upsertSchedule } from "./import-data/horarios.ts";
 import { upsertCinema } from "./import-data/cines.ts";
 import { upsertMovie } from "./import-data/peliculas.ts";
 import { resolveCinemaId, resolveMovieId } from "./import-data/referencias.ts";
+import { limpiarHorariosObsoletos } from "./import-data/limpieza.ts";
 
 import type { ScrapeResult } from "./types.ts";
 
@@ -16,26 +17,6 @@ interface ImportSummary {
     horariosEliminados: number;
     tarifasInvalidadas: number;
     limpiezaEjecutada: boolean;
-}
-
-function fechaLimite(desde: string, dias: number | null): string | null {
-    if (dias === null) return null;
-
-    const date = new Date(`${desde}T00:00:00.000Z`);
-    date.setUTCDate(date.getUTCDate() + dias);
-
-    return date.toISOString().slice(0, 10);
-}
-
-function canCleanStaleSchedules(data: ScrapeResult): boolean {
-    return (
-        data.meta.completo &&
-        data.meta.limitePorCine === null &&
-        data.meta.cinesSeleccionados > 0 &&
-        data.meta.cinesProcesados === data.meta.cinesSeleccionados &&
-        data.cines.length === data.meta.cinesSeleccionados &&
-        data.incidencias.length === 0
-    );
 }
 
 export async function importarDatosScraped(
@@ -132,36 +113,17 @@ export async function importarDatosScraped(
             }
         }
 
-        // 4. Limpieza selectiva: solo si la extracción fue completa,
-        // sin límites, y todos los cines seleccionados se procesaron.
-        if (canCleanStaleSchedules(data)) {
-            const cinemaDbIds = [...new Set(cinemaIds.values())];
+        // 4. Limpieza selectiva de horarios obsoletos.
+        const horariosEliminados = await limpiarHorariosObsoletos(
+            client,
+            data,
+            cinemaIds,
+            keptScheduleIds,
+        );
 
-            if (cinemaDbIds.length > 0) {
-                const deleted = await client.query(
-                    `
-                    DELETE FROM horarios h
-                    WHERE h.origen = $1
-                      AND h.cine_id = ANY($2::text[])
-                      AND h.fecha_cartelera >= $3::date
-                      AND (
-                          $4::date IS NULL
-                          OR h.fecha_cartelera < $4::date
-                      )
-                      AND NOT (h.id = ANY($5::int[]));
-                    `,
-                    [
-                        data.meta.origen,
-                        cinemaDbIds,
-                        data.meta.desde,
-                        fechaLimite(data.meta.desde, data.meta.dias),
-                        keptScheduleIds,
-                    ],
-                );
-
-                summary.horariosEliminados = deleted.rowCount ?? 0;
-                summary.limpiezaEjecutada = true;
-            }
+        if (horariosEliminados !== null) {
+            summary.horariosEliminados = horariosEliminados;
+            summary.limpiezaEjecutada = true;
         }
 
         await client.query("COMMIT");
