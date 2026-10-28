@@ -1,5 +1,7 @@
 import { pool } from "../db.ts";
 
+import { claveParaDuplicados } from "../utils/titulos.ts";
+
 interface PeliculaRow {
     id: number;
     titulo: string;
@@ -11,22 +13,6 @@ interface PeliculaRow {
 interface GrupoDuplicado {
     canonica: PeliculaRow;
     duplicadas: PeliculaRow[];
-}
-
-function normalizarTitulo(titulo: string): string {
-    return titulo
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toUpperCase()
-        .replace(
-            /\b(4K|3D|2D|IMAX|XD|BONUS|REESTRENO|PRE-ESTRENO|INFINITY VISION)\b/g,
-            " ",
-        )
-        .replace(/\b\d{4}\b/g, " ")
-        .replace(/\b\d+\s*(°|º)?\s*ANIVERSARIO\b/g, " ")
-        .replace(/\bPARTE\s*[12]\b/g, " ")
-        .replace(/\bPT[12]\b/g, " ")
-        .replace(/[^A-Z0-9]/g, "");
 }
 
 function sonDuplicadas(a: PeliculaRow, b: PeliculaRow): boolean {
@@ -55,8 +41,8 @@ function sonDuplicadas(a: PeliculaRow, b: PeliculaRow): boolean {
         return false;
     }
 
-    const tituloA = normalizarTitulo(a.titulo);
-    const tituloB = normalizarTitulo(b.titulo);
+    const tituloA = claveParaDuplicados(a.titulo);
+    const tituloB = claveParaDuplicados(b.titulo);
 
     return tituloA.length > 0 && tituloA === tituloB;
 }

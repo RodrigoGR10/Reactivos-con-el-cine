@@ -5,21 +5,12 @@ import type {
     ResultadoDiagnostico,
 } from "./types.ts";
 
+import { claveParaConflictos } from "../../utils/titulos.ts";
+
 interface PeliculaExistente {
     id: number;
     titulo: string;
     tmdb_id: number;
-}
-
-// TODO (paso 4): unificar con las otras versiones de normalizarTitulo.
-function normalizarTitulo(titulo: string): string {
-    return titulo
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toUpperCase()
-        .replace(/[\[(]\d{4}[\])]/g, "")
-        .replace(/\b(4K|3D|2D|IMAX|XD)\b/g, "")
-        .replace(/[^A-Z0-9]/g, "");
 }
 
 // tmdbId -> ids de películas locales que lo proponen.
@@ -86,7 +77,10 @@ function conflictosEntreCandidatos(
                 const a = peliculas[i]!;
                 const b = peliculas[j]!;
 
-                if (normalizarTitulo(a.titulo) === normalizarTitulo(b.titulo)) {
+                if (
+                    claveParaConflictos(a.titulo) ===
+                    claveParaConflictos(b.titulo)
+                ) {
                     continue;
                 }
 
@@ -120,8 +114,8 @@ function conflictosConExistentes(
             const peliculaNueva = moviesById.get(candidato.peliculaId);
             if (!peliculaNueva) continue;
 
-            const tituloExistente = normalizarTitulo(existente.titulo);
-            const tituloNuevo = normalizarTitulo(peliculaNueva.titulo);
+            const tituloExistente = claveParaConflictos(existente.titulo);
+            const tituloNuevo = claveParaConflictos(peliculaNueva.titulo);
 
             const titulosCompatibles =
                 tituloExistente.length > 0 &&

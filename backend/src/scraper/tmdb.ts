@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+import { claveBasica, sinAcentosEnMayusculas } from "../utils/titulos.ts";
+
 dotenv.config();
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
@@ -117,22 +119,11 @@ export function parseMovieTitleForSearch(rawTitle: string): {
     return { queries, year: explicitYear };
 }
 
-function normalizeTitleKey(value: string): string {
-    return value
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "");
-}
-
 export type TipoContenido =
     "PELICULA" | "ANIVERSARIO" | "CONCIERTO" | "EVENTO" | "DESCONOCIDO";
 
 export function detectarTipoContenido(titulo: string): TipoContenido {
-    const value = titulo
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toUpperCase();
+    const value = sinAcentosEnMayusculas(titulo);
 
     if (
         /\b(WORLD TOUR|LIVE VIEWING|LIVE IN|LIVE CONCERT|CONCERT|CONCIERTO|TOUR)\b/.test(
@@ -189,8 +180,8 @@ export function areSameCatalogMovie(
     const parsedA = parseMovieTitleForSearch(a.titulo);
     const parsedB = parseMovieTitleForSearch(b.titulo);
 
-    const keyA = normalizeTitleKey(parsedA.queries[0] ?? a.titulo);
-    const keyB = normalizeTitleKey(parsedB.queries[0] ?? b.titulo);
+    const keyA = claveBasica(parsedA.queries[0] ?? a.titulo);
+    const keyB = claveBasica(parsedB.queries[0] ?? b.titulo);
 
     return keyA.length > 0 && keyA === keyB;
 }
@@ -223,9 +214,9 @@ function isExactTitleMatch(
     candidate: TmdbMovieResult,
     cleanQuery: string,
 ): boolean {
-    const queryNorm = normalizeTitleKey(cleanQuery);
-    const titleNorm = normalizeTitleKey(candidate.title || "");
-    const originalNorm = normalizeTitleKey(candidate.original_title || "");
+    const queryNorm = claveBasica(cleanQuery);
+    const titleNorm = claveBasica(candidate.title || "");
+    const originalNorm = claveBasica(candidate.original_title || "");
 
     return (
         queryNorm.length > 0 &&
@@ -244,9 +235,9 @@ function scoreCandidate(
         ? Number(candidate.release_date.slice(0, 4))
         : undefined;
 
-    const queryNorm = normalizeTitleKey(cleanQuery);
-    const titleNorm = normalizeTitleKey(candidate.title || "");
-    const originalNorm = normalizeTitleKey(candidate.original_title || "");
+    const queryNorm = claveBasica(cleanQuery);
+    const titleNorm = claveBasica(candidate.title || "");
+    const originalNorm = claveBasica(candidate.original_title || "");
 
     if (!queryNorm) return -100;
 
