@@ -231,12 +231,12 @@
 }
 
 .detalle-cine-page .cartelera-search-box:focus-within {
-    border-color: #e50914;
-    box-shadow: 0 0 0 2px #e509141a;
+    border-color: var(--color-acento);
+    box-shadow: 0 0 0 2px #cc120b24;
 }
 
 .detalle-cine-page .cartelera-search-box:focus-within > svg {
-    color: #ef414c;
+    color: var(--color-acento);
 }
 
 .detalle-cine-page .cartelera-search-box > svg {
@@ -292,12 +292,12 @@
 }
 
 .detalle-cine-page .cartelera-cine-restablecer:hover:not(:disabled) {
-    border-color: #e50914;
+    border-color: var(--color-acento);
     color: #fff;
 }
 
 .detalle-cine-page .cartelera-cine-restablecer:disabled { opacity: 0.35; }
-.detalle-cine-page .cartelera-cine-filtros button:focus-visible { outline: 2px solid #ef414c; outline-offset: 3px; }
+.detalle-cine-page .cartelera-cine-filtros button:focus-visible { outline: 2px solid var(--color-acento); outline-offset: 3px; }
 .detalle-cine-page .cartelera-cine-formatos-fila { display: flex; align-items: baseline; gap: 16px; }
 .detalle-cine-page .cartelera-cine-formato-label { color: #a1a1aa; font-size: 0.8rem; flex-shrink: 0; }
 
