@@ -63,6 +63,29 @@ export function filtrarCines(cines: readonly Cine[], busqueda: string, comunas: 
     });
 }
 
+export function ordenarCinesPorCercania(
+    cines: readonly Cine[],
+    favoritos: readonly string[],
+    ubicacion: Ubicacion,
+): CineOrdenado[] {
+    const idsFavoritos = new Set(favoritos);
+    return cines
+        .map((cine) => ({
+            ...cine,
+            favorito: idsFavoritos.has(cine.id),
+            distancia:
+                cine.latitud != null && cine.longitud != null
+                    ? distanciaKM(ubicacion.latitud, ubicacion.longitud, cine.latitud, cine.longitud)
+                    : Infinity,
+        }))
+        .sort(
+            (a, b) =>
+                (a.distancia === b.distancia ? 0 : a.distancia - b.distancia) ||
+                a.nombre.localeCompare(b.nombre, "es-CL") ||
+                a.id.localeCompare(b.id),
+        );
+}
+
 export function agruparCines(cines: readonly Cine[], favoritos: readonly string[], ubicacion: Ubicacion | null): GrupoCines[] {
     const idsFavoritos = new Set(favoritos);
     const grupos = new Map<string, GrupoCines>();

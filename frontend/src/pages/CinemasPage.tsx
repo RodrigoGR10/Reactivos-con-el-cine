@@ -7,7 +7,7 @@ import { useFavorites } from "../context/FavoritesContext";
 import { CloseIcon, FilmIcon, SearchIcon, MapPinIcon } from "../components/common/Icons";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import { formatearDistancia } from "../utils/distancia";
-import { agruparCines, filtrarCines, obtenerCadena, obtenerComunas } from "../utils/agruparCines";
+import { agruparCines, filtrarCines, obtenerCadena, obtenerComunas, ordenarCinesPorCercania, type CineOrdenado } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
 import "./CinemasPage.css";
 
@@ -15,6 +15,7 @@ function CinemasPage() {
     const { user, openAuthModal } = useAuth();
     const { favoriteCinemaIds, toggleFavoriteCinema } = useFavorites();
     const { ubicacion, estado, solicitar } = useUbicacion();
+    const [cercaniaActiva, setCercaniaActiva] = useState(true);
     const [cines, setCines] = useState<Cine[]>([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -32,11 +33,40 @@ function CinemasPage() {
 
     const comunas = obtenerComunas(cines);
     const cinesFiltrados = filtrarCines(cines, busqueda, comunasSeleccionadas);
-    const grupos = agruparCines(cinesFiltrados, user ? favoriteCinemaIds : [], ubicacion);
+    const ordenarPorCercania = cercaniaActiva && estado === "listo" && ubicacion !== null;
+    const favoritosUsuario = user ? favoriteCinemaIds : [];
+    const grupos = agruparCines(cinesFiltrados, favoritosUsuario, ordenarPorCercania ? ubicacion : null);
+    const cinesPorCercania = ordenarPorCercania ? ordenarCinesPorCercania(cinesFiltrados, favoritosUsuario, ubicacion) : [];
     const hayFiltrosActivos = busqueda.trim() !== "" || comunasSeleccionadas.length > 0;
     const limpiarFiltros = () => {
         setBusqueda("");
         setComunasSeleccionadas([]);
+    };
+
+    const renderTarjetaCine = (cine: CineOrdenado) => {
+        const logo = cine.logo || obtenerCadena(cine).logo;
+        const etiquetaFavorito = cine.favorito ? `Quitar ${cine.nombre} de habituales` : `Guardar ${cine.nombre} como habitual`;
+        return (
+            <article key={cine.id} className={`cine-card ${cine.favorito ? "cine-card-favorito" : ""}`}>
+                <div className="cine-card-header">
+                    <div className="cine-logo-container" data-origen={cine.origen}>
+                        {logo ? <img src={logo} alt={`Logo de ${cine.nombre}`} className="cine-card-logo" /> : <FilmIcon size={24} />}
+                    </div>
+                    <button type="button" className={`cine-btn-fav ${cine.favorito ? "active" : ""}`} title={etiquetaFavorito} aria-label={etiquetaFavorito} aria-pressed={cine.favorito} onClick={() => { if (!user) openAuthModal(); else toggleFavoriteCinema(cine.id); }}>
+                        <span aria-hidden="true">{cine.favorito ? "♥" : "♡"}</span>
+                    </button>
+                </div>
+                <div className="cine-card-body">
+                    <h3 className="cine-card-nombre">{cine.nombre}</h3>
+                    <p className="cine-card-comuna"><MapPinIcon size={14} /><span>{cine.comuna}</span>
+                        {Number.isFinite(cine.distancia) && <span className="distancia-cine">{formatearDistancia(cine.distancia)}</span>}
+                    </p>
+                </div>
+                <div className="cine-card-footer">
+                    <Link to={`/cines/${cine.id}`} className="cine-btn-ver-cartelera">Ver cartelera y funciones<span aria-hidden="true">→</span></Link>
+                </div>
+            </article>
+        );
     };
 
     return (
@@ -65,7 +95,21 @@ function CinemasPage() {
                         )}
                     </div>
                     <SelectorComunas opciones={comunas} seleccionadas={comunasSeleccionadas} onChange={setComunasSeleccionadas} />
-                    <button type="button" className={`boton-cercania-cine ${estado === "listo" ? "activo" : ""}`} onClick={solicitar} disabled={estado === "cargando" || estado === "listo"}>
+                    <button
+                        type="button"
+                        className={`boton-cercania-cine ${ordenarPorCercania ? "activo" : ""}`}
+                        aria-pressed={ordenarPorCercania}
+                        title={ordenarPorCercania ? "Volver al orden por cadena" : "Ordenar por cercanía"}
+                        onClick={() => {
+                            if (ordenarPorCercania) {
+                                setCercaniaActiva(false);
+                                return;
+                            }
+                            setCercaniaActiva(true);
+                            solicitar();
+                        }}
+                        disabled={estado === "cargando"}
+                    >
                         <MapPinIcon size={17} />
                         <span>{estado === "cargando" ? "Ubicando..." : "Cerca de mí"}</span>
                     </button>
@@ -98,6 +142,10 @@ function CinemasPage() {
                     <p>No hay cines que coincidan con los filtros seleccionados.</p>
                     <button type="button" className="cines-btn-limpiar-empty" onClick={limpiarFiltros}>Restablecer búsqueda</button>
                 </div>
+            ) : ordenarPorCercania ? (
+                <div className="cines-grid">
+                    {cinesPorCercania.map(renderTarjetaCine)}
+                </div>
             ) : (
                 <div className="cines-grupos">
                     {grupos.map((grupo) => (
@@ -110,31 +158,7 @@ function CinemasPage() {
                                 <span className="cines-cadena-cantidad">{grupo.cines.length} {grupo.cines.length === 1 ? "cine" : "cines"}</span>
                             </header>
                             <div className="cines-grid">
-                                {grupo.cines.map((cine) => {
-                                    const logo = cine.logo || obtenerCadena(cine).logo;
-                                    const etiquetaFavorito = cine.favorito ? `Quitar ${cine.nombre} de habituales` : `Guardar ${cine.nombre} como habitual`;
-                                    return (
-                                        <article key={cine.id} className={`cine-card ${cine.favorito ? "cine-card-favorito" : ""}`}>
-                                            <div className="cine-card-header">
-                                                <div className="cine-logo-container" data-origen={cine.origen}>
-                                                    {logo ? <img src={logo} alt={`Logo de ${cine.nombre}`} className="cine-card-logo" /> : <FilmIcon size={24} />}
-                                                </div>
-                                                <button type="button" className={`cine-btn-fav ${cine.favorito ? "active" : ""}`} title={etiquetaFavorito} aria-label={etiquetaFavorito} aria-pressed={cine.favorito} onClick={() => { if (!user) openAuthModal(); else toggleFavoriteCinema(cine.id); }}>
-                                                    <span aria-hidden="true">{cine.favorito ? "♥" : "♡"}</span>
-                                                </button>
-                                            </div>
-                                            <div className="cine-card-body">
-                                                <h3 className="cine-card-nombre">{cine.nombre}</h3>
-                                                <p className="cine-card-comuna"><MapPinIcon size={14} /><span>{cine.comuna}</span>
-                                                    {Number.isFinite(cine.distancia) && <span className="distancia-cine">{formatearDistancia(cine.distancia)}</span>}
-                                                </p>
-                                            </div>
-                                            <div className="cine-card-footer">
-                                                <Link to={`/cines/${cine.id}`} className="cine-btn-ver-cartelera">Ver cartelera y funciones<span aria-hidden="true">→</span></Link>
-                                            </div>
-                                        </article>
-                                    );
-                                })}
+                                {grupo.cines.map(renderTarjetaCine)}
                             </div>
                         </section>
                     ))}
