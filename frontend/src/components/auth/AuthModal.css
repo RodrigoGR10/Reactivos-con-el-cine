@@ -262,7 +262,7 @@ body:has(.auth-modal-overlay) {
 }
 
 .auth-input-box .auth-btn-toggle-password:focus-visible {
-    outline: 2px solid #ff6570;
+    outline: 2px solid var(--color-acento);
     outline-offset: -4px;
     border-radius: 4px;
 }

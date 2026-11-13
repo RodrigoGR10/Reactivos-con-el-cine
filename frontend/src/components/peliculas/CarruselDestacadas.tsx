@@ -162,7 +162,7 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
         <div className="destacadas-controles">
           <nav className="destacadas-selector" aria-label="Seleccionar película destacada">
             {peliculas.map((pelicula, posicion) => (
-              <button key={pelicula.id} type="button" aria-label={`Ver destacada ${posicion + 1}: ${pelicula.titulo}`} aria-current={indice === posicion ? "true" : undefined} data-completada={posicion < indice ? "true" : undefined} title={pelicula.titulo} onClick={() => seleccionarPelicula(pelicula.id, posicion < indice ? -1 : 1)}>
+              <button key={pelicula.id} type="button" aria-label={`Ver destacada ${posicion + 1}: ${pelicula.titulo}`} aria-current={indice === posicion ? "true" : undefined} title={pelicula.titulo} onClick={() => seleccionarPelicula(pelicula.id, posicion < indice ? -1 : 1)}>
                 <span className="destacadas-pista" aria-hidden="true">
                   <span className={indice === posicion ? "destacadas-progreso" : undefined} style={{ animationDuration: `${INTERVALO_ROTACION_MS}ms` }} />
                 </span>

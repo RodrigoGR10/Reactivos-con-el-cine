@@ -12,7 +12,7 @@
 
 .seccion-preventas .subtitulo-seccion {
   margin: 0 0 8px;
-  color: #ed2933;
+  color: var(--color-acento);
   font-size: 11px;
   line-height: 1.4;
   font-weight: 700;
@@ -87,7 +87,7 @@
 .seccion-preventas .etiqueta-preventa {
   min-height: 2.8em;
   margin: 0 0 8px;
-  color: #ff5862;
+  color: var(--color-acento);
   font-size: 12px;
   line-height: 1.4;
   font-weight: 600;
@@ -123,23 +123,23 @@
 
 .seccion-preventas .pie-tarjeta { display: flex; margin-top: auto; }
 .seccion-preventas .clasificacion { position: absolute; top: 10px; left: 10px; z-index: 2; padding: 4px 7px; border: 1px solid #ffffff30; border-radius: 3px; background: #111113eb; color: #eeeef0; font-size: 10px; line-height: 1.3; font-weight: 700; }
-.seccion-preventas .boton-tarjeta { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 40px; padding: 9px 12px; border: 1px solid #cc120b; border-radius: 4px; background: #cc120b; color: #fff; font-size: 13px; line-height: 1.4; font-weight: 600; }
-.seccion-preventas .boton-tarjeta:hover { border-color: #ed211a; background: #ed211a; transform: none; }
+.seccion-preventas .boton-tarjeta { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 40px; padding: 9px 12px; border: 1px solid var(--color-acento); border-radius: 4px; background: var(--color-acento); color: #fff; font-size: 13px; line-height: 1.4; font-weight: 600; }
+.seccion-preventas .boton-tarjeta:hover { border-color: var(--color-acento-oscuro); background: var(--color-acento-oscuro); transform: none; }
 .seccion-preventas .boton-tarjeta svg { flex-shrink: 0; }
 
 .seccion-preventas .overlay-fav { inset: 9px 9px auto auto; display: block; background: transparent; opacity: 1; visibility: visible; pointer-events: none; }
 .seccion-preventas .boton-fav,
 .seccion-preventas .poster-pelicula:hover .boton-fav { width: 34px; height: 34px; border: 1px solid #ffffff40; border-radius: 50%; background: #111113de; color: #fff; font-size: 23px; line-height: 1; transform: none; backdrop-filter: none; pointer-events: auto; }
-.seccion-preventas .boton-fav:hover { border-color: #e50914; background: #cc120b; }
-.seccion-preventas .boton-fav[aria-pressed="true"] { border-color: #e50914; color: #ff5862; }
+.seccion-preventas .boton-fav:hover { border-color: var(--color-acento); background: var(--color-acento); }
+.seccion-preventas .boton-fav[aria-pressed="true"] { border-color: var(--color-acento); color: var(--color-acento); }
 
 .controles-preventas { display: flex; align-items: center; gap: 8px; }
 .controles-preventas button { display: grid; flex-shrink: 0; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid #41414a; border-radius: 4px; background: #17171c; color: #fff; cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease; }
 .controles-preventas button svg { width: 20px; height: 20px; }
-.controles-preventas button:hover:not(:disabled) { border-color: #cc120b; background: #cc120b; }
+.controles-preventas button:hover:not(:disabled) { border-color: var(--color-acento); background: var(--color-acento); }
 .controles-preventas button:disabled { border-color: #29292e; background: #111113; color: #72727e; cursor: default; }
 .seccion-preventas a:focus-visible,
-.seccion-preventas button:focus-visible { outline: 2px solid #ff5862; outline-offset: 3px; }
+.seccion-preventas button:focus-visible { outline: 2px solid var(--color-acento); outline-offset: 3px; }
 
 @media (max-width: 759px) {
   .seccion-preventas { margin-top: 36px; }

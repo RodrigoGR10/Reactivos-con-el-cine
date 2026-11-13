@@ -19,7 +19,7 @@
 
 .cines-subtitulo {
     margin: 0 0 6px;
-    color: #ed3440;
+    color: var(--color-acento);
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -56,7 +56,7 @@
 
 .cines-filtros-bar {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) minmax(200px, 260px) auto 44px;
+    grid-template-columns: minmax(220px, 1fr) 200px 160px 44px;
     align-items: center;
     gap: 10px;
     min-width: 0;
@@ -87,12 +87,12 @@
 }
 
 .cines-search-box:focus-within {
-    border-color: #e50914;
-    box-shadow: 0 0 0 2px #e509141a;
+    border-color: var(--color-acento);
+    box-shadow: 0 0 0 2px #cc120b24;
 }
 
 .cines-search-box:focus-within > svg {
-    color: #ef414c;
+    color: var(--color-acento);
 }
 
 .cines-search-box input {
@@ -112,7 +112,7 @@
 
 .cines-page button:focus-visible,
 .cines-page a:focus-visible {
-    outline: 2px solid #ef414c;
+    outline: 2px solid var(--color-acento);
     outline-offset: 3px;
 }
 
@@ -148,17 +148,19 @@
 
 .boton-cercania-cine {
     justify-content: center;
+    padding: 0 18px;
     white-space: nowrap;
+    cursor: pointer;
 }
 
 .boton-cercania-cine > svg {
-    color: #ef414c;
+    color: var(--color-acento);
 }
 
 .boton-cercania-cine:hover:not(:disabled),
 .cines-comunas-trigger:hover {
     border-color: #58585f;
-    background: #1a1a1e;
+    background-color: #1a1a1e;
 }
 
 .boton-cercania-cine:disabled:not(.activo) {
@@ -166,8 +168,17 @@
 }
 
 .boton-cercania-cine.activo {
-    border-color: #626268;
-    cursor: default;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.boton-cercania-cine.activo svg path {
+    fill: currentColor;
+}
+
+.boton-cercania-cine.activo svg circle {
+    fill: #141416;
+    stroke: #141416;
 }
 
 .aviso-cercania {
@@ -182,8 +193,17 @@
 }
 
 .cines-comunas-trigger {
+    position: relative;
     width: 100%;
-    text-align: left;
+    padding: 0 38px 0 14px;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+.cines-comunas-trigger:disabled {
+    opacity: 0.5;
+    cursor: default;
 }
 
 .cines-comunas-trigger > span:first-of-type {
@@ -194,25 +214,19 @@
     text-overflow: ellipsis;
 }
 
-.cines-comunas-trigger.activo {
-    border-color: #793039;
-}
-
-.cines-comunas-trigger.activo > svg {
-    color: #ef414c;
-}
-
 .cines-comunas-chevron {
+    position: absolute;
+    right: 14px;
     width: 7px;
     height: 7px;
     flex-shrink: 0;
     border-right: 1.5px solid currentColor;
     border-bottom: 1.5px solid currentColor;
-    transform: rotate(45deg) translateY(-2px);
+    transform: translateY(-1.5px) rotate(45deg);
 }
 
 .cines-comunas-trigger[aria-expanded="true"] .cines-comunas-chevron {
-    transform: rotate(225deg) translate(-2px, -2px);
+    transform: translateY(1.5px) rotate(225deg);
 }
 
 .cines-comunas-panel {
@@ -256,7 +270,7 @@
 }
 
 .cines-comunas-busqueda:focus-within {
-    border-color: #e50914;
+    border-color: var(--color-acento);
 }
 
 .cines-comunas-busqueda input {
@@ -294,7 +308,6 @@
 }
 
 .cines-comuna-opcion:has(input:checked) {
-    background: #e5091414;
     color: #fff;
 }
 
@@ -302,7 +315,7 @@
     flex-shrink: 0;
     width: 16px;
     height: 16px;
-    accent-color: #e50914;
+    accent-color: var(--color-acento);
 }
 
 .cines-comuna-opcion > span:first-of-type {
@@ -341,9 +354,9 @@
 .cines-comunas-listo {
     height: 32px;
     padding: 0 16px;
-    border: 1px solid #e50914;
+    border: 1px solid var(--color-acento);
     border-radius: 4px;
-    background: #e50914;
+    background: var(--color-acento);
     color: #fff;
     font-size: 0.8rem;
     font-weight: 600;
@@ -361,20 +374,28 @@
     gap: 8px;
     max-width: 100%;
     padding: 6px 10px;
-    border: 1px solid #693039;
+    border: 1px solid #303034;
     border-radius: 4px;
-    background: #e5091410;
-    color: #f0b8bc;
+    background: #141416;
+    color: #f5f5f6;
     font-size: 0.8rem;
+    cursor: pointer;
     overflow-wrap: anywhere;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .cines-comuna-chip svg {
     flex-shrink: 0;
+    color: #a1a1aa;
 }
 
 .cines-comuna-chip:hover {
-    background: #e5091426;
+    border-color: #58585f;
+    background: #1a1a1e;
+}
+
+.cines-comuna-chip:hover svg {
+    color: #ffffff;
 }
 
 .cines-grupos {
@@ -430,7 +451,7 @@
 }
 
 .cines-cadena-favorito-icon {
-    color: #ef414c;
+    color: var(--color-acento);
     width: 30px;
     text-align: center;
     font-size: 1.5rem;
@@ -462,7 +483,7 @@
 }
 
 .cine-card-favorito {
-    border-color: #653039;
+    border-color: var(--color-acento);
 }
 
 .cine-card-header {
@@ -512,9 +533,9 @@
 }
 
 .cine-btn-fav:hover, .cine-btn-fav.active {
-    border-color: #8e3640;
-    color: #f34a55;
-    background: #e509140d;
+    border-color: var(--color-acento);
+    color: var(--color-acento);
+    background: #cc120b14;
 }
 
 .cine-card-body {
@@ -584,8 +605,8 @@
 }
 
 .cine-btn-ver-cartelera:hover {
-    background: #e50914;
-    border-color: #e50914;
+    background: var(--color-acento);
+    border-color: var(--color-acento);
     color: #fff;
 }
 
@@ -630,7 +651,7 @@
 }
 
 .cines-btn-limpiar-empty:hover {
-    border-color: #e50914;
+    border-color: var(--color-acento);
 }
 
 @media (max-width: 1100px) {

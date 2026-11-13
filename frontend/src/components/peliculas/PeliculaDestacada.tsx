@@ -22,8 +22,23 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
   const total = totalFavoritos(pelicula);
   const { tituloPrincipal, subtitulo } = separarTituloDestacado(pelicula.titulo);
   const sinopsis = pelicula.sinopsis ? resumirSinopsisDestacada(pelicula.sinopsis) : "";
-  const etiqueta = total && total > 0 ? `N° ${posicion} en favoritos`
-    : pelicula.estadoEstreno === "preventa" ? "Próximo estreno" : "En cartelera";
+
+  const formatearFechaEstreno = (fecha?: string) => {
+    if (!fecha) return "Preventa";
+    const date = new Date(`${fecha}T00:00:00Z`);
+    const textoFecha = new Intl.DateTimeFormat("es-CL", {
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC",
+    }).format(date);
+    return `Estreno: ${textoFecha}`;
+  };
+
+  const etiqueta = total && total > 0
+    ? `N° ${posicion} en favoritos`
+    : pelicula.estadoEstreno === "preventa"
+      ? formatearFechaEstreno(pelicula.fechaEstreno)
+      : "Destacada de la semana";
 
   const handleToggleFavorita = async () => {
     if (!user) {
@@ -52,7 +67,7 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
       <div className="contenido-destacada">
         <div className="destacada-popularidad">
           <p className="etiqueta-destacada">{etiqueta}</p>
-          {total !== undefined && (
+          {total !== undefined && total > 0 && (
             <span className="destacada-total-favoritos" aria-live="polite">
               <span aria-hidden="true">♥</span>
               {total.toLocaleString("es-CL")} {total === 1 ? "favorito" : "favoritos"}
