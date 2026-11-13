@@ -8,8 +8,10 @@ import { Mensaje } from "../components/common/Mensaje";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
 import { CloseIcon, MapPinIcon, SearchIcon } from "../components/common/Icons";
+import { SelectorMultiple, type OpcionFiltro } from "../components/common/SelectorMultiple";
+import { SelectorComunas } from "../components/cines/SelectorComunas";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
-import { obtenerCadena } from "../utils/agruparCines";
+import { filtrarCines, obtenerCadena, obtenerComunas } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
 import { useButacasFunciones, claveButacas } from "../hooks/useButacasFunciones";
 import "./MovieDetailPage.css";
@@ -47,8 +49,8 @@ function MovieDetailPage() {
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
     const [fechaSeleccionada, setFechaSeleccionada] = useState("");
     const [busqueda, setBusqueda] = useState("");
-    const [comunaSeleccionada, setComunaSeleccionada] = useState("Todas");
-    const [cadenaSeleccionada, setCadenaSeleccionada] = useState("");
+    const [comunasSeleccionadas, setComunasSeleccionadas] = useState<string[]>([]);
+    const [cadenasSeleccionadas, setCadenasSeleccionadas] = useState<string[]>([]);
     const [consultandoPrecios, setConsultandoPrecios] = useState<Record<string, boolean>>({});
     const [horariosConPrecios, setHorariosConPrecios] = useState<Record<string, Horario>>({});
 
@@ -120,45 +122,46 @@ function MovieDetailPage() {
                 || a.cine.id.localeCompare(b.cine.id);
         });
 
-    const comunasDisponibles = [
-        "Todas",
-        ...new Set(
-            cines
-                .filter((cine) =>
-                    horariosDelDia.some((h) => h.cineId === cine.id),
-                )
-                .map((cine) => cine.comuna)
-                .filter(Boolean),
-        ),
-    ].sort((a, b) =>
-        a === "Todas" ? -1 : b === "Todas" ? 1 : a.localeCompare(b),
+    const cinesDelDia = cines.filter((cine) =>
+        horariosDelDia.some((h) => h.cineId === cine.id),
+    );
+    const comunasDisponibles = obtenerComunas(cinesDelDia);
+    const valoresComunasDisponibles = new Set(comunasDisponibles.map((c) => c.valor));
+    const comunasActivas = comunasSeleccionadas.filter((valor) =>
+        valoresComunasDisponibles.has(valor),
     );
 
-    const comunaActual = comunasDisponibles.includes(comunaSeleccionada)
-        ? comunaSeleccionada
-        : "Todas";
-
-    const cadenasDisponibles = [...new Map(grupos.map(({ cine }) => {
+    const mapaCadenas = new Map<string, OpcionFiltro>();
+    for (const { cine } of grupos) {
         const cadena = obtenerCadena(cine);
-        return [cadena.id, cadena] as const;
-    })).values()].sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CL"));
-    const cadenaActual = cadenasDisponibles.some((cadena) => cadena.id === cadenaSeleccionada)
-        ? cadenaSeleccionada
-        : "";
+        const anterior = mapaCadenas.get(cadena.id);
+        mapaCadenas.set(cadena.id, {
+            valor: cadena.id,
+            nombre: cadena.nombre,
+            cantidad: (anterior?.cantidad ?? 0) + 1,
+        });
+    }
+    const cadenasDisponibles = [...mapaCadenas.values()].sort((a, b) =>
+        a.nombre.localeCompare(b.nombre, "es-CL"),
+    );
+    const valoresCadenasDisponibles = new Set(cadenasDisponibles.map((c) => c.valor));
+    const cadenasActivas = cadenasSeleccionadas.filter((valor) =>
+        valoresCadenasDisponibles.has(valor),
+    );
 
+    const cinesFiltradosIds = new Set(
+        filtrarCines(
+            grupos.map((g) => g.cine),
+            busqueda,
+            comunasActivas,
+        ).map((c) => c.id),
+    );
+
+    const cadenasSet = new Set(cadenasActivas);
     const gruposFiltrados = grupos.filter((g) => {
-        const coincideBusqueda =
-            !busqueda.trim() ||
-            g.cine.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()) ||
-            g.cine.comuna.toLowerCase().includes(busqueda.trim().toLowerCase());
-
-        const coincideComuna =
-            comunaActual === "Todas" ||
-            g.cine.comuna.toLowerCase() === comunaActual.toLowerCase();
-
-        const coincideCadena = !cadenaActual || obtenerCadena(g.cine).id === cadenaActual;
-
-        return coincideBusqueda && coincideComuna && coincideCadena;
+        const coincideCadena =
+            !cadenasSet.size || cadenasSet.has(obtenerCadena(g.cine).id);
+        return cinesFiltradosIds.has(g.cine.id) && coincideCadena;
     });
 
     if (error) return <Mensaje texto={error} />;
@@ -268,37 +271,25 @@ function MovieDetailPage() {
                                 )}
                             </div>
 
-                            <select
-                                className="selector-cadena-filtro"
-                                value={cadenaActual}
-                                onChange={(e) => setCadenaSeleccionada(e.target.value)}
-                                aria-label="Filtrar por cadena"
+                            <SelectorMultiple
+                                className="cines-cadenas-selector"
+                                opciones={cadenasDisponibles}
+                                seleccionadas={cadenasActivas}
+                                onChange={setCadenasSeleccionadas}
+                                titulo="Cadenas"
+                                etiquetaTodas="Todas las cadenas"
+                                etiquetaPlural="cadenas"
+                                etiquetaSingular="1 cadena"
+                                ariaLabelPrefijo="Filtrar por cadenas"
                                 disabled={cadenasDisponibles.length === 0}
-                            >
-                                <option value="">Todas las cadenas</option>
-                                {cadenasDisponibles.map((cadena) => (
-                                    <option key={cadena.id} value={cadena.id}>
-                                        {cadena.nombre}
-                                    </option>
-                                ))}
-                            </select>
+                            />
 
-                            {comunasDisponibles.length > 1 && (
-                                <select
-                                    className="selector-comuna-filtro"
-                                    value={comunaActual}
-                                    onChange={(e) => setComunaSeleccionada(e.target.value)}
-                                    aria-label="Filtrar por comuna"
-                                >
-                                    <option value="Todas">Todas las comunas</option>
-                                    {comunasDisponibles
-                                        .filter((c) => c !== "Todas")
-                                        .map((comuna) => (
-                                            <option key={comuna} value={comuna}>
-                                                {comuna}
-                                            </option>
-                                        ))}
-                                </select>
+                            {comunasDisponibles.length > 0 && (
+                                <SelectorComunas
+                                    opciones={comunasDisponibles}
+                                    seleccionadas={comunasActivas}
+                                    onChange={setComunasSeleccionadas}
+                                />
                             )}
 
                             {grupos.length > 0 && (
@@ -326,6 +317,47 @@ function MovieDetailPage() {
                                 </button>
                             )}
                         </div>
+
+                        {(cadenasActivas.length > 0 || comunasActivas.length > 0) && (
+                            <div className="cines-comunas-seleccionadas" aria-label="Filtros seleccionados">
+                                {cadenasDisponibles
+                                    .filter((cadena) => cadenasActivas.includes(cadena.valor))
+                                    .map((cadena) => (
+                                        <button
+                                            key={`cadena-${cadena.valor}`}
+                                            type="button"
+                                            className="cines-comuna-chip"
+                                            onClick={() =>
+                                                setCadenasSeleccionadas((anteriores) =>
+                                                    anteriores.filter((valor) => valor !== cadena.valor),
+                                                )
+                                            }
+                                            aria-label={`Quitar filtro ${cadena.nombre}`}
+                                        >
+                                            {cadena.nombre}
+                                            <CloseIcon size={13} />
+                                        </button>
+                                    ))}
+                                {comunasDisponibles
+                                    .filter((comuna) => comunasActivas.includes(comuna.valor))
+                                    .map((comuna) => (
+                                        <button
+                                            key={`comuna-${comuna.valor}`}
+                                            type="button"
+                                            className="cines-comuna-chip"
+                                            onClick={() =>
+                                                setComunasSeleccionadas((anteriores) =>
+                                                    anteriores.filter((valor) => valor !== comuna.valor),
+                                                )
+                                            }
+                                            aria-label={`Quitar filtro ${comuna.nombre}`}
+                                        >
+                                            {comuna.nombre}
+                                            <CloseIcon size={13} />
+                                        </button>
+                                    ))}
+                            </div>
+                        )}
 
                         {formatosDisponibles.length > 1 && (
                             <div className="formatos-chips">
@@ -358,9 +390,9 @@ function MovieDetailPage() {
                             className="btn-reset-filtros"
                             onClick={() => {
                                 setBusqueda("");
-                                setComunaSeleccionada("Todas");
+                                setComunasSeleccionadas([]);
                                 setFormatoSeleccionado("Todos");
-                                setCadenaSeleccionada("");
+                                setCadenasSeleccionadas([]);
                             }}
                         >
                             Restablecer filtros

@@ -172,7 +172,7 @@
 
 .detalle-pelicula .filtros-barra-principal {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 180px 220px 126px;
+    grid-template-columns: minmax(0, 1fr) 200px 200px 152px;
     grid-template-areas: "busqueda cadena comuna cercania";
     align-items: center;
     gap: 12px;
@@ -189,11 +189,31 @@
     min-width: 0;
 }
 
-.detalle-pelicula .selector-comuna-filtro {
+.detalle-pelicula .filtros-barra-principal > .cines-cadenas-selector {
+    grid-area: cadena;
+    width: 100%;
+    min-width: 0;
+}
+
+.detalle-pelicula .selector-comuna-filtro,
+.detalle-pelicula .filtros-barra-principal > .cines-comunas-selector:not(.cines-cadenas-selector) {
     grid-area: comuna;
     width: 100%;
     min-width: 0;
     text-overflow: ellipsis;
+}
+
+.detalle-pelicula .cines-comunas-trigger {
+    height: 38px;
+    background-color: #121212;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    font-size: 0.88rem;
+}
+
+.detalle-pelicula .cines-comunas-trigger:hover {
+    border-color: #444444;
+    background-color: #1a1a1a;
 }
 
 .detalle-pelicula .filtros-barra-principal > .boton-cercania-detalle {
@@ -279,7 +299,8 @@
     cursor: default;
 }
 
-.detalle-pelicula .filtros-barra-principal :focus-visible {
+.detalle-pelicula .filtros-barra-principal button:focus-visible,
+.detalle-pelicula .filtros-barra-principal select:focus-visible {
     outline: 2px solid var(--color-acento);
     outline-offset: 3px;
 }
@@ -566,8 +587,7 @@
 
 .boton-cercania-detalle.activo {
     color: #ffffff;
-    border-color: var(--color-acento);
-    background: #251014;
+    cursor: pointer;
 }
 
 .boton-cercania-detalle.activo svg path {
@@ -575,8 +595,8 @@
 }
 
 .boton-cercania-detalle.activo svg circle {
-    fill: var(--color-superficie-clara);
-    stroke: var(--color-superficie-clara);
+    fill: #121212;
+    stroke: #121212;
 }
 
 .boton-cercania-detalle:disabled:not(.activo) {
@@ -602,7 +622,7 @@
 
 @media (max-width: 1000px) {
     .detalle-pelicula .filtros-barra-principal {
-        grid-template-columns: minmax(0, 1fr) 180px;
+        grid-template-columns: minmax(0, 1fr) 200px;
         grid-template-areas:
             "busqueda cadena"
             "comuna cercania";
@@ -655,12 +675,14 @@
             "cercania";
     }
 
-    .detalle-pelicula .filtros-barra-principal > * {
+    .detalle-pelicula .filtros-barra-principal > *,
+    .detalle-pelicula .cines-comunas-trigger {
         min-height: 44px;
     }
 
     .cartelera-search-box,
     .selector-comuna-filtro,
+    .detalle-pelicula .cines-comunas-selector,
     .detalle-pelicula .selector-cadena-filtro,
     .boton-cercania-detalle {
         width: 100%;
