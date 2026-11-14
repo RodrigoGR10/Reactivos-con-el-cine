@@ -135,10 +135,11 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
 }
-.carrusel-destacadas .metadatos-destacada { display: flex; flex-wrap: nowrap; flex-shrink: 0; align-items: center; justify-content: flex-start; gap: 10px 14px; margin: 0 0 18px; padding-left: clamp(0.385rem, 0.5425vw, 0.7rem); color: #d2d2d6; font-size: clamp(1rem, 1.1vw, 1.4rem); font-weight: 600; }
+.carrusel-destacadas .metadatos-destacada { display: flex; flex-wrap: nowrap; flex-shrink: 0; align-items: center; justify-content: flex-start; gap: 8px 10px; margin: 0 0 18px; padding-left: clamp(0.385rem, 0.5425vw, 0.7rem); color: #d2d2d6; font-size: clamp(1rem, 1.1vw, 1.4rem); font-weight: 600; }
 .carrusel-destacadas .metadatos-destacada span { color: inherit; }
-.carrusel-destacadas .metadatos-destacada span:not(:last-child) { flex-shrink: 0; }
-.carrusel-destacadas .metadatos-destacada span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.carrusel-destacadas .metadatos-destacada span:not(.destacada-genero) { flex-shrink: 0; }
+.carrusel-destacadas .metadatos-destacada .destacada-genero { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.carrusel-destacadas .metadatos-destacada .destacada-separador { color: rgba(255, 255, 255, 0.45); font-size: 1.15em; font-weight: 700; line-height: 1; user-select: none; }
 .carrusel-destacadas .metadatos-destacada .destacada-clasificacion { display: inline-flex; padding: 3px 8px; border: 1px solid #a1a1aa80; border-radius: 4px; color: #fff; font-size: clamp(0.84rem, 0.92vw, 1.15rem); font-weight: 600; line-height: 1.25; }
 .carrusel-destacadas .sinopsis-destacada {
     display: -webkit-box;
@@ -384,7 +385,7 @@
     .carrusel-destacadas .contenido-destacada h1.destacada-titulo-extenso { font-size: 24px; letter-spacing: -0.02em; }
     .carrusel-destacadas .subtitulo-destacada { max-width: none; margin: 0 0 12px; padding-left: 0; font-size: 0.85rem; letter-spacing: 0.1em; }
     .carrusel-destacadas .sinopsis-destacada { display: none; }
-    .carrusel-destacadas .metadatos-destacada { gap: 6px 10px; margin-bottom: 16px; padding-left: 0; font-size: 0.85rem; }
+    .carrusel-destacadas .metadatos-destacada { gap: 6px 8px; margin-bottom: 16px; padding-left: 0; font-size: 0.85rem; }
     .carrusel-destacadas .metadatos-destacada .destacada-clasificacion { padding: 2px 6px; font-size: 0.75rem; }
     .carrusel-destacadas .acciones-destacada { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .carrusel-destacadas .boton-horarios,

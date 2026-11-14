@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { Fragment, useId } from "react";
 import { Link } from "react-router-dom";
 import type { Pelicula } from "../../types/types.ts";
 import { useAuth } from "../../context/AuthContext.tsx";
@@ -38,6 +38,12 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
       ? formatearFechaEstreno(pelicula.fechaEstreno)
       : "Destacada de la semana";
 
+  const metadatos = [
+    pelicula.genero ? { clave: "genero", contenido: pelicula.genero, className: "destacada-genero" } : null,
+    pelicula.duracion > 0 ? { clave: "duracion", contenido: `${pelicula.duracion} min` } : null,
+    pelicula.clasificacion ? { clave: "clasificacion", contenido: pelicula.clasificacion, className: "destacada-clasificacion" } : null,
+  ].filter((item) => item !== null);
+
   const handleToggleFavorita = () => {
     if (!user) {
       openAuthModal();
@@ -66,11 +72,20 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
         </div>
         <h1 id={tituloId} title={tituloPrincipal} className={tituloPrincipal.length > 70 ? "destacada-titulo-largo destacada-titulo-extenso" : tituloPrincipal.length > 45 ? "destacada-titulo-largo" : ""}>{tituloPrincipal}</h1>
         {subtitulo && <p className="subtitulo-destacada">{subtitulo}</p>}
-        <p className="metadatos-destacada">
-          <span className="destacada-clasificacion">{pelicula.clasificacion}</span>
-          <span>{pelicula.duracion} min</span>
-          <span>{pelicula.genero}</span>
-        </p>
+        {metadatos.length > 0 && (
+          <p className="metadatos-destacada">
+            {metadatos.map((item, indice) => (
+              <Fragment key={item.clave}>
+                {indice > 0 && (
+                  <span className="destacada-separador" aria-hidden="true">
+                    •
+                  </span>
+                )}
+                <span className={item.className}>{item.contenido}</span>
+              </Fragment>
+            ))}
+          </p>
+        )}
         {sinopsis && <p className="sinopsis-destacada">{sinopsis}</p>}
         <div className="acciones-destacada">
           <Link to={`/peliculas/${pelicula.id}`} className="boton-horarios">Ver horarios</Link>
