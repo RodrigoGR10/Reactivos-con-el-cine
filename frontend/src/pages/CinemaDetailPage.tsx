@@ -82,6 +82,45 @@ function CinemaDetailPage() {
       });
   }, [id]);
 
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      typeof CSS === "undefined" ||
+      CSS.supports("animation-timeline", "scroll()") ||
+      typeof IntersectionObserver === "undefined"
+    ) {
+      return;
+    }
+
+    const observers: IntersectionObserver[] = [];
+    for (const scroller of document.querySelectorAll<HTMLElement>(
+      ".detalle-cine-page .horarios-grid-cine",
+    )) {
+      const first = scroller.firstElementChild;
+      const last = scroller.lastElementChild;
+      if (!first || !last) continue;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const { target, intersectionRatio } of entries) {
+            scroller.classList.toggle(
+              target === first ? "more-start" : "more-end",
+              intersectionRatio < 1,
+            );
+          }
+        },
+        { root: scroller, threshold: 1, rootMargin: "1px" },
+      );
+
+      observer.observe(first);
+      observer.observe(last);
+      observers.push(observer);
+    }
+
+    return () => {
+      for (const observer of observers) observer.disconnect();
+    };
+  }, [horarios, fechaSeleccionada, formatoSeleccionado, busqueda, cargando]);
 
   if (cargando) {
     return (

@@ -1,3 +1,27 @@
+@property --fade-start {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@property --fade-end {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@keyframes reveal-fade-start {
+    to {
+        --fade-start: var(--fade-size);
+    }
+}
+
+@keyframes hide-fade-end {
+    from {
+        --fade-end: var(--fade-size);
+    }
+}
+
 .detalle-cine-page {
     width: 100%;
     flex: 1;
@@ -216,6 +240,7 @@
     border-radius: 14px;
     padding: 20px;
     display: flex;
+    align-items: center;
     gap: 24px;
     box-sizing: border-box;
     transition:
@@ -308,10 +333,77 @@
 }
 
 /* Grilla de Horarios */
-.horarios-grid-cine {
+.detalle-cine-page .horarios-grid-cine {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding-bottom: 8px;
+    --scrollbar-thumb: #6b6b76;
+    --scrollbar-track: #1a1a1e;
+    --fade-size: 2.5rem;
+    --fade-dir: right;
+    --fade-start-pos: 0;
+    --fade-end-pos: 100%;
+    scroll-padding-inline: var(--fade-size);
+    mask:
+        linear-gradient(black, black) no-clip subtract,
+        linear-gradient(to var(--fade-dir), black, transparent) var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
+        linear-gradient(to var(--fade-dir), transparent, black) var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
+    animation:
+        reveal-fade-start linear both,
+        hide-fade-end linear both;
+    animation-timeline: scroll(self inline);
+    animation-range:
+        0 var(--fade-size),
+        calc(100% - var(--fade-size)) 100%;
+    transition:
+        --fade-start 0.2s,
+        --fade-end 0.2s;
+}
+
+.detalle-cine-page .horarios-grid-cine:dir(rtl) {
+    --fade-dir: left;
+    --fade-start-pos: 100%;
+    --fade-end-pos: 0;
+}
+
+.detalle-cine-page .horarios-grid-cine.more-start {
+    --fade-start: var(--fade-size);
+}
+
+.detalle-cine-page .horarios-grid-cine.more-end {
+    --fade-end: var(--fade-size);
+}
+
+@media (min-width: 769px) {
+    .detalle-cine-page .horarios-grid-cine::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .detalle-cine-page .horarios-grid-cine::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+        border-radius: 999px;
+    }
+
+    .detalle-cine-page .horarios-grid-cine::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: 999px;
+    }
+
+    .detalle-cine-page .horarios-grid-cine::-webkit-scrollbar-thumb:hover {
+        background: #8b8b96;
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        .detalle-cine-page .horarios-grid-cine {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+    }
 }
 
 .horario-pill-item {
@@ -428,7 +520,7 @@
         justify-content: center;
     }
 
-    .horarios-grid-cine {
-        justify-content: center;
+    .detalle-cine-page .horarios-grid-cine {
+        justify-content: flex-start;
     }
 }

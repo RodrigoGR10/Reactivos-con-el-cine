@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
@@ -65,6 +65,53 @@ function MovieDetailPage() {
     const [comunasSeleccionadas, setComunasSeleccionadas] = useState<string[]>([]);
     const [cadenasSeleccionadas, setCadenasSeleccionadas] = useState<string[]>([]);
 
+    useEffect(() => {
+        if (
+            typeof window === "undefined" ||
+            typeof CSS === "undefined" ||
+            CSS.supports("animation-timeline", "scroll()") ||
+            typeof IntersectionObserver === "undefined"
+        ) {
+            return;
+        }
+
+        const observers: IntersectionObserver[] = [];
+        for (const scroller of document.querySelectorAll<HTMLElement>(
+            ".detalle-pelicula .horarios-grid-cine",
+        )) {
+            const first = scroller.firstElementChild;
+            const last = scroller.lastElementChild;
+            if (!first || !last) continue;
+
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    for (const { target, intersectionRatio } of entries) {
+                        scroller.classList.toggle(
+                            target === first ? "more-start" : "more-end",
+                            intersectionRatio < 1,
+                        );
+                    }
+                },
+                { root: scroller, threshold: 1, rootMargin: "1px" },
+            );
+
+            observer.observe(first);
+            observer.observe(last);
+            observers.push(observer);
+        }
+
+        return () => {
+            for (const observer of observers) observer.disconnect();
+        };
+    }, [
+        horarios,
+        cines,
+        fechaSeleccionada,
+        formatoSeleccionado,
+        busqueda,
+        comunasSeleccionadas,
+        cadenasSeleccionadas,
+    ]);
 
     const fechasDisponibles = [
         ...new Set(horarios.map((horario) => horario.fecha)),
