@@ -8,150 +8,131 @@
 }
 
 .herramientas-cartelera {
-    display: grid;
-    grid-template-columns: minmax(240px, 1.25fr) minmax(0, 2.5fr) 48px;
-    align-items: end;
+    display: flex;
+    align-items: center;
     gap: 12px;
-}
-
-.filtros-cartelera .buscador,
-.filtros-cartelera .controles-filtros label {
-    display: grid;
-    min-width: 0;
-    gap: 8px;
-}
-
-.filtros-cartelera .buscador > label,
-.filtros-cartelera .controles-filtros label > span:first-child {
-    color: #b8b8c1;
-    font-size: 12px;
-    line-height: 1.4;
-    font-weight: 600;
-    letter-spacing: 0;
-}
-
-.campo-busqueda-peliculas,
-.campo-selector-peliculas {
-    position: relative;
-    display: block;
-    min-width: 0;
-}
-
-.filtros-cartelera .icono-busqueda {
-    left: 14px;
-    color: #93939e;
-}
-
-.filtros-cartelera .buscador input,
-.filtros-cartelera .controles-filtros select {
     width: 100%;
     min-width: 0;
-    height: 48px;
-    border: 1px solid #34343c;
-    border-radius: 6px;
-    background: #111114;
-    color: #f5f5f6;
-    line-height: 1.4;
-    font-weight: 400;
-    letter-spacing: 0;
-    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
 }
 
-.filtros-cartelera .buscador input {
-    padding: 0 44px 0 42px;
-    font-size: 16px;
+.herramientas-cartelera > .buscador {
+    flex: 1 1 280px;
+    min-width: 0;
 }
 
-.filtros-cartelera .buscador input::placeholder { color: #898994; }
-.filtros-cartelera .buscador input:placeholder-shown { padding-right: 12px; }
-.filtros-cartelera .buscador input::-webkit-search-cancel-button { appearance: none; }
-
-.filtros-cartelera .controles-filtros {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+.buscador .campo-busqueda-peliculas {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 46px;
+    padding: 0 10px 0 14px;
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    background: var(--color-superficie);
+    color: #8e8e99;
+    box-sizing: border-box;
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease,
+        box-shadow 160ms ease;
 }
 
-.filtros-cartelera .controles-filtros select {
-    appearance: none;
-    padding: 0 36px 0 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.filtros-cartelera .controles-filtros select option {
-    background: #19191e;
-    color: #f5f5f6;
-}
-
-.flecha-selector-peliculas {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    color: #93939e;
-    transform: translateY(-50%) rotate(90deg);
-    pointer-events: none;
-}
-
-.filtros-cartelera .buscador input:hover,
-.filtros-cartelera .controles-filtros select:hover { border-color: #686873; }
-.filtros-cartelera .buscador input:focus,
-.filtros-cartelera .controles-filtros select:focus {
-    border-color: var(--color-acento);
-    outline: 0;
-    box-shadow: 0 0 0 2px #cc120b24;
-}
-
-.borrar-busqueda-peliculas,
-.restablecer-filtros-peliculas {
-    display: grid;
+.buscador .icono-busqueda-peliculas {
     flex-shrink: 0;
-    place-items: center;
-    padding: 0;
-    border-radius: 6px;
-    color: #b8b8c1;
-    cursor: pointer;
+    color: inherit;
+    transition: color 160ms ease;
 }
 
-.borrar-busqueda-peliculas {
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    width: 30px;
-    height: 30px;
-    transform: translateY(-50%);
-    border: 0;
-    background: transparent;
+.buscador .campo-busqueda-peliculas:hover {
+    border-color: #494a54;
+    background: #16171d;
 }
 
-.restablecer-filtros-peliculas {
-    width: 48px;
-    height: 48px;
-    border: 1px solid #34343c;
-    background: #17171c;
-    transition: border-color 160ms ease, background-color 160ms ease;
-}
-
-.borrar-busqueda-peliculas:hover,
-.restablecer-filtros-peliculas:hover:not(:disabled) {
+.buscador .campo-busqueda-peliculas:focus-within {
     border-color: var(--color-acento);
-    background: #251014;
+    background: #16171d;
+    box-shadow: 0 0 0 2px rgba(204, 18, 11, 0.16);
+}
+
+.buscador .campo-busqueda-peliculas:focus-within .icono-busqueda-peliculas {
     color: var(--color-acento);
 }
 
-.restablecer-filtros-peliculas:disabled {
-    border-color: #26262c;
-    background: #0f0f12;
-    color: #666670;
-    cursor: default;
+.buscador .campo-busqueda-peliculas input,
+.buscador .campo-busqueda-peliculas input:hover,
+.buscador .campo-busqueda-peliculas input:focus {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-texto);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    font-weight: 400;
+    letter-spacing: 0;
+    outline: 0;
+    box-shadow: none;
+}
+
+.buscador .campo-busqueda-peliculas input::placeholder {
+    color: #878893;
+}
+
+.buscador .campo-busqueda-peliculas input::-webkit-search-cancel-button {
+    appearance: none;
+}
+
+.borrar-busqueda-peliculas {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #8a8b96;
+    cursor: pointer;
+    transition:
+        color 150ms ease,
+        background-color 150ms ease;
+}
+
+.borrar-busqueda-peliculas:hover {
+    color: #f5f5f6;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.filtros-cartelera-selectores {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+@media (min-width: 601px) {
+    .filtro-generos .cines-comunas-panel,
+    .filtro-clasificacion .cines-comunas-panel,
+    .cines-cadenas-selector .cines-comunas-panel {
+        left: 0;
+        right: auto;
+    }
 }
 
 .filtros-peliculas-aplicados {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 16px;
+    margin-top: 14px;
 }
 
 .filtro-pelicula-aplicado {
@@ -160,9 +141,9 @@
     gap: 8px;
     max-width: 100%;
     min-height: 30px;
-    padding: 5px 9px;
+    padding: 5px 10px;
     border: 1px solid #303034;
-    border-radius: 4px;
+    border-radius: 6px;
     background: #141416;
     color: #f5f5f6;
     font-size: 12px;
@@ -170,31 +151,69 @@
     letter-spacing: 0;
     text-align: left;
     cursor: pointer;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease;
 }
 
-.filtro-pelicula-aplicado span { min-width: 0; overflow-wrap: anywhere; }
-.filtro-pelicula-aplicado svg { flex-shrink: 0; color: #a1a1aa; }
-.filtro-pelicula-aplicado:hover { border-color: #58585f; background: #1a1a1e; }
-.filtro-pelicula-aplicado:hover svg { color: #ffffff; }
-.filtros-cartelera button:focus-visible { outline: 2px solid var(--color-acento); outline-offset: 3px; }
-
-@media (max-width: 1179px) {
-    .herramientas-cartelera { grid-template-columns: minmax(0, 1fr) 48px; }
-    .filtros-cartelera .controles-filtros { grid-column: 1 / -1; grid-row: 2; }
-    .restablecer-filtros-peliculas { grid-column: 2; grid-row: 1; }
+.filtro-pelicula-aplicado span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
-@media (max-width: 759px) {
-    .panel-filtros.filtros-cartelera { padding-bottom: 0; margin-bottom: 28px; }
-    .herramientas-cartelera { gap: 14px 8px; }
-    .filtros-cartelera .controles-filtros { grid-template-columns: minmax(0, 1fr); gap: 10px; }
-    .filtros-cartelera .controles-filtros label { grid-template-columns: 76px minmax(0, 1fr); align-items: center; gap: 8px; }
-    .filtros-cartelera .controles-filtros select { height: 44px; padding-left: 10px; }
+.filtro-pelicula-aplicado svg {
+    flex-shrink: 0;
+    color: #a1a1aa;
+}
+
+.filtro-pelicula-aplicado:hover {
+    border-color: #58585f;
+    background: #1a1a1e;
+}
+
+.filtro-pelicula-aplicado:hover svg {
+    color: #ffffff;
+}
+
+.herramientas-cartelera button:focus-visible,
+.filtros-peliculas-aplicados button:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 3px;
+}
+
+@media (max-width: 960px) {
+    .herramientas-cartelera {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .herramientas-cartelera > .buscador {
+        flex: none;
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .panel-filtros.filtros-cartelera {
+        padding: 0;
+        margin-bottom: 28px;
+    }
+
+    .buscador .campo-busqueda-peliculas,
+    .cines-comunas-trigger,
+    .boton-cercania-cine {
+        height: 44px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .filtros-cartelera input,
-    .filtros-cartelera select,
-    .restablecer-filtros-peliculas { transition: none; }
+    .buscador .campo-busqueda-peliculas,
+    .buscador .icono-busqueda-peliculas,
+    .cines-comunas-trigger,
+    .boton-cercania-cine,
+    .borrar-busqueda-peliculas,
+    .filtro-pelicula-aplicado {
+        transition: none;
+    }
 }

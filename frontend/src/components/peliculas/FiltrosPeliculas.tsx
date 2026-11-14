@@ -1,26 +1,25 @@
 import BuscadorPeliculas from "./BuscadorPeliculas.tsx";
-import { ChevronRightIcon, CloseIcon } from "../common/Icons";
+import {
+    ChipsFiltrosActivos,
+    SelectorMultiple,
+    SelectorUnico,
+    type ChipFiltroActivo,
+    type OpcionFiltro,
+} from "../common/SelectorMultiple";
 import "./FiltrosPeliculas.css";
-
-const DURACIONES = [
-    { valor: "corta", etiqueta: "Hasta 100 min" },
-    { valor: "media", etiqueta: "101 a 130 min" },
-    { valor: "larga", etiqueta: "Más de 130 min" },
-];
 
 interface FiltrosPeliculasProps {
     busqueda: string;
     onBusquedaChange: (nuevaBusqueda: string) => void;
-    generos: string[];
-    clasificaciones: string[];
-    generoSeleccionado: string;
-    clasificacionSeleccionada: string;
+    generos: OpcionFiltro[];
+    clasificaciones: OpcionFiltro[];
+    duraciones: OpcionFiltro[];
+    generosSeleccionados: string[];
+    clasificacionesSeleccionadas: string[];
     duracionSeleccionada: string;
-    hayFiltrosActivos: boolean;
-    onGeneroChange: (genero: string) => void;
-    onClasificacionChange: (clasificacion: string) => void;
+    onGenerosChange: (generos: string[]) => void;
+    onClasificacionesChange: (clasificaciones: string[]) => void;
     onDuracionChange: (duracion: string) => void;
-    onLimpiar: () => void;
 }
 
 function FiltrosPeliculas({
@@ -28,20 +27,50 @@ function FiltrosPeliculas({
     onBusquedaChange,
     generos,
     clasificaciones,
-    generoSeleccionado,
-    clasificacionSeleccionada,
+    duraciones,
+    generosSeleccionados,
+    clasificacionesSeleccionadas,
     duracionSeleccionada,
-    hayFiltrosActivos,
-    onGeneroChange,
-    onClasificacionChange,
+    onGenerosChange,
+    onClasificacionesChange,
     onDuracionChange,
-    onLimpiar,
 }: FiltrosPeliculasProps) {
-    const filtrosAplicados = [
-        { nombre: "género", etiqueta: generoSeleccionado, quitar: () => onGeneroChange("") },
-        { nombre: "clasificación", etiqueta: clasificacionSeleccionada, quitar: () => onClasificacionChange("") },
-        { nombre: "duración", etiqueta: DURACIONES.find(({ valor }) => valor === duracionSeleccionada)?.etiqueta, quitar: () => onDuracionChange("") },
-    ].filter((filtro) => filtro.etiqueta);
+    const duracionActiva = duraciones.find(
+        (opcion) => opcion.valor === duracionSeleccionada,
+    );
+
+    const chips: ChipFiltroActivo[] = [
+        ...generosSeleccionados.map((genero) => ({
+            id: `genero-${genero}`,
+            etiqueta: genero,
+            ariaLabel: `Quitar filtro de género: ${genero}`,
+            onQuitar: () =>
+                onGenerosChange(
+                    generosSeleccionados.filter((item) => item !== genero),
+                ),
+        })),
+        ...clasificacionesSeleccionadas.map((clasificacion) => ({
+            id: `clasificacion-${clasificacion}`,
+            etiqueta: clasificacion,
+            ariaLabel: `Quitar filtro de clasificación: ${clasificacion}`,
+            onQuitar: () =>
+                onClasificacionesChange(
+                    clasificacionesSeleccionadas.filter(
+                        (item) => item !== clasificacion,
+                    ),
+                ),
+        })),
+        ...(duracionActiva
+            ? [
+                  {
+                      id: `duracion-${duracionActiva.valor}`,
+                      etiqueta: duracionActiva.nombre,
+                      ariaLabel: `Quitar filtro de duración: ${duracionActiva.nombre}`,
+                      onQuitar: () => onDuracionChange(""),
+                  },
+              ]
+            : []),
+    ];
 
     return (
         <section
@@ -50,84 +79,52 @@ function FiltrosPeliculas({
         >
             <div className="herramientas-cartelera">
                 <BuscadorPeliculas
+                    id="busqueda-pelicula"
                     busqueda={busqueda}
                     onBusquedaChange={onBusquedaChange}
                 />
-                <div className="controles-filtros">
-                    <label>
-                        <span>Género</span>
-                        <span className="campo-selector-peliculas">
-                            <select
-                                aria-label="Género"
-                                className={generoSeleccionado ? "activo" : ""}
-                                value={generoSeleccionado}
-                                onChange={(evento) => onGeneroChange(evento.target.value)}
-                            >
-                                <option value="">Todos los géneros</option>
-                                {generos.map((genero) => (
-                                    <option key={genero} value={genero}>{genero}</option>
-                                ))}
-                            </select>
-                            <ChevronRightIcon className="flecha-selector-peliculas" size={17} />
-                        </span>
-                    </label>
+                <div className="filtros-cartelera-selectores">
+                    <SelectorMultiple
+                        className="filtro-generos"
+                        opciones={generos}
+                        seleccionadas={generosSeleccionados}
+                        onChange={onGenerosChange}
+                        titulo="Géneros"
+                        etiquetaTodas="Géneros"
+                        etiquetaPlural="géneros"
+                        etiquetaSingular="1 género"
+                        ariaLabelPrefijo="Filtrar por géneros"
+                        conBusqueda={generos.length > 8}
+                        placeholderBusqueda="Buscar género..."
+                        mensajeVacio="No se encontraron géneros."
+                        disabled={generos.length === 0}
+                    />
 
-                    <label>
-                        <span>Clasificación</span>
-                        <span className="campo-selector-peliculas">
-                            <select
-                                aria-label="Clasificación"
-                                className={clasificacionSeleccionada ? "activo" : ""}
-                                value={clasificacionSeleccionada}
-                                onChange={(evento) => onClasificacionChange(evento.target.value)}
-                            >
-                                <option value="">Todas las edades</option>
-                                {clasificaciones.map((clasificacion) => (
-                                    <option key={clasificacion} value={clasificacion}>{clasificacion}</option>
-                                ))}
-                            </select>
-                            <ChevronRightIcon className="flecha-selector-peliculas" size={17} />
-                        </span>
-                    </label>
+                    <SelectorMultiple
+                        className="filtro-clasificacion"
+                        opciones={clasificaciones}
+                        seleccionadas={clasificacionesSeleccionadas}
+                        onChange={onClasificacionesChange}
+                        titulo="Clasificación"
+                        etiquetaTodas="Clasificación"
+                        etiquetaPlural="clasificaciones"
+                        etiquetaSingular="1 clasificación"
+                        ariaLabelPrefijo="Filtrar por clasificación"
+                        disabled={clasificaciones.length === 0}
+                    />
 
-                    <label>
-                        <span>Duración</span>
-                        <span className="campo-selector-peliculas">
-                            <select
-                                aria-label="Duración"
-                                className={duracionSeleccionada ? "activo" : ""}
-                                value={duracionSeleccionada}
-                                onChange={(evento) => onDuracionChange(evento.target.value)}
-                            >
-                                <option value="">Cualquiera</option>
-                                {DURACIONES.map(({ valor, etiqueta }) => (
-                                    <option key={valor} value={valor}>{etiqueta}</option>
-                                ))}
-                            </select>
-                            <ChevronRightIcon className="flecha-selector-peliculas" size={17} />
-                        </span>
-                    </label>
+                    <SelectorUnico
+                        className="filtro-duracion"
+                        opciones={duraciones}
+                        seleccionada={duracionSeleccionada}
+                        onChange={onDuracionChange}
+                        titulo="Duración"
+                        etiquetaVacia="Duración"
+                        ariaLabelPrefijo="Filtrar por duración"
+                    />
                 </div>
-                <button
-                    type="button"
-                    className="restablecer-filtros-peliculas"
-                    aria-label="Limpiar búsqueda y filtros"
-                    title="Limpiar búsqueda y filtros"
-                    onClick={onLimpiar}
-                    disabled={!hayFiltrosActivos}
-                >
-                    <CloseIcon size={20} />
-                </button>
             </div>
-            {filtrosAplicados.length > 0 && (
-                <div className="filtros-peliculas-aplicados" aria-label="Filtros aplicados">
-                    {filtrosAplicados.map(({ nombre, etiqueta, quitar }) => (
-                        <button key={nombre} type="button" className="filtro-pelicula-aplicado" onClick={quitar} aria-label={`Quitar filtro de ${nombre}: ${etiqueta}`} title={`Quitar filtro de ${nombre}`}>
-                            <span>{etiqueta}</span><CloseIcon size={13} />
-                        </button>
-                    ))}
-                </div>
-            )}
+            <ChipsFiltrosActivos chips={chips} />
         </section>
     );
 }

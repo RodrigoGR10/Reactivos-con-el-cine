@@ -54,60 +54,35 @@
     min-width: 0;
 }
 
-.cines-filtros-bar {
-    display: grid;
-    grid-template-columns: minmax(220px, 1fr) 200px 160px 44px;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-}
-
-.cines-search-box,
 .cines-comunas-trigger,
 .boton-cercania-cine {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
-    height: 44px;
+    width: auto;
+    max-width: 240px;
+    height: 46px;
     min-width: 0;
-    padding: 0 14px;
-    background: #141416;
-    border: 1px solid #303034;
-    border-radius: 6px;
-    color: #e6e6e9;
-    font-size: 0.875rem;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    padding: 0 16px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    color: #d8d8df;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease,
+        color 160ms ease;
 }
 
-.cines-search-box > svg,
 .cines-comunas-trigger > svg,
 .boton-cercania-cine > svg {
     flex-shrink: 0;
     color: #b0b0b8;
-}
-
-.cines-search-box:focus-within {
-    border-color: var(--color-acento);
-    box-shadow: 0 0 0 2px #cc120b24;
-}
-
-.cines-search-box:focus-within > svg {
-    color: var(--color-acento);
-}
-
-.cines-search-box input {
-    flex: 1;
-    min-width: 0;
-    height: 100%;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: #fafafa;
-    font-size: 0.875rem;
-}
-
-.cines-search-box input::placeholder {
-    color: #92929b;
 }
 
 .cines-page button:focus-visible,
@@ -139,37 +114,32 @@
     cursor: default;
 }
 
-.cines-limpiar-filtros {
-    width: 44px;
-    height: 44px;
-    border: 1px solid #303034;
-    border-radius: 6px;
-}
-
-.boton-cercania-cine {
-    justify-content: center;
-    padding: 0 18px;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
 .boton-cercania-cine > svg {
     color: var(--color-acento);
 }
 
 .boton-cercania-cine:hover:not(:disabled),
-.cines-comunas-trigger:hover {
-    border-color: #58585f;
-    background-color: #1a1a1e;
+.cines-comunas-trigger:hover:not(:disabled) {
+    border-color: #494a54;
+    background-color: #181920;
+    color: #ffffff;
+}
+
+.cines-comunas-trigger[aria-expanded="true"] {
+    border-color: #5b5c69;
+    background-color: #1a1b22;
+    color: #ffffff;
+}
+
+.cines-comunas-trigger.activo,
+.boton-cercania-cine.activo {
+    border-color: rgba(204, 18, 11, 0.55);
+    background-color: #181316;
+    color: #ffffff;
 }
 
 .boton-cercania-cine:disabled:not(.activo) {
     opacity: 0.6;
-}
-
-.boton-cercania-cine.activo {
-    color: #ffffff;
-    cursor: pointer;
 }
 
 .boton-cercania-cine.activo svg path {
@@ -177,8 +147,8 @@
 }
 
 .boton-cercania-cine.activo svg circle {
-    fill: #141416;
-    stroke: #141416;
+    fill: #181316;
+    stroke: #181316;
 }
 
 .aviso-cercania {
@@ -189,16 +159,8 @@
 
 .cines-comunas-selector {
     position: relative;
+    flex: 0 0 auto;
     min-width: 0;
-}
-
-.cines-comunas-trigger {
-    position: relative;
-    width: 100%;
-    padding: 0 38px 0 14px;
-    justify-content: center;
-    text-align: center;
-    cursor: pointer;
 }
 
 .cines-comunas-trigger:disabled {
@@ -207,7 +169,7 @@
 }
 
 .cines-comunas-trigger > span:first-of-type {
-    flex: 1;
+    flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
@@ -215,8 +177,6 @@
 }
 
 .cines-comunas-chevron {
-    position: absolute;
-    right: 14px;
     width: 7px;
     height: 7px;
     flex-shrink: 0;
@@ -238,9 +198,17 @@
     max-width: calc(100vw - 36px);
     overflow: hidden;
     border: 1px solid #3b3b43;
-    border-radius: 8px;
+    border-radius: 10px;
     background: #18181c;
     box-shadow: 0 12px 32px #0008;
+}
+
+@media (min-width: 601px) {
+    .cines-comunas-panel:not(:has(.cines-comunas-busqueda)) {
+        width: max-content;
+        min-width: max(100%, 220px);
+        max-width: min(320px, calc(100vw - 36px));
+    }
 }
 
 .cines-comunas-panel-header,
@@ -291,7 +259,7 @@
     scrollbar-color: #55555f #18181c;
 }
 
-.cines-comuna-opcion {
+.cines-comunas-panel .cines-comuna-opcion {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -301,20 +269,53 @@
     cursor: pointer;
     color: #dddde2;
     font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.35;
 }
 
-.cines-comuna-opcion:hover {
+.cines-comunas-panel .cines-comuna-opcion:hover {
     background: #25252c;
 }
 
-.cines-comuna-opcion:has(input:checked) {
+.cines-comunas-panel .cines-comuna-opcion:has(input:checked),
+.cines-comunas-panel .selector-unico-opcion.activo {
     color: #fff;
 }
 
-.cines-comuna-opcion input {
+.cines-comunas-panel .selector-unico-opcion {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.cines-comunas-panel .selector-unico-radio {
+    position: relative;
     flex-shrink: 0;
     width: 16px;
     height: 16px;
+    border: 1.5px solid #6b6b76;
+    border-radius: 999px;
+    transition: border-color 0.15s ease;
+}
+
+.cines-comunas-panel .selector-unico-opcion.activo .selector-unico-radio {
+    border-color: var(--color-acento);
+}
+
+.cines-comunas-panel .selector-unico-opcion.activo .selector-unico-radio::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 999px;
+    background: var(--color-acento);
+}
+
+.cines-comunas-panel .cines-comuna-opcion input {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
     accent-color: var(--color-acento);
 }
 
@@ -325,6 +326,7 @@
 
 .cines-comuna-cantidad {
     margin-left: auto;
+    padding-left: 16px;
     color: #8e8e99;
     font-size: 0.75rem;
 }
@@ -360,42 +362,6 @@
     color: #fff;
     font-size: 0.8rem;
     font-weight: 600;
-}
-
-.cines-comunas-seleccionadas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.cines-comuna-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    max-width: 100%;
-    padding: 6px 10px;
-    border: 1px solid #303034;
-    border-radius: 4px;
-    background: #141416;
-    color: #f5f5f6;
-    font-size: 0.8rem;
-    cursor: pointer;
-    overflow-wrap: anywhere;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.cines-comuna-chip svg {
-    flex-shrink: 0;
-    color: #a1a1aa;
-}
-
-.cines-comuna-chip:hover {
-    border-color: #58585f;
-    background: #1a1a1e;
-}
-
-.cines-comuna-chip:hover svg {
-    color: #ffffff;
 }
 
 .cines-grupos {
@@ -654,15 +620,6 @@
     border-color: var(--color-acento);
 }
 
-@media (max-width: 1100px) {
-    .cines-filtros-bar {
-        grid-template-columns: minmax(0, 1fr) auto 44px;
-    }
-    .cines-search-box {
-        grid-column: 1 / -1;
-    }
-}
-
 @media (max-width: 768px) {
     .cines-page {
         padding: 24px 18px 32px;
@@ -674,17 +631,6 @@
     }
     .cines-header h1 {
         font-size: 1.65rem;
-    }
-    .cines-filtros-bar {
-        grid-template-columns: minmax(0, 1fr) 44px;
-        gap: 8px;
-    }
-    .cines-comunas-selector {
-        grid-column: 1 / -1;
-    }
-    .cines-comunas-panel {
-        width: 100%;
-        max-width: none;
     }
     .cines-grupos {
         gap: 28px;

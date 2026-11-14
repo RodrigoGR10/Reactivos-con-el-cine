@@ -15,11 +15,11 @@ function PaginaPrincipal() {
   const {
     filtros,
     cambiarFiltro,
-    limpiarFiltros,
     hayFiltrosActivos,
     peliculasFiltradas,
     generosDisponibles,
     clasificacionesDisponibles,
+    duracionesDisponibles,
   } = useFiltrosPeliculas(peliculas);
 
   const compararPrioridad = (a: Pelicula, b: Pelicula) =>
@@ -49,16 +49,15 @@ function PaginaPrincipal() {
           onBusquedaChange={(valor) => cambiarFiltro("busqueda", valor)}
           generos={generosDisponibles}
           clasificaciones={clasificacionesDisponibles}
-          generoSeleccionado={filtros.genero}
-          clasificacionSeleccionada={filtros.clasificacion}
+          duraciones={duracionesDisponibles}
+          generosSeleccionados={filtros.generos}
+          clasificacionesSeleccionadas={filtros.clasificaciones}
           duracionSeleccionada={filtros.duracion}
-          hayFiltrosActivos={hayFiltrosActivos}
-          onGeneroChange={(valor) => cambiarFiltro("genero", valor)}
-          onClasificacionChange={(valor) =>
-            cambiarFiltro("clasificacion", valor)
+          onGenerosChange={(valor) => cambiarFiltro("generos", valor)}
+          onClasificacionesChange={(valor) =>
+            cambiarFiltro("clasificaciones", valor)
           }
           onDuracionChange={(valor) => cambiarFiltro("duracion", valor)}
-          onLimpiar={limpiarFiltros}
         />
 
         {cartelera.length > 0 && (
