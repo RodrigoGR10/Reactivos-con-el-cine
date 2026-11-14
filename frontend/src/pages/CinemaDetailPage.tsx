@@ -6,7 +6,9 @@ import funcionesService from "../services/funciones";
 import peliculasService from "../services/peliculas";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
+import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { MapPinIcon } from "../components/common/Icons";
+import { BotonFavorito } from "../components/common/BotonFavorito";
 import {
   ChipsFiltrosActivos,
   SelectorUnico,
@@ -42,7 +44,13 @@ const getCinemaLogo = (cine: Cine): string => {
 function CinemaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user, openAuthModal } = useAuth();
-  const { isFavoriteCinema, toggleFavoriteCinema } = useFavorites();
+  const {
+    isFavoriteCinema,
+    toggleFavoriteCinema,
+    isFavoriteMovie,
+    toggleFavoriteMovie,
+  } = useFavorites();
+  const { peliculasFavoritasAlEntrar } = useFavoritosAlEntrar();
 
   const [cine, setCine] = useState<Cine | null>(null);
   const [horarios, setHorarios] = useState<Horario[]>([]);
@@ -196,10 +204,14 @@ function CinemaDetailPage() {
           (h) => (h.formatoResumen || "2D") === formatoActual,
         );
 
-  // Agrupa por película
+  // Agrupa por película y prioriza las películas favoritas al entrar a la vista
   const grupos = agruparHorariosPorPelicula(
     horariosFiltradosPorFormato,
     peliculas,
+  ).sort(
+    (a, b) =>
+      Number(peliculasFavoritasAlEntrar.has(b.pelicula.id)) -
+      Number(peliculasFavoritasAlEntrar.has(a.pelicula.id)),
   );
 
   // Filtra grupos por búsqueda de título
@@ -342,6 +354,12 @@ function CinemaDetailPage() {
               const horariosGrupo = horariosDelDia.filter(
                 (h) => h.peliculaId === pelicula.id,
               );
+              const esPeliculaFavorita = Boolean(
+                user && isFavoriteMovie(pelicula.id),
+              );
+              const etiquetaFavPelicula = esPeliculaFavorita
+                ? `Quitar ${pelicula.titulo} de películas favoritas`
+                : `Guardar ${pelicula.titulo} en películas favoritas`;
 
               return (
                 <article key={pelicula.id} className="pelicula-cine-card">
@@ -361,12 +379,27 @@ function CinemaDetailPage() {
                   <div className="pelicula-cine-content">
                     <div className="pelicula-cine-header-info">
                       <div className="pelicula-cine-header-text">
-                        <Link
-                          to={`/peliculas/${pelicula.id}`}
-                          className="pelicula-cine-titulo-link"
-                        >
-                          <h3>{pelicula.titulo}</h3>
-                        </Link>
+                        <h3>
+                          <Link
+                            to={`/peliculas/${pelicula.id}`}
+                            className="pelicula-cine-titulo-link"
+                          >
+                            {pelicula.titulo}
+                          </Link>
+                          <BotonFavorito
+                            className="boton-fav-inline"
+                            activo={esPeliculaFavorita}
+                            ariaLabel={etiquetaFavPelicula}
+                            title={etiquetaFavPelicula}
+                            onClick={() => {
+                              if (!user) {
+                                openAuthModal();
+                                return;
+                              }
+                              toggleFavoriteMovie(pelicula.id);
+                            }}
+                          />
+                        </h3>
                         <p className="pelicula-cine-metadatos">
                           <span>{pelicula.genero}</span>
                           <span aria-hidden="true">•</span>

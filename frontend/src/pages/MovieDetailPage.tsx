@@ -5,6 +5,7 @@ import { useFavorites } from "../context/FavoritesContext";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import { Mensaje } from "../components/common/Mensaje";
+import { BotonFavorito } from "../components/common/BotonFavorito";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { BotonDetalleFunciones } from "../components/funciones/BotonDetalleFunciones";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
@@ -420,6 +421,12 @@ function MovieDetailPage() {
                                     const horariosGrupo = horariosDelDia.filter(
                                         (h) => h.cineId === cine.id,
                                     );
+                                    const esCineFavorito = Boolean(
+                                        user && isFavoriteCinema(cine.id),
+                                    );
+                                    const etiquetaFavCine = esCineFavorito
+                                        ? `Quitar ${cine.nombre} de cines favoritos`
+                                        : `Guardar ${cine.nombre} en cines favoritos`;
 
                                     return (
                                         <article
@@ -432,28 +439,6 @@ function MovieDetailPage() {
                                                         className="logo-cine"
                                                         data-origen={cine.origen}
                                                     >
-                                                        <button
-                                                            type="button"
-                                                            className="boton-fav-cine"
-                                                            onClick={() => {
-                                                                if (!user) {
-                                                                    openAuthModal();
-                                                                    return;
-                                                                }
-                                                                toggleFavoriteCinema(
-                                                                    cine.id,
-                                                                );
-                                                            }}
-                                                            title={
-                                                                isFavoriteCinema(cine.id)
-                                                                    ? "Quitar de cines favoritos"
-                                                                    : "Guardar en cines favoritos"
-                                                            }
-                                                        >
-                                                            {isFavoriteCinema(cine.id)
-                                                                ? "♥"
-                                                                : "♡"}
-                                                        </button>
                                                         {cine.logo ? (
                                                             <img
                                                                 src={cine.logo}
@@ -472,6 +457,21 @@ function MovieDetailPage() {
                                                             >
                                                                 {cine.nombre}
                                                             </Link>
+                                                            <BotonFavorito
+                                                                className="boton-fav-inline"
+                                                                activo={esCineFavorito}
+                                                                ariaLabel={etiquetaFavCine}
+                                                                title={etiquetaFavCine}
+                                                                onClick={() => {
+                                                                    if (!user) {
+                                                                        openAuthModal();
+                                                                        return;
+                                                                    }
+                                                                    toggleFavoriteCinema(
+                                                                        cine.id,
+                                                                    );
+                                                                }}
+                                                            />
                                                             {Number.isFinite(
                                                                 distancia,
                                                             ) && (

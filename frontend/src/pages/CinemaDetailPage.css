@@ -296,6 +296,10 @@
 
 .pelicula-cine-header-info h3 {
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
     font-size: 1.35rem;
     font-weight: 700;
     color: #ffffff;
@@ -310,7 +314,7 @@
 }
 
 .pelicula-cine-titulo-link:hover {
-    color: #e50914;
+    color: var(--color-acento, #e50914);
 }
 
 .pelicula-cine-metadatos {
@@ -516,6 +520,7 @@
         text-align: center;
     }
 
+    .pelicula-cine-header-info h3,
     .pelicula-cine-metadatos {
         justify-content: center;
     }
