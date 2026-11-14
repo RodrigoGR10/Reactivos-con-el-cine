@@ -420,115 +420,6 @@
     font-size: 1.5rem;
 }
 
-.cines-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-    gap: 16px;
-    width: 100%;
-}
-
-.cine-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
-    padding: 20px;
-    border: 1px solid #29292d;
-    border-radius: 8px;
-    background: #121214;
-    cursor: pointer;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.cine-card:hover {
-    border-color: #51515b;
-    background: #17171b;
-}
-
-.cine-card-enlace {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-}
-
-.cine-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-}
-
-.cine-logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 46px;
-    height: 46px;
-    padding: 5px;
-    border-radius: 7px;
-    background: #fff;
-    color: #29292d;
-}
-
-.cine-logo-container[data-origen="cinestar"] {
-    width: 92px;
-    background: #121214;
-}
-
-.cine-card-logo {
-    display: block;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.cine-card-fav {
-    position: relative;
-    z-index: 2;
-    flex-shrink: 0;
-}
-
-.cine-card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-}
-
-.cine-card-nombre {
-    margin: 0;
-    color: #f5f5f6;
-    font-size: 1.05rem;
-    line-height: 1.4;
-    font-weight: 600;
-    letter-spacing: 0;
-    overflow-wrap: anywhere;
-}
-
-.cine-card-comuna {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    margin: 0;
-    color: #a1a1aa;
-    font-size: 0.8rem;
-    line-height: 1.4;
-}
-
-.cine-card-comuna svg {
-    flex-shrink: 0;
-}
-
-.distancia-cine {
-    margin-left: auto;
-    color: #b8c8d0;
-    font-variant-numeric: tabular-nums;
-}
-
 .cines-loading, .cines-error, .cines-empty {
     padding: 48px 16px;
     text-align: center;
@@ -589,12 +480,6 @@
     }
     .cines-cadena-header h2 {
         font-size: 1rem;
-    }
-    .cines-grid {
-        gap: 12px;
-    }
-    .cine-card {
-        padding: 18px;
     }
 }
 
