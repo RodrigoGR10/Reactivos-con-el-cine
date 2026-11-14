@@ -626,15 +626,12 @@ body {
     border: 1px solid #29292e;
     border-radius: 6px;
     background: #111113;
-    transition:
-        border-color 180ms ease,
-        transform 180ms ease;
+    transition: border-color 180ms ease;
 }
 
 .poster-pelicula:hover,
 .poster-pelicula:focus-within {
     border-color: #686871;
-    transform: translateY(-3px);
 }
 
 .enlace-poster-pelicula {
@@ -684,6 +681,8 @@ body {
     box-sizing: border-box;
     cursor: pointer;
     pointer-events: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
     transition: border-color 160ms ease;
 }
 
@@ -695,7 +694,9 @@ body {
     fill: transparent;
     stroke: #ffffff;
     stroke-width: 2;
-    transform-origin: center;
+    transform: translateZ(0) scale(1);
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
     transition:
         transform 180ms ease,
         fill 160ms ease,
@@ -705,7 +706,7 @@ body {
 .boton-fav:hover .icono-corazon-fav {
     fill: #ffffff;
     stroke: #ffffff;
-    transform: scale(1.22);
+    transform: translateZ(0) scale(1.18);
 }
 
 .boton-fav[aria-pressed="true"] .icono-corazon-fav,
@@ -715,7 +716,7 @@ body {
 }
 
 .boton-fav[aria-pressed="true"]:hover .icono-corazon-fav {
-    transform: scale(1.22);
+    transform: translateZ(0) scale(1.18);
 }
 
 .boton-fav.boton-fav-inline {
