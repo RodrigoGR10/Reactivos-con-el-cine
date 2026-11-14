@@ -104,7 +104,7 @@ function SelectorDesplegable({
                 aria-controls={panelId}
                 disabled={disabled}
                 onClick={() => {
-                    onAbrir?.();
+                    if (!abierto) onAbrir?.();
                     setAbierto((prev) => !prev);
                 }}
             >
@@ -148,6 +148,9 @@ interface SelectorMultipleProps {
     disabled?: boolean;
 }
 
+const mismasSeleccionadas = (a: string[], b: string[]) =>
+    a.length === b.length && a.every((valor) => b.includes(valor));
+
 /**
  * Selector múltiple desplegable con casillas, conteo por opción y búsqueda opcional.
  */
@@ -167,6 +170,7 @@ export function SelectorMultiple({
     disabled = false,
 }: SelectorMultipleProps) {
     const [busqueda, setBusqueda] = useState("");
+    const [borrador, setBorrador] = useState<string[]>(seleccionadas);
     const buscador = useRef<HTMLInputElement>(null);
     const estado = useSelectorDesplegable(conBusqueda ? buscador : undefined);
 
@@ -192,7 +196,10 @@ export function SelectorMultiple({
             cerrarLabel={`Cerrar selector de ${etiquetaPlural}`}
             className={className}
             disabled={disabled}
-            onAbrir={() => setBusqueda("")}
+            onAbrir={() => {
+                setBusqueda("");
+                setBorrador(seleccionadas);
+            }}
         >
             {conBusqueda && (
                 <div className="cines-comunas-busqueda">
@@ -211,12 +218,14 @@ export function SelectorMultiple({
                     <label key={opcion.valor} className="cines-comuna-opcion">
                         <input
                             type="checkbox"
-                            checked={seleccionadas.includes(opcion.valor)}
+                            checked={borrador.includes(opcion.valor)}
                             onChange={(event) =>
-                                onChange(
+                                setBorrador((prev) =>
                                     event.target.checked
-                                        ? [...seleccionadas, opcion.valor]
-                                        : seleccionadas.filter((valor) => valor !== opcion.valor),
+                                        ? prev.includes(opcion.valor)
+                                            ? prev
+                                            : [...prev, opcion.valor]
+                                        : prev.filter((valor) => valor !== opcion.valor),
                                 )
                             }
                         />
@@ -229,15 +238,26 @@ export function SelectorMultiple({
                 {!visibles.length && <p className="cines-comunas-vacio">{mensajeVacio}</p>}
             </div>
             <div className="cines-comunas-panel-footer">
+                {borrador.length > 0 && (
+                    <button
+                        type="button"
+                        className="cines-comunas-limpiar"
+                        onClick={() => {
+                            setBorrador([]);
+                            if (seleccionadas.length > 0) onChange([]);
+                        }}
+                    >
+                        Quitar selección
+                    </button>
+                )}
                 <button
                     type="button"
-                    className="cines-comunas-limpiar"
-                    disabled={!seleccionadas.length}
-                    onClick={() => onChange([])}
+                    className="cines-comunas-listo"
+                    onClick={() => {
+                        if (!mismasSeleccionadas(borrador, seleccionadas)) onChange(borrador);
+                        estado.cerrar();
+                    }}
                 >
-                    Quitar selección
-                </button>
-                <button type="button" className="cines-comunas-listo" onClick={() => estado.cerrar()}>
                     Listo
                 </button>
             </div>
@@ -309,19 +329,20 @@ export function SelectorUnico({
                     );
                 })}
             </div>
-            <div className="cines-comunas-panel-footer">
-                <button
-                    type="button"
-                    className="cines-comunas-limpiar"
-                    disabled={!seleccionada}
-                    onClick={() => {
-                        onChange("");
-                        estado.cerrar(true);
-                    }}
-                >
-                    Quitar selección
-                </button>
-            </div>
+            {Boolean(seleccionada) && (
+                <div className="cines-comunas-panel-footer">
+                    <button
+                        type="button"
+                        className="cines-comunas-limpiar"
+                        onClick={() => {
+                            onChange("");
+                            estado.cerrar(true);
+                        }}
+                    >
+                        Quitar selección
+                    </button>
+                </div>
+            )}
         </SelectorDesplegable>
     );
 }
