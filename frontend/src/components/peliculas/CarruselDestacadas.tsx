@@ -18,8 +18,6 @@ interface TransicionDestacada {
 export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
   const [transicion, setTransicion] = useState<TransicionDestacada | null>(null);
-  const [focoDentro, setFocoDentro] = useState(false);
-  const [punteroDentro, setPunteroDentro] = useState(false);
   const [tocando, setTocando] = useState(false);
   const [enPantalla, setEnPantalla] = useState(true);
   const [paginaVisible, setPaginaVisible] = useState(() => document.visibilityState === "visible");
@@ -33,16 +31,16 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
   const siguiente = peliculas[(indice + 1) % peliculas.length];
   const siguienteId = siguiente?.id;
   const enTransicion = !reducirMovimiento && transicion !== null && transicion.destino === actual?.id;
-  const avanceActivo = !reducirMovimiento && peliculas.length > 1 && !punteroDentro && !focoDentro && !tocando
-    && enPantalla && paginaVisible && !isAuthModalOpen && !enTransicion;
+  const avanceActivo = !reducirMovimiento && peliculas.length > 1 && !tocando
+    && enPantalla && paginaVisible && !isAuthModalOpen;
 
   const seleccionarPelicula = useCallback((id: string, direccion: 1 | -1) => {
-    if (!actual || id === actual.id || enTransicion) return;
+    if (!actual || id === actual.id) return;
     setTransicion(reducirMovimiento ? null : {
       anterior: actual, posicionAnterior: indice + 1, destino: id, direccion,
     });
     setSeleccionada(id);
-  }, [actual, indice, enTransicion, reducirMovimiento]);
+  }, [actual, indice, reducirMovimiento]);
 
   useEffect(() => {
     const actualizarVisibilidad = () => setPaginaVisible(document.visibilityState === "visible");
@@ -67,12 +65,6 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
     return () => window.clearTimeout(temporizador);
   }, [transicion]);
 
-  useEffect(() => {
-    if (!avanceActivo || !siguienteId) return;
-    const temporizador = window.setTimeout(() => seleccionarPelicula(siguienteId, 1), INTERVALO_ROTACION_MS);
-    return () => window.clearTimeout(temporizador);
-  }, [avanceActivo, siguienteId, seleccionarPelicula]);
-
   const mover = (paso: 1 | -1) => {
     const destino = (indice + paso + peliculas.length) % peliculas.length;
     const pelicula = peliculas[destino];
@@ -88,16 +80,9 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
       aria-label="Películas destacadas"
       aria-roledescription="carrusel"
       tabIndex={0}
-      onPointerEnter={(event) => { if (event.pointerType === "mouse") setPunteroDentro(true); }}
-      onPointerLeave={(event) => { if (event.pointerType === "mouse") setPunteroDentro(false); }}
-      onFocusCapture={(event) => setFocoDentro(event.target.matches(":focus-visible"))}
-      onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setFocoDentro(false);
-      }}
       onKeyDown={(event) => {
         if (peliculas.length > 1 && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
           event.preventDefault();
-          setFocoDentro(true);
           mover(event.key === "ArrowLeft" ? -1 : 1);
         }
       }}
@@ -143,35 +128,46 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
             <PeliculaDestacada pelicula={actual} posicion={indice + 1} />
           </div>
         </div>
-        {peliculas.length > 1 && (
-          <>
-            <div className="destacadas-borde destacadas-borde-izquierdo">
-              <button type="button" aria-label="Destacada anterior" title="Anterior" aria-controls={contenidoId} onClick={() => mover(-1)}>
-                <span><ChevronLeftIcon /></span>
-              </button>
-            </div>
-            <div className="destacadas-borde destacadas-borde-derecho">
-              <button type="button" aria-label="Siguiente destacada" title="Siguiente" aria-controls={contenidoId} onClick={() => mover(1)}>
-                <span><ChevronRightIcon /></span>
-              </button>
-            </div>
-          </>
-        )}
       </div>
       {peliculas.length > 1 && (
         <div className="destacadas-controles">
+          <button
+            type="button"
+            className="destacadas-flecha"
+            aria-label="Destacada anterior"
+            title="Anterior"
+            aria-controls={contenidoId}
+            onClick={() => mover(-1)}
+          >
+            <ChevronLeftIcon size={18} />
+          </button>
           <nav className="destacadas-selector" aria-label="Seleccionar película destacada">
             {peliculas.map((pelicula, posicion) => (
               <button key={pelicula.id} type="button" aria-label={`Ver destacada ${posicion + 1}: ${pelicula.titulo}`} aria-current={indice === posicion ? "true" : undefined} title={pelicula.titulo} onClick={() => seleccionarPelicula(pelicula.id, posicion < indice ? -1 : 1)}>
                 <span className="destacadas-pista" aria-hidden="true">
-                  <span className={indice === posicion ? "destacadas-progreso" : undefined} style={{ animationDuration: `${INTERVALO_ROTACION_MS}ms` }} />
+                  <span
+                    className={indice === posicion ? "destacadas-progreso" : undefined}
+                    style={{ animationDuration: `${INTERVALO_ROTACION_MS}ms` }}
+                    onAnimationEnd={() => {
+                      if (indice === posicion && siguienteId) {
+                        seleccionarPelicula(siguienteId, 1);
+                      }
+                    }}
+                  />
                 </span>
               </button>
             ))}
           </nav>
-          <span className="destacadas-indice" role="status" aria-live={avanceActivo ? "off" : "polite"}>
-            {String(indice + 1).padStart(2, "0")} <span>/ {String(peliculas.length).padStart(2, "0")}</span>
-          </span>
+          <button
+            type="button"
+            className="destacadas-flecha"
+            aria-label="Siguiente destacada"
+            title="Siguiente"
+            aria-controls={contenidoId}
+            onClick={() => mover(1)}
+          >
+            <ChevronRightIcon size={18} />
+          </button>
         </div>
       )}
     </section>
