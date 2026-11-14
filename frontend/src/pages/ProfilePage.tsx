@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import type { Pelicula, Cine } from "../types/types";
@@ -9,20 +9,11 @@ import {
   MapPinIcon,
   CalendarIcon,
 } from "../components/common/Icons";
+import { TarjetaCine } from "../components/cines/TarjetaCine";
 import peliculasService from "../services/peliculas";
 import cinesService from "../services/cines";
+import { normalizarTexto } from "../utils/normalizarTexto";
 import "./ProfilePage.css";
-
-/** Resuelve logo de cine: usa el provisto o infiere por nombre conocido */
-const getCinemaLogo = (cine: Cine): string => {
-  if (cine.logo) return cine.logo;
-  const nameLower = cine.nombre.toLowerCase();
-  if (nameLower.includes("cinemark")) return "/cinemark.png";
-  if (nameLower.includes("cinepolis") || nameLower.includes("cinépolis"))
-    return "/cinepolis.png";
-  if (nameLower.includes("cineplanet")) return "/cineplanet.png";
-  return "";
-};
 
 /** Formatea la fecha de registro dinámicamente en español */
 const formatearFechaRegistro = (fechaStr?: string): string => {
@@ -53,20 +44,26 @@ const ProfilePage = () => {
   const [cines, setCines] = useState<Cine[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const searchInputId = useId();
 
   // Consulta la API mediante servicios en paralelo con Promise.all
   useEffect(() => {
+    let activo = true;
     Promise.all([peliculasService.getAll(), cinesService.getAll()])
       .then(([peliculasData, cinesData]) => {
+        if (!activo) return;
         setPeliculas(peliculasData);
         setCines(cinesData);
       })
       .catch(() => {
-        setError("No se pudieron cargar los datos del catálogo.");
+        if (activo) setError("No se pudieron cargar los datos del catálogo.");
       })
       .finally(() => {
-        setCargando(false);
+        if (activo) setCargando(false);
       });
+    return () => {
+      activo = false;
+    };
   }, []);
 
   const peliculasFavoritas = peliculas.filter((p) =>
@@ -74,23 +71,31 @@ const ProfilePage = () => {
   );
   const cinesFavoritos = cines.filter((c) => favoriteCinemaIds.includes(c.id));
 
+  const hayGuardadosEnTab =
+    tabActiva === "peliculas"
+      ? peliculasFavoritas.length > 0
+      : cinesFavoritos.length > 0;
+  const editando = modoEdicion && hayGuardadosEnTab;
+
   // Buscador solo aparece si hay >14 items (evita UI innecesaria en listas cortas)
   const mostrarBuscador =
     tabActiva === "peliculas"
       ? peliculasFavoritas.length > 14
       : cinesFavoritos.length > 14;
 
-  const query = mostrarBuscador ? busqueda.trim().toLowerCase() : "";
+  const query = mostrarBuscador ? normalizarTexto(busqueda.trim()) : "";
 
   const peliculasGuardadasFiltradas = query
-    ? peliculasFavoritas.filter((p) => p.titulo.toLowerCase().includes(query))
+    ? peliculasFavoritas.filter((p) =>
+        normalizarTexto(p.titulo).includes(query),
+      )
     : peliculasFavoritas;
 
   const cinesGuardadosFiltrados = query
     ? cinesFavoritos.filter(
         (c) =>
-          c.nombre.toLowerCase().includes(query) ||
-          c.comuna.toLowerCase().includes(query),
+          normalizarTexto(c.nombre).includes(query) ||
+          normalizarTexto(c.comuna).includes(query),
       )
     : cinesFavoritos;
 
@@ -133,32 +138,39 @@ const ProfilePage = () => {
             <button
               type="button"
               className={`tab-link ${tabActiva === "peliculas" ? "active" : ""}`}
+              aria-pressed={tabActiva === "peliculas"}
               onClick={() => {
                 setTabActiva("peliculas");
                 setBusqueda("");
+                setModoEdicion(false);
               }}
             >
-              películas guardadas (
-              {cargando ? "..." : peliculasFavoritas.length})
+              películas guardadas
             </button>
             <button
               type="button"
               className={`tab-link ${tabActiva === "cines" ? "active" : ""}`}
+              aria-pressed={tabActiva === "cines"}
               onClick={() => {
                 setTabActiva("cines");
                 setBusqueda("");
+                setModoEdicion(false);
               }}
             >
-              cines habituales ({cargando ? "..." : cinesFavoritos.length})
+              cines habituales
             </button>
           </div>
 
           <div className="actions-group">
             {mostrarBuscador && (
               <div className="search-box-minimal">
+                <label htmlFor={searchInputId} className="visualmente-oculto">
+                  {tabActiva === "cines" ? "Buscar cines" : "Buscar guardados"}
+                </label>
                 <SearchIcon size={16} />
                 <input
-                  type="text"
+                  id={searchInputId}
+                  type="search"
                   placeholder={
                     tabActiva === "cines" ? "buscar cines" : "buscar guardados"
                   }
@@ -167,31 +179,28 @@ const ProfilePage = () => {
                 />
               </div>
             )}
-            {user &&
-              (tabActiva === "peliculas"
-                ? peliculasFavoritas.length > 0
-                : cinesFavoritos.length > 0) && (
-                <button
-                  type="button"
-                  className={`btn-edit-minimal ${modoEdicion ? "active" : ""}`}
-                  onClick={() => setModoEdicion((prev) => !prev)}
-                  title={modoEdicion ? "Finalizar edición" : "Editar guardados"}
-                >
-                  {modoEdicion ? "listo" : "editar"}
-                </button>
-              )}
+            {user && hayGuardadosEnTab && (
+              <button
+                type="button"
+                className={`btn-edit-minimal ${editando ? "active" : ""}`}
+                onClick={() => setModoEdicion((prev) => !prev)}
+                title={editando ? "Finalizar edición" : "Editar guardados"}
+              >
+                {editando ? "listo" : "editar"}
+              </button>
+            )}
           </div>
         </section>
 
         {cargando ? (
           <div className="content-area">
-            <div className="empty-state-ultra">
+            <div className="empty-state-ultra" role="status">
               <p>Cargando favoritos...</p>
             </div>
           </div>
         ) : error ? (
           <div className="content-area">
-            <div className="empty-state-ultra">
+            <div className="empty-state-ultra" role="alert">
               <p>{error}</p>
             </div>
           </div>
@@ -206,7 +215,7 @@ const ProfilePage = () => {
                     </div>
                     {user ? (
                       <>
-                        <h3>tu lista de películas está vacía</h3>
+                        <h2>tu lista de películas está vacía</h2>
                         <p>
                           guarda películas desde la cartelera para tenerlas a
                           mano al ir al cine.
@@ -224,7 +233,7 @@ const ProfilePage = () => {
                     <div className="empty-icon-wrap">
                       <SearchIcon size={34} className="empty-state-svg" />
                     </div>
-                    <h3>sin resultados para "{busqueda}"</h3>
+                    <h2>sin resultados para "{busqueda}"</h2>
                     <p>
                       no tienes ninguna película guardada que coincida con tu
                       búsqueda.
@@ -232,44 +241,54 @@ const ProfilePage = () => {
                   </div>
                 ) : (
                   <div className="posters-grid">
-                    {peliculasGuardadasFiltradas.map((peli) => (
-                      <article
-                        key={peli.id}
-                        className={`poster-card ${modoEdicion ? "editing" : ""}`}
-                        title={peli.titulo}
-                      >
-                        {modoEdicion ? (
-                          <img
-                            src={peli.poster}
-                            alt={peli.titulo}
-                            className="poster-img"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <Link to={`/peliculas/${peli.id}`}>
-                            <img
-                              src={peli.poster}
-                              alt={peli.titulo}
-                              className="poster-img"
-                              loading="lazy"
-                            />
-                          </Link>
-                        )}
+                    {peliculasGuardadasFiltradas.map((peli) => {
+                      const contenidoPoster = peli.poster ? (
+                        <img
+                          src={peli.poster}
+                          alt={peli.titulo}
+                          className="poster-img"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="poster-placeholder" aria-hidden="true">
+                          <span className="icono-pelicula">🎬</span>
+                          <small>{peli.titulo}</small>
+                        </div>
+                      );
 
-                        {modoEdicion && (
-                          <div className="poster-edit-overlay">
-                            <button
-                              type="button"
-                              className="btn-poster-remove"
-                              onClick={() => toggleFavoriteMovie(peli.id)}
-                              title={`Eliminar ${peli.titulo} de mis películas`}
+                      return (
+                        <article
+                          key={peli.id}
+                          className={`poster-card ${editando ? "editing" : ""}`}
+                          title={peli.titulo}
+                        >
+                          {editando ? (
+                            contenidoPoster
+                          ) : (
+                            <Link
+                              to={`/peliculas/${peli.id}`}
+                              aria-label={peli.titulo}
                             >
-                              ✕
-                            </button>
-                          </div>
-                        )}
-                      </article>
-                    ))}
+                              {contenidoPoster}
+                            </Link>
+                          )}
+
+                          {editando && (
+                            <div className="poster-edit-overlay">
+                              <button
+                                type="button"
+                                className="btn-poster-remove"
+                                onClick={() => toggleFavoriteMovie(peli.id)}
+                                aria-label={`Eliminar ${peli.titulo} de mis películas`}
+                                title={`Eliminar ${peli.titulo} de mis películas`}
+                              >
+                                <span aria-hidden="true">✕</span>
+                              </button>
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -284,7 +303,7 @@ const ProfilePage = () => {
                     </div>
                     {user ? (
                       <>
-                        <h3>no tienes cines guardados</h3>
+                        <h2>no tienes cines guardados</h2>
                         <p>
                           guarda tus complejos frecuentes para consultar
                           horarios de forma directa.
@@ -301,65 +320,37 @@ const ProfilePage = () => {
                     <div className="empty-icon-wrap">
                       <SearchIcon size={34} className="empty-state-svg" />
                     </div>
-                    <h3>sin resultados para "{busqueda}"</h3>
+                    <h2>sin resultados para "{busqueda}"</h2>
                     <p>
                       no tienes ningún cine habitual que coincida con tu
                       búsqueda.
                     </p>
                   </div>
                 ) : (
-                  <div className="cinemas-grid-ultra">
+                  <div className="cines-grid">
                     {cinesGuardadosFiltrados.map((cine) => (
-                      <div key={cine.id} className="cinema-card-ultra">
-                        <div className="cinema-card-left">
-                          <div className="cinema-logo-box">
-                            {getCinemaLogo(cine) ? (
-                              <img
-                                src={getCinemaLogo(cine)}
-                                alt={cine.nombre}
-                                className="cinema-logo-img"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <MapPinIcon
-                                size={20}
-                                className="inline-pin-svg"
-                              />
-                            )}
-                          </div>
-                          <div className="cinema-meta">
-                            <Link
-                              to={`/cines/${cine.id}`}
-                              className="profile-cinema-link"
-                            >
-                              <h4>{cine.nombre}</h4>
-                            </Link>
-                            <p className="cinema-location">
-                              <MapPinIcon
-                                size={13}
-                                className="inline-pin-svg"
-                              />
-                              <span>{cine.comuna}</span>
-                            </p>
-                          </div>
-                        </div>
-                        <div className="cinema-card-right">
-                          {modoEdicion ? (
+                      <TarjetaCine
+                        key={cine.id}
+                        cine={cine}
+                        nivelTitulo="h2"
+                        navegable={!editando}
+                        accion={
+                          editando ? (
                             <button
                               type="button"
                               className="btn-cinema-toggle remove"
                               onClick={() => toggleFavoriteCinema(cine.id)}
-                              title="eliminar de cines habituales"
+                              title={`Eliminar ${cine.nombre} de cines habituales`}
                             >
-                              eliminar ✕
+                              eliminar{" "}
+                              <span className="visualmente-oculto">
+                                {cine.nombre}
+                              </span>
+                              <span aria-hidden="true">✕</span>
                             </button>
-                          ) : (
-                            <span className="cinema-badge-habitual">
-                              habitual ✓
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                          ) : undefined
+                        }
+                      />
                     ))}
                   </div>
                 )}
