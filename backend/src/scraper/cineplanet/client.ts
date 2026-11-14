@@ -7,8 +7,16 @@ let initialization: Promise<void> | undefined;
 
 function publicConfig(source: string) {
   const reference = (field: string) => source.match(new RegExp(`['"]${field}['"]\\s*:\\s*[\\w$]+\\((0x[\\da-f]+|\\d+)\\)`, "i"))?.[1];
-  const anchor = reference("microservices");
-  if (!anchor) throw new Error("Cineplanet cambio su configuracion publica.");
+  const literal = (field: string) => source.match(new RegExp(`['"]${field}['"]\\s*:\\s*['"]([^'"]+)['"]`, "i"))?.[1];
+  const anchors = [
+    ["microservices", API],
+    ["cms", "https://cdn.cineplanet.cl"],
+    ["web", SITE],
+    ["country", "CL"],
+  ] as const;
+  if (!anchors.some(([field]) => reference(field) || literal(field))) {
+    throw new Error("Cineplanet cambio su configuracion publica.");
+  }
   for (const match of source.matchAll(/\b(?:var|const|let)\s+[\w$]+\s*=\s*\[/g)) {
     const start = source.indexOf("[", match.index);
     const end = source.indexOf("]", start);
@@ -18,9 +26,21 @@ function publicConfig(source: string) {
     const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=";
     const standard = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
     const values = encoded.map((value) => Buffer.from([...value].map((char) => standard[alphabet.indexOf(char)]).join(""), "base64").toString("utf8"));
-    const position = values.indexOf(API);
-    if (position < 0) continue;
+    let anchor: string | undefined;
+    let position = -1;
+    for (const [field, expected] of anchors) {
+      const ref = reference(field);
+      const pos = values.indexOf(expected);
+      if (ref && pos >= 0) {
+        anchor = ref;
+        position = pos;
+        break;
+      }
+    }
+    if (!anchor || position < 0) continue;
     const read = (field: string) => {
+      const direct = literal(field);
+      if (direct) return direct;
       const index = reference(field);
       if (!index) throw new Error(`Falta ${field} en la configuracion publica de Cineplanet.`);
       return values[((Number(index) - Number(anchor) + position) % values.length + values.length) % values.length];
