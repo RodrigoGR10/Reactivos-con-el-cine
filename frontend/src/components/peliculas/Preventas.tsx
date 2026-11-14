@@ -5,7 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "../common/Icons";
 import TarjetaPelicula from "./TarjetaPelicula";
 import "./Preventas.css";
 
-const esMovil = () => window.matchMedia("(max-width: 759px)").matches;
+const esMovil = () => window.matchMedia("(max-width: 560px)").matches;
 
 function Preventas({ peliculas }: { peliculas: Pelicula[] }) {
   const [pagina, setPagina] = useState(0);
@@ -33,7 +33,7 @@ function Preventas({ peliculas }: { peliculas: Pelicula[] }) {
         mover(event.key === "ArrowLeft" ? -1 : 1);
       }
     }}>
-      <div className="titulo-cartelera encabezado-preventas">
+      <div className="titulo-cartelera">
         <div>
           <p className="subtitulo-seccion">Próximos estrenos</p>
           <h2 id="titulo-preventas">Preventa</h2>

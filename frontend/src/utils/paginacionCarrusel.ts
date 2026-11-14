@@ -1,8 +1,8 @@
 export function tarjetasPreventaVisibles(anchoDisponible: number, esMovil: boolean) {
-  if (esMovil) return 2;
-  const anchoMaximo = 180;
-  const separacion = 18;
-  return Math.max(2, Math.ceil((anchoDisponible + separacion) / (anchoMaximo + separacion)));
+  const vw = typeof window !== "undefined" ? window.innerWidth : anchoDisponible;
+  const anchoMinimo = esMovil ? 150 : Math.min(360, Math.max(230, vw * 0.16));
+  const separacion = esMovil ? 16 : Math.min(36, Math.max(24, vw * 0.017));
+  return Math.max(1, Math.floor((anchoDisponible + separacion) / (anchoMinimo + separacion)));
 }
 
 export function paginacionCarrusel(total: number, visibles: number, solicitada: number) {

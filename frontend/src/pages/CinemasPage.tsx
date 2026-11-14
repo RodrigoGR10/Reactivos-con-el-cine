@@ -4,7 +4,9 @@ import type { Cine } from "../types/types";
 import cinesService from "../services/cines";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
+import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { FilmIcon, MapPinIcon } from "../components/common/Icons";
+import { BotonFavorito } from "../components/common/BotonFavorito";
 import { BotonCercania, ChipsFiltrosActivos } from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
@@ -15,7 +17,8 @@ import "./CinemasPage.css";
 
 function CinemasPage() {
     const { user, openAuthModal } = useAuth();
-    const { favoriteCinemaIds, toggleFavoriteCinema } = useFavorites();
+    const { isFavoriteCinema, toggleFavoriteCinema } = useFavorites();
+    const { cinesFavoritosAlEntrar } = useFavoritosAlEntrar();
     const { ubicacion, estado, solicitar } = useUbicacion();
     const [cercaniaActiva, setCercaniaActiva] = useState(true);
     const [cines, setCines] = useState<Cine[]>([]);
@@ -36,9 +39,9 @@ function CinemasPage() {
     const comunas = obtenerComunas(cines);
     const cinesFiltrados = filtrarCines(cines, busqueda, comunasSeleccionadas);
     const ordenarPorCercania = cercaniaActiva && estado === "listo" && ubicacion !== null;
-    const favoritosUsuario = user ? favoriteCinemaIds : [];
-    const grupos = agruparCines(cinesFiltrados, favoritosUsuario, ordenarPorCercania ? ubicacion : null);
-    const cinesPorCercania = ordenarPorCercania ? ordenarCinesPorCercania(cinesFiltrados, favoritosUsuario, ubicacion) : [];
+    const favoritosOrden = user ? [...cinesFavoritosAlEntrar] : [];
+    const grupos = agruparCines(cinesFiltrados, favoritosOrden, ordenarPorCercania ? ubicacion : null);
+    const cinesPorCercania = ordenarPorCercania ? ordenarCinesPorCercania(cinesFiltrados, favoritosOrden, ubicacion) : [];
     const limpiarFiltros = () => {
         setBusqueda("");
         setComunasSeleccionadas([]);
@@ -57,25 +60,35 @@ function CinemasPage() {
 
     const renderTarjetaCine = (cine: CineOrdenado) => {
         const logo = cine.logo || obtenerCadena(cine).logo;
-        const etiquetaFavorito = cine.favorito ? `Quitar ${cine.nombre} de habituales` : `Guardar ${cine.nombre} como habitual`;
+        const esFavorito = Boolean(user && isFavoriteCinema(cine.id));
+        const etiquetaFavorito = esFavorito ? `Quitar ${cine.nombre} de habituales` : `Guardar ${cine.nombre} como habitual`;
         return (
-            <article key={cine.id} className={`cine-card ${cine.favorito ? "cine-card-favorito" : ""}`}>
+            <article key={cine.id} className="cine-card">
+                <Link
+                    to={`/cines/${cine.id}`}
+                    className="cine-card-enlace"
+                    aria-label={`Ver cartelera y funciones de ${cine.nombre}`}
+                />
                 <div className="cine-card-header">
                     <div className="cine-logo-container" data-origen={cine.origen}>
                         {logo ? <img src={logo} alt={`Logo de ${cine.nombre}`} className="cine-card-logo" /> : <FilmIcon size={24} />}
                     </div>
-                    <button type="button" className={`cine-btn-fav ${cine.favorito ? "active" : ""}`} title={etiquetaFavorito} aria-label={etiquetaFavorito} aria-pressed={cine.favorito} onClick={() => { if (!user) openAuthModal(); else toggleFavoriteCinema(cine.id); }}>
-                        <span aria-hidden="true">{cine.favorito ? "♥" : "♡"}</span>
-                    </button>
+                    <BotonFavorito
+                        className="cine-card-fav"
+                        activo={esFavorito}
+                        ariaLabel={etiquetaFavorito}
+                        title={etiquetaFavorito}
+                        onClick={() => {
+                            if (!user) openAuthModal();
+                            else toggleFavoriteCinema(cine.id);
+                        }}
+                    />
                 </div>
                 <div className="cine-card-body">
                     <h3 className="cine-card-nombre">{cine.nombre}</h3>
                     <p className="cine-card-comuna"><MapPinIcon size={14} /><span>{cine.comuna}</span>
                         {Number.isFinite(cine.distancia) && <span className="distancia-cine">{formatearDistancia(cine.distancia)}</span>}
                     </p>
-                </div>
-                <div className="cine-card-footer">
-                    <Link to={`/cines/${cine.id}`} className="cine-btn-ver-cartelera">Ver cartelera y funciones<span aria-hidden="true">→</span></Link>
                 </div>
             </article>
         );

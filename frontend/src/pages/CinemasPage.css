@@ -431,15 +431,16 @@
 }
 
 .cine-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 16px;
     min-width: 0;
-    min-height: 222px;
     padding: 20px;
     border: 1px solid #29292d;
     border-radius: 8px;
     background: #121214;
+    cursor: pointer;
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -448,8 +449,11 @@
     background: #17171b;
 }
 
-.cine-card-favorito {
-    border-color: var(--color-acento);
+.cine-card-enlace {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
 }
 
 .cine-card-header {
@@ -484,24 +488,10 @@
     object-fit: contain;
 }
 
-.cine-btn-fav {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.cine-card-fav {
+    position: relative;
+    z-index: 2;
     flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    border: 1px solid #33333b;
-    border-radius: 50%;
-    background: transparent;
-    color: #aaaab4;
-    font-size: 1.3rem;
-}
-
-.cine-btn-fav:hover, .cine-btn-fav.active {
-    border-color: var(--color-acento);
-    color: var(--color-acento);
-    background: #cc120b14;
 }
 
 .cine-card-body {
@@ -540,44 +530,6 @@
     margin-left: auto;
     color: #b8c8d0;
     font-variant-numeric: tabular-nums;
-}
-
-.cine-card-footer {
-    margin-top: auto;
-    padding-top: 4px;
-}
-
-.cine-btn-ver-cartelera {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    min-height: 38px;
-    padding: 8px 12px;
-    border: 1px solid #303036;
-    border-radius: 5px;
-    background: #1b1b20;
-    color: #dcdce2;
-    text-decoration: none;
-    font-size: 0.8rem;
-    font-weight: 500;
-    line-height: 1.4;
-}
-
-.cine-btn-ver-cartelera > span {
-    color: #a1a1aa;
-    flex-shrink: 0;
-    font-size: 1rem;
-}
-
-.cine-btn-ver-cartelera:hover {
-    background: var(--color-acento);
-    border-color: var(--color-acento);
-    color: #fff;
-}
-
-.cine-btn-ver-cartelera:hover > span {
-    color: #fff;
 }
 
 .cines-loading, .cines-error, .cines-empty {
@@ -646,7 +598,6 @@
     }
     .cine-card {
         padding: 18px;
-        min-height: 210px;
     }
 }
 

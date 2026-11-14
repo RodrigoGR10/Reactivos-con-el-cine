@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import type { Pelicula } from "../../types/types.ts";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useAuth } from "../../context/AuthContext.tsx";
-import { ChevronRightIcon } from "../common/Icons.tsx";
+import { BotonFavorito } from "../common/BotonFavorito.tsx";
+
 interface TarjetaPeliculaProps {
   pelicula: Pelicula;
 }
@@ -10,39 +11,42 @@ interface TarjetaPeliculaProps {
 function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
   const { user, openAuthModal } = useAuth();
   const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
+  const esFavorita = isFavoriteMovie(pelicula.id);
 
   const handleToggleFavorito = () => {
     if (!user) {
       openAuthModal();
       return;
     }
-    toggleFavoriteMovie(pelicula.id);
+    void toggleFavoriteMovie(pelicula.id);
   };
+
   return (
     <article className="tarjeta-pelicula">
       <div className="poster-pelicula">
-        {pelicula.poster ? (
-          <img src={pelicula.poster} alt={`Póster de ${pelicula.titulo}`} loading="lazy" decoding="async" />
-        ) : (
-          <div className="poster-placeholder" aria-hidden="true">
-            <span className="icono-pelicula">🎬</span>
-            <small>{pelicula.titulo}</small>
-          </div>
-        )}
+        <Link
+          to={`/peliculas/${pelicula.id}`}
+          className="enlace-poster-pelicula"
+          tabIndex={-1}
+          aria-hidden="true"
+        >
+          {pelicula.poster ? (
+            <img src={pelicula.poster} alt={`Póster de ${pelicula.titulo}`} loading="lazy" decoding="async" />
+          ) : (
+            <div className="poster-placeholder" aria-hidden="true">
+              <span className="icono-pelicula">🎬</span>
+              <small>{pelicula.titulo}</small>
+            </div>
+          )}
+        </Link>
+        <span className="clasificacion">{pelicula.clasificacion}</span>
         <div className="overlay-fav">
-          <button
-            type="button"
-            className="boton-fav"
-            aria-pressed={isFavoriteMovie(pelicula.id)}
+          <BotonFavorito
+            activo={esFavorita}
             onClick={handleToggleFavorito}
-            aria-label={
-              isFavoriteMovie(pelicula.id)
-                ? "Quitar de favoritos"
-                : "Añadir a favoritos"
-            }
-          >
-            {isFavoriteMovie(pelicula.id) ? "♥" : "♡"}
-          </button>
+            title={esFavorita ? "Quitar de favoritos" : "Añadir a favoritos"}
+            ariaLabel={esFavorita ? "Quitar de favoritos" : "Añadir a favoritos"}
+          />
         </div>
       </div>
       <div className="contenido-tarjeta">
@@ -53,18 +57,18 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
               : "Preventa"}
           </p>
         )}
-        <h3>{pelicula.titulo}</h3>
+        <h3>
+          <Link
+            to={`/peliculas/${pelicula.id}`}
+            className="enlace-tarjeta-pelicula"
+          >
+            {pelicula.titulo}
+          </Link>
+        </h3>
         <p className="datos-pelicula">
           {pelicula.genero} <span aria-hidden="true">•</span>{" "}
           {pelicula.duracion} min
         </p>
-        <div className="pie-tarjeta">
-          <span className="clasificacion">{pelicula.clasificacion}</span>
-          <Link to={`/peliculas/${pelicula.id}`} className="boton-tarjeta" aria-label={`Ver horarios de ${pelicula.titulo}`}>
-            Ver horarios
-            {pelicula.estadoEstreno === "preventa" && <ChevronRightIcon size={16} />}
-          </Link>
-        </div>
       </div>
     </article>
   );

@@ -608,31 +608,51 @@ body {
 }
 
 .tarjeta-pelicula {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+}
+
+.poster-pelicula {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
     overflow: hidden;
-    background: var(--color-superficie);
-    border: 1px solid var(--color-borde);
-    border-radius: 12px;
+    border: 1px solid #29292e;
+    border-radius: 6px;
+    background: #111113;
     transition:
         border-color 180ms ease,
         transform 180ms ease;
 }
 
-.tarjeta-pelicula:hover {
-    border-color: #494a54;
-    transform: translateY(-4px);
-}
-.poster-pelicula {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 2 / 2.65;
+.poster-pelicula:hover,
+.poster-pelicula:focus-within {
+    border-color: #686871;
+    transform: translateY(-3px);
 }
 
+.enlace-poster-pelicula {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.enlace-poster-pelicula > img,
 .poster-pelicula > img,
 .poster-placeholder {
     width: 100%;
     height: 100%;
 }
 
+.enlace-poster-pelicula > img,
 .poster-pelicula > img {
     display: block;
     object-fit: cover;
@@ -640,49 +660,56 @@ body {
 
 .overlay-fav {
     position: absolute;
-    inset: 0;
-    z-index: 2;
-    display: grid;
-    place-items: center;
-
-    background: rgba(0, 0, 0, 0.55);
-    opacity: 0;
-    visibility: hidden;
-    transition:
-        opacity 200ms ease,
-        visibility 200ms ease;
-}
-
-.poster-pelicula:hover .overlay-fav {
+    inset: 9px 9px auto auto;
+    z-index: 3;
+    display: block;
+    background: transparent;
     opacity: 1;
     visibility: visible;
+    pointer-events: none;
 }
 
 .boton-fav {
     display: grid;
     place-items: center;
-    width: 48px;
-    height: 48px;
-    border: none;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid #ffffff40;
     border-radius: 50%;
-    background: rgba(255, 0, 0, 0.3);
-    backdrop-filter: blur(2px);
-    font-size: 1.8rem;
-    color: white;
+    background: #111113de;
+    color: #ffffff;
     cursor: pointer;
+    pointer-events: auto;
+    transition: border-color 160ms ease;
+}
 
-    transform: scale(0.85);
+.icono-corazon-fav {
+    width: 17px;
+    height: 17px;
+    fill: transparent;
+    stroke: #ffffff;
+    stroke-width: 2;
     transition:
-        transform 200ms ease,
-        background 150ms ease;
+        transform 180ms ease,
+        fill 160ms ease,
+        stroke 160ms ease;
 }
 
-.boton-fav:hover {
-    background: rgba(255, 255, 255, 0.28);
+.boton-fav:hover .icono-corazon-fav {
+    fill: #ffffff;
+    stroke: #ffffff;
+    transform: scale(1.22);
 }
 
-.poster-pelicula:hover .boton-fav {
-    transform: scale(1);
+.boton-fav[aria-pressed="true"] .icono-corazon-fav,
+.boton-fav[aria-pressed="true"]:hover .icono-corazon-fav {
+    fill: var(--color-acento);
+    stroke: var(--color-acento);
+}
+
+.boton-fav[aria-pressed="true"]:hover .icono-corazon-fav {
+    transform: scale(1.22);
 }
 
 .poster-placeholder {
@@ -727,49 +754,82 @@ body {
 }
 
 .contenido-tarjeta {
-    padding: clamp(18px, 1.25vw, 26px);
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 12px 0 0;
+}
+
+.etiqueta-preventa {
+    margin: 0 0 6px;
+    color: var(--color-acento);
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.etiqueta-preventa time {
+    color: inherit;
 }
 
 .contenido-tarjeta h3 {
-    min-height: 2.6em;
-    margin: 0 0 8px;
-    color: var(--color-texto);
-    font-size: clamp(1.08rem, 1.2vw, 1.5rem);
-    line-height: 1.3;
+    display: -webkit-box;
+    width: fit-content;
+    margin: 0 0 6px;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    color: #f5f5f6;
+    font-size: 16px;
+    font-weight: 650;
+    line-height: 1.35;
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+}
+
+.enlace-tarjeta-pelicula {
+    color: inherit;
+    text-decoration: none;
+    transition: color 160ms ease;
+}
+
+.enlace-tarjeta-pelicula:hover {
+    color: var(--color-acento);
+}
+
+.enlace-tarjeta-pelicula:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 
 .datos-pelicula {
-    min-height: 2.6em;
-    margin: 0 0 clamp(18px, 1.25vw, 26px);
-    color: var(--color-texto-secundario);
-    font-size: clamp(0.86rem, 0.95vw, 1.2rem);
-    line-height: 1.45;
+    margin: 0;
+    color: #a8a9b1;
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
 }
 
 .datos-pelicula span {
     color: var(--color-acento);
 }
 
-.pie-tarjeta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
 .clasificacion {
-    padding: clamp(5px, 0.35vw, 8px) clamp(8px, 0.55vw, 12px);
-    color: #d8d8dc;
-    font-size: clamp(0.76rem, 0.85vw, 1.05rem);
-    font-weight: 800;
-    background: #25262d;
-    border: 1px solid #35363f;
-    border-radius: 6px;
-}
-
-.boton-tarjeta {
-    padding: clamp(8px, 0.55vw, 12px) clamp(11px, 0.8vw, 16px);
-    font-size: clamp(0.8rem, 0.9vw, 1.15rem);
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    padding: 4px 7px;
+    color: #eeeef0;
+    font-size: 10px;
+    line-height: 1.3;
+    font-weight: 700;
+    background: #111113eb;
+    border: 1px solid #ffffff30;
+    border-radius: 3px;
+    pointer-events: none;
 }
 
 .sin-resultados {
@@ -980,53 +1040,29 @@ body {
     }
 
     .grilla-peliculas {
-        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-        gap: 14px;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 16px;
     }
 
     .contenido-tarjeta {
-        padding: 14px;
-    }
-
-    .pie-tarjeta {
-        align-items: center;
-        flex-direction: column;
-        gap: 10px;
+        padding: 8px 2px 0;
     }
 
     .clasificacion {
-        padding: 4px 9px;
-        font-size: 0.75rem;
-        text-align: center;
-    }
-
-    .boton-tarjeta {
-        padding: 8px 20px;
-        font-size: 0.95rem;
-        text-align: center;
-    }
-
-    .contenido-tarjeta h3 {
-        min-height: 0;
+        top: 8px;
+        left: 8px;
+        padding: 3px 6px;
+        font-size: 0.65rem;
     }
 
     .overlay-fav {
-        inset: 8px 8px auto auto;
-        display: block;
-        background: transparent;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: none;
+        inset: 7px 7px auto auto;
     }
 
-    .boton-fav,
-    .poster-pelicula:hover .boton-fav {
-        width: 36px;
-        height: 36px;
-        font-size: 1.4rem;
-        background: rgba(0, 0, 0, 0.55);
-        transform: none;
-        pointer-events: auto;
+    .boton-fav {
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
     }
     .cintas-peliculas {
         display: flex;
@@ -1097,26 +1133,5 @@ body {
     .cinta-peliculas .datos-pelicula,
     .cinta-peliculas .clasificacion {
         display: none;
-    }
-
-    .cinta-peliculas .pie-tarjeta {
-        display: block;
-        height: 0;
-    }
-
-    .cinta-peliculas .boton-tarjeta,
-    .cinta-peliculas .boton-tarjeta:hover {
-        padding: 0;
-        font-size: 0;
-        line-height: 0;
-        background: transparent;
-        transform: none;
-    }
-
-    .cinta-peliculas .boton-tarjeta::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 1;
     }
 }
