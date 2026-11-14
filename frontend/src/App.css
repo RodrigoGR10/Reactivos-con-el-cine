@@ -670,8 +670,9 @@ body {
 }
 
 .boton-fav {
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 34px;
     height: 34px;
     padding: 0;
@@ -679,17 +680,22 @@ body {
     border-radius: 50%;
     background: #111113de;
     color: #ffffff;
+    line-height: 0;
+    box-sizing: border-box;
     cursor: pointer;
     pointer-events: auto;
     transition: border-color 160ms ease;
 }
 
 .icono-corazon-fav {
-    width: 17px;
-    height: 17px;
+    display: block;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
     fill: transparent;
     stroke: #ffffff;
     stroke-width: 2;
+    transform-origin: center;
     transition:
         transform 180ms ease,
         fill 160ms ease,
@@ -710,6 +716,17 @@ body {
 
 .boton-fav[aria-pressed="true"]:hover .icono-corazon-fav {
     transform: scale(1.22);
+}
+
+.boton-fav.boton-fav-inline {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.boton-fav.boton-fav-inline .icono-corazon-fav {
+    width: 14px;
+    height: 14px;
 }
 
 .poster-placeholder {
