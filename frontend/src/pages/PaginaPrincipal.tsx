@@ -4,13 +4,13 @@ import { CarruselDestacadas } from "../components/peliculas/CarruselDestacadas.t
 import Preventas from "../components/peliculas/Preventas.tsx";
 import { usePeliculas } from "../hooks/usePelicula.ts";
 import { useFiltrosPeliculas } from "../hooks/useFiltrosPeliculas.ts";
-import { useFavorites } from "../context/FavoritesContext.tsx";
+import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar.ts";
 import { totalFavoritos } from "../utils/seleccionarDestacadas.ts";
 import type { Pelicula } from "../types/types.ts";
 
 function PaginaPrincipal() {
   const { peliculas, peliculasDestacadas, cargando, error } = usePeliculas();
-  const { isFavoriteMovie } = useFavorites();
+  const { peliculasFavoritasAlEntrar } = useFavoritosAlEntrar();
 
   const {
     filtros,
@@ -23,17 +23,16 @@ function PaginaPrincipal() {
   } = useFiltrosPeliculas(peliculas);
 
   const compararPrioridad = (a: Pelicula, b: Pelicula) =>
-    Number(isFavoriteMovie(b.id)) - Number(isFavoriteMovie(a.id))
+    Number(peliculasFavoritasAlEntrar.has(b.id)) - Number(peliculasFavoritasAlEntrar.has(a.id))
     || (totalFavoritos(b) ?? 0) - (totalFavoritos(a) ?? 0);
 
   const cartelera = peliculasFiltradas.filter((pelicula) => pelicula.estadoEstreno !== "preventa")
     .sort(compararPrioridad);
   const preventas = peliculasFiltradas.filter((pelicula) => pelicula.estadoEstreno === "preventa")
-    .sort((a, b) => compararPrioridad(a, b)
-      || (a.fechaEstreno ?? "9999").localeCompare(b.fechaEstreno ?? "9999")
+    .sort((a, b) => (a.fechaEstreno ?? "9999").localeCompare(b.fechaEstreno ?? "9999")
       || a.titulo.localeCompare(b.titulo));
 
-  if (cargando) return <p className="sin-resultados">Cargando películas...</p>;
+  if (cargando) return null;
   if (error) return <p className="sin-resultados">{error}</p>;
   if (peliculas.length === 0) {
     return <p className="sin-resultados">No hay películas disponibles.</p>;

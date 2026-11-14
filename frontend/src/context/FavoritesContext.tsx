@@ -14,6 +14,7 @@ import profileService from "../services/profileService";
 interface FavoritesContextType {
   favoriteMovieIds: string[];
   favoriteCinemaIds: string[];
+  isLoadingFavorites: boolean;
   toggleFavoriteMovie: (movieId: string) => Promise<boolean>;
   toggleFavoriteCinema: (cinemaId: string) => void;
   isFavoriteMovie: (movieId: string) => boolean;
@@ -35,6 +36,8 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   const [favoriteCinemaIds, setFavoriteCinemaIds] = useState<string[]>(
     () => user?.cinesFavoritos ?? [],
   );
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
+  const isLoadingFavorites = Boolean(user && loadedUserId !== user.id);
 
   const handleUnauthorized = useCallback(
     (error: unknown): boolean => {
@@ -61,6 +64,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
 
     const controller = new AbortController();
+    const currentUserId = user.id;
     profileService
       .getFavorites(controller.signal)
       .then((favoritos) => {
@@ -71,6 +75,11 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) handleUnauthorized(error);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoadedUserId(currentUserId);
+        }
       });
 
     return () => controller.abort();
@@ -78,11 +87,19 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
 
   const toggleFavoriteMovie = async (movieId: string): Promise<boolean> => {
     if (!user) return false;
+    const previos = favoriteMovieIds;
+    const yaEstaba = previos.includes(movieId);
+    setFavoriteMovieIds(
+      yaEstaba
+        ? previos.filter((id) => id !== movieId)
+        : [...previos, movieId],
+    );
     try {
       const updated = await profileService.toggleFavoriteMovie(movieId);
       setFavoriteMovieIds(updated);
       return true;
     } catch (error: unknown) {
+      setFavoriteMovieIds(previos);
       if (!handleUnauthorized(error)) console.error("Error al actualizar película favorita:", error);
       return false;
     }
@@ -90,12 +107,20 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
 
   const toggleFavoriteCinema = (cinemaId: string) => {
     if (!user) return;
+    const previos = favoriteCinemaIds;
+    const yaEstaba = previos.includes(cinemaId);
+    setFavoriteCinemaIds(
+      yaEstaba
+        ? previos.filter((id) => id !== cinemaId)
+        : [...previos, cinemaId],
+    );
     profileService
       .toggleFavoriteCinema(cinemaId)
       .then((updated) => {
         setFavoriteCinemaIds(updated);
       })
       .catch((error: unknown) => {
+        setFavoriteCinemaIds(previos);
         if (handleUnauthorized(error)) return;
         console.error("Error al actualizar cine favorito:", error);
       });
@@ -114,6 +139,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
       value={{
         favoriteMovieIds,
         favoriteCinemaIds,
+        isLoadingFavorites,
         toggleFavoriteMovie,
         toggleFavoriteCinema,
         isFavoriteMovie,

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
+import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import funcionService from "../services/funciones";
 import { Mensaje } from "../components/common/Mensaje";
@@ -35,6 +36,7 @@ function MovieDetailPage() {
         isFavoriteMovie,
         isFavoriteCinema,
     } = useFavorites();
+    const { cinesFavoritosAlEntrar } = useFavoritosAlEntrar();
     const { user, openAuthModal } = useAuth();
 
     const { ubicacion, estado, solicitar } = useUbicacion();
@@ -120,7 +122,7 @@ function MovieDetailPage() {
         .sort((a, b) => {
             const prioridad = ordenarPorCercania
                 ? a.distancia === b.distancia ? 0 : a.distancia - b.distancia
-                : Number(isFavoriteCinema(b.cine.id)) - Number(isFavoriteCinema(a.cine.id));
+                : Number(cinesFavoritosAlEntrar.has(b.cine.id)) - Number(cinesFavoritosAlEntrar.has(a.cine.id));
             return prioridad
                 || a.cine.nombre.localeCompare(b.cine.nombre, "es-CL", { sensitivity: "base", numeric: true })
                 || a.cine.id.localeCompare(b.cine.id);

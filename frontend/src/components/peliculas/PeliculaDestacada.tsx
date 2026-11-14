@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId } from "react";
 import { Link } from "react-router-dom";
 import type { Pelicula } from "../../types/types.ts";
 import { useAuth } from "../../context/AuthContext.tsx";
@@ -14,8 +14,6 @@ interface PeliculaDestacadaProps {
 function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
   const { user, openAuthModal } = useAuth();
   const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
-  const [guardando, setGuardando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const tituloId = useId();
   const esFavorita = isFavoriteMovie(pelicula.id);
   const tieneBanner = Boolean(pelicula.banner && pelicula.banner !== pelicula.poster);
@@ -40,20 +38,12 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
       ? formatearFechaEstreno(pelicula.fechaEstreno)
       : "Destacada de la semana";
 
-  const handleToggleFavorita = async () => {
+  const handleToggleFavorita = () => {
     if (!user) {
       openAuthModal();
       return;
     }
-    if (guardando) return;
-    setGuardando(true);
-    setError(null);
-    const id = pelicula.id;
-    try {
-      if (!await toggleFavoriteMovie(id)) setError(id);
-    } finally {
-      setGuardando(false);
-    }
+    void toggleFavoriteMovie(pelicula.id);
   };
 
   return (
@@ -87,17 +77,15 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
           <button
             type="button"
             className={`boton-fav-destacada ${esFavorita ? "activo" : ""}`}
-            disabled={guardando}
             aria-pressed={esFavorita}
             aria-label={esFavorita ? `Quitar ${pelicula.titulo} de Mi lista` : `Agregar ${pelicula.titulo} a Mi lista`}
             title={esFavorita ? "Quitar de Mi lista" : "Agregar a Mi lista"}
             onClick={handleToggleFavorita}
           >
             <span className="corazon-destacada" aria-hidden="true">{esFavorita ? "♥" : "♡"}</span>
-            <span>{guardando ? "Guardando..." : "Mi lista"}</span>
+            <span>Mi lista</span>
           </button>
         </div>
-        {error === pelicula.id && <p className="destacada-error" role="alert">No se pudo guardar. Intenta de nuevo.</p>}
       </div>
     </section>
   );
