@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { Pelicula } from "../types/types";
 import peliculaService from "../services/peliculas";
-import { useFavorites } from "../context/FavoritesContext";
 import { seleccionarDestacadas } from "../utils/seleccionarDestacadas";
 
 const ACTUALIZACION_MS = 30_000;
+let peliculasEnMemoria: Pelicula[] = [];
 
 export function usePeliculas() {
-  const { favoriteMovieIds } = useFavorites();
-  const hayDatos = useRef(false);
-  const [peliculas, setPeliculas] = useState<Pelicula[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const hayDatos = useRef(peliculasEnMemoria.length > 0);
+  const [peliculas, setPeliculas] = useState<Pelicula[]>(() => peliculasEnMemoria);
+  const [cargando, setCargando] = useState(() => peliculasEnMemoria.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,6 +25,7 @@ export function usePeliculas() {
 
         if (!cancelado) {
           const disponibles = data.filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
+          peliculasEnMemoria = disponibles;
           setPeliculas(disponibles);
           hayDatos.current = true;
           setError(null);
@@ -49,7 +49,7 @@ export function usePeliculas() {
       window.clearInterval(intervalo);
       document.removeEventListener("visibilitychange", actualizarVisible);
     };
-  }, [favoriteMovieIds]);
+  }, []);
 
   return { peliculas, peliculasDestacadas: seleccionarDestacadas(peliculas), cargando, error };
 }
