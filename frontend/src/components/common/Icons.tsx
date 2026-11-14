@@ -3,6 +3,7 @@ import type { SVGProps } from "react";
 export interface IconProps extends SVGProps<SVGSVGElement> {
   size?: number;
   className?: string;
+  filled?: boolean;
 }
 
 export const ChevronLeftIcon = ({ size = 20, ...props }: IconProps) => (
@@ -20,6 +21,7 @@ export const ChevronRightIcon = ({ size = 20, ...props }: IconProps) => (
 export const HomeIcon = ({
   size = 28,
   className = "home-icon-svg",
+  filled = false,
   ...props
 }: IconProps) => (
   <svg
@@ -35,14 +37,24 @@ export const HomeIcon = ({
     aria-hidden="true"
     {...props}
   >
-    <path d="M3 9.5L12 3l9 6.5V20a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 20V9.5z" />
-    <polyline points="9 21 9 12 15 12 15 21" />
+    {filled ? (
+      <path
+        fill="currentColor"
+        stroke="none"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M11.35 2.42a1.1 1.1 0 0 1 1.3 0l8.5 6.14A1.5 1.5 0 0 1 21.75 9.77V20a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 20V9.77a1.5 1.5 0 0 1 .6-1.21l8.5-6.14ZM9.75 13.25a1 1 0 0 1 1-1h2.5a1 1 0 0 1 1 1v9h-4.5v-9Z"
+      />
+    ) : (
+      <path d="M9.5 21.5V13a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v8.5h5A1.5 1.5 0 0 0 21 20V9.5L12 3 3 9.5V20a1.5 1.5 0 0 0 1.5 1.5h5Z" />
+    )}
   </svg>
 );
 
 export const UserIcon = ({
   size = 28,
   className = "user-icon-svg",
+  filled = false,
   ...props
 }: IconProps) => (
   <svg
@@ -58,8 +70,21 @@ export const UserIcon = ({
     aria-hidden="true"
     {...props}
   >
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
+    {filled ? (
+      <>
+        <circle cx="12" cy="7" r="4.5" fill="currentColor" stroke="none" />
+        <path
+          fill="currentColor"
+          stroke="none"
+          d="M4 20.2c0-3.7 3.5-6.2 8-6.2s8 2.5 8 6.2a1.3 1.3 0 0 1-1.3 1.3H5.3A1.3 1.3 0 0 1 4 20.2Z"
+        />
+      </>
+    ) : (
+      <>
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </>
+    )}
   </svg>
 );
 
@@ -319,6 +344,7 @@ export const EyeOffIcon = ({
 export const TicketIcon = ({
   size = 28,
   className = "ticket-icon-svg",
+  filled = false,
   ...props
 }: IconProps) => (
   <svg
@@ -334,9 +360,21 @@ export const TicketIcon = ({
     aria-hidden="true"
     {...props}
   >
-    <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
-    <path d="M13 5v2" />
-    <path d="M13 11v2" />
-    <path d="M13 17v2" />
+    {filled ? (
+      <path
+        fill="currentColor"
+        stroke="none"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M4 4.25A2.75 2.75 0 0 0 1.25 7v2c0 .41.34.75.75.75a2.25 2.25 0 0 1 0 4.5.75.75 0 0 0-.75.75v2A2.75 2.75 0 0 0 4 19.75h16A2.75 2.75 0 0 0 22.75 17v-2a.75.75 0 0 0-.75-.75 2.25 2.25 0 0 1 0-4.5.75.75 0 0 0 .75-.75V7A2.75 2.75 0 0 0 20 4.25H4Zm9 1.75a.9.9 0 0 1 .9.9v1.6a.9.9 0 0 1-1.8 0V6.9a.9.9 0 0 1 .9-.9Zm0 5.1a.9.9 0 0 1 .9.9v1.8a.9.9 0 0 1-1.8 0V12a.9.9 0 0 1 .9-.9Zm0 5.3a.9.9 0 0 1 .9.9v1.6a.9.9 0 0 1-1.8 0v-1.6a.9.9 0 0 1 .9-.9Z"
+      />
+    ) : (
+      <>
+        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
+        <path d="M13 5v2" />
+        <path d="M13 11v2" />
+        <path d="M13 17v2" />
+      </>
+    )}
   </svg>
 );
