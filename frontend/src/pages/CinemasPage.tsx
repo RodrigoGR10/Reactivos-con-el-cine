@@ -4,8 +4,10 @@ import type { Cine } from "../types/types";
 import cinesService from "../services/cines";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
-import { CloseIcon, FilmIcon, SearchIcon, MapPinIcon } from "../components/common/Icons";
+import { FilmIcon, MapPinIcon } from "../components/common/Icons";
+import { BotonCercania, ChipsFiltrosActivos } from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
+import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
 import { formatearDistancia } from "../utils/distancia";
 import { agruparCines, filtrarCines, obtenerCadena, obtenerComunas, ordenarCinesPorCercania, type CineOrdenado } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
@@ -37,11 +39,21 @@ function CinemasPage() {
     const favoritosUsuario = user ? favoriteCinemaIds : [];
     const grupos = agruparCines(cinesFiltrados, favoritosUsuario, ordenarPorCercania ? ubicacion : null);
     const cinesPorCercania = ordenarPorCercania ? ordenarCinesPorCercania(cinesFiltrados, favoritosUsuario, ubicacion) : [];
-    const hayFiltrosActivos = busqueda.trim() !== "" || comunasSeleccionadas.length > 0;
     const limpiarFiltros = () => {
         setBusqueda("");
         setComunasSeleccionadas([]);
     };
+    const chipsComunas = comunas
+        .filter((comuna) => comunasSeleccionadas.includes(comuna.valor))
+        .map((comuna) => ({
+            id: `comuna-${comuna.valor}`,
+            etiqueta: comuna.nombre,
+            ariaLabel: `Quitar filtro ${comuna.nombre}`,
+            onQuitar: () =>
+                setComunasSeleccionadas((anteriores) =>
+                    anteriores.filter((valor) => valor !== comuna.valor),
+                ),
+        }));
 
     const renderTarjetaCine = (cine: CineOrdenado) => {
         const logo = cine.logo || obtenerCadena(cine).logo;
@@ -84,48 +96,32 @@ function CinemasPage() {
             </header>
 
             <section className="cines-filtros" aria-label="Búsqueda y filtros de cines">
-                <div className="cines-filtros-bar">
-                    <div className="cines-search-box">
-                        <SearchIcon size={18} />
-                        <input type="text" aria-label="Buscar cine o comuna" placeholder="Buscar por cine o comuna..." value={busqueda} onChange={(event) => setBusqueda(event.target.value)} />
-                        {busqueda && (
-                            <button type="button" className="cines-icon-button" onClick={() => setBusqueda("")} aria-label="Borrar búsqueda de cines" title="Borrar búsqueda">
-                                <CloseIcon size={16} />
-                            </button>
-                        )}
+                <div className="herramientas-cartelera">
+                    <BuscadorPeliculas
+                        busqueda={busqueda}
+                        onBusquedaChange={setBusqueda}
+                        label="Buscar cine o comuna"
+                        placeholder="Buscar por cine o comuna..."
+                    />
+                    <div className="filtros-cartelera-selectores">
+                        <SelectorComunas opciones={comunas} seleccionadas={comunasSeleccionadas} onChange={setComunasSeleccionadas} />
+                        <BotonCercania
+                            activo={ordenarPorCercania}
+                            cargando={estado === "cargando"}
+                            tituloActivo="Volver al orden por cadena"
+                            tituloInactivo="Ordenar por cercanía"
+                            onToggle={() => {
+                                if (ordenarPorCercania) {
+                                    setCercaniaActiva(false);
+                                    return;
+                                }
+                                setCercaniaActiva(true);
+                                solicitar();
+                            }}
+                        />
                     </div>
-                    <SelectorComunas opciones={comunas} seleccionadas={comunasSeleccionadas} onChange={setComunasSeleccionadas} />
-                    <button
-                        type="button"
-                        className={`boton-cercania-cine ${ordenarPorCercania ? "activo" : ""}`}
-                        aria-pressed={ordenarPorCercania}
-                        title={ordenarPorCercania ? "Volver al orden por cadena" : "Ordenar por cercanía"}
-                        onClick={() => {
-                            if (ordenarPorCercania) {
-                                setCercaniaActiva(false);
-                                return;
-                            }
-                            setCercaniaActiva(true);
-                            solicitar();
-                        }}
-                        disabled={estado === "cargando"}
-                    >
-                        <MapPinIcon size={17} />
-                        <span>{estado === "cargando" ? "Ubicando..." : "Cerca de mí"}</span>
-                    </button>
-                    <button type="button" className="cines-icon-button cines-limpiar-filtros" disabled={!hayFiltrosActivos} onClick={limpiarFiltros} aria-label="Limpiar filtros de cines" title="Limpiar filtros">
-                        <CloseIcon size={18} />
-                    </button>
                 </div>
-                {comunasSeleccionadas.length > 0 && (
-                    <div className="cines-comunas-seleccionadas" aria-label="Comunas seleccionadas">
-                        {comunas.filter((comuna) => comunasSeleccionadas.includes(comuna.valor)).map((comuna) => (
-                            <button key={comuna.valor} type="button" className="cines-comuna-chip" onClick={() => setComunasSeleccionadas((anteriores) => anteriores.filter((valor) => valor !== comuna.valor))} aria-label={`Quitar filtro ${comuna.nombre}`}>
-                                {comuna.nombre}<CloseIcon size={13} />
-                            </button>
-                        ))}
-                    </div>
-                )}
+                <ChipsFiltrosActivos chips={chipsComunas} ariaLabel="Comunas seleccionadas" />
             </section>
 
             {estado === "denegado" && <p className="aviso-cercania">No pudimos acceder a tu ubicación. Habilita el permiso en tu navegador para ordenar por cercanía.</p>}

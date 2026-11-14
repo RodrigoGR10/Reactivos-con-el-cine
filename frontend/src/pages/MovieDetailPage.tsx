@@ -7,9 +7,17 @@ import funcionService from "../services/funciones";
 import { Mensaje } from "../components/common/Mensaje";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
-import { CloseIcon, MapPinIcon, SearchIcon } from "../components/common/Icons";
-import { SelectorMultiple, type OpcionFiltro } from "../components/common/SelectorMultiple";
+import {
+    BotonCercania,
+    ChipsFiltrosActivos,
+    SelectorMultiple,
+    SelectorUnico,
+    type ChipFiltroActivo,
+    type OpcionFiltro,
+} from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
+import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
+import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import { filtrarCines, obtenerCadena, obtenerComunas } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
@@ -88,12 +96,8 @@ function MovieDetailPage() {
         }
     };
 
-    const formatosDisponibles = [
-        "Todos",
-        ...new Set(
-            horariosDelDia.map((horario) => horario.formatoResumen || "2D"),
-        ),
-    ];
+    const opcionesFormato = obtenerFormatosDisponibles(horariosDelDia);
+    const formatosDisponibles = ["Todos", ...opcionesFormato.map((f) => f.valor)];
     const formatoActual = formatosDisponibles.includes(formatoSeleccionado)
         ? formatoSeleccionado
         : "Todos";
@@ -163,6 +167,41 @@ function MovieDetailPage() {
             !cadenasSet.size || cadenasSet.has(obtenerCadena(g.cine).id);
         return cinesFiltradosIds.has(g.cine.id) && coincideCadena;
     });
+
+    const chipsFiltros: ChipFiltroActivo[] = [
+        ...cadenasDisponibles
+            .filter((cadena) => cadenasActivas.includes(cadena.valor))
+            .map((cadena) => ({
+                id: `cadena-${cadena.valor}`,
+                etiqueta: cadena.nombre,
+                ariaLabel: `Quitar filtro ${cadena.nombre}`,
+                onQuitar: () =>
+                    setCadenasSeleccionadas((anteriores) =>
+                        anteriores.filter((valor) => valor !== cadena.valor),
+                    ),
+            })),
+        ...comunasDisponibles
+            .filter((comuna) => comunasActivas.includes(comuna.valor))
+            .map((comuna) => ({
+                id: `comuna-${comuna.valor}`,
+                etiqueta: comuna.nombre,
+                ariaLabel: `Quitar filtro ${comuna.nombre}`,
+                onQuitar: () =>
+                    setComunasSeleccionadas((anteriores) =>
+                        anteriores.filter((valor) => valor !== comuna.valor),
+                    ),
+            })),
+        ...(formatoActual !== "Todos"
+            ? [
+                  {
+                      id: `formato-${formatoActual}`,
+                      etiqueta: formatoActual,
+                      ariaLabel: `Quitar filtro de formato: ${formatoActual}`,
+                      onQuitar: () => setFormatoSeleccionado("Todos"),
+                  },
+              ]
+            : []),
+    ];
 
     if (error) return <Mensaje texto={error} />;
     if (!pelicula) return <Mensaje texto="Cargando película..." />;
@@ -245,134 +284,69 @@ function MovieDetailPage() {
                     }}
                 />
 
-                {/* Filtros de la cartelera: Fila principal y Formatos */}
+                {/* Filtros de la cartelera */}
                 {horarios.length > 0 && (
                     <div className="cartelera-cine-filtros">
-                        <div className="filtros-barra-principal">
-                            <div className="cartelera-search-box">
-                                <SearchIcon size={16} />
-                                <input
-                                    type="text"
-                                    aria-label="Buscar por cine o comuna"
-                                    placeholder="Buscar por cine o comuna..."
-                                    value={busqueda}
-                                    onChange={(e) => setBusqueda(e.target.value)}
+                        <div className="herramientas-cartelera">
+                            <BuscadorPeliculas
+                                busqueda={busqueda}
+                                onBusquedaChange={setBusqueda}
+                                label="Buscar por cine o comuna"
+                                placeholder="Buscar por cine o comuna..."
+                            />
+                            <div className="filtros-cartelera-selectores">
+                                <SelectorMultiple
+                                    className="cines-cadenas-selector"
+                                    opciones={cadenasDisponibles}
+                                    seleccionadas={cadenasActivas}
+                                    onChange={setCadenasSeleccionadas}
+                                    titulo="Cadenas"
+                                    etiquetaTodas="Cadenas"
+                                    etiquetaPlural="cadenas"
+                                    etiquetaSingular="1 cadena"
+                                    ariaLabelPrefijo="Filtrar por cadenas"
+                                    disabled={cadenasDisponibles.length === 0}
                                 />
-                                {busqueda && (
-                                    <button
-                                        type="button"
-                                        className="btn-clear-inline"
-                                        aria-label="Borrar búsqueda"
-                                        title="Borrar búsqueda"
-                                        onClick={() => setBusqueda("")}
-                                    >
-                                        <CloseIcon size={14} />
-                                    </button>
+
+                                {comunasDisponibles.length > 0 && (
+                                    <SelectorComunas
+                                        opciones={comunasDisponibles}
+                                        seleccionadas={comunasActivas}
+                                        onChange={setComunasSeleccionadas}
+                                    />
+                                )}
+
+                                {opcionesFormato.length > 1 && (
+                                    <SelectorUnico
+                                        className="filtro-formato"
+                                        opciones={opcionesFormato}
+                                        seleccionada={formatoActual === "Todos" ? "" : formatoActual}
+                                        onChange={(valor) => setFormatoSeleccionado(valor || "Todos")}
+                                        titulo="Formato"
+                                        etiquetaVacia="Formato"
+                                        ariaLabelPrefijo="Filtrar por formato"
+                                    />
+                                )}
+
+                                {grupos.length > 0 && (
+                                    <BotonCercania
+                                        activo={ordenarPorCercania}
+                                        cargando={estado === "cargando"}
+                                        tituloActivo="Volver al orden por favoritos"
+                                        tituloInactivo="Ordenar por cercanía"
+                                        onToggle={() => {
+                                            if (ordenarPorCercania) {
+                                                setCercaniaActiva(false);
+                                                return;
+                                            }
+                                            setCercaniaActiva(true);
+                                            solicitar();
+                                        }}
+                                    />
                                 )}
                             </div>
-
-                            <SelectorMultiple
-                                className="cines-cadenas-selector"
-                                opciones={cadenasDisponibles}
-                                seleccionadas={cadenasActivas}
-                                onChange={setCadenasSeleccionadas}
-                                titulo="Cadenas"
-                                etiquetaTodas="Todas las cadenas"
-                                etiquetaPlural="cadenas"
-                                etiquetaSingular="1 cadena"
-                                ariaLabelPrefijo="Filtrar por cadenas"
-                                disabled={cadenasDisponibles.length === 0}
-                            />
-
-                            {comunasDisponibles.length > 0 && (
-                                <SelectorComunas
-                                    opciones={comunasDisponibles}
-                                    seleccionadas={comunasActivas}
-                                    onChange={setComunasSeleccionadas}
-                                />
-                            )}
-
-                            {grupos.length > 0 && (
-                                <button
-                                    type="button"
-                                    className={`boton-cercania-detalle ${ordenarPorCercania ? "activo" : ""}`}
-                                    aria-pressed={ordenarPorCercania}
-                                    title={ordenarPorCercania ? "Volver al orden por favoritos" : "Ordenar por cercanía"}
-                                    onClick={() => {
-                                        if (ordenarPorCercania) {
-                                            setCercaniaActiva(false);
-                                            return;
-                                        }
-                                        setCercaniaActiva(true);
-                                        solicitar();
-                                    }}
-                                    disabled={estado === "cargando"}
-                                >
-                                    <MapPinIcon size={15} />
-                                    <span>
-                                        {estado === "cargando"
-                                            ? "Ubicando..."
-                                            : "Cerca de mí"}
-                                    </span>
-                                </button>
-                            )}
                         </div>
-
-                        {(cadenasActivas.length > 0 || comunasActivas.length > 0) && (
-                            <div className="cines-comunas-seleccionadas" aria-label="Filtros seleccionados">
-                                {cadenasDisponibles
-                                    .filter((cadena) => cadenasActivas.includes(cadena.valor))
-                                    .map((cadena) => (
-                                        <button
-                                            key={`cadena-${cadena.valor}`}
-                                            type="button"
-                                            className="cines-comuna-chip"
-                                            onClick={() =>
-                                                setCadenasSeleccionadas((anteriores) =>
-                                                    anteriores.filter((valor) => valor !== cadena.valor),
-                                                )
-                                            }
-                                            aria-label={`Quitar filtro ${cadena.nombre}`}
-                                        >
-                                            {cadena.nombre}
-                                            <CloseIcon size={13} />
-                                        </button>
-                                    ))}
-                                {comunasDisponibles
-                                    .filter((comuna) => comunasActivas.includes(comuna.valor))
-                                    .map((comuna) => (
-                                        <button
-                                            key={`comuna-${comuna.valor}`}
-                                            type="button"
-                                            className="cines-comuna-chip"
-                                            onClick={() =>
-                                                setComunasSeleccionadas((anteriores) =>
-                                                    anteriores.filter((valor) => valor !== comuna.valor),
-                                                )
-                                            }
-                                            aria-label={`Quitar filtro ${comuna.nombre}`}
-                                        >
-                                            {comuna.nombre}
-                                            <CloseIcon size={13} />
-                                        </button>
-                                    ))}
-                            </div>
-                        )}
-
-                        {formatosDisponibles.length > 1 && (
-                            <div className="formatos-chips">
-                                {formatosDisponibles.map((formato) => (
-                                    <button
-                                        key={formato}
-                                        type="button"
-                                        className={`formato-chip ${formatoActual === formato ? "active" : ""}`}
-                                        onClick={() => setFormatoSeleccionado(formato)}
-                                    >
-                                        {formato}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        <ChipsFiltrosActivos chips={chipsFiltros} ariaLabel="Filtros seleccionados" />
                     </div>
                 )}
 

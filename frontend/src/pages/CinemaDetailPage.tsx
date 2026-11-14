@@ -6,8 +6,17 @@ import funcionesService from "../services/funciones";
 import peliculasService from "../services/peliculas";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
-import { CloseIcon, MapPinIcon, SearchIcon } from "../components/common/Icons";
-import { agruparHorariosPorPelicula } from "../utils/agruparFunciones";
+import { MapPinIcon } from "../components/common/Icons";
+import {
+  ChipsFiltrosActivos,
+  SelectorUnico,
+  type ChipFiltroActivo,
+} from "../components/common/SelectorMultiple";
+import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
+import {
+  agruparHorariosPorPelicula,
+  obtenerFormatosDisponibles,
+} from "../utils/agruparFunciones";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
@@ -135,21 +144,25 @@ function CinemaDetailPage() {
     ? horarios.filter((h) => h.fecha === fechaActual)
     : horarios).map(h => ({ ...h, ...butacas.porHorario[h.id] }));
 
-  // Extrae formatos disponibles únicos para el día seleccionado
-  const formatosDisponibles = horariosDelDia.reduce<string[]>(
-    (acumulado, horario) => {
-      const formato = horario.formatoResumen || "2D";
-      if (!acumulado.includes(formato)) {
-        return [...acumulado, formato];
-      }
-      return acumulado;
-    },
-    ["Todos"],
-  );
+  // Extrae formatos disponibles únicos y sus conteos para el día seleccionado
+  const opcionesFormato = obtenerFormatosDisponibles(horariosDelDia);
+  const formatosDisponibles = ["Todos", ...opcionesFormato.map((f) => f.valor)];
 
   const formatoActual = formatosDisponibles.includes(formatoSeleccionado)
     ? formatoSeleccionado
     : "Todos";
+
+  const chipsFiltros: ChipFiltroActivo[] =
+    formatoActual !== "Todos"
+      ? [
+          {
+            id: `formato-${formatoActual}`,
+            etiqueta: formatoActual,
+            ariaLabel: `Quitar filtro de formato: ${formatoActual}`,
+            onQuitar: () => setFormatoSeleccionado("Todos"),
+          },
+        ]
+      : [];
 
   // Filtra horarios por formato seleccionado
   const horariosFiltradosPorFormato =
@@ -253,61 +266,28 @@ function CinemaDetailPage() {
         {/* Filtros de la cartelera del cine */}
         {horarios.length > 0 && (
           <div className="cartelera-cine-filtros">
-            {/* Buscador de película en este cine */}
-            <div className="cartelera-cine-busqueda-fila">
-              <div className="cartelera-search-box">
-                <SearchIcon size={18} />
-                <input
-                  type="text"
-                  aria-label="Buscar película en este cine"
-                  placeholder="Buscar película en este cine..."
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                />
-                {busqueda && (
-                  <button
-                    type="button"
-                    className="btn-clear-inline"
-                    aria-label="Borrar búsqueda"
-                    title="Borrar búsqueda"
-                    onClick={() => setBusqueda("")}
-                  >
-                    <CloseIcon size={14} />
-                  </button>
-                )}
-              </div>
-              <button
-                type="button"
-                className="cartelera-cine-restablecer"
-                disabled={!busqueda && formatoActual === "Todos"}
-                aria-label="Restablecer filtros de cartelera"
-                title="Restablecer filtros"
-                onClick={() => { setBusqueda(""); setFormatoSeleccionado("Todos"); }}
-              >
-                <CloseIcon size={16} />
-                <span>Restablecer</span>
-              </button>
-            </div>
-
-            {/* Selector de formato (2D, 3D, etc.) */}
-            {formatosDisponibles.length > 1 && (
-              <div className="cartelera-cine-formatos-fila">
-                <span className="cartelera-cine-formato-label">Formato</span>
-                <div className="formatos-chips" role="group" aria-label="Filtrar por formato">
-                  {formatosDisponibles.map((formato) => (
-                    <button
-                      key={formato}
-                      type="button"
-                      className={`formato-chip ${formatoActual === formato ? "active" : ""}`}
-                      aria-pressed={formatoActual === formato}
-                      onClick={() => setFormatoSeleccionado(formato)}
-                    >
-                      {formato}
-                    </button>
-                  ))}
+            <div className="herramientas-cartelera">
+              <BuscadorPeliculas
+                busqueda={busqueda}
+                onBusquedaChange={setBusqueda}
+                label="Buscar película en este cine"
+                placeholder="Buscar película en este cine..."
+              />
+              {opcionesFormato.length > 1 && (
+                <div className="filtros-cartelera-selectores">
+                  <SelectorUnico
+                    className="filtro-formato"
+                    opciones={opcionesFormato}
+                    seleccionada={formatoActual === "Todos" ? "" : formatoActual}
+                    onChange={(valor) => setFormatoSeleccionado(valor || "Todos")}
+                    titulo="Formato"
+                    etiquetaVacia="Formato"
+                    ariaLabelPrefijo="Filtrar por formato"
+                  />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            <ChipsFiltrosActivos chips={chipsFiltros} />
           </div>
         )}
 

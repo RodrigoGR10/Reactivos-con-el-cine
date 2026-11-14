@@ -5,19 +5,26 @@ interface SelectorComunasProps {
     opciones: OpcionComuna[];
     seleccionadas: string[];
     onChange: (comunas: string[]) => void;
+    className?: string;
 }
 
 /**
  * Selector múltiple especializado para filtrar por comunas.
  */
-export function SelectorComunas({ opciones, seleccionadas, onChange }: SelectorComunasProps) {
+export function SelectorComunas({
+    opciones,
+    seleccionadas,
+    onChange,
+    className = "",
+}: SelectorComunasProps) {
     return (
         <SelectorMultiple
+            className={className}
             opciones={opciones}
             seleccionadas={seleccionadas}
             onChange={onChange}
             titulo="Comunas"
-            etiquetaTodas="Todas las comunas"
+            etiquetaTodas="Comunas"
             etiquetaPlural="comunas"
             etiquetaSingular="1 comuna"
             ariaLabelPrefijo="Filtrar por comunas"
