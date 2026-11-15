@@ -31,6 +31,7 @@ export interface ScrapedCinema extends SourceRecord {
 
 export interface ScrapedMovie extends SourceRecord, DatosEstreno {
   titulo: string;
+  tituloOriginal?: string;
   duracion: number;
   genero: string;
   clasificacion: string;

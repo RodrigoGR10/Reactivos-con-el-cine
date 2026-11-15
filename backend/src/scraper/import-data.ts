@@ -176,8 +176,13 @@ async function mergeDuplicateMovies({
 
     const primary = group.find((item) => item.origen === "cinemark") ?? group[0]!;
     const duplicates = group.filter((item) => !item._id.equals(primary._id));
+    let inheritedOriginalTitle = primary.tituloOriginal;
 
     for (const duplicate of duplicates) {
+      if (!inheritedOriginalTitle && duplicate.tituloOriginal) {
+        inheritedOriginalTitle = duplicate.tituloOriginal;
+      }
+
       await Horario.updateMany(
         { peliculaId: duplicate._id },
         { $set: { peliculaId: primary._id } },
@@ -223,13 +228,23 @@ async function mergeDuplicateMovies({
           sources.set(key, { ...source, ...sources.get(key) });
         }
         primary.fuentes = [...sources.values()];
-        await Pelicula.updateOne(
-          { _id: primary._id },
-          { $set: { fuentes: primary.fuentes } },
-        );
       }
 
       mergedCount++;
+    }
+
+    const primaryUpdates: Record<string, unknown> = {};
+    if ((primary.fuentes?.length ?? 0) > 0) {
+      primaryUpdates.fuentes = primary.fuentes;
+    }
+    if (!primary.tituloOriginal && inheritedOriginalTitle) {
+      primaryUpdates.tituloOriginal = inheritedOriginalTitle;
+    }
+    if (Object.keys(primaryUpdates).length > 0) {
+      await Pelicula.updateOne(
+        { _id: primary._id },
+        { $set: primaryUpdates },
+      );
     }
   }
 
@@ -243,7 +258,12 @@ export async function syncTmdbCatalog(uri: string, dbName: string) {
     let actualizadas = 0;
 
     for (const pelicula of peliculas) {
-      const tmdb = await fetchTmdbMovieMetadata(pelicula.titulo);
+      const primarySource = pelicula.fuentes?.[0];
+      const tmdb = await fetchTmdbMovieMetadata(pelicula.titulo, {
+        tituloOriginal: pelicula.tituloOriginal,
+        duracion: pelicula.duracion,
+        origenId: pelicula.origenId ?? primarySource?.origenId,
+      });
       if (!tmdb) continue;
 
       pelicula.tmdbId = tmdb.tmdbId;
@@ -316,16 +336,25 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
         const candidates = catalog.filter((item) => areSameCatalogMovie(item, movie));
         if (candidates.length >= 1) existing = candidates[0]!;
       }
+      const rawTituloOriginal = movie.tituloOriginal ?? existing?.tituloOriginal;
+      const tmdbOptions = {
+        tituloOriginal: rawTituloOriginal,
+        duracion: movie.duracion,
+        origenId: movie.origenId,
+      };
       let tmdb: TmdbEnrichment | null = null;
       if (!existing && process.env.TMDB_API_KEY) {
-        tmdb = await fetchTmdbMovieMetadata(movie.titulo);
+        tmdb = await fetchTmdbMovieMetadata(movie.titulo, tmdbOptions);
         if (tmdb?.tmdbId) {
           const byTmdb = catalog.find((item) => item.tmdbId === tmdb.tmdbId);
           if (byTmdb) existing = byTmdb;
         }
       }
       const primary = !existing || (existing.origen === origin && existing.origenId === movie.origenId);
-      let enrichedMovie: typeof movie & { banner?: string; tmdbId?: number } = { ...movie };
+      let enrichedMovie: typeof movie & { banner?: string; tmdbId?: number } = {
+        ...movie,
+        ...(rawTituloOriginal ? { tituloOriginal: rawTituloOriginal } : {}),
+      };
       if (primary) {
         const hasExistingTmdb = Boolean(existing?.tmdbId || existing?.banner?.includes("image.tmdb.org") || existing?.poster?.includes("image.tmdb.org"));
         if (hasExistingTmdb && existing) {
@@ -337,7 +366,7 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
             ...(existing.tmdbId ? { tmdbId: existing.tmdbId } : {}),
           };
         } else if (process.env.TMDB_API_KEY) {
-          if (!tmdb) tmdb = await fetchTmdbMovieMetadata(movie.titulo);
+          if (!tmdb) tmdb = await fetchTmdbMovieMetadata(movie.titulo, tmdbOptions);
           if (tmdb) {
             enrichedMovie = {
               ...enrichedMovie,

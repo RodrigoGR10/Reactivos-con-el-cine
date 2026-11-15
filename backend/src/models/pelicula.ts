@@ -28,6 +28,7 @@ if (url && mongoose.connection.readyState === 0) {
 
 export interface Pelicula {
   titulo: string;
+  tituloOriginal?: string;
   duracion: number;
   genero: string;
   clasificacion: string;
@@ -52,6 +53,7 @@ const fuenteSchema = new Schema({
 const peliculaSchema = new mongoose.Schema<Pelicula>(
   {
     titulo: { type: String, required: true },
+    tituloOriginal: { type: String },
     duracion: { type: Number, required: true },
     genero: { type: String, required: true, set: normalizarGeneros },
     clasificacion: { type: String, required: true, set: normalizarClasificacion },
