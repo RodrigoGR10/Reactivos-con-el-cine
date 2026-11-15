@@ -1,5 +1,6 @@
 .carrusel-destacadas {
     --destacadas-altura: clamp(520px, 38vw, 760px);
+    --sinopsis-lineas-max: 5;
     width: 100%;
     min-width: 0;
     touch-action: pan-y pinch-zoom;
@@ -143,6 +144,8 @@
 .carrusel-destacadas .metadatos-destacada .destacada-clasificacion { display: inline-flex; padding: 3px 8px; border: 1px solid #a1a1aa80; border-radius: 4px; color: #fff; font-size: clamp(0.84rem, 0.92vw, 1.15rem); font-weight: 600; line-height: 1.25; }
 .carrusel-destacadas .sinopsis-destacada {
     display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     flex: 0 1 auto;
     min-height: 0;
     max-width: clamp(630px, 44vw, 950px);
@@ -150,8 +153,12 @@
     color: #bcbcc2;
     font-size: clamp(1.04rem, 1.15vw, 1.5rem);
     line-height: 1.65;
-    -webkit-line-clamp: 5;
-    line-clamp: 5;
+    -webkit-line-clamp: var(--sinopsis-lineas, var(--sinopsis-lineas-max));
+    line-clamp: var(--sinopsis-lineas, var(--sinopsis-lineas-max));
+}
+
+.carrusel-destacadas .sinopsis-destacada[data-sinopsis-oculta="true"] {
+    display: none;
 }
 .carrusel-destacadas .acciones-destacada {
     display: flex;
@@ -320,6 +327,13 @@
 .carrusel-destacadas a:focus-visible { outline: 2px solid var(--color-acento); outline-offset: 3px; }
 
 @media (min-width: 769px) {
+    .carrusel-destacadas .destacadas-ventana,
+    .carrusel-destacadas .destacadas-contenido,
+    .carrusel-destacadas .destacadas-escena,
+    .carrusel-destacadas .pelicula-destacada {
+        height: var(--destacadas-altura);
+    }
+
     .carrusel-destacadas .pelicula-destacada {
         align-items: center;
     }
@@ -395,13 +409,12 @@
 }
 
 @media (min-width: 769px) and (max-height: 700px) {
-    .carrusel-destacadas { --destacadas-altura: clamp(460px, calc(100svh - 90px), 560px); }
+    .carrusel-destacadas { --destacadas-altura: clamp(460px, calc(100svh - 90px), 560px); --sinopsis-lineas-max: 2; }
     .carrusel-destacadas .contenido-destacada { padding-block: 24px; }
     .carrusel-destacadas .contenido-destacada h1 { font-size: clamp(2.6rem, 5.2vw, 4.2rem); }
     .carrusel-destacadas .contenido-destacada h1.destacada-titulo-largo { font-size: 40px; }
     .carrusel-destacadas .contenido-destacada h1.destacada-titulo-extenso { font-size: 32px; }
     .carrusel-destacadas .subtitulo-destacada { -webkit-line-clamp: 1; line-clamp: 1; }
-    .carrusel-destacadas .sinopsis-destacada { -webkit-line-clamp: 2; line-clamp: 2; }
 }
 
 @media (max-width: 768px) and (max-height: 700px) {
