@@ -6,6 +6,7 @@ import {
   EXPIRACION_DETALLE_MS,
   claveDetalle,
   obtenerCacheMenorACincoMinutos,
+  parsearTimestamp,
   prepararHorarioParaTarjeta,
   resolverEstadoGrupo,
   sanitizarDetalleHorario,
@@ -16,7 +17,6 @@ import {
 } from "../utils/detalleFunciones";
 
 const DELAY_CACHE_VISUAL_MS = 200;
-const INTERVALO_RELOJ_MS = 30_000;
 
 export { claveDetalle, type DetalleHorario, type EstadoDetalleGrupo };
 
@@ -62,36 +62,48 @@ export function useDetalleFunciones() {
     };
   }, []);
 
-  // Mantiene actualizado el tiempo relativo y dispara transiciones exactas de 5 min y 60 min.
+  // Dispara solo las transiciones exactas de cooldown (5 min) y expiracion (60 min).
   useEffect(() => {
     const vigentes = Object.values(consultas).filter(
       (c) => ahora - c.consultadoEn < EXPIRACION_DETALLE_MS,
     );
     if (!vigentes.length) return;
 
-    const intervalo = setInterval(() => setAhora(Date.now()), INTERVALO_RELOJ_MS);
-
-    let proximoHitoMs = Infinity;
+    let proximoHitoTs = Infinity;
     for (const c of vigentes) {
-      const transcurrido = Math.max(0, ahora - c.consultadoEn);
-      const siguienteMinuto = (Math.floor(transcurrido / 60_000) + 1) * 60_000 - transcurrido;
-      const hastaCooldown = COOLDOWN_DETALLE_MS - transcurrido;
-      const hastaExpiracion = EXPIRACION_DETALLE_MS - transcurrido;
-
-      proximoHitoMs = Math.min(proximoHitoMs, siguienteMinuto);
-      if (hastaCooldown > 0) proximoHitoMs = Math.min(proximoHitoMs, hastaCooldown);
-      if (hastaExpiracion > 0) proximoHitoMs = Math.min(proximoHitoMs, hastaExpiracion);
+      const cooldownTs = c.consultadoEn + COOLDOWN_DETALLE_MS;
+      const expiracionTs = c.consultadoEn + EXPIRACION_DETALLE_MS;
+      if (cooldownTs > ahora) proximoHitoTs = Math.min(proximoHitoTs, cooldownTs);
+      if (expiracionTs > ahora) proximoHitoTs = Math.min(proximoHitoTs, expiracionTs);
     }
 
-    const timeout = Number.isFinite(proximoHitoMs)
-      ? setTimeout(() => setAhora(Date.now()), Math.max(50, proximoHitoMs + 25))
-      : undefined;
+    for (const detalle of Object.values(porHorario)) {
+      for (const iso of [detalle.preciosConsultadosEn, detalle.butacas?.consultadasEn]) {
+        const ts = parsearTimestamp(iso);
+        if (ts === null) continue;
+        const expiracionTs = ts + EXPIRACION_DETALLE_MS;
+        if (expiracionTs > ahora) proximoHitoTs = Math.min(proximoHitoTs, expiracionTs);
+      }
+    }
+
+    if (!Number.isFinite(proximoHitoTs)) return;
+
+    const timeout = setTimeout(
+      () => setAhora(Date.now()),
+      Math.max(50, proximoHitoTs - Date.now() + 25),
+    );
+    const alCambiarVisibilidad = () => {
+      if (document.visibilityState === "visible" && Date.now() >= proximoHitoTs) {
+        setAhora(Date.now());
+      }
+    };
+    document.addEventListener("visibilitychange", alCambiarVisibilidad);
 
     return () => {
-      clearInterval(intervalo);
-      if (timeout !== undefined) clearTimeout(timeout);
+      clearTimeout(timeout);
+      document.removeEventListener("visibilitychange", alCambiarVisibilidad);
     };
-  }, [consultas, ahora]);
+  }, [consultas, porHorario, ahora]);
 
   const consultar = useCallback(
     async (peliculaId: string, cineId: string, fecha: string, horariosGrupo: Horario[] = []) => {

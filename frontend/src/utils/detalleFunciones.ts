@@ -28,7 +28,7 @@ export interface EstadoDetalleGrupo {
   cargando: boolean;
   revelado: boolean;
   enCooldown: boolean;
-  tiempoRelativo: string | null;
+  consultadoEn: number | null;
   avisoError: string | null;
 }
 
@@ -188,8 +188,7 @@ export function resolverEstadoGrupo(
     cargando,
     revelado,
     enCooldown,
-    tiempoRelativo:
-      revelado && consulta ? formatearTiempoRelativo(consulta.consultadoEn, ahora) : null,
+    consultadoEn: revelado && consulta ? consulta.consultadoEn : null,
     avisoError,
   };
 }

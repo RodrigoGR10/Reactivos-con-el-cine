@@ -413,7 +413,7 @@ function CinemaDetailPage() {
                       <BotonDetalleFunciones
                         cargando={estadoDetalle.cargando}
                         enCooldown={estadoDetalle.enCooldown}
-                        tiempoRelativo={estadoDetalle.tiempoRelativo}
+                        consultadoEn={estadoDetalle.consultadoEn}
                         avisoError={estadoDetalle.avisoError}
                         contexto={pelicula.titulo}
                         onConsultar={() =>
