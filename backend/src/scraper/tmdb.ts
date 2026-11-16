@@ -77,6 +77,10 @@ export interface TmdbEnrichment {
   poster?: string;
   banner?: string;
   sinopsis?: string;
+  calificacionTmdb?: number;
+  votosTmdb?: number;
+  popularidadTmdb?: number;
+  fechaEstrenoTmdb?: string;
 }
 
 export interface TmdbSearchOptions {
@@ -103,6 +107,8 @@ interface TmdbMovieResult {
   backdrop_path: string | null;
   release_date?: string;
   popularity?: number;
+  vote_average?: number;
+  vote_count?: number;
 }
 
 interface TmdbMovieDetail {
@@ -112,6 +118,10 @@ interface TmdbMovieDetail {
   poster_path?: string | null;
   backdrop_path?: string | null;
   runtime?: number | null;
+  release_date?: string;
+  popularity?: number;
+  vote_average?: number;
+  vote_count?: number;
 }
 
 interface TmdbSearchResponse {
@@ -644,6 +654,24 @@ function resolveMetadataArgs(
   };
 }
 
+function numeroNoNegativo(valor: unknown): number | undefined {
+  return typeof valor === "number" && Number.isFinite(valor) && valor >= 0
+    ? valor
+    : undefined;
+}
+
+function enteroNoNegativo(valor: unknown): number | undefined {
+  return typeof valor === "number" && Number.isFinite(valor) && valor >= 0
+    ? Math.round(valor)
+    : undefined;
+}
+
+function fechaIsoValida(valor: unknown): string | undefined {
+  if (typeof valor !== "string") return undefined;
+  const limpia = valor.trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(limpia) ? limpia : undefined;
+}
+
 export async function fetchTmdbMovieMetadata(
   titulo: string,
   apiKeyOrOptions?: string | TmdbSearchOptions,
@@ -781,6 +809,22 @@ export async function fetchTmdbMovieMetadata(
 
   const posterPath = winner.detail?.poster_path ?? winner.item.poster_path;
   const backdropPath = winner.detail?.backdrop_path ?? winner.item.backdrop_path;
+  const calificacionRaw = numeroNoNegativo(
+    winner.detail?.vote_average ?? winner.item.vote_average,
+  );
+  const calificacionTmdb =
+    calificacionRaw !== undefined && calificacionRaw <= 10
+      ? calificacionRaw
+      : undefined;
+  const votosTmdb = enteroNoNegativo(
+    winner.detail?.vote_count ?? winner.item.vote_count,
+  );
+  const popularidadTmdb = numeroNoNegativo(
+    winner.detail?.popularity ?? winner.item.popularity,
+  );
+  const fechaEstrenoTmdb = fechaIsoValida(
+    winner.detail?.release_date ?? winner.item.release_date,
+  );
 
   return {
     tmdbId: winner.item.id,
@@ -789,5 +833,9 @@ export async function fetchTmdbMovieMetadata(
       ? `${TMDB_IMAGE_BASE}/original${backdropPath}`
       : undefined,
     sinopsis,
+    calificacionTmdb,
+    votosTmdb,
+    popularidadTmdb,
+    fechaEstrenoTmdb,
   };
 }

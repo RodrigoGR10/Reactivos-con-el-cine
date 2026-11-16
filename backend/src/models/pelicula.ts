@@ -36,6 +36,10 @@ export interface Pelicula {
   poster: string;
   banner?: string;
   tmdbId?: number;
+  calificacionTmdb?: number;
+  votosTmdb?: number;
+  popularidadTmdb?: number;
+  fechaEstrenoTmdb?: string;
   url?: string;
   origen?: string;
   origenId?: string;
@@ -61,6 +65,10 @@ const peliculaSchema = new mongoose.Schema<Pelicula>(
     poster: { type: String, required: true },
     banner: { type: String },
     tmdbId: { type: Number },
+    calificacionTmdb: { type: Number, min: 0, max: 10 },
+    votosTmdb: { type: Number, min: 0 },
+    popularidadTmdb: { type: Number, min: 0 },
+    fechaEstrenoTmdb: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
     url: { type: String },
     origen: { type: String },
     origenId: { type: String },

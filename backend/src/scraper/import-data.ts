@@ -13,6 +13,23 @@ import { areSameCatalogMovie, fetchTmdbMovieMetadata } from "./tmdb.ts";
 import type { TmdbEnrichment } from "./tmdb.ts";
 import { ESTADOS_ESTRENO } from "../utils/estreno.ts";
 
+interface CamposTmdbPelicula {
+  calificacionTmdb?: number;
+  votosTmdb?: number;
+  popularidadTmdb?: number;
+  fechaEstrenoTmdb?: string;
+}
+
+function recogerCamposTmdb(fuente?: CamposTmdbPelicula | null): CamposTmdbPelicula {
+  if (!fuente) return {};
+  return {
+    ...(fuente.calificacionTmdb !== undefined ? { calificacionTmdb: fuente.calificacionTmdb } : {}),
+    ...(fuente.votosTmdb !== undefined ? { votosTmdb: fuente.votosTmdb } : {}),
+    ...(fuente.popularidadTmdb !== undefined ? { popularidadTmdb: fuente.popularidadTmdb } : {}),
+    ...(fuente.fechaEstrenoTmdb !== undefined ? { fechaEstrenoTmdb: fuente.fechaEstrenoTmdb } : {}),
+  };
+}
+
 export function validateResult(value: unknown, allowPartial = false): asserts value is ScrapeResult {
   if (!value || typeof value !== "object") throw new Error("JSON de cartelera invalido.");
   const result = value as ScrapeResult;
@@ -177,11 +194,22 @@ async function mergeDuplicateMovies({
     const primary = group.find((item) => item.origen === "cinemark") ?? group[0]!;
     const duplicates = group.filter((item) => !item._id.equals(primary._id));
     let inheritedOriginalTitle = primary.tituloOriginal;
+    const inheritedTmdbCampos: CamposTmdbPelicula & { tmdbId?: number } = {
+      ...(primary.tmdbId !== undefined ? { tmdbId: primary.tmdbId } : {}),
+      ...recogerCamposTmdb(primary),
+    };
 
     for (const duplicate of duplicates) {
       if (!inheritedOriginalTitle && duplicate.tituloOriginal) {
         inheritedOriginalTitle = duplicate.tituloOriginal;
       }
+      if (inheritedTmdbCampos.tmdbId === undefined && duplicate.tmdbId !== undefined) {
+        inheritedTmdbCampos.tmdbId = duplicate.tmdbId;
+      }
+      Object.assign(inheritedTmdbCampos, {
+        ...recogerCamposTmdb(duplicate),
+        ...recogerCamposTmdb(inheritedTmdbCampos),
+      });
 
       await Horario.updateMany(
         { peliculaId: duplicate._id },
@@ -240,6 +268,14 @@ async function mergeDuplicateMovies({
     if (!primary.tituloOriginal && inheritedOriginalTitle) {
       primaryUpdates.tituloOriginal = inheritedOriginalTitle;
     }
+    if (primary.tmdbId === undefined && inheritedTmdbCampos.tmdbId !== undefined) {
+      primaryUpdates.tmdbId = inheritedTmdbCampos.tmdbId;
+    }
+    for (const [clave, valor] of Object.entries(recogerCamposTmdb(inheritedTmdbCampos))) {
+      if (primary[clave as keyof CamposTmdbPelicula] === undefined && valor !== undefined) {
+        primaryUpdates[clave] = valor;
+      }
+    }
     if (Object.keys(primaryUpdates).length > 0) {
       await Pelicula.updateOne(
         { _id: primary._id },
@@ -270,6 +306,7 @@ export async function syncTmdbCatalog(uri: string, dbName: string) {
       if (tmdb.poster) pelicula.poster = tmdb.poster;
       if (tmdb.banner) pelicula.banner = tmdb.banner;
       if (tmdb.sinopsis) pelicula.sinopsis = tmdb.sinopsis;
+      Object.assign(pelicula, recogerCamposTmdb(tmdb));
 
       await pelicula.save();
       actualizadas++;
@@ -351,7 +388,7 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
         }
       }
       const primary = !existing || (existing.origen === origin && existing.origenId === movie.origenId);
-      let enrichedMovie: typeof movie & { banner?: string; tmdbId?: number } = {
+      let enrichedMovie: typeof movie & { banner?: string; tmdbId?: number } & CamposTmdbPelicula = {
         ...movie,
         ...(rawTituloOriginal ? { tituloOriginal: rawTituloOriginal } : {}),
       };
@@ -364,6 +401,7 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
             banner: existing.banner || enrichedMovie.banner,
             sinopsis: existing.sinopsis || enrichedMovie.sinopsis,
             ...(existing.tmdbId ? { tmdbId: existing.tmdbId } : {}),
+            ...recogerCamposTmdb(existing),
           };
         } else if (process.env.TMDB_API_KEY) {
           if (!tmdb) tmdb = await fetchTmdbMovieMetadata(movie.titulo, tmdbOptions);
@@ -374,6 +412,7 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
               ...(tmdb.poster ? { poster: tmdb.poster } : {}),
               ...(tmdb.banner ? { banner: tmdb.banner } : {}),
               ...(tmdb.sinopsis ? { sinopsis: tmdb.sinopsis } : {}),
+              ...recogerCamposTmdb(tmdb),
             };
           }
         }
