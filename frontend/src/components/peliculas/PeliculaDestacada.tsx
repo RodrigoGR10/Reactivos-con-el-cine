@@ -4,8 +4,13 @@ import type { Pelicula } from "../../types/types.ts";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
+import { CalendarIcon } from "../common/Icons.tsx";
 import { totalFavoritos, type CategoriaDestacada } from "../../utils/seleccionarDestacadas.ts";
-import { resumirSinopsisDestacada, separarTituloDestacado } from "../../utils/formatearPeliculaDestacada.ts";
+import {
+  formatearFechaEstrenoCorta,
+  resumirSinopsisDestacada,
+  separarTituloDestacado,
+} from "../../utils/formatearPeliculaDestacada.ts";
 
 const SINOPSIS_LINEAS_POR_DEFECTO = 5;
 const FACTOR_INTERLINEADO_SINOPSIS = 1.65;
@@ -22,7 +27,7 @@ function calcularLineasSinopsis(
   peliculaEl: HTMLElement,
   contenidoEl: HTMLElement,
   sinopsisEl: HTMLElement,
-): number {
+): { lineas: number; alturaLinea: number } {
   const estiloContenido = window.getComputedStyle(contenidoEl);
   const paddingVertical =
     (parseFloat(estiloContenido.paddingTop) || 0) +
@@ -53,16 +58,69 @@ function calcularLineasSinopsis(
   const espacioDisponible =
     peliculaEl.clientHeight - paddingVertical - alturaOtrosElementos - margenSinopsis;
   const lineasDisponibles = Math.floor((espacioDisponible + 1) / alturaLinea);
-  return Math.max(0, Math.min(maxLineasCss, lineasDisponibles));
+  return {
+    lineas: Math.max(0, Math.min(maxLineasCss, lineasDisponibles)),
+    alturaLinea,
+  };
+}
+
+function formatearPrefijoPalabras(palabras: readonly string[], cantidad: number): string {
+  const base = palabras
+    .slice(0, cantidad)
+    .join(" ")
+    .replace(/[.,;:!?¿¡—–-]+$/, "");
+  return `${base}...`;
+}
+
+function ajustarTextoSinopsisPorPalabras(
+  sinopsisEl: HTMLElement,
+  textoCompleto: string,
+  lineas: number,
+  alturaLinea: number,
+): void {
+  sinopsisEl.dataset.sinopsisMidiendo = "true";
+  sinopsisEl.textContent = textoCompleto;
+
+  const alturaMax = lineas * alturaLinea + Math.max(2, alturaLinea * 0.25);
+  if (sinopsisEl.getBoundingClientRect().height <= alturaMax) {
+    delete sinopsisEl.dataset.sinopsisMidiendo;
+    return;
+  }
+
+  const palabras = textoCompleto.trim().split(/\s+/).filter(Boolean);
+  let lo = 1;
+  let hi = palabras.length - 1;
+  let mejor = 0;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    sinopsisEl.textContent = formatearPrefijoPalabras(palabras, mid);
+    if (sinopsisEl.getBoundingClientRect().height <= alturaMax) {
+      mejor = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+
+  sinopsisEl.textContent =
+    mejor > 0 ? formatearPrefijoPalabras(palabras, mejor) : textoCompleto;
+  delete sinopsisEl.dataset.sinopsisMidiendo;
 }
 
 interface PeliculaDestacadaProps {
   pelicula: Pelicula;
   etiqueta?: string;
+  fechaEtiqueta?: string;
   categoria?: CategoriaDestacada;
 }
 
-function PeliculaDestacada({ pelicula, etiqueta, categoria }: PeliculaDestacadaProps) {
+function PeliculaDestacada({
+  pelicula,
+  etiqueta,
+  fechaEtiqueta,
+  categoria,
+}: PeliculaDestacadaProps) {
   const { user, openAuthModal } = useAuth();
   const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
   const tituloId = useId();
@@ -108,17 +166,26 @@ function PeliculaDestacada({ pelicula, etiqueta, categoria }: PeliculaDestacadaP
     if (!esDesktop || !peliculaEl || !contenidoEl) {
       sinopsisEl.style.removeProperty("--sinopsis-lineas");
       delete sinopsisEl.dataset.sinopsisOculta;
+      delete sinopsisEl.dataset.sinopsisMidiendo;
+      sinopsisEl.textContent = sinopsis;
       return;
     }
 
     const actualizarRecorte = () => {
-      const lineas = calcularLineasSinopsis(peliculaEl, contenidoEl, sinopsisEl);
+      const { lineas, alturaLinea } = calcularLineasSinopsis(
+        peliculaEl,
+        contenidoEl,
+        sinopsisEl,
+      );
       sinopsisEl.style.setProperty("--sinopsis-lineas", String(lineas));
       if (lineas === 0) {
         sinopsisEl.dataset.sinopsisOculta = "true";
-      } else {
-        delete sinopsisEl.dataset.sinopsisOculta;
+        delete sinopsisEl.dataset.sinopsisMidiendo;
+        sinopsisEl.textContent = sinopsis;
+        return;
       }
+      delete sinopsisEl.dataset.sinopsisOculta;
+      ajustarTextoSinopsisPorPalabras(sinopsisEl, sinopsis, lineas, alturaLinea);
     };
 
     actualizarRecorte();
@@ -138,7 +205,7 @@ function PeliculaDestacada({ pelicula, etiqueta, categoria }: PeliculaDestacadaP
       desmontado = true;
       observador.disconnect();
     };
-  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, total, etiquetaMostrada]);
+  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, total, etiquetaMostrada, fechaEtiqueta]);
 
   return (
     <section
@@ -156,6 +223,14 @@ function PeliculaDestacada({ pelicula, etiqueta, categoria }: PeliculaDestacadaP
       <div ref={contenidoRef} className="contenido-destacada">
         <div className="destacada-popularidad">
           <p className="etiqueta-destacada">{etiquetaMostrada}</p>
+          {fechaEtiqueta && (
+            <span className="etiqueta-fecha-destacada">
+              <CalendarIcon size={14} className="icono-fecha-destacada" />
+              <time dateTime={fechaEtiqueta}>
+                {formatearFechaEstrenoCorta(fechaEtiqueta)}
+              </time>
+            </span>
+          )}
           {!esDesktop && contadorFavoritos}
         </div>
         <h1 id={tituloId} title={tituloPrincipal} className={tituloPrincipal.length > 70 ? "destacada-titulo-largo destacada-titulo-extenso" : tituloPrincipal.length > 45 ? "destacada-titulo-largo" : ""}>{tituloPrincipal}</h1>
@@ -174,7 +249,7 @@ function PeliculaDestacada({ pelicula, etiqueta, categoria }: PeliculaDestacadaP
             ))}
           </p>
         )}
-        {sinopsis && <p ref={sinopsisRef} className="sinopsis-destacada">{sinopsis}</p>}
+        {sinopsis && <p ref={sinopsisRef} className="sinopsis-destacada" />}
         <div className="acciones-destacada">
           <Link to={`/peliculas/${pelicula.id}`} className="boton-horarios">Ver horarios</Link>
           <button

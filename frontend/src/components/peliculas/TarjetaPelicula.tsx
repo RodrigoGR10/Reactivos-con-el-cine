@@ -4,49 +4,7 @@ import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { BotonFavorito } from "../common/BotonFavorito.tsx";
 import { CalendarIcon } from "../common/Icons.tsx";
-
-interface TemporalGlobal {
-  Temporal?: {
-    PlainDate: {
-      from: (valor: string) => {
-        toLocaleString: (
-          locale: string,
-          opciones: Intl.DateTimeFormatOptions,
-        ) => string;
-      };
-    };
-  };
-}
-
-/** Formatea una fecha calendario ISO (YYYY-MM-DD) como día y mes completo sin desfase horario. */
-function formatearFechaEstreno(fechaEstreno: string): string {
-  const temporal = (globalThis as TemporalGlobal).Temporal;
-  if (temporal) {
-    try {
-      return temporal.PlainDate.from(fechaEstreno).toLocaleString("es-CL", {
-        day: "numeric",
-        month: "long",
-      });
-    } catch {
-      // Si la cadena no cumple ISO estricto, se intenta el respaldo con Date.UTC.
-    }
-  }
-
-  const coincidencia = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fechaEstreno);
-  if (!coincidencia) return fechaEstreno;
-
-  const [, anio, mes, dia] = coincidencia;
-  const fechaUtc = new Date(
-    Date.UTC(Number(anio), Number(mes) - 1, Number(dia)),
-  );
-  if (Number.isNaN(fechaUtc.getTime())) return fechaEstreno;
-
-  return new Intl.DateTimeFormat("es-CL", {
-    day: "numeric",
-    month: "long",
-    timeZone: "UTC",
-  }).format(fechaUtc);
-}
+import { formatearFechaEstrenoCorta } from "../../utils/formatearPeliculaDestacada.ts";
 
 interface TarjetaPeliculaProps {
   pelicula: Pelicula;
@@ -92,7 +50,7 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
                 <span className="texto-preventa">
                   <span className="visualmente-oculto">Estreno: </span>
                   <time dateTime={pelicula.fechaEstreno}>
-                    {formatearFechaEstreno(pelicula.fechaEstreno)}
+                    {formatearFechaEstrenoCorta(pelicula.fechaEstreno)}
                   </time>
                 </span>
               </>

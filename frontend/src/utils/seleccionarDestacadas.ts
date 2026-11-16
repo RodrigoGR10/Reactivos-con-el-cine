@@ -1,4 +1,5 @@
 import type { Pelicula } from "../types/types.ts";
+import { normalizarTexto } from "./normalizarTexto.ts";
 
 export const LIMITE_DESTACADAS = 6;
 
@@ -26,6 +27,7 @@ export interface PeliculaDestacadaSeleccionada {
   pelicula: Pelicula;
   categoria: CategoriaDestacada;
   etiqueta: string;
+  fechaEtiqueta?: string;
   rangoCategoria?: number;
 }
 
@@ -72,8 +74,8 @@ export const CONFIG_CUPOS_DESTACADAS: readonly ReglaCupoCategoria[] = [
   {
     categoria: "en_mas_salas",
     min: 0,
-    max: 2,
-    pesoVariable: 1.8,
+    max: 1,
+    pesoVariable: 1.7,
     estrategia: "aleatoria",
     topAleatorio: 5,
   },
@@ -81,7 +83,7 @@ export const CONFIG_CUPOS_DESTACADAS: readonly ReglaCupoCategoria[] = [
     categoria: "reestrenos",
     min: 0,
     max: 1,
-    pesoVariable: 0.9,
+    pesoVariable: 1.6,
     estrategia: "aleatoria",
     topAleatorio: 6,
   },
@@ -92,7 +94,7 @@ const DIAS_ESTRENO_RECIENTE = 14;
 const DIAS_MAX_ESTRENO_ORIGINAL_PARA_NOVEDAD = 540;
 const DIAS_MIN_REESTRENO = 730;
 const MIN_FAVORITOS_PARA_DESTACAR = 1;
-const CINES_MIN_EN_MAS_SALAS = 15;
+const CINES_MIN_EN_MAS_SALAS = 5;
 const VOTOS_MIN_MEJOR_VALORADA = 100;
 const RATING_MIN_MEJOR_VALORADA = 7.2;
 const PRIOR_VOTOS_BAYESIANO = 200;
@@ -166,6 +168,31 @@ function esReestreno(pelicula: Pelicula, hoy: string): boolean {
   return antiguedadOriginal !== null && antiguedadOriginal > DIAS_MIN_REESTRENO;
 }
 
+const GENEROS_EVENTO_CONCIERTO = new Set([
+  "concierto",
+  "live viewing",
+  "concert",
+  "kpop",
+  "k-pop",
+]);
+
+export function esConcierto(pelicula: Pelicula): boolean {
+  const generos = normalizarTexto(pelicula.genero)
+    .split(/[,/;|]+/)
+    .map((g) => g.trim())
+    .filter(Boolean);
+  if (generos.some((g) => GENEROS_EVENTO_CONCIERTO.has(g))) {
+    return true;
+  }
+
+  const titulo = normalizarTexto(pelicula.titulo);
+  return (
+    /\b(?:live\s+viewing|world\s+tour|in\s+concert|concierto|cheering\s+party)\b/.test(
+      titulo,
+    ) || /:\s*.*\btour\b/.test(titulo)
+  );
+}
+
 function esCartelera(pelicula: Pelicula): boolean {
   return pelicula.estadoEstreno !== "preventa";
 }
@@ -199,7 +226,12 @@ function puntajeBayesiano(pelicula: Pelicula): number {
 function puntajeReestreno(pelicula: Pelicula): number {
   const votos = pelicula.votosTmdb ?? 0;
   const rating = pelicula.calificacionTmdb ?? 6;
-  return votos > 0 ? Math.log10(votos + 1) * rating : 0;
+  const popularidad = Math.min(pelicula.popularidadTmdb ?? 0, 40);
+  return (votos > 0 ? Math.log10(votos + 1) * rating : 0) + popularidad * 0.25;
+}
+
+function puntajeTendencia(pelicula: Pelicula): number {
+  return (pelicula.popularidadTmdb ?? 0) + (pelicula.totalCines ?? 0) * 3;
 }
 
 function puntajePreventa(pelicula: Pelicula): number {
@@ -210,15 +242,17 @@ function puntajePreventa(pelicula: Pelicula): number {
   );
 }
 
-function formatearFechaPreventa(fecha?: string): string {
-  const ms = parsearFechaUtcMs(fecha);
-  if (ms === null) return "Preventa destacada";
-  const textoFecha = new Intl.DateTimeFormat("es-CL", {
-    day: "numeric",
-    month: "long",
-    timeZone: "UTC",
-  }).format(new Date(ms));
-  return `Estreno: ${textoFecha}`;
+function fechaEtiquetaPara(
+  categoria: CategoriaDestacada,
+  pelicula: Pelicula,
+): string | undefined {
+  const usaFechaPreventa =
+    categoria === "preventas_esperadas" ||
+    (categoria === "destacada" && pelicula.estadoEstreno === "preventa");
+  if (!usaFechaPreventa) return undefined;
+  return parsearFechaUtcMs(pelicula.fechaEstreno) !== null
+    ? pelicula.fechaEstreno
+    : undefined;
 }
 
 type CategoriaPoolId = Exclude<CategoriaDestacada, "destacada">;
@@ -310,10 +344,14 @@ function obtenerPoolCategoria(
           (p) =>
             esCartelera(p) &&
             tieneBannerHero(p) &&
-            typeof p.totalCines === "number" &&
-            p.totalCines >= CINES_MIN_EN_MAS_SALAS,
+            (p.totalCines === undefined || p.totalCines >= CINES_MIN_EN_MAS_SALAS),
         )
-        .sort((a, b) => compararPresencia(a, b) || compararBase(a, b));
+        .sort(
+          (a, b) =>
+            puntajeTendencia(b) - puntajeTendencia(a) ||
+            compararPresencia(a, b) ||
+            compararBase(a, b),
+        );
 
     case "preventas_esperadas":
       return peliculas
@@ -361,14 +399,14 @@ function generarEtiqueta(
     case "en_mas_salas":
       return "Tendencia en cines";
     case "preventas_esperadas":
-      return formatearFechaPreventa(pelicula.fechaEstreno);
+      return "Estreno esperado";
     case "reestrenos":
       return pelicula.fechaEstrenoTmdb
-        ? `Reestreno · ${pelicula.fechaEstrenoTmdb.slice(0, 4)}`
-        : "Reestreno especial";
+        ? `Regresa a cines · ${pelicula.fechaEstrenoTmdb.slice(0, 4)}`
+        : "Regresa a cines";
     case "destacada":
       return pelicula.estadoEstreno === "preventa"
-        ? formatearFechaPreventa(pelicula.fechaEstreno)
+        ? "Estreno esperado"
         : "Destacada de la semana";
   }
 }
@@ -411,8 +449,11 @@ function elegirCandidata(
     regla.topAleatorio && regla.topAleatorio > 0
       ? Math.min(regla.topAleatorio, disponibles.length)
       : disponibles.length;
-  const indice = Math.floor(rollSeguro(rng) * tope);
-  return disponibles[indice]!;
+  const candidatasPonderadas = disponibles.slice(0, tope).map((pelicula, idx) => ({
+    pelicula,
+    pesoVariable: tope - idx,
+  }));
+  return elegirPonderada(candidatasPonderadas, rng).pelicula;
 }
 
 function mezclarCarrusel(
@@ -459,7 +500,10 @@ export function seleccionarDestacadasConCategoria(
 
   const unicas = new Map(
     peliculas
-      .filter((pelicula) => pelicula.estadoEstreno !== "proximamente")
+      .filter(
+        (pelicula) =>
+          pelicula.estadoEstreno !== "proximamente" && !esConcierto(pelicula),
+      )
       .map((pelicula) => [pelicula.id, pelicula]),
   );
   const catalogo = [...unicas.values()];
@@ -504,6 +548,7 @@ export function seleccionarDestacadasConCategoria(
         elegida,
         regla.categoria === "favoritas" ? infoFavoritas.empateEnTope : false,
       ),
+      fechaEtiqueta: fechaEtiquetaPara(regla.categoria, elegida),
       rangoCategoria,
     });
     return true;
@@ -554,6 +599,7 @@ export function seleccionarDestacadasConCategoria(
         pelicula,
         categoria: "destacada",
         etiqueta: generarEtiqueta("destacada", pelicula),
+        fechaEtiqueta: fechaEtiquetaPara("destacada", pelicula),
       });
     }
   }

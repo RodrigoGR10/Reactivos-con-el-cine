@@ -83,6 +83,22 @@
     text-transform: uppercase;
 }
 
+.etiqueta-fecha-destacada {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #e4e4e7;
+    font-size: clamp(0.78rem, 0.86vw, 1.08rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.icono-fecha-destacada {
+    color: var(--color-acento);
+    flex-shrink: 0;
+}
+
 .destacada-total-favoritos {
     display: inline-flex;
     align-items: center;
@@ -160,6 +176,12 @@
 
 .carrusel-destacadas .sinopsis-destacada[data-sinopsis-oculta="true"] {
     display: none;
+}
+
+.carrusel-destacadas .sinopsis-destacada[data-sinopsis-midiendo="true"] {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
 }
 .carrusel-destacadas .acciones-destacada {
     display: flex;
@@ -394,6 +416,7 @@
     .carrusel-destacadas .contenido-destacada { width: 100%; padding: 36px 20px 24px; }
     .destacada-popularidad { gap: 8px 12px; margin-bottom: 12px; }
     .carrusel-destacadas .etiqueta-destacada { font-size: 0.68rem; }
+    .etiqueta-fecha-destacada { gap: 5px; font-size: 0.68rem; }
     .carrusel-destacadas .destacada-total-favoritos { font-size: 0.75rem; }
     .carrusel-destacadas .contenido-destacada h1 { max-width: none; margin-bottom: 10px; font-size: clamp(2.1rem, 9.5vw, 3rem); line-height: 0.98; letter-spacing: -0.045em; -webkit-line-clamp: 4; line-clamp: 4; }
     .carrusel-destacadas .contenido-destacada h1.destacada-titulo-largo { font-size: 27px; letter-spacing: -0.03em; }

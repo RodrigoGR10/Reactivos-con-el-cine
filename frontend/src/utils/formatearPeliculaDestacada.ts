@@ -62,3 +62,46 @@ export function resumirSinopsisDestacada(
   const base = ultimoEspacio > 0 ? recorte.slice(0, ultimoEspacio) : recorte;
   return `${base.replace(/[.,;:\s]+$/, "")}...`;
 }
+
+interface TemporalGlobal {
+  Temporal?: {
+    PlainDate: {
+      from: (valor: string) => {
+        toLocaleString: (
+          locale: string,
+          opciones: Intl.DateTimeFormatOptions,
+        ) => string;
+      };
+    };
+  };
+}
+
+/** Formatea una fecha calendario ISO (YYYY-MM-DD) como día y mes completo sin desfase horario. */
+export function formatearFechaEstrenoCorta(fechaEstreno: string): string {
+  const temporal = (globalThis as TemporalGlobal).Temporal;
+  if (temporal) {
+    try {
+      return temporal.PlainDate.from(fechaEstreno).toLocaleString("es-CL", {
+        day: "numeric",
+        month: "long",
+      });
+    } catch {
+      // Si la cadena no cumple ISO estricto, se intenta el respaldo con Date.UTC.
+    }
+  }
+
+  const coincidencia = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fechaEstreno);
+  if (!coincidencia) return fechaEstreno;
+
+  const [, anio, mes, dia] = coincidencia;
+  const fechaUtc = new Date(
+    Date.UTC(Number(anio), Number(mes) - 1, Number(dia)),
+  );
+  if (Number.isNaN(fechaUtc.getTime())) return fechaEstreno;
+
+  return new Intl.DateTimeFormat("es-CL", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  }).format(fechaUtc);
+}
