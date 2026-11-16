@@ -10,6 +10,12 @@ export interface Pelicula {
   estadoEstreno?: "cartelera" | "preventa" | "proximamente";
   fechaEstreno?: string;
   totalFavoritos?: number;
+  totalCines?: number;
+  totalFunciones?: number;
+  calificacionTmdb?: number;
+  votosTmdb?: number;
+  popularidadTmdb?: number;
+  fechaEstrenoTmdb?: string;
 }
 
 export interface Cine {
