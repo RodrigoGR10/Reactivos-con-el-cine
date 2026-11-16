@@ -7,6 +7,7 @@ import { useFiltrosPeliculas } from "../hooks/useFiltrosPeliculas.ts";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar.ts";
 import { totalFavoritos } from "../utils/seleccionarDestacadas.ts";
 import type { Pelicula } from "../types/types.ts";
+import RecomendadorPeliculas from "../components/recomendador/RecomendadorPeliculas.tsx";
 
 function PaginaPrincipal() {
   const { peliculas, peliculasDestacadas, cargando, error } = usePeliculas();
@@ -43,6 +44,8 @@ function PaginaPrincipal() {
       {peliculasDestacadas.length > 0 && <CarruselDestacadas peliculas={peliculasDestacadas} />}
 
       <div className="contenido-principal">
+        <RecomendadorPeliculas />
+
         <FiltrosPeliculas
           busqueda={filtros.busqueda}
           onBusquedaChange={(valor) => cambiarFiltro("busqueda", valor)}
