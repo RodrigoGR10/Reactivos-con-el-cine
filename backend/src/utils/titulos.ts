@@ -29,6 +29,7 @@ export function claveParaConflictos(titulo: string): string {
 // ¿Dos películas locales sin TMDB parecen ser la misma? (deduplicación)
 export function claveParaDuplicados(titulo: string): string {
     const limpio = sinAcentosEnMayusculas(titulo)
+        .replace(/\b(?:LIVE\s+VIEWING|LIVE)\s*$/g, " ")
         .replace(
             /\b(4K|3D|2D|IMAX|XD|BONUS|REESTRENO|PRE-ESTRENO|INFINITY VISION)\b/g,
             " ",

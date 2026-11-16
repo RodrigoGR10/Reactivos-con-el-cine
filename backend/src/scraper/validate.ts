@@ -63,7 +63,10 @@ function validarRegistros(
             const pelicula = value as unknown as ScrapedMovie;
             if (
                 typeof pelicula.titulo !== "string" ||
-                typeof pelicula.duracion !== "number" ||
+                (pelicula.duracion !== null &&
+                    (typeof pelicula.duracion !== "number" ||
+                        !Number.isFinite(pelicula.duracion) ||
+                        pelicula.duracion < 30)) ||
                 typeof pelicula.genero !== "string"
             ) {
                 throw new Error(

@@ -36,15 +36,45 @@ export async function upsertMovie(
     if (existing.rows.length > 0) {
         const id = existing.rows[0].pelicula_id;
 
+        await client.query(`SELECT id FROM peliculas WHERE id = $1 FOR UPDATE;`, [id]);
+
+        const metadataOwner = await client.query<{
+            origen: string;
+            cantidad_fuentes: number;
+        }>(
+            `
+            SELECT origen, COUNT(*) OVER()::int AS cantidad_fuentes
+            FROM pelicula_fuentes
+            WHERE pelicula_id = $1
+            ORDER BY CASE LOWER(origen)
+                WHEN 'cinemark' THEN 0
+                WHEN 'cineplanet' THEN 1
+                WHEN 'muvix' THEN 2
+                WHEN 'cinestar' THEN 3
+                WHEN 'cinepolis' THEN 4
+                ELSE 5
+            END, origen_id
+            LIMIT 1;
+            `,
+            [id],
+        );
+        const puedeActualizarMetadatos =
+            metadataOwner.rows[0]?.origen === pelicula.origen;
+        const tieneFuentesFusionadas =
+            Number(metadataOwner.rows[0]?.cantidad_fuentes ?? 0) > 1;
+
         await client.query(
             `
             UPDATE peliculas
-            SET titulo = $2,
-                sinopsis = $3,
-                duracion = $4,
-                genero = $5,
-                clasificacion = $6,
-                imagen_url = $7
+            SET titulo = CASE WHEN $8::boolean AND tmdb_id IS NULL THEN $2 ELSE titulo END,
+                sinopsis = CASE WHEN $8::boolean THEN $3 ELSE sinopsis END,
+                duracion = CASE
+                    WHEN $8::boolean AND (NOT $9::boolean OR $4::int IS NOT NULL) THEN $4::int
+                    ELSE duracion
+                END,
+                genero = CASE WHEN $8::boolean THEN $5 ELSE genero END,
+                clasificacion = CASE WHEN $8::boolean THEN $6 ELSE clasificacion END,
+                imagen_url = CASE WHEN $8::boolean THEN $7 ELSE imagen_url END
             WHERE id = $1;
             `,
             [
@@ -55,6 +85,8 @@ export async function upsertMovie(
                 pelicula.genero,
                 pelicula.clasificacion,
                 pelicula.poster,
+                puedeActualizarMetadatos,
+                tieneFuentesFusionadas,
             ],
         );
 

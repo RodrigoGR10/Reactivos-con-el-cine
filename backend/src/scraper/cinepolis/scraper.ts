@@ -193,23 +193,35 @@ function sumarDias(fecha: string, dias: number): string {
   return new Date(Date.UTC(y, m - 1, d + dias)).toISOString().slice(0, 10);
 }
 
-/** Convierte duraciones como 135, "135 min", "2h 15m", "2:15" o "PT2H15M" a minutos. */
+/** Convierte duraciones comunes a minutos; rechaza valores menores de 30. */
 export function parseDuracion(raw: unknown): number | null {
-  if (typeof raw === "number") return Number.isInteger(raw) && raw > 0 ? raw : null;
+  if (typeof raw === "number") return Number.isInteger(raw) && raw >= 30 ? raw : null;
   if (typeof raw !== "string") return null;
   const s = raw.trim().toLowerCase();
 
   let m = s.match(/^(\d{1,2}):(\d{2})$/);
-  if (m) return Number(m[1]) * 60 + Number(m[2]);
+  if (m) {
+    const minutos = Number(m[1]) * 60 + Number(m[2]);
+    return minutos >= 30 ? minutos : null;
+  }
 
   m = s.match(/^pt(?:(\d+)h)?(?:(\d+)m)?$/);
-  if (m && (m[1] || m[2])) return Number(m[1] ?? 0) * 60 + Number(m[2] ?? 0);
+  if (m && (m[1] || m[2])) {
+    const minutos = Number(m[1] ?? 0) * 60 + Number(m[2] ?? 0);
+    return minutos >= 30 ? minutos : null;
+  }
 
   m = s.match(/^(\d+)\s*h\w*(?:\s*(\d+)\s*m\w*)?$/);
-  if (m) return Number(m[1]) * 60 + Number(m[2] ?? 0);
+  if (m) {
+    const minutos = Number(m[1]) * 60 + Number(m[2] ?? 0);
+    return minutos >= 30 ? minutos : null;
+  }
 
   m = s.match(/^(\d+)\s*(?:m|min|mins|minutos?)?$/);
-  if (m) return Number(m[1]);
+  if (m) {
+    const minutos = Number(m[1]);
+    return minutos >= 30 ? minutos : null;
+  }
 
   return null;
 }
@@ -313,7 +325,7 @@ function movieDesdeApi(raw: RawGqlMovie): CinepolisMovie {
     title: raw.name,
     originalTitle: raw.originalName || undefined,
     slug: raw.id,
-    runTime: duracion ?? 100,
+    runTime: duracion,
     genre: genero || "General",
     rating: normalizarClasificacion(raw.rating),
     ratingDescription: raw.ratingDescription || undefined,
@@ -329,7 +341,7 @@ function peliculaMinima(movieId: string): CinepolisMovie {
     id: movieId,
     title: movieId.replace(/-/g, " ").toUpperCase(),
     slug: movieId,
-    runTime: 100,
+    runTime: null,
     genre: "General",
     rating: "TE",
     synopsis: "Sin sinopsis disponible.",

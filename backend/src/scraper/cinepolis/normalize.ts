@@ -65,7 +65,7 @@ export function normalizeCinema(cinema: CinepolisCinema, extractedAt: string): C
 
 export function normalizeMovie(movie: CinepolisMovie, extractedAt: string): CinepolisMovieFull {
   const id = text(movie.id, "id de pelicula");
-  if (!Number.isInteger(movie.runTime) || movie.runTime <= 0) {
+  if (movie.runTime !== null && (!Number.isInteger(movie.runTime) || movie.runTime < 30)) {
     throw new Error(`Duración de Cinépolis inválida para ${movie.id}.`);
   }
   return {

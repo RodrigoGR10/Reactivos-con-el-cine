@@ -66,8 +66,10 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
           </Link>
         </h3>
         <p className="datos-pelicula">
-          {pelicula.genero} <span aria-hidden="true">•</span>{" "}
-          {pelicula.duracion} min
+          {pelicula.genero}
+          {pelicula.duracion !== null && (
+            <> <span aria-hidden="true">•</span> {pelicula.duracion} min</>
+          )}
         </p>
       </div>
     </article>

@@ -233,8 +233,12 @@ function MovieDetailPage() {
                         <span>{pelicula.clasificacion}</span>
                         <span aria-hidden="true">•</span>
                         <span>{pelicula.genero}</span>
-                        <span aria-hidden="true">•</span>
-                        <span>{pelicula.duracion} min</span>
+                        {pelicula.duracion !== null && (
+                            <>
+                                <span aria-hidden="true">•</span>
+                                <span>{pelicula.duracion} min</span>
+                            </>
+                        )}
                         <button
                             type="button"
                             className={`boton-fav-peli ${isFavoriteMovie(pelicula.id) ? "activo" : ""}`}
