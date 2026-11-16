@@ -4,7 +4,7 @@ import type { Pelicula } from "../../types/types.ts";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
-import { totalFavoritos } from "../../utils/seleccionarDestacadas.ts";
+import { totalFavoritos, type CategoriaDestacada } from "../../utils/seleccionarDestacadas.ts";
 import { resumirSinopsisDestacada, separarTituloDestacado } from "../../utils/formatearPeliculaDestacada.ts";
 
 const SINOPSIS_LINEAS_POR_DEFECTO = 5;
@@ -58,10 +58,11 @@ function calcularLineasSinopsis(
 
 interface PeliculaDestacadaProps {
   pelicula: Pelicula;
-  posicion: number;
+  etiqueta?: string;
+  categoria?: CategoriaDestacada;
 }
 
-function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
+function PeliculaDestacada({ pelicula, etiqueta, categoria }: PeliculaDestacadaProps) {
   const { user, openAuthModal } = useAuth();
   const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
   const tituloId = useId();
@@ -75,23 +76,14 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
   const total = totalFavoritos(pelicula);
   const { tituloPrincipal, subtitulo } = separarTituloDestacado(pelicula.titulo);
   const sinopsis = pelicula.sinopsis ? resumirSinopsisDestacada(pelicula.sinopsis) : "";
-
-  const formatearFechaEstreno = (fecha?: string) => {
-    if (!fecha) return "Preventa";
-    const date = new Date(`${fecha}T00:00:00Z`);
-    const textoFecha = new Intl.DateTimeFormat("es-CL", {
-      day: "numeric",
-      month: "long",
-      timeZone: "UTC",
-    }).format(date);
-    return `Estreno: ${textoFecha}`;
-  };
-
-  const etiqueta = total && total > 0
-    ? `N° ${posicion} en favoritos`
-    : pelicula.estadoEstreno === "preventa"
-      ? formatearFechaEstreno(pelicula.fechaEstreno)
-      : "Destacada de la semana";
+  const etiquetaMostrada = etiqueta || "Destacada de la semana";
+  const contadorFavoritos =
+    total !== undefined && total > 0 ? (
+      <span className="destacada-total-favoritos" aria-live="polite">
+        <span aria-hidden="true">♥</span>
+        {total.toLocaleString("es-CL")} {total === 1 ? "favorito" : "favoritos"}
+      </span>
+    ) : null;
 
   const metadatos = [
     pelicula.genero ? { clave: "genero", contenido: pelicula.genero, className: "destacada-genero" } : null,
@@ -146,10 +138,15 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
       desmontado = true;
       observador.disconnect();
     };
-  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, total]);
+  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, total, etiquetaMostrada]);
 
   return (
-    <section ref={peliculaRef} className={`pelicula-destacada${tieneBanner ? "" : " destacada-sin-banner"}`} aria-labelledby={tituloId}>
+    <section
+      ref={peliculaRef}
+      className={`pelicula-destacada${tieneBanner ? "" : " destacada-sin-banner"}`}
+      data-categoria-destacada={categoria}
+      aria-labelledby={tituloId}
+    >
       <div className="decoracion-destacada">
         <picture>
           <source media="(max-width: 768px)" srcSet={pelicula.poster} />
@@ -158,13 +155,8 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
       </div>
       <div ref={contenidoRef} className="contenido-destacada">
         <div className="destacada-popularidad">
-          <p className="etiqueta-destacada">{etiqueta}</p>
-          {total !== undefined && total > 0 && (
-            <span className="destacada-total-favoritos" aria-live="polite">
-              <span aria-hidden="true">♥</span>
-              {total.toLocaleString("es-CL")} {total === 1 ? "favorito" : "favoritos"}
-            </span>
-          )}
+          <p className="etiqueta-destacada">{etiquetaMostrada}</p>
+          {!esDesktop && contadorFavoritos}
         </div>
         <h1 id={tituloId} title={tituloPrincipal} className={tituloPrincipal.length > 70 ? "destacada-titulo-largo destacada-titulo-extenso" : tituloPrincipal.length > 45 ? "destacada-titulo-largo" : ""}>{tituloPrincipal}</h1>
         {subtitulo && <p className="subtitulo-destacada">{subtitulo}</p>}
@@ -196,6 +188,7 @@ function PeliculaDestacada({ pelicula, posicion }: PeliculaDestacadaProps) {
             <span className="corazon-destacada" aria-hidden="true">{esFavorita ? "♥" : "♡"}</span>
             <span>Mi lista</span>
           </button>
+          {esDesktop && contadorFavoritos}
         </div>
       </div>
     </section>

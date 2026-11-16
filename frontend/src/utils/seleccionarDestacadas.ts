@@ -1,6 +1,6 @@
 import type { Pelicula } from "../types/types.ts";
 
-export const LIMITE_DESTACADAS = 5;
+export const LIMITE_DESTACADAS = 6;
 
 export type CategoriaDestacada =
   | "favoritas"
@@ -48,16 +48,16 @@ export const CONFIG_CUPOS_DESTACADAS: readonly ReglaCupoCategoria[] = [
   {
     categoria: "estrenos_recientes",
     min: 1,
-    max: 2,
-    pesoVariable: 1.5,
+    max: 1,
+    pesoVariable: 0,
     estrategia: "aleatoria",
     topAleatorio: 6,
   },
   {
     categoria: "preventas_esperadas",
     min: 1,
-    max: 1,
-    pesoVariable: 0,
+    max: 2,
+    pesoVariable: 1.2,
     estrategia: "aleatoria",
     topAleatorio: 3,
   },
@@ -223,6 +223,38 @@ function formatearFechaPreventa(fecha?: string): string {
 
 type CategoriaPoolId = Exclude<CategoriaDestacada, "destacada">;
 
+function poolFavoritas(peliculas: readonly Pelicula[]): {
+  candidatas: Pelicula[];
+  empateEnTope: boolean;
+} {
+  const candidatas = peliculas
+    .filter(
+      (p) =>
+        esCartelera(p) &&
+        (totalFavoritos(p) ?? 0) >= MIN_FAVORITOS_PARA_DESTACAR,
+    )
+    .sort(
+      (a, b) =>
+        (totalFavoritos(b) ?? 0) - (totalFavoritos(a) ?? 0) ||
+        Number(tieneBannerHero(b)) - Number(tieneBannerHero(a)) ||
+        compararPresencia(a, b) ||
+        compararBase(a, b),
+    );
+
+  if (candidatas.length === 0) {
+    return { candidatas: [], empateEnTope: false };
+  }
+
+  const maxFavs = totalFavoritos(candidatas[0]!) ?? 0;
+  const enPrimerLugar = candidatas.filter(
+    (p) => (totalFavoritos(p) ?? 0) === maxFavs,
+  );
+  if (enPrimerLugar.length > 1) {
+    return { candidatas: enPrimerLugar, empateEnTope: true };
+  }
+  return { candidatas: [enPrimerLugar[0]!], empateEnTope: false };
+}
+
 function obtenerPoolCategoria(
   categoria: CategoriaPoolId,
   peliculas: readonly Pelicula[],
@@ -230,17 +262,7 @@ function obtenerPoolCategoria(
 ): Pelicula[] {
   switch (categoria) {
     case "favoritas":
-      return peliculas
-        .filter((p) => (totalFavoritos(p) ?? 0) >= MIN_FAVORITOS_PARA_DESTACAR)
-        .sort(
-          (a, b) =>
-            (totalFavoritos(b) ?? 0) - (totalFavoritos(a) ?? 0) ||
-            Number(a.estadoEstreno === "preventa") -
-              Number(b.estadoEstreno === "preventa") ||
-            Number(tieneBannerHero(b)) - Number(tieneBannerHero(a)) ||
-            compararPresencia(a, b) ||
-            compararBase(a, b),
-        );
+      return poolFavoritas(peliculas).candidatas;
 
     case "estrenos_recientes":
       return peliculas
@@ -325,16 +347,16 @@ function obtenerPoolCategoria(
 function generarEtiqueta(
   categoria: CategoriaDestacada,
   pelicula: Pelicula,
-  rangoCategoria?: number,
+  empateFavoritas = false,
 ): string {
   switch (categoria) {
     case "favoritas":
-      return `N° ${rangoCategoria ?? 1} en favoritos`;
+      return empateFavoritas ? "Top favoritos" : "N° 1 en favoritos";
     case "estrenos_recientes":
       return "Estreno reciente";
     case "mejor_valoradas":
       return typeof pelicula.calificacionTmdb === "number"
-        ? `Mejor valorada · ★ ${pelicula.calificacionTmdb.toFixed(1)}`
+        ? `Mejor valorada ★ ${pelicula.calificacionTmdb.toFixed(1)}`
         : "Mejor valorada";
     case "en_mas_salas":
       return "Tendencia en cines";
@@ -443,10 +465,13 @@ export function seleccionarDestacadasConCategoria(
   const catalogo = [...unicas.values()];
   if (catalogo.length === 0) return [];
 
+  const infoFavoritas = poolFavoritas(catalogo);
   const pools = new Map<CategoriaPoolId, Pelicula[]>(
     reglas.map((regla) => [
       regla.categoria,
-      obtenerPoolCategoria(regla.categoria, catalogo, hoy),
+      regla.categoria === "favoritas"
+        ? infoFavoritas.candidatas
+        : obtenerPoolCategoria(regla.categoria, catalogo, hoy),
     ]),
   );
 
@@ -461,7 +486,12 @@ export function seleccionarDestacadasConCategoria(
     const disponibles = pool.filter((p) => !usadas.has(p.id));
     if (disponibles.length === 0) return false;
 
-    const elegida = elegirCandidata(disponibles, regla, rng);
+    const reglaEfectiva: ReglaCupoCategoria =
+      regla.categoria === "favoritas" && infoFavoritas.empateEnTope
+        ? { ...regla, estrategia: "aleatoria", topAleatorio: pool.length }
+        : regla;
+
+    const elegida = elegirCandidata(disponibles, reglaEfectiva, rng);
     const rangoCategoria = pool.findIndex((p) => p.id === elegida.id) + 1;
 
     usadas.add(elegida.id);
@@ -469,7 +499,11 @@ export function seleccionarDestacadasConCategoria(
     seleccionadas.push({
       pelicula: elegida,
       categoria: regla.categoria,
-      etiqueta: generarEtiqueta(regla.categoria, elegida, rangoCategoria),
+      etiqueta: generarEtiqueta(
+        regla.categoria,
+        elegida,
+        regla.categoria === "favoritas" ? infoFavoritas.empateEnTope : false,
+      ),
       rangoCategoria,
     });
     return true;
