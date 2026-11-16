@@ -8,9 +8,11 @@ import { normalizeSessions } from "../scraper/cinemark/normalize.ts";
 import { localNow } from "../utils/localNow.ts";
 import { pricesForSchedule } from "../scraper/cineplanet/normalize.ts";
 import { pricesForSchedule as vistaPrices } from "../scraper/vista/normalize.ts";
+import { pricesForSchedule as cinepolisPrices } from "../scraper/cinepolis/prices.ts";
 import { ORIGENES } from "../scraper/types.ts";
 import type { RawPriceGroup, RawSession } from "../scraper/cinemark/types.ts";
 import type { ScrapedSession } from "../scraper/types.ts";
+import { butacasPublicas } from "./estadoButacas.ts";
 
 export const CACHE_PRECIOS_MS = 15 * 60_000;
 const RETRY_MS = 60_000;
@@ -40,8 +42,10 @@ export function horarioPublico(schedule: HorarioGuardado) {
     fecha: schedule.fecha, fechaCartelera: schedule.fechaCartelera,
     horario: schedule.horario, formatoResumen: schedule.formatoResumen, idioma: schedule.idioma, sala: schedule.sala,
     agotada: schedule.agotada, estadoPrecio,
+    ...butacasPublicas(schedule),
     preciosConsultadosEn: compatible ? schedule.preciosConsultadosEn?.toISOString() : undefined,
     reintentarEn: schedule.preciosErrorRevision === schedule.revision ? schedule.preciosErrorHasta?.toISOString() : undefined,
+    urlCompra: schedule.urlCompra ?? schedule.peliculaUrl,
     tarifas: tarifas.map((tarifa) => ({
       ...tarifa, peliculaId: schedule.peliculaId.toString(),
       cineId: schedule.cineId.toString(), agotada: schedule.agotada,
@@ -82,6 +86,11 @@ async function consultarHorario(schedule: HorarioGuardado, movieId: string, movi
           ...schedule, id: `${schedule.origen}:${schedule.origenId}`,
           peliculaId: `${schedule.origen}:${movieId}`, cineId: `${schedule.origen}:${cinemaId}`,
         });
+      } else if (schedule.origen === "cinepolis") {
+        tarifas = await cinepolisPrices({
+          ...schedule, id: `cinepolis:${schedule.origenId}`,
+          peliculaId: `cinepolis:${movieId}`, cineId: `cinepolis:${cinemaId}`,
+        });
       } else {
         await ensureCinemark();
         const prices = await cinemarkData<RawPriceGroup[]>("/get-prices", {
@@ -99,7 +108,10 @@ async function consultarHorario(schedule: HorarioGuardado, movieId: string, movi
       }
       await new HorarioModel({ ...schedule, tarifas }).validate();
       await HorarioModel.updateOne({ _id: schedule._id, revision: schedule.revision, consultaPreciosToken: token }, {
-        $set: { tarifas, preciosRevision: schedule.revision, preciosConsultadosEn: new Date() },
+        $set: {
+          tarifas, preciosRevision: schedule.revision, preciosConsultadosEn: new Date(),
+          ...(schedule.origen === "cinepolis" && tarifas[0] ? { urlCompra: tarifas[0].urlCompra } : {}),
+        },
         $unset: { preciosErrorHasta: 1, preciosErrorRevision: 1 },
       }, { runValidators: true });
     } catch (error) {

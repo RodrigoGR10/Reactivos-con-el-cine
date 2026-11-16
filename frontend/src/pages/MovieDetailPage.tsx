@@ -1,18 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
+import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
-import funcionService from "../services/funciones";
 import { Mensaje } from "../components/common/Mensaje";
+import { BotonFavorito } from "../components/common/BotonFavorito";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
+import { BotonDetalleFunciones } from "../components/funciones/BotonDetalleFunciones";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
-import { MapPinIcon, SearchIcon } from "../components/common/Icons";
+import {
+    BotonCercania,
+    ChipsFiltrosActivos,
+    SelectorMultiple,
+    SelectorUnico,
+    type ChipFiltroActivo,
+    type OpcionFiltro,
+} from "../components/common/SelectorMultiple";
+import { SelectorComunas } from "../components/cines/SelectorComunas";
+import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
+import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
+import { filtrarCines, obtenerCadena, obtenerComunas } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
+import {
+    useDetalleFunciones,
+    claveDetalle,
+} from "../hooks/useDetalleFunciones";
 import "./MovieDetailPage.css";
 
-import type { Cine, Horario } from "../types/types";
+import type { Cine } from "../types/types";
 
 
 function MovieDetailPage() {
@@ -23,12 +40,15 @@ function MovieDetailPage() {
         isFavoriteMovie,
         isFavoriteCinema,
     } = useFavorites();
+    const { cinesFavoritosAlEntrar } = useFavoritosAlEntrar();
     const { user, openAuthModal } = useAuth();
 
     const { ubicacion, estado, solicitar } = useUbicacion();
+    const [cercaniaActiva, setCercaniaActiva] = useState(false);
+    const ordenarPorCercania = cercaniaActiva && estado === "listo" && ubicacion !== null;
 
     const distanciaA = (cine: Cine) =>
-        ubicacion && cine.latitud != null && cine.longitud != null
+        ordenarPorCercania && ubicacion && cine.latitud != null && cine.longitud != null
             ? distanciaKM(
                   ubicacion.latitud,
                   ubicacion.longitud,
@@ -38,13 +58,61 @@ function MovieDetailPage() {
             : Infinity;
 
     const { pelicula, horarios, cines, error } = useDetallePelicula(id);
+    const detalle = useDetalleFunciones();
 
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
     const [fechaSeleccionada, setFechaSeleccionada] = useState("");
     const [busqueda, setBusqueda] = useState("");
-    const [comunaSeleccionada, setComunaSeleccionada] = useState("Todas");
-    const [consultandoPrecios, setConsultandoPrecios] = useState<Record<string, boolean>>({});
-    const [horariosConPrecios, setHorariosConPrecios] = useState<Record<string, Horario>>({});
+    const [comunasSeleccionadas, setComunasSeleccionadas] = useState<string[]>([]);
+    const [cadenasSeleccionadas, setCadenasSeleccionadas] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (
+            typeof window === "undefined" ||
+            typeof CSS === "undefined" ||
+            CSS.supports("animation-timeline", "scroll()") ||
+            typeof IntersectionObserver === "undefined"
+        ) {
+            return;
+        }
+
+        const observers: IntersectionObserver[] = [];
+        for (const scroller of document.querySelectorAll<HTMLElement>(
+            ".detalle-pelicula .horarios-grid-cine",
+        )) {
+            const first = scroller.firstElementChild;
+            const last = scroller.lastElementChild;
+            if (!first || !last) continue;
+
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    for (const { target, intersectionRatio } of entries) {
+                        scroller.classList.toggle(
+                            target === first ? "more-start" : "more-end",
+                            intersectionRatio < 1,
+                        );
+                    }
+                },
+                { root: scroller, threshold: 1, rootMargin: "1px" },
+            );
+
+            observer.observe(first);
+            observer.observe(last);
+            observers.push(observer);
+        }
+
+        return () => {
+            for (const observer of observers) observer.disconnect();
+        };
+    }, [
+        horarios,
+        cines,
+        fechaSeleccionada,
+        formatoSeleccionado,
+        busqueda,
+        comunasSeleccionadas,
+        cadenasSeleccionadas,
+    ]);
 
     const fechasDisponibles = [
         ...new Set(horarios.map((horario) => horario.fecha)),
@@ -56,91 +124,110 @@ function MovieDetailPage() {
         (horario) => horario.fecha === fechaActual,
     );
 
-    const handleConsultarPreciosCine = async (cineId: string) => {
-        if (!id || !fechaActual || consultandoPrecios[cineId]) return;
-
-        setConsultandoPrecios((prev) => ({ ...prev, [cineId]: true }));
-        try {
-            const nuevosHorarios = await funcionService.getPrecios(
-                id,
-                cineId,
-                fechaActual,
-            );
-            setHorariosConPrecios((prev) => {
-                const next = { ...prev };
-                for (const h of nuevosHorarios) {
-                    next[h.id] = h;
-                }
-                return next;
-            });
-        } catch (err) {
-            console.error("Error al consultar precios del cine:", err);
-        } finally {
-            setConsultandoPrecios((prev) => ({ ...prev, [cineId]: false }));
-        }
-    };
-
-    const formatosDisponibles = [
-        "Todos",
-        ...new Set(
-            horariosDelDia.map((horario) => horario.formatoResumen || "2D"),
-        ),
-    ];
+    const opcionesFormato = obtenerFormatosDisponibles(horariosDelDia);
+    const formatosDisponibles = ["Todos", ...opcionesFormato.map((f) => f.valor)];
     const formatoActual = formatosDisponibles.includes(formatoSeleccionado)
         ? formatoSeleccionado
         : "Todos";
 
     const grupos = cines
         .flatMap((cine) => {
-            const sesiones = horariosDelDia
-                .map((h) => horariosConPrecios[h.id] ?? h)
-                .filter(
-                    (h) =>
-                        h.cineId === cine.id &&
-                        (formatoActual === "Todos" ||
-                            (h.formatoResumen || "2D") === formatoActual),
-                );
+            const sesiones = horariosDelDia.filter(
+                (h) =>
+                    h.cineId === cine.id &&
+                    (formatoActual === "Todos" ||
+                        (h.formatoResumen || "2D") === formatoActual),
+            );
 
             return sesiones.length
                 ? [{ cine, horarios: sesiones, distancia: distanciaA(cine) }]
                 : [];
         })
-        .sort((a, b) =>
-            a.distancia === b.distancia
-                ? a.cine.nombre.localeCompare(b.cine.nombre)
-                : a.distancia - b.distancia,
-        );
+        .sort((a, b) => {
+            const prioridad = ordenarPorCercania
+                ? a.distancia === b.distancia ? 0 : a.distancia - b.distancia
+                : Number(cinesFavoritosAlEntrar.has(b.cine.id)) - Number(cinesFavoritosAlEntrar.has(a.cine.id));
+            return prioridad
+                || a.cine.nombre.localeCompare(b.cine.nombre, "es-CL", { sensitivity: "base", numeric: true })
+                || a.cine.id.localeCompare(b.cine.id);
+        });
 
-    const comunasDisponibles = [
-        "Todas",
-        ...new Set(
-            cines
-                .filter((cine) =>
-                    horariosDelDia.some((h) => h.cineId === cine.id),
-                )
-                .map((cine) => cine.comuna)
-                .filter(Boolean),
-        ),
-    ].sort((a, b) =>
-        a === "Todas" ? -1 : b === "Todas" ? 1 : a.localeCompare(b),
+    const cinesDelDia = cines.filter((cine) =>
+        horariosDelDia.some((h) => h.cineId === cine.id),
+    );
+    const comunasDisponibles = obtenerComunas(cinesDelDia);
+    const valoresComunasDisponibles = new Set(comunasDisponibles.map((c) => c.valor));
+    const comunasActivas = comunasSeleccionadas.filter((valor) =>
+        valoresComunasDisponibles.has(valor),
     );
 
-    const comunaActual = comunasDisponibles.includes(comunaSeleccionada)
-        ? comunaSeleccionada
-        : "Todas";
+    const mapaCadenas = new Map<string, OpcionFiltro>();
+    for (const { cine } of grupos) {
+        const cadena = obtenerCadena(cine);
+        const anterior = mapaCadenas.get(cadena.id);
+        mapaCadenas.set(cadena.id, {
+            valor: cadena.id,
+            nombre: cadena.nombre,
+            cantidad: (anterior?.cantidad ?? 0) + 1,
+        });
+    }
+    const cadenasDisponibles = [...mapaCadenas.values()].sort((a, b) =>
+        a.nombre.localeCompare(b.nombre, "es-CL"),
+    );
+    const valoresCadenasDisponibles = new Set(cadenasDisponibles.map((c) => c.valor));
+    const cadenasActivas = cadenasSeleccionadas.filter((valor) =>
+        valoresCadenasDisponibles.has(valor),
+    );
 
+    const cinesFiltradosIds = new Set(
+        filtrarCines(
+            grupos.map((g) => g.cine),
+            busqueda,
+            comunasActivas,
+        ).map((c) => c.id),
+    );
+
+    const cadenasSet = new Set(cadenasActivas);
     const gruposFiltrados = grupos.filter((g) => {
-        const coincideBusqueda =
-            !busqueda.trim() ||
-            g.cine.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()) ||
-            g.cine.comuna.toLowerCase().includes(busqueda.trim().toLowerCase());
-
-        const coincideComuna =
-            comunaActual === "Todas" ||
-            g.cine.comuna.toLowerCase() === comunaActual.toLowerCase();
-
-        return coincideBusqueda && coincideComuna;
+        const coincideCadena =
+            !cadenasSet.size || cadenasSet.has(obtenerCadena(g.cine).id);
+        return cinesFiltradosIds.has(g.cine.id) && coincideCadena;
     });
+
+    const chipsFiltros: ChipFiltroActivo[] = [
+        ...cadenasDisponibles
+            .filter((cadena) => cadenasActivas.includes(cadena.valor))
+            .map((cadena) => ({
+                id: `cadena-${cadena.valor}`,
+                etiqueta: cadena.nombre,
+                ariaLabel: `Quitar filtro ${cadena.nombre}`,
+                onQuitar: () =>
+                    setCadenasSeleccionadas((anteriores) =>
+                        anteriores.filter((valor) => valor !== cadena.valor),
+                    ),
+            })),
+        ...comunasDisponibles
+            .filter((comuna) => comunasActivas.includes(comuna.valor))
+            .map((comuna) => ({
+                id: `comuna-${comuna.valor}`,
+                etiqueta: comuna.nombre,
+                ariaLabel: `Quitar filtro ${comuna.nombre}`,
+                onQuitar: () =>
+                    setComunasSeleccionadas((anteriores) =>
+                        anteriores.filter((valor) => valor !== comuna.valor),
+                    ),
+            })),
+        ...(formatoActual !== "Todos"
+            ? [
+                  {
+                      id: `formato-${formatoActual}`,
+                      etiqueta: formatoActual,
+                      ariaLabel: `Quitar filtro de formato: ${formatoActual}`,
+                      onQuitar: () => setFormatoSeleccionado("Todos"),
+                  },
+              ]
+            : []),
+    ];
 
     if (error) return <Mensaje texto={error} />;
     if (!pelicula) return <Mensaje texto="Cargando película..." />;
@@ -223,82 +310,69 @@ function MovieDetailPage() {
                     }}
                 />
 
-                {/* Filtros de la cartelera: Fila principal y Formatos */}
+                {/* Filtros de la cartelera */}
                 {horarios.length > 0 && (
                     <div className="cartelera-cine-filtros">
-                        <div className="filtros-barra-principal">
-                            <div className="cartelera-search-box">
-                                <SearchIcon size={16} />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar por cine o comuna..."
-                                    value={busqueda}
-                                    onChange={(e) => setBusqueda(e.target.value)}
+                        <div className="herramientas-cartelera">
+                            <BuscadorPeliculas
+                                busqueda={busqueda}
+                                onBusquedaChange={setBusqueda}
+                                label="Buscar por cine o comuna"
+                                placeholder="Buscar por cine o comuna..."
+                            />
+                            <div className="filtros-cartelera-selectores">
+                                <SelectorMultiple
+                                    className="cines-cadenas-selector"
+                                    opciones={cadenasDisponibles}
+                                    seleccionadas={cadenasActivas}
+                                    onChange={setCadenasSeleccionadas}
+                                    titulo="Cadenas"
+                                    etiquetaTodas="Cadenas"
+                                    etiquetaPlural="cadenas"
+                                    etiquetaSingular="1 cadena"
+                                    ariaLabelPrefijo="Filtrar por cadenas"
+                                    disabled={cadenasDisponibles.length === 0}
                                 />
-                                {busqueda && (
-                                    <button
-                                        type="button"
-                                        className="btn-clear-inline"
-                                        onClick={() => setBusqueda("")}
-                                    >
-                                        ✕
-                                    </button>
+
+                                {comunasDisponibles.length > 0 && (
+                                    <SelectorComunas
+                                        opciones={comunasDisponibles}
+                                        seleccionadas={comunasActivas}
+                                        onChange={setComunasSeleccionadas}
+                                    />
+                                )}
+
+                                {opcionesFormato.length > 1 && (
+                                    <SelectorUnico
+                                        className="filtro-formato"
+                                        opciones={opcionesFormato}
+                                        seleccionada={formatoActual === "Todos" ? "" : formatoActual}
+                                        onChange={(valor) => setFormatoSeleccionado(valor || "Todos")}
+                                        titulo="Formato"
+                                        etiquetaVacia="Formato"
+                                        ariaLabelPrefijo="Filtrar por formato"
+                                    />
+                                )}
+
+                                {grupos.length > 0 && (
+                                    <BotonCercania
+                                        activo={ordenarPorCercania}
+                                        cargando={estado === "cargando"}
+                                        tituloActivo="Volver al orden por favoritos"
+                                        tituloInactivo="Ordenar por cercanía"
+                                        onToggle={() => {
+                                            if (ordenarPorCercania) {
+                                                setCercaniaActiva(false);
+                                                return;
+                                            }
+                                            setCercaniaActiva(true);
+                                            solicitar();
+                                        }}
+                                    />
                                 )}
                             </div>
-
-                            {comunasDisponibles.length > 1 && (
-                                <select
-                                    className="selector-comuna-filtro"
-                                    value={comunaActual}
-                                    onChange={(e) =>
-                                        setComunaSeleccionada(e.target.value)
-                                    }
-                                    aria-label="Filtrar por comuna"
-                                >
-                                    <option value="Todas">Todas las comunas</option>
-                                    {comunasDisponibles
-                                        .filter((c) => c !== "Todas")
-                                        .map((comuna) => (
-                                            <option key={comuna} value={comuna}>
-                                                {comuna}
-                                            </option>
-                                        ))}
-                                </select>
-                            )}
-
-                            {grupos.length > 0 && (
-                                <button
-                                    type="button"
-                                    className={`boton-cercania-detalle ${estado === "listo" ? "activo" : ""}`}
-                                    onClick={solicitar}
-                                    disabled={
-                                        estado === "cargando" || estado === "listo"
-                                    }
-                                >
-                                    <MapPinIcon size={15} />
-                                    <span>
-                                        {estado === "cargando"
-                                            ? "Ubicando..."
-                                            : "Cerca de mí"}
-                                    </span>
-                                </button>
-                            )}
                         </div>
-
-                        {formatosDisponibles.length > 2 && (
-                            <div className="formatos-chips">
-                                {formatosDisponibles.map((formato) => (
-                                    <button
-                                        key={formato}
-                                        type="button"
-                                        className={`formato-chip ${formatoActual === formato ? "active" : ""}`}
-                                        onClick={() => setFormatoSeleccionado(formato)}
-                                    >
-                                        {formato}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        <ChipsFiltrosActivos chips={chipsFiltros} ariaLabel="Filtros seleccionados" />
                     </div>
                 )}
 
@@ -316,8 +390,9 @@ function MovieDetailPage() {
                             className="btn-reset-filtros"
                             onClick={() => {
                                 setBusqueda("");
-                                setComunaSeleccionada("Todas");
+                                setComunasSeleccionadas([]);
                                 setFormatoSeleccionado("Todos");
+                                setCadenasSeleccionadas([]);
                             }}
                         >
                             Restablecer filtros
@@ -341,15 +416,17 @@ function MovieDetailPage() {
                         <div className="lista-cines">
                             {gruposFiltrados.map(
                                 ({ cine, horarios: sesiones, distancia }) => {
-                                    const estaConsultando = Boolean(
-                                        consultandoPrecios[cine.id],
+                                    const clave = claveDetalle(pelicula.id, cine.id, fechaActual);
+                                    const estadoDetalle = detalle.estadoGrupo(clave);
+                                    const horariosGrupo = horariosDelDia.filter(
+                                        (h) => h.cineId === cine.id,
                                     );
-                                    const tienePrecios = sesiones.some(
-                                        (h) =>
-                                            h.tarifas?.length &&
-                                            (h.tarifas[0].precioOnline ||
-                                                h.tarifas[0].precio),
+                                    const esCineFavorito = Boolean(
+                                        user && isFavoriteCinema(cine.id),
                                     );
+                                    const etiquetaFavCine = esCineFavorito
+                                        ? `Quitar ${cine.nombre} de cines favoritos`
+                                        : `Guardar ${cine.nombre} en cines favoritos`;
 
                                     return (
                                         <article
@@ -362,28 +439,6 @@ function MovieDetailPage() {
                                                         className="logo-cine"
                                                         data-origen={cine.origen}
                                                     >
-                                                        <button
-                                                            type="button"
-                                                            className="boton-fav-cine"
-                                                            onClick={() => {
-                                                                if (!user) {
-                                                                    openAuthModal();
-                                                                    return;
-                                                                }
-                                                                toggleFavoriteCinema(
-                                                                    cine.id,
-                                                                );
-                                                            }}
-                                                            title={
-                                                                isFavoriteCinema(cine.id)
-                                                                    ? "Quitar de cines favoritos"
-                                                                    : "Guardar en cines favoritos"
-                                                            }
-                                                        >
-                                                            {isFavoriteCinema(cine.id)
-                                                                ? "♥"
-                                                                : "♡"}
-                                                        </button>
                                                         {cine.logo ? (
                                                             <img
                                                                 src={cine.logo}
@@ -402,6 +457,21 @@ function MovieDetailPage() {
                                                             >
                                                                 {cine.nombre}
                                                             </Link>
+                                                            <BotonFavorito
+                                                                className="boton-fav-inline"
+                                                                activo={esCineFavorito}
+                                                                ariaLabel={etiquetaFavCine}
+                                                                title={etiquetaFavCine}
+                                                                onClick={() => {
+                                                                    if (!user) {
+                                                                        openAuthModal();
+                                                                        return;
+                                                                    }
+                                                                    toggleFavoriteCinema(
+                                                                        cine.id,
+                                                                    );
+                                                                }}
+                                                            />
                                                             {Number.isFinite(
                                                                 distancia,
                                                             ) && (
@@ -422,36 +492,30 @@ function MovieDetailPage() {
                                                     </div>
                                                 </div>
 
-                                                <button
-                                                    type="button"
-                                                    className={`btn-ver-precios ${tienePrecios ? "cargado" : ""}`}
-                                                    disabled={estaConsultando}
-                                                    onClick={() =>
-                                                        handleConsultarPreciosCine(
+                                                <BotonDetalleFunciones
+                                                    cargando={estadoDetalle.cargando}
+                                                    enCooldown={estadoDetalle.enCooldown}
+                                                    consultadoEn={estadoDetalle.consultadoEn}
+                                                    avisoError={estadoDetalle.avisoError}
+                                                    contexto={cine.nombre}
+                                                    onConsultar={() =>
+                                                        detalle.consultar(
+                                                            pelicula.id,
                                                             cine.id,
+                                                            fechaActual,
+                                                            horariosGrupo,
                                                         )
                                                     }
-                                                    title={
-                                                        tienePrecios
-                                                            ? "Actualizar precios de este cine"
-                                                            : "Consultar precios en tiempo real"
-                                                    }
-                                                >
-                                                    {estaConsultando
-                                                        ? "Consultando..."
-                                                        : tienePrecios
-                                                          ? "Precios cargados"
-                                                          : "Ver precios"}
-                                                </button>
+                                                />
                                             </div>
-
                                             <div className="horarios-grid-cine">
                                                 {sesiones.map((h) => (
                                                     <TarjetaFuncion
                                                         key={h.id}
-                                                        horario={h}
+                                                        horario={detalle.horarioParaTarjeta(h, clave)}
                                                         pelicula={pelicula}
                                                         cine={cine}
+                                                        mostrarDetalle={estadoDetalle.revelado}
                                                     />
                                                 ))}
                                             </div>

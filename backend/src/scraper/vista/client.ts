@@ -1,6 +1,6 @@
 import { load } from "cheerio";
 import { configureRequests, request } from "../http.ts";
-import type { CadenaVista } from "./types.ts";
+import type { CadenaVista, PlanoButacasVista } from "./types.ts";
 
 export const CADENAS = {
   muvix: { nombre: "Muvix", sitio: "https://muvix.cl", logo: "/IT-CDN/Themes/_default/Images/logo_muvix.png" },
@@ -64,6 +64,26 @@ export async function vistaData<T>(chain: CadenaVista, collection: "Cinemas" | "
     url = next?.href;
   }
   return records;
+}
+
+export async function vistaSeatPlan(chain: CadenaVista, cinemaId: string, sessionId: string): Promise<PlanoButacasVista> {
+  if (!/^\d+$/.test(cinemaId) || !/^\d+$/.test(sessionId)) throw new Error("Identidad de funcion invalida.");
+  const url = `${CADENAS[chain].sitio}/WSVistaWebClient/RESTData.svc/cinemas/${cinemaId}/sessions/${sessionId}/seat-plan`;
+  for (let intento = 0; intento < 2; intento++) {
+    await initializeVista(chain);
+    // Lectura publica del plano, sin una orden ni una seleccion de butacas.
+    const response = await request(url, { connectapitoken: configuraciones.get(chain)!.token });
+    if ((response.status === 401 || response.status === 403) && intento === 0) {
+      await response.body?.cancel();
+      configuraciones.delete(chain);
+      continue;
+    }
+    if (!response.ok) throw new Error(`No se pudieron leer butacas de ${chain}: HTTP ${response.status}.`);
+    const data = await response.json() as PlanoButacasVista;
+    if (data?.ResponseCode !== 0) throw new Error(`El plano de butacas de ${chain} no esta disponible.`);
+    return data;
+  }
+  throw new Error(`No se pudieron leer butacas de ${chain}.`);
 }
 
 export function purchaseUrl(chain: CadenaVista, cinemaId: string, sessionId: string) {

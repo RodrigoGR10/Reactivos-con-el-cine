@@ -13,6 +13,23 @@ import { areSameCatalogMovie, fetchTmdbMovieMetadata } from "./tmdb.ts";
 import type { TmdbEnrichment } from "./tmdb.ts";
 import { ESTADOS_ESTRENO } from "../utils/estreno.ts";
 
+interface CamposTmdbPelicula {
+  calificacionTmdb?: number;
+  votosTmdb?: number;
+  popularidadTmdb?: number;
+  fechaEstrenoTmdb?: string;
+}
+
+function recogerCamposTmdb(fuente?: CamposTmdbPelicula | null): CamposTmdbPelicula {
+  if (!fuente) return {};
+  return {
+    ...(fuente.calificacionTmdb !== undefined ? { calificacionTmdb: fuente.calificacionTmdb } : {}),
+    ...(fuente.votosTmdb !== undefined ? { votosTmdb: fuente.votosTmdb } : {}),
+    ...(fuente.popularidadTmdb !== undefined ? { popularidadTmdb: fuente.popularidadTmdb } : {}),
+    ...(fuente.fechaEstrenoTmdb !== undefined ? { fechaEstrenoTmdb: fuente.fechaEstrenoTmdb } : {}),
+  };
+}
+
 export function validateResult(value: unknown, allowPartial = false): asserts value is ScrapeResult {
   if (!value || typeof value !== "object") throw new Error("JSON de cartelera invalido.");
   const result = value as ScrapeResult;
@@ -54,17 +71,27 @@ export function validateResult(value: unknown, allowPartial = false): asserts va
     nonempty(movie, ["titulo", "genero", "clasificacion", "sinopsis", "poster"]);
     if (movie.url !== undefined) {
       const url = new URL(movie.url);
-      const path = origin === "cinemark" ? /^\/pelicula\/[^/]+$/ : origin === "cineplanet" ? /^\/peliculas\/[^/]+$/ : /^\/Browsing\/Movies\/Details\/h-[^/]+$/;
-      const hostname = origin === "muvix" || origin === "cinestar" ? `${origin}.cl` : `www.${origin}.cl`;
-      if (url.protocol !== "https:" || url.hostname !== hostname || !path.test(url.pathname) || url.username || url.password) throw new Error("Enlace de pelicula invalido.");
+      const path = origin === "cinepolis"
+        ? /^\/(?:cl\/detalle|pelicula\/[^/]+)$/
+        : origin === "cinemark"
+          ? /^\/pelicula\/[^/]+$/
+          : origin === "cineplanet"
+            ? /^\/peliculas\/[^/]+$/
+            : /^\/Browsing\/Movies\/Details\/h-[^/]+$/;
+      const validHost = origin === "cinepolis"
+        ? ["www.cinepolis.cl", "cinepolis.cl", "www.cinepolis.com", "cinepolis.com"].includes(url.hostname)
+        : url.hostname === (origin === "muvix" || origin === "cinestar" ? `${origin}.cl` : `www.${origin}.cl`);
+      if (url.protocol !== "https:" || !validHost || !path.test(url.pathname) || url.username || url.password) throw new Error("Enlace de pelicula invalido.");
     }
     if (!Number.isInteger(movie.duracion) || movie.duracion <= 0) throw new Error("Duracion invalida.");
   }
   for (const cinema of result.cines) {
     nonempty(cinema, ["nombre", "comuna", "ciudad", "direccion", "url"]);
     const url = new URL(cinema.url);
-    const hostname = origin === "muvix" || origin === "cinestar" ? `${origin}.cl` : `www.${origin}.cl`;
-    if (url.protocol !== "https:" || url.hostname !== hostname || url.username || url.password) throw new Error("Enlace de cine invalido.");
+    const validHost = origin === "cinepolis"
+      ? ["cinepolis.com", "www.cinepolis.com", "cinehoyts.cl", "www.cinehoyts.cl", "cinepolis.cl", "www.cinepolis.cl"].includes(url.hostname)
+      : url.hostname === (origin === "muvix" || origin === "cinestar" ? `${origin}.cl` : `www.${origin}.cl`);
+    if (url.protocol !== "https:" || !validHost || url.username || url.password) throw new Error("Enlace de cine invalido.");
   }
   if (result.meta.modo === "cartelera") {
     sourceIds(result.horarios!, "horarios");
@@ -75,11 +102,17 @@ export function validateResult(value: unknown, allowPartial = false): asserts va
       if (!movies.has(schedule.peliculaId) || !cinemas.has(schedule.cineId)) throw new Error("Horario con referencias inexistentes.");
       if (!isDate(schedule.fecha) || !isDate(schedule.fechaCartelera) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(schedule.horario)) throw new Error("Fecha u hora de cartelera invalida.");
       if (typeof schedule.agotada !== "boolean" || schedule.origenId !== `${schedule.cineId.slice(prefix.length)}:${schedule.sesionId}` || schedule.revision !== scheduleRevision(schedule)) throw new Error("Identidad o revision de horario invalida.");
+      if (schedule.butacas && (!Number.isSafeInteger(schedule.butacas.disponibles) || schedule.butacas.disponibles < 0 || Number.isNaN(Date.parse(schedule.butacas.consultadasEn)) || (schedule.butacas.total !== undefined && (!Number.isSafeInteger(schedule.butacas.total) || schedule.butacas.total < 1 || schedule.butacas.total < schedule.butacas.disponibles)))) throw new Error("Disponibilidad de butacas invalida.");
       if (origin === "cineplanet") {
         const url = new URL(schedule.urlCompra!);
         if (url.origin !== "https://www.cineplanet.cl" || url.username || url.password || !/^\d+$/.test(schedule.sesionId) || !url.pathname.endsWith(`/${schedule.cineId.slice(prefix.length)}/${schedule.sesionId}/asientos`)) throw new Error("Enlace de funcion de Cineplanet invalido.");
       }
       if ((origin === "muvix" || origin === "cinestar") && schedule.urlCompra !== purchaseUrl(origin, schedule.cineId.slice(prefix.length), schedule.sesionId)) throw new Error("Enlace de funcion invalido.");
+      if (origin === "cinepolis") {
+        const url = new URL(schedule.urlCompra!);
+        const allowedHosts = ["compra.cinepolis.com", "cinepolis.com", "www.cinepolis.com", "cinepolis.cl", "www.cinepolis.cl", "cinehoyts.cl", "www.cinehoyts.cl"];
+        if (url.protocol !== "https:" || !allowedHosts.includes(url.hostname) || url.username || url.password) throw new Error("Enlace de funcion de Cinepolis invalido.");
+      }
     }
   } else if (result.horarios !== undefined) {
     throw new Error("Los horarios requieren el modo cartelera.");
@@ -160,8 +193,24 @@ async function mergeDuplicateMovies({
 
     const primary = group.find((item) => item.origen === "cinemark") ?? group[0]!;
     const duplicates = group.filter((item) => !item._id.equals(primary._id));
+    let inheritedOriginalTitle = primary.tituloOriginal;
+    const inheritedTmdbCampos: CamposTmdbPelicula & { tmdbId?: number } = {
+      ...(primary.tmdbId !== undefined ? { tmdbId: primary.tmdbId } : {}),
+      ...recogerCamposTmdb(primary),
+    };
 
     for (const duplicate of duplicates) {
+      if (!inheritedOriginalTitle && duplicate.tituloOriginal) {
+        inheritedOriginalTitle = duplicate.tituloOriginal;
+      }
+      if (inheritedTmdbCampos.tmdbId === undefined && duplicate.tmdbId !== undefined) {
+        inheritedTmdbCampos.tmdbId = duplicate.tmdbId;
+      }
+      Object.assign(inheritedTmdbCampos, {
+        ...recogerCamposTmdb(duplicate),
+        ...recogerCamposTmdb(inheritedTmdbCampos),
+      });
+
       await Horario.updateMany(
         { peliculaId: duplicate._id },
         { $set: { peliculaId: primary._id } },
@@ -207,13 +256,31 @@ async function mergeDuplicateMovies({
           sources.set(key, { ...source, ...sources.get(key) });
         }
         primary.fuentes = [...sources.values()];
-        await Pelicula.updateOne(
-          { _id: primary._id },
-          { $set: { fuentes: primary.fuentes } },
-        );
       }
 
       mergedCount++;
+    }
+
+    const primaryUpdates: Record<string, unknown> = {};
+    if ((primary.fuentes?.length ?? 0) > 0) {
+      primaryUpdates.fuentes = primary.fuentes;
+    }
+    if (!primary.tituloOriginal && inheritedOriginalTitle) {
+      primaryUpdates.tituloOriginal = inheritedOriginalTitle;
+    }
+    if (primary.tmdbId === undefined && inheritedTmdbCampos.tmdbId !== undefined) {
+      primaryUpdates.tmdbId = inheritedTmdbCampos.tmdbId;
+    }
+    for (const [clave, valor] of Object.entries(recogerCamposTmdb(inheritedTmdbCampos))) {
+      if (primary[clave as keyof CamposTmdbPelicula] === undefined && valor !== undefined) {
+        primaryUpdates[clave] = valor;
+      }
+    }
+    if (Object.keys(primaryUpdates).length > 0) {
+      await Pelicula.updateOne(
+        { _id: primary._id },
+        { $set: primaryUpdates },
+      );
     }
   }
 
@@ -227,13 +294,19 @@ export async function syncTmdbCatalog(uri: string, dbName: string) {
     let actualizadas = 0;
 
     for (const pelicula of peliculas) {
-      const tmdb = await fetchTmdbMovieMetadata(pelicula.titulo);
+      const primarySource = pelicula.fuentes?.[0];
+      const tmdb = await fetchTmdbMovieMetadata(pelicula.titulo, {
+        tituloOriginal: pelicula.tituloOriginal,
+        duracion: pelicula.duracion,
+        origenId: pelicula.origenId ?? primarySource?.origenId,
+      });
       if (!tmdb) continue;
 
       pelicula.tmdbId = tmdb.tmdbId;
       if (tmdb.poster) pelicula.poster = tmdb.poster;
       if (tmdb.banner) pelicula.banner = tmdb.banner;
       if (tmdb.sinopsis) pelicula.sinopsis = tmdb.sinopsis;
+      Object.assign(pelicula, recogerCamposTmdb(tmdb));
 
       await pelicula.save();
       actualizadas++;
@@ -300,16 +373,25 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
         const candidates = catalog.filter((item) => areSameCatalogMovie(item, movie));
         if (candidates.length >= 1) existing = candidates[0]!;
       }
+      const rawTituloOriginal = movie.tituloOriginal ?? existing?.tituloOriginal;
+      const tmdbOptions = {
+        tituloOriginal: rawTituloOriginal,
+        duracion: movie.duracion,
+        origenId: movie.origenId,
+      };
       let tmdb: TmdbEnrichment | null = null;
       if (!existing && process.env.TMDB_API_KEY) {
-        tmdb = await fetchTmdbMovieMetadata(movie.titulo);
+        tmdb = await fetchTmdbMovieMetadata(movie.titulo, tmdbOptions);
         if (tmdb?.tmdbId) {
           const byTmdb = catalog.find((item) => item.tmdbId === tmdb.tmdbId);
           if (byTmdb) existing = byTmdb;
         }
       }
       const primary = !existing || (existing.origen === origin && existing.origenId === movie.origenId);
-      let enrichedMovie: typeof movie & { banner?: string; tmdbId?: number } = { ...movie };
+      let enrichedMovie: typeof movie & { banner?: string; tmdbId?: number } & CamposTmdbPelicula = {
+        ...movie,
+        ...(rawTituloOriginal ? { tituloOriginal: rawTituloOriginal } : {}),
+      };
       if (primary) {
         const hasExistingTmdb = Boolean(existing?.tmdbId || existing?.banner?.includes("image.tmdb.org") || existing?.poster?.includes("image.tmdb.org"));
         if (hasExistingTmdb && existing) {
@@ -319,9 +401,10 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
             banner: existing.banner || enrichedMovie.banner,
             sinopsis: existing.sinopsis || enrichedMovie.sinopsis,
             ...(existing.tmdbId ? { tmdbId: existing.tmdbId } : {}),
+            ...recogerCamposTmdb(existing),
           };
         } else if (process.env.TMDB_API_KEY) {
-          if (!tmdb) tmdb = await fetchTmdbMovieMetadata(movie.titulo);
+          if (!tmdb) tmdb = await fetchTmdbMovieMetadata(movie.titulo, tmdbOptions);
           if (tmdb) {
             enrichedMovie = {
               ...enrichedMovie,
@@ -329,6 +412,7 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
               ...(tmdb.poster ? { poster: tmdb.poster } : {}),
               ...(tmdb.banner ? { banner: tmdb.banner } : {}),
               ...(tmdb.sinopsis ? { sinopsis: tmdb.sinopsis } : {}),
+              ...recogerCamposTmdb(tmdb),
             };
           }
         }
@@ -367,7 +451,9 @@ export async function importCatalog(result: ScrapeResult, uri: string, dbName: s
         const cineId = cinemas.get(schedule.cineId);
         if (!peliculaId || !cineId) throw new Error(`Referencias incompletas para el horario ${id}.`);
         const movie = result.peliculas.find((movie) => movie.id === schedule.peliculaId)!;
-        const document = { ...schedule, peliculaId, cineId, peliculaOrigenId: movie.origenId, peliculaUrl: movie.url };
+        const document = { ...schedule, peliculaId, cineId, peliculaOrigenId: movie.origenId, peliculaUrl: movie.url,
+          ...(schedule.butacas ? { butacasRevision: schedule.revision, butacasActualizadasEn: new Date(schedule.butacas.consultadasEn) } : {}),
+        };
         await new Horario(document).validate();
         operations.push({ updateOne: {
           filter: { origen: origin, origenId: schedule.origenId },

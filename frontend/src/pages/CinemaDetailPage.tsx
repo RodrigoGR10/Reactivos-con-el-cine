@@ -6,11 +6,28 @@ import funcionesService from "../services/funciones";
 import peliculasService from "../services/peliculas";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
-import { MapPinIcon, SearchIcon } from "../components/common/Icons";
-import { agruparHorariosPorPelicula } from "../utils/agruparFunciones";
+import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
+import { MapPinIcon } from "../components/common/Icons";
+import { BotonFavorito } from "../components/common/BotonFavorito";
+import {
+  ChipsFiltrosActivos,
+  SelectorUnico,
+  type ChipFiltroActivo,
+} from "../components/common/SelectorMultiple";
+import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
+import {
+  agruparHorariosPorPelicula,
+  obtenerFormatosDisponibles,
+} from "../utils/agruparFunciones";
+import { normalizarTexto } from "../utils/normalizarTexto";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
+import { BotonDetalleFunciones } from "../components/funciones/BotonDetalleFunciones";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
 import "./CinemaDetailPage.css";
+import {
+  useDetalleFunciones,
+  claveDetalle,
+} from "../hooks/useDetalleFunciones";
 
 
 /** Resuelve logo de cine: usa el provisto o infiere por nombre conocido */
@@ -27,7 +44,13 @@ const getCinemaLogo = (cine: Cine): string => {
 function CinemaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user, openAuthModal } = useAuth();
-  const { isFavoriteCinema, toggleFavoriteCinema } = useFavorites();
+  const {
+    isFavoriteCinema,
+    toggleFavoriteCinema,
+    isFavoriteMovie,
+    toggleFavoriteMovie,
+  } = useFavorites();
+  const { peliculasFavoritasAlEntrar } = useFavoritosAlEntrar();
 
   const [cine, setCine] = useState<Cine | null>(null);
   const [horarios, setHorarios] = useState<Horario[]>([]);
@@ -37,7 +60,7 @@ function CinemaDetailPage() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState("");
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
-  const [consultandoPrecios, setConsultandoPrecios] = useState<Record<string, boolean>>({});
+  const detalle = useDetalleFunciones();
 
   useEffect(() => {
     if (!id) {
@@ -66,6 +89,46 @@ function CinemaDetailPage() {
         setCargando(false);
       });
   }, [id]);
+
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      typeof CSS === "undefined" ||
+      CSS.supports("animation-timeline", "scroll()") ||
+      typeof IntersectionObserver === "undefined"
+    ) {
+      return;
+    }
+
+    const observers: IntersectionObserver[] = [];
+    for (const scroller of document.querySelectorAll<HTMLElement>(
+      ".detalle-cine-page .horarios-grid-cine",
+    )) {
+      const first = scroller.firstElementChild;
+      const last = scroller.lastElementChild;
+      if (!first || !last) continue;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const { target, intersectionRatio } of entries) {
+            scroller.classList.toggle(
+              target === first ? "more-start" : "more-end",
+              intersectionRatio < 1,
+            );
+          }
+        },
+        { root: scroller, threshold: 1, rootMargin: "1px" },
+      );
+
+      observer.observe(first);
+      observer.observe(last);
+      observers.push(observer);
+    }
+
+    return () => {
+      for (const observer of observers) observer.disconnect();
+    };
+  }, [horarios, fechaSeleccionada, formatoSeleccionado, busqueda, cargando]);
 
   if (cargando) {
     return (
@@ -101,25 +164,6 @@ function CinemaDetailPage() {
     toggleFavoriteCinema(cine.id);
   };
 
-  const handleConsultarPreciosPelicula = async (peliculaId: string) => {
-    if (!cine?.id || !fechaActual || consultandoPrecios[peliculaId]) return;
-
-    setConsultandoPrecios((prev) => ({ ...prev, [peliculaId]: true }));
-    try {
-      const nuevosHorarios = await funcionesService.getPrecios(
-        peliculaId,
-        cine.id,
-        fechaActual,
-      );
-      const mapaNuevos = new Map(nuevosHorarios.map((h) => [h.id, h]));
-      setHorarios((prev) => prev.map((h) => mapaNuevos.get(h.id) ?? h));
-    } catch (error) {
-      console.error("Error al consultar precios de la película:", error);
-    } finally {
-      setConsultandoPrecios((prev) => ({ ...prev, [peliculaId]: false }));
-    }
-  };
-
   // Fechas disponibles ordenadas
   const fechasDisponibles = [
     ...new Set(horarios.map((h) => h.fecha).filter(Boolean)),
@@ -132,21 +176,25 @@ function CinemaDetailPage() {
     ? horarios.filter((h) => h.fecha === fechaActual)
     : horarios;
 
-  // Extrae formatos disponibles únicos para el día seleccionado
-  const formatosDisponibles = horariosDelDia.reduce<string[]>(
-    (acumulado, horario) => {
-      const formato = horario.formatoResumen || "2D";
-      if (!acumulado.includes(formato)) {
-        return [...acumulado, formato];
-      }
-      return acumulado;
-    },
-    ["Todos"],
-  );
+  // Extrae formatos disponibles únicos y sus conteos para el día seleccionado
+  const opcionesFormato = obtenerFormatosDisponibles(horariosDelDia);
+  const formatosDisponibles = ["Todos", ...opcionesFormato.map((f) => f.valor)];
 
   const formatoActual = formatosDisponibles.includes(formatoSeleccionado)
     ? formatoSeleccionado
     : "Todos";
+
+  const chipsFiltros: ChipFiltroActivo[] =
+    formatoActual !== "Todos"
+      ? [
+          {
+            id: `formato-${formatoActual}`,
+            etiqueta: formatoActual,
+            ariaLabel: `Quitar filtro de formato: ${formatoActual}`,
+            onQuitar: () => setFormatoSeleccionado("Todos"),
+          },
+        ]
+      : [];
 
   // Filtra horarios por formato seleccionado
   const horariosFiltradosPorFormato =
@@ -156,16 +204,21 @@ function CinemaDetailPage() {
           (h) => (h.formatoResumen || "2D") === formatoActual,
         );
 
-  // Agrupa por película
+  // Agrupa por película y prioriza las películas favoritas al entrar a la vista
   const grupos = agruparHorariosPorPelicula(
     horariosFiltradosPorFormato,
     peliculas,
+  ).sort(
+    (a, b) =>
+      Number(peliculasFavoritasAlEntrar.has(b.pelicula.id)) -
+      Number(peliculasFavoritasAlEntrar.has(a.pelicula.id)),
   );
 
   // Filtra grupos por búsqueda de título
-  const gruposFiltrados = busqueda.trim()
+  const terminoBusqueda = normalizarTexto(busqueda.trim());
+  const gruposFiltrados = terminoBusqueda
     ? grupos.filter((g) =>
-        g.pelicula.titulo.toLowerCase().includes(busqueda.trim().toLowerCase()),
+        normalizarTexto(g.pelicula.titulo).includes(terminoBusqueda),
       )
     : grupos;
 
@@ -181,7 +234,7 @@ function CinemaDetailPage() {
       {/* Header / Hero del Cine */}
       <header className="detalle-cine-header">
         <div className="detalle-cine-header-main">
-          <div className="detalle-cine-logo-wrap">
+          <div className="detalle-cine-logo-wrap" data-origen={cine.origen}>
             {logo ? (
               <img
                 src={logo}
@@ -249,41 +302,28 @@ function CinemaDetailPage() {
         {/* Filtros de la cartelera del cine */}
         {horarios.length > 0 && (
           <div className="cartelera-cine-filtros">
-            {/* Buscador de película en este cine */}
-            <div className="cartelera-search-box">
-              <SearchIcon size={16} />
-              <input
-                type="text"
+            <div className="herramientas-cartelera">
+              <BuscadorPeliculas
+                busqueda={busqueda}
+                onBusquedaChange={setBusqueda}
+                label="Buscar película en este cine"
                 placeholder="Buscar película en este cine..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
               />
-              {busqueda && (
-                <button
-                  type="button"
-                  className="btn-clear-inline"
-                  onClick={() => setBusqueda("")}
-                >
-                  ✕
-                </button>
+              {opcionesFormato.length > 1 && (
+                <div className="filtros-cartelera-selectores">
+                  <SelectorUnico
+                    className="filtro-formato"
+                    opciones={opcionesFormato}
+                    seleccionada={formatoActual === "Todos" ? "" : formatoActual}
+                    onChange={(valor) => setFormatoSeleccionado(valor || "Todos")}
+                    titulo="Formato"
+                    etiquetaVacia="Formato"
+                    ariaLabelPrefijo="Filtrar por formato"
+                  />
+                </div>
               )}
             </div>
-
-            {/* Selector de formato (2D, 3D, etc.) */}
-            {formatosDisponibles.length > 2 && (
-              <div className="formatos-chips">
-                {formatosDisponibles.map((formato) => (
-                  <button
-                    key={formato}
-                    type="button"
-                    className={`formato-chip ${formatoActual === formato ? "active" : ""}`}
-                    onClick={() => setFormatoSeleccionado(formato)}
-                  >
-                    {formato}
-                  </button>
-                ))}
-              </div>
-            )}
+            <ChipsFiltrosActivos chips={chipsFiltros} />
           </div>
         )}
 
@@ -309,10 +349,17 @@ function CinemaDetailPage() {
         ) : (
           <div className="peliculas-cine-lista">
             {gruposFiltrados.map(({ pelicula, horarios: horariosPeli }) => {
-              const estaConsultando = Boolean(consultandoPrecios[pelicula.id]);
-              const tienePrecios = horariosPeli.some(
-                (h) => h.tarifas?.length && (h.tarifas[0].precioOnline || h.tarifas[0].precio),
+              const clave = claveDetalle(pelicula.id, cine.id, fechaActual);
+              const estadoDetalle = detalle.estadoGrupo(clave);
+              const horariosGrupo = horariosDelDia.filter(
+                (h) => h.peliculaId === pelicula.id,
               );
+              const esPeliculaFavorita = Boolean(
+                user && isFavoriteMovie(pelicula.id),
+              );
+              const etiquetaFavPelicula = esPeliculaFavorita
+                ? `Quitar ${pelicula.titulo} de películas favoritas`
+                : `Guardar ${pelicula.titulo} en películas favoritas`;
 
               return (
                 <article key={pelicula.id} className="pelicula-cine-card">
@@ -332,12 +379,27 @@ function CinemaDetailPage() {
                   <div className="pelicula-cine-content">
                     <div className="pelicula-cine-header-info">
                       <div className="pelicula-cine-header-text">
-                        <Link
-                          to={`/peliculas/${pelicula.id}`}
-                          className="pelicula-cine-titulo-link"
-                        >
-                          <h3>{pelicula.titulo}</h3>
-                        </Link>
+                        <h3>
+                          <Link
+                            to={`/peliculas/${pelicula.id}`}
+                            className="pelicula-cine-titulo-link"
+                          >
+                            {pelicula.titulo}
+                          </Link>
+                          <BotonFavorito
+                            className="boton-fav-inline"
+                            activo={esPeliculaFavorita}
+                            ariaLabel={etiquetaFavPelicula}
+                            title={etiquetaFavPelicula}
+                            onClick={() => {
+                              if (!user) {
+                                openAuthModal();
+                                return;
+                              }
+                              toggleFavoriteMovie(pelicula.id);
+                            }}
+                          />
+                        </h3>
                         <p className="pelicula-cine-metadatos">
                           <span>{pelicula.genero}</span>
                           <span aria-hidden="true">•</span>
@@ -348,33 +410,31 @@ function CinemaDetailPage() {
                           </span>
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        className={`btn-ver-precios ${tienePrecios ? "cargado" : ""}`}
-                        disabled={estaConsultando}
-                        onClick={() => handleConsultarPreciosPelicula(pelicula.id)}
-                        title={
-                          tienePrecios
-                            ? "Actualizar precios de esta película"
-                            : "Consultar precios en tiempo real"
+                      <BotonDetalleFunciones
+                        cargando={estadoDetalle.cargando}
+                        enCooldown={estadoDetalle.enCooldown}
+                        consultadoEn={estadoDetalle.consultadoEn}
+                        avisoError={estadoDetalle.avisoError}
+                        contexto={pelicula.titulo}
+                        onConsultar={() =>
+                          detalle.consultar(
+                            pelicula.id,
+                            cine.id,
+                            fechaActual,
+                            horariosGrupo,
+                          )
                         }
-                      >
-                        {estaConsultando
-                          ? "Consultando..."
-                          : tienePrecios
-                            ? "Precios cargados"
-                            : "Ver precios"}
-                      </button>
+                      />
                     </div>
-
                     {/* Agrupación de horarios con TarjetaFuncion */}
                     <div className="horarios-grid-cine">
                       {horariosPeli.map((h) => (
                         <TarjetaFuncion
                           key={h.id}
-                          horario={h}
+                          horario={detalle.horarioParaTarjeta(h, clave)}
                           pelicula={pelicula}
                           cine={cine}
+                          mostrarDetalle={estadoDetalle.revelado}
                         />
                       ))}
                     </div>

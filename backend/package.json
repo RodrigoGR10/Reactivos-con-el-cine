@@ -18,6 +18,8 @@
     "sync:muvix": "node src/scraper/cli.ts --chain=muvix --import",
     "scrape:cinestar": "node src/scraper/cli.ts --chain=cinestar",
     "sync:cinestar": "node src/scraper/cli.ts --chain=cinestar --import",
+    "scrape:cinepolis": "node src/scraper/cli.ts --chain=cinepolis",
+    "sync:cinepolis": "node src/scraper/cli.ts --chain=cinepolis --import",
     "sync:tmdb": "node src/scraper/import-cli.ts --tmdb"
   },
   "keywords": [],

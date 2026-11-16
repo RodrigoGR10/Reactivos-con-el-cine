@@ -9,6 +9,7 @@
         sans-serif;
     color: #f5f5f6;
     background: #080808;
+    color-scheme: dark;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -19,6 +20,34 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #686871 #121214;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+    background: #121214;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 2px solid #121214;
+    border-radius: 4px;
+    background: #686871;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #858590;
+}
+
+@media (forced-colors: active) {
+    * {
+        scrollbar-color: auto;
+    }
 }
 
 html,

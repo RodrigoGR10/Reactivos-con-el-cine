@@ -54,6 +54,10 @@ router.post("/register", async (req, res) => {
       .json({ error: "La contraseña debe tener al menos 6 caracteres" });
   }
 
+  if (nombre.trim().length < 2) {
+    return res.status(400).json({ error: "El nombre de usuario debe tener al menos 2 caracteres." });
+  }
+
   const emailNormalizado = email.trim().toLowerCase();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(emailNormalizado)) {
@@ -65,7 +69,7 @@ router.post("/register", async (req, res) => {
   const existe = await UserModel.findOne({ email: emailNormalizado });
   if (existe) {
     return res
-      .status(400)
+      .status(409)
       .json({ error: "Este correo electrónico ya se encuentra registrado." });
   }
 

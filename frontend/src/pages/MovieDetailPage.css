@@ -1,3 +1,27 @@
+@property --fade-start {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@property --fade-end {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@keyframes reveal-fade-start {
+    to {
+        --fade-start: var(--fade-size);
+    }
+}
+
+@keyframes hide-fade-end {
+    from {
+        --fade-end: var(--fade-size);
+    }
+}
+
 .detalle-pelicula {
     width: 100%;
     margin: 0 auto;
@@ -166,121 +190,7 @@
 .cartelera-cine-filtros {
     display: flex;
     flex-direction: column;
-    gap: 12px;
     width: 100%;
-}
-
-.filtros-barra-principal {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    flex-wrap: wrap;
-}
-
-.cartelera-search-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #121212;
-    border: 1px solid #222222;
-    border-radius: 8px;
-    padding: 0 12px;
-    height: 38px;
-    color: #777777;
-    flex: 1;
-    min-width: 220px;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease;
-}
-
-.cartelera-search-box:focus-within {
-    border-color: #444444;
-}
-
-.cartelera-search-box input {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #ffffff;
-    font-size: 0.88rem;
-    width: 100%;
-}
-
-.cartelera-search-box input::placeholder {
-    color: #666666;
-}
-
-.selector-comuna-filtro {
-    background-color: #121212;
-    border: 1px solid #222222;
-    border-radius: 8px;
-    padding: 0 32px 0 12px;
-    height: 38px;
-    color: #ffffff;
-    font-size: 0.88rem;
-    outline: none;
-    cursor: pointer;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-}
-
-.selector-comuna-filtro:focus {
-    border-color: #444444;
-}
-
-.selector-comuna-filtro option {
-    background-color: #141414;
-    color: #ffffff;
-}
-
-.btn-clear-inline {
-    background: transparent;
-    border: none;
-    color: #777777;
-    cursor: pointer;
-    font-size: 0.8rem;
-    padding: 2px 4px;
-}
-
-.btn-clear-inline:hover {
-    color: #ffffff;
-}
-
-.formatos-chips {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    width: 100%;
-}
-
-.formato-chip {
-    background-color: #141414;
-    border: 1px solid #262626;
-    color: #888888;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.formato-chip:hover {
-    border-color: #444444;
-    color: #ffffff;
-}
-
-.formato-chip.active {
-    background-color: #e50914;
-    border-color: #e50914;
-    color: #ffffff;
 }
 
 .btn-reset-filtros {
@@ -312,14 +222,12 @@
     display: flex;
     flex-direction: column;
     gap: 18px;
-    transition:
-        border-color 180ms ease,
-        transform 180ms ease;
+    min-width: 0;
+    transition: border-color 180ms ease;
 }
 
 .tarjeta-cine:hover {
     border-color: #494a54;
-    transform: translateY(-2px);
 }
 
 .cabecera-cine {
@@ -334,8 +242,8 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    min-width: 0;
-    flex: 1;
+    min-width: min(240px, 100%);
+    flex: 1 1 260px;
 }
 
 .nombre-cine {
@@ -347,9 +255,9 @@
 
 .nombre-cine strong {
     display: inline-flex;
-    align-items: baseline;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     font-size: 1.2rem;
 }
 
@@ -366,47 +274,77 @@
     color: var(--color-texto-secundario);
 }
 
-.btn-ver-precios {
-    background: transparent;
-    color: #b0b0b0;
-    border: 1px solid #383838;
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-ver-precios:hover:not(:disabled) {
-    background: #252525;
-    border-color: #555555;
-    color: #ffffff;
-}
-
-.btn-ver-precios:disabled {
-    opacity: 0.6;
-    cursor: wait;
-}
-
-.btn-ver-precios.cargado {
-    border-color: rgba(16, 185, 129, 0.4);
-    color: #10b981;
-}
-
-.btn-ver-precios.cargado:hover:not(:disabled) {
-    border-color: #10b981;
-    background: rgba(16, 185, 129, 0.1);
-}
-
 .horarios-grid-cine {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding-bottom: 8px;
+    --scrollbar-thumb: #6b6b76;
+    --scrollbar-track: #1a1a1e;
+    --fade-size: 2.5rem;
+    --fade-dir: right;
+    --fade-start-pos: 0;
+    --fade-end-pos: 100%;
+    scroll-padding-inline: var(--fade-size);
+    mask:
+        linear-gradient(black, black) no-clip subtract,
+        linear-gradient(to var(--fade-dir), black, transparent) var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
+        linear-gradient(to var(--fade-dir), transparent, black) var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
+    animation:
+        reveal-fade-start linear both,
+        hide-fade-end linear both;
+    animation-timeline: scroll(self inline);
+    animation-range:
+        0 var(--fade-size),
+        calc(100% - var(--fade-size)) 100%;
+    transition:
+        --fade-start 0.2s,
+        --fade-end 0.2s;
+}
+
+.horarios-grid-cine:dir(rtl) {
+    --fade-dir: left;
+    --fade-start-pos: 100%;
+    --fade-end-pos: 0;
+}
+
+.horarios-grid-cine.more-start {
+    --fade-start: var(--fade-size);
+}
+
+.horarios-grid-cine.more-end {
+    --fade-end: var(--fade-size);
+}
+
+@media (min-width: 769px) {
+    .horarios-grid-cine::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .horarios-grid-cine::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+        border-radius: 999px;
+    }
+
+    .horarios-grid-cine::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: 999px;
+    }
+
+    .horarios-grid-cine::-webkit-scrollbar-thumb:hover {
+        background: #8b8b96;
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        .horarios-grid-cine {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+    }
 }
 
 
@@ -448,36 +386,6 @@
     font-size: 1.6rem;
 }
 
-.boton-fav-cine {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    z-index: 2;
-
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: #531923;
-    color: white;
-    cursor: pointer;
-
-    opacity: 0;
-    visibility: hidden;
-    transition:
-        opacity 0.2s ease,
-        transform 0.2s ease;
-    transform: scale(0.8);
-}
-.logo-cine:hover .boton-fav-cine {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1);
-}
-
 .sin-funciones,
 .mensaje-detalle {
     padding: 50px 20px;
@@ -486,56 +394,6 @@
     background: var(--color-superficie);
     border: 1px dashed #3b3c45;
     border-radius: 12px;
-}
-
-.boton-cercania-detalle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 38px;
-    padding: 0 14px;
-    color: var(--color-texto);
-    background: #121212;
-    border: 1px solid #222222;
-    border-radius: 8px;
-    font-size: 0.86rem;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition:
-        border-color 0.2s ease,
-        background-color 0.2s ease,
-        color 0.2s ease;
-}
-
-.boton-cercania-detalle svg {
-    color: var(--color-acento);
-    flex-shrink: 0;
-}
-
-.boton-cercania-detalle:hover:not(:disabled) {
-    border-color: #444444;
-    background: #1a1a1a;
-}
-
-.boton-cercania-detalle.activo {
-    color: #ffffff;
-    cursor: default;
-}
-
-.boton-cercania-detalle.activo svg path {
-    fill: currentColor;
-}
-
-.boton-cercania-detalle.activo svg circle {
-    fill: var(--color-superficie-clara);
-    stroke: var(--color-superficie-clara);
-}
-
-.boton-cercania-detalle:disabled:not(.activo) {
-    opacity: 0.65;
-    cursor: wait;
 }
 
 .aviso-cercania {
@@ -589,17 +447,5 @@
 
     .contenido-detalle h1 {
         font-size: 2.8rem;
-    }
-
-    .filtros-barra-principal {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .cartelera-search-box,
-    .selector-comuna-filtro,
-    .boton-cercania-detalle {
-        width: 100%;
-        min-width: 0;
     }
 }

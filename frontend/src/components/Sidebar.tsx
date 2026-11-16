@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import type { MouseEvent } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   HomeIcon,
   TicketIcon,
@@ -10,21 +11,25 @@ import { useAuth } from "../context/AuthContext";
 
 function Sidebar() {
   const { user, logout, openAuthModal } = useAuth();
+  const location = useLocation();
+
+  const manejarClicVista = (ruta: string) => (evento: MouseEvent<HTMLAnchorElement>) => {
+    if (location.pathname === ruta) {
+      evento.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <aside className="sidebar" aria-label="Navegación principal">
       <div className="sidebar-top">
-        <NavLink
-          to="/"
-          className="sidebar-btn logo-btn"
-          title="Reactivos con el Cine"
-        >
+        <div className="sidebar-logo">
           <img
             src="/logo.jpg"
             alt="Reactivos con el Cine"
             className="sidebar-logo-img"
           />
-        </NavLink>
+        </div>
       </div>
 
       <div className="sidebar-mid">
@@ -35,8 +40,9 @@ function Sidebar() {
             `sidebar-btn ${isActive ? "active" : ""}`
           }
           title="Inicio"
+          onClick={manejarClicVista("/")}
         >
-          <HomeIcon size={28} />
+          {({ isActive }) => <HomeIcon size={28} filled={isActive} />}
         </NavLink>
         <NavLink
           to="/cines"
@@ -44,8 +50,9 @@ function Sidebar() {
             `sidebar-btn ${isActive ? "active" : ""}`
           }
           title="Cines"
+          onClick={manejarClicVista("/cines")}
         >
-          <TicketIcon size={28} />
+          {({ isActive }) => <TicketIcon size={28} filled={isActive} />}
         </NavLink>
         <NavLink
           to="/perfil"
@@ -53,8 +60,9 @@ function Sidebar() {
             `sidebar-btn ${isActive ? "active" : ""}`
           }
           title="Perfil"
+          onClick={manejarClicVista("/perfil")}
         >
-          <UserIcon size={28} />
+          {({ isActive }) => <UserIcon size={28} filled={isActive} />}
         </NavLink>
       </div>
 

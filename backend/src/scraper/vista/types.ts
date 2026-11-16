@@ -39,3 +39,21 @@ export interface Session {
 
 export interface SiteGroup { ID: string; Name: string }
 export interface SiteGroupCinemaLink { CinemaId: string; SiteGroupId: string }
+
+export interface PlanoButacasVista {
+  ResponseCode: number;
+  SeatLayoutData?: {
+    Areas: Array<{
+      Number: number;
+      NumberOfSeats: number;
+      IsAllocatedSeating: boolean;
+      Rows: Array<{
+        Seats: Array<{
+          Id: string;
+          Status: number;
+          Position: { AreaNumber: number; RowIndex: number; ColumnIndex: number };
+        }>;
+      }>;
+    }>;
+  };
+}

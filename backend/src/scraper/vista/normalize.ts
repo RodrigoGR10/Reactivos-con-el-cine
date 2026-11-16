@@ -1,4 +1,5 @@
 import { load } from "cheerio";
+import { normalizarButacas } from "../butacas.ts";
 import { fechaDeEstreno, isDate, scheduleRevision } from "../normalize.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
 import { CADENAS, purchaseUrl, ticketPage } from "./client.ts";
@@ -60,6 +61,7 @@ export function normalizeSchedule(chain: CadenaVista, session: Session, movie: M
     idioma: ["DOB", "ESP"].includes(languages[0]) ? "Doblada" : languages[0] === "SUB" ? "Subtitulada" : "Version original",
     formatoResumen: formato.sort((a, b) => Number(!/^[23]D$/.test(a)) - Number(!/^[23]D$/.test(b))).join(" "),
     sala: "", agotada: session.SeatsAvailable === 0,
+    butacas: normalizarButacas(session.SeatsAvailable, undefined, extractedAt),
     urlCompra: purchaseUrl(chain, session.CinemaId, session.SessionId),
   };
   return { ...schedule, revision: scheduleRevision(schedule) };
