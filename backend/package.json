@@ -9,18 +9,19 @@
     "start": "node out/index.js",
     "dev": "node --watch src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "scrape:cinemark": "node src/scraper/cli.ts",
-    "sync:cinemark": "node src/scraper/cli.ts --import",
-    "import:cinemark": "node src/scraper/import-cli.ts",
+    "scrape:cinemark": "node src/scraper/cli.ts --chain=cinemark",
+    "sync:cinemark": "node src/scraper/cli.ts --chain=cinemark --sync",
     "scrape:cineplanet": "node src/scraper/cli.ts --chain=cineplanet",
-    "sync:cineplanet": "node src/scraper/cli.ts --chain=cineplanet --import",
+    "sync:cineplanet": "node src/scraper/cli.ts --chain=cineplanet --sync",
     "scrape:muvix": "node src/scraper/cli.ts --chain=muvix",
-    "sync:muvix": "node src/scraper/cli.ts --chain=muvix --import",
+    "sync:muvix": "node src/scraper/cli.ts --chain=muvix --sync",
     "scrape:cinestar": "node src/scraper/cli.ts --chain=cinestar",
-    "sync:cinestar": "node src/scraper/cli.ts --chain=cinestar --import",
+    "sync:cinestar": "node src/scraper/cli.ts --chain=cinestar --sync",
     "scrape:cinepolis": "node src/scraper/cli.ts --chain=cinepolis",
-    "sync:cinepolis": "node src/scraper/cli.ts --chain=cinepolis --import",
-    "sync:tmdb": "node src/scraper/import-cli.ts --tmdb"
+    "sync:cinepolis": "node src/scraper/cli.ts --chain=cinepolis --sync",
+    "import:scrape": "node src/scraper/import-cli.ts",
+    "sync:tmdb": "node src/scraper/import-cli.ts --tmdb",
+    "deduplicar:peliculas": "node src/scraper/cli.ts --deduplicar"
   },
   "keywords": [],
   "author": "",
@@ -35,7 +36,7 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "lz-string": "^1.5.0",
-    "mongoose": "^9.10.3"
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -44,6 +45,8 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.3",
+    "@types/pg": "^8.15.6",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
 }
