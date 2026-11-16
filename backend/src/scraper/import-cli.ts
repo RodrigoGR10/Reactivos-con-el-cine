@@ -1,46 +1,74 @@
-import fs from "node:fs";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
-import dotenv from "dotenv";
-import { importCatalog, inspectCatalog, syncTmdbCatalog, validateResult } from "./import-data.ts";
+import { sincronizarMetadatosTmdb } from "./sync-tmdb/index.ts";
+import { pool } from "../db.ts";
+import { importarDatosScraped } from "./import-data.ts";
+import { validarScrapeResult } from "./validate.ts";
 
 async function main() {
-  const { values } = parseArgs({ options: { file: { type: "string" }, write: { type: "boolean" }, reset: { type: "boolean" }, sync: { type: "boolean" }, status: { type: "boolean" }, tmdb: { type: "boolean" }, help: { type: "boolean" } } });
-  if (values.help) {
-    console.log("npm run import:cinemark -- [--file=data/cinemark.json] [--write] [--sync] [--reset]\nSin --write solo valida el archivo. --sync retira funciones antiguas del alcance extraido.\n--reset respalda y reemplaza peliculas, cines y funciones; conserva users.\n--status consulta los conteos actuales de MongoDB sin escribir.\n--tmdb enriquece peliculas existentes en MongoDB con banner, poster y sinopsis de TMDB.");
-    return;
-  }
-  const root = fileURLToPath(new URL("../../", import.meta.url));
-  if ((values.reset || values.sync) && !values.write) throw new Error("--reset y --sync requieren --write.");
-  const mongoConfig = () => {
-    dotenv.config({ path: resolve(root, ".env"), quiet: true });
-    const uri = process.env.MONGODB_URI;
-    if (!uri) throw new Error("Configura MONGODB_URI en backend/.env antes de importar.");
-    return { uri, dbName: process.env.MONGODB_NAME ?? "reactivos-cine" };
-  };
-  if (values.status) {
-    const { uri, dbName } = mongoConfig();
-    console.log(JSON.stringify(await inspectCatalog(uri, dbName), null, 2));
-    return;
-  }
-  if (values.tmdb) {
-    const { uri, dbName } = mongoConfig();
-    if (!process.env.TMDB_API_KEY) throw new Error("Configura TMDB_API_KEY en backend/.env antes de sincronizar con TMDB.");
-    console.log(JSON.stringify(await syncTmdbCatalog(uri, dbName), null, 2));
-    return;
-  }
-  const file = values.file ? resolve(values.file) : resolve(root, "data/cinemark.json");
-  const result: unknown = JSON.parse(fs.readFileSync(file, "utf8"));
-  validateResult(result);
-  console.log(`Archivo valido: ${result.peliculas.length} peliculas, ${result.cines.length} cines, ${result.horarios?.length ?? 0} horarios, ${result.funciones.length} tarifas.`);
-  if (!values.write) { console.log("Vista previa. Agrega --write para importar en MongoDB."); return; }
-  const { uri, dbName } = mongoConfig();
-  const summary = await importCatalog(result, uri, dbName, {
-    reset: values.reset, sync: values.sync, backupDirectory: resolve(root, "data/backups"),
-  });
-  console.log(JSON.stringify(summary, null, 2));
-  console.log(values.reset ? "Catalogo reemplazado. Las cuentas de usuario se conservaron." : `${result.meta.origen} importado. Los registros existentes de otras fuentes se conservaron.`);
+    const args = process.argv.slice(2);
+
+    if (args.includes("--tmdb")) {
+        const dryRun = args.includes("--dry-run");
+        const apply = args.includes("--apply");
+
+        if (dryRun === apply) {
+            throw new Error(
+                "Debes indicar exactamente un modo:\n" +
+                    "npm run sync:tmdb -- --dry-run\n" +
+                    "npm run sync:tmdb -- --apply",
+            );
+        }
+
+        await sincronizarMetadatosTmdb({ apply });
+        return;
+    }
+
+    const jsonPath = args[0];
+
+    if (!jsonPath) {
+        throw new Error("Uso: pnpm import:scrape <ruta-al-json>");
+    }
+
+    const absolutePath = resolve(process.cwd(), jsonPath);
+
+    console.log(`Leyendo: ${absolutePath}`);
+
+    const rawData = await readFile(absolutePath, "utf8");
+
+    let data: unknown;
+
+    try {
+        data = JSON.parse(rawData);
+    } catch {
+        throw new Error(`El archivo no contiene JSON válido: ${absolutePath}`);
+    }
+
+    validarScrapeResult(data);
+
+    console.log(
+        `${data.cines.length} cines, ` +
+            `${data.peliculas.length} películas, ` +
+            `${data.horarios.length} horarios.`,
+    );
+
+    if (!data.meta.completo) {
+        console.warn(
+            "JSON parcial: se importarán los registros, " +
+                "pero no se limpiarán horarios anteriores.",
+        );
+    }
+
+    const summary = await importarDatosScraped(data);
+
+    console.table(summary);
 }
 
-main().catch((error) => { console.error("Error:", error.message); process.exitCode = 1; });
+main()
+    .catch((error: unknown) => {
+        console.error("Error de importación:", error);
+        process.exitCode = 1;
+    })
+    .finally(async () => {
+        await pool.end();
+    });

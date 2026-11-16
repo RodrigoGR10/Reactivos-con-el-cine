@@ -1,59 +1,162 @@
-import HorarioModel from "../models/horario.ts";
-import { horarioPublico, horariosVigentes, preciosPorCine } from "../services/preciosFunciones.ts";
-import { isDate } from "../scraper/normalize.ts";
 import express from "express";
-import mongoose from "mongoose";
-import { butacasPorCine } from "../services/butacasFunciones.ts";
+import { query, isNumericId, isCineId } from "../db.ts";
+import { preciosPorCine } from "../services/preciosFunciones.ts";
+import { cargarHorarios } from "../services/preciosFunciones/horarios.ts";
+
+import { horarioPublico } from "../services/preciosFunciones/estado.ts";
 
 const router = express.Router();
 
+router.use((req, res, next) => {
+    res.setHeader("Cache-Control", "no-store");
+    next();
+});
+
+router.get("/", async (req, res) => {
+    const { peliculaId, cineId } = req.query;
+
+    //Constr dinamica de filtros
+    const conditions: string[] = [
+        "(h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')",
+        "h.agotada = FALSE",
+    ];
+
+    const params: unknown[] = [];
+
+    if (peliculaId !== undefined) {
+        if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
+            return res.status(400).json({ error: "peliculaId inválido" });
+        }
+        params.push(parseInt(peliculaId, 10));
+        conditions.push(`h.pelicula_id = $${params.length}`);
+    }
+
+    if (cineId !== undefined) {
+        if (typeof cineId !== "string" || !isCineId(cineId)) {
+            return res.status(400).json({ error: "cineId inválido" });
+        }
+        params.push(cineId);
+        conditions.push(`h.cine_id = $${params.length}`);
+    }
+
+    const whereClause =
+        conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const sql = `
+            SELECT
+              h.id,
+              (h.fecha + h.horario) AS "fechaHora",
+              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
+              h.sala,
+              h.formato_resumen AS formato,
+              h.agotada,
+              p.id AS "peliculaId",
+              p.titulo AS "peliculaTitulo",
+              p.imagen_url AS "peliculaImagenUrl",
+              c.id AS "cineId",
+              c.nombre AS "cineNombre"
+            FROM horarios h
+            INNER JOIN peliculas p ON h.pelicula_id = p.id
+            INNER JOIN cines c ON h.cine_id = c.id
+            ${whereClause}
+            ORDER BY (h.fecha + h.horario) ASC;
+          `;
+
+    const { rows } = await query(sql, params);
+    return res.json(rows);
+});
+
 router.get("/horarios", async (req, res) => {
-  const { peliculaId, cineId } = req.query;
-  const filtro: Record<string, string> = {};
+    const { peliculaId, cineId } = req.query;
 
-  if (peliculaId !== undefined) {
-    if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId)) {
-      res.status(400).json({ error: "peliculaId invalido" });
-      return;
+    let parsedPeliculaId: number | undefined;
+
+    if (peliculaId !== undefined) {
+        if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
+            return res.status(400).json({ error: "peliculaId inválido" });
+        }
+
+        parsedPeliculaId = parseInt(peliculaId, 10);
     }
-    filtro.peliculaId = peliculaId;
-  }
 
-  if (cineId !== undefined) {
-    if (typeof cineId !== "string" || !mongoose.isValidObjectId(cineId)) {
-      res.status(400).json({ error: "cineId invalido" });
-      return;
+    if (cineId !== undefined) {
+        if (typeof cineId !== "string" || !isCineId(cineId)) {
+            return res.status(400).json({ error: "cineId inválido" });
+        }
     }
-    filtro.cineId = cineId;
-  }
 
-  if (!filtro.peliculaId && !filtro.cineId) {
-    res.status(400).json({ error: "Indica peliculaId o cineId" });
-    return;
-  }
+    if (parsedPeliculaId === undefined && cineId === undefined) {
+        return res.status(400).json({ error: "Indica peliculaId o cineId" });
+    }
 
-  const horarios = await HorarioModel.find({ ...filtro, ...horariosVigentes() }).sort({ fecha: 1, horario: 1 }).lean();
-  res.set("Cache-Control", "no-store").json(horarios.map(horarioPublico));
+    const horarios = await cargarHorarios(
+        parsedPeliculaId,
+        typeof cineId === "string" ? cineId : undefined,
+    );
+
+    return res.json(horarios.map(horarioPublico));
 });
 
 router.get("/precios", async (req, res) => {
-  const { peliculaId, cineId, fecha } = req.query;
-  if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId) || typeof cineId !== "string" || !mongoose.isValidObjectId(cineId) || typeof fecha !== "string" || !isDate(fecha)) {
-    res.status(400).json({ error: "Indica peliculaId, cineId y una fecha valida." });
-    return;
-  }
-  const horarios = await preciosPorCine(peliculaId, cineId, fecha);
-  res.set("Cache-Control", "no-store").json({ horarios, cacheMinutos: 15 });
+    const { peliculaId, cineId, fecha } = req.query;
+
+    if (
+        typeof peliculaId !== "string" ||
+        !isNumericId(peliculaId) ||
+        typeof cineId !== "string" ||
+        !isCineId(cineId) ||
+        typeof fecha !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(fecha)
+    ) {
+        return res.status(400).json({
+            error: "Indica peliculaId, cineId y una fecha válida.",
+        });
+    }
+
+    const horarios = await preciosPorCine(peliculaId, cineId, fecha);
+
+    return res.json({
+        horarios,
+        cacheMinutos: 15,
+    });
 });
 
-router.get("/butacas", async (req, res) => {
-  const { peliculaId, cineId, fecha } = req.query;
-  if (typeof peliculaId !== "string" || !mongoose.isValidObjectId(peliculaId) || typeof cineId !== "string" || !mongoose.isValidObjectId(cineId) || typeof fecha !== "string" || !isDate(fecha)) {
-    res.status(400).json({ error: "Indica peliculaId, cineId y una fecha valida." });
-    return;
-  }
-  const horarios = await butacasPorCine(peliculaId, cineId, fecha);
-  res.set("Cache-Control", "no-store").json({ horarios: horarios.map(horarioPublico), cacheSegundos: 120 });
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    if (!isNumericId(id)) {
+        return res.status(400).json({ error: "ID de funcion invalido" });
+    }
+
+    const sql = `
+            SELECT
+              h.id,
+              (h.fecha + h.horario) AS "fechaHora",
+              (SELECT MIN(precio) FROM tarifas WHERE horario_id = h.id) AS precio,
+              h.sala,
+              h.formato_resumen AS formato,
+              h.agotada,
+              p.id AS "peliculaId",
+              p.titulo AS "peliculaTitulo",
+              p.duracion AS "peliculaDuracion",
+              p.clasificacion AS "peliculaClasificacion",
+              p.imagen_url AS "peliculaImagenUrl",
+              c.id AS "cineId",
+              c.nombre AS "cineNombre",
+              c.direccion AS "cineDireccion"
+            FROM horarios h
+            INNER JOIN peliculas p ON h.pelicula_id = p.id
+            INNER JOIN cines c ON h.cine_id = c.id
+            WHERE h.id = $1;
+          `;
+
+    const { rows } = await query(sql, [parseInt(id, 10)]);
+
+    if (rows.length === 0) {
+        return res.status(404).json({ error: "Funcion no encontrada" });
+    }
+
+    return res.json(rows[0]);
 });
 
 export default router;
