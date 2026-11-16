@@ -23,11 +23,15 @@ export interface ReglaCupoCategoria {
   topAleatorio?: number;
 }
 
+export type ComplementoEtiquetaDestacada =
+  | { tipo: "fecha"; valor: string }
+  | { tipo: "calificacion"; valor: string };
+
 export interface PeliculaDestacadaSeleccionada {
   pelicula: Pelicula;
   categoria: CategoriaDestacada;
   etiqueta: string;
-  fechaEtiqueta?: string;
+  complemento?: ComplementoEtiquetaDestacada;
   rangoCategoria?: number;
 }
 
@@ -242,17 +246,25 @@ function puntajePreventa(pelicula: Pelicula): number {
   );
 }
 
-function fechaEtiquetaPara(
+function complementoPara(
   categoria: CategoriaDestacada,
   pelicula: Pelicula,
-): string | undefined {
-  const usaFechaPreventa =
+): ComplementoEtiquetaDestacada | undefined {
+  if (
     categoria === "preventas_esperadas" ||
-    (categoria === "destacada" && pelicula.estadoEstreno === "preventa");
-  if (!usaFechaPreventa) return undefined;
-  return parsearFechaUtcMs(pelicula.fechaEstreno) !== null
-    ? pelicula.fechaEstreno
-    : undefined;
+    (categoria === "destacada" && pelicula.estadoEstreno === "preventa")
+  ) {
+    return parsearFechaUtcMs(pelicula.fechaEstreno) !== null
+      ? { tipo: "fecha", valor: pelicula.fechaEstreno! }
+      : undefined;
+  }
+  if (
+    categoria === "mejor_valoradas" &&
+    typeof pelicula.calificacionTmdb === "number"
+  ) {
+    return { tipo: "calificacion", valor: pelicula.calificacionTmdb.toFixed(1) };
+  }
+  return undefined;
 }
 
 type CategoriaPoolId = Exclude<CategoriaDestacada, "destacada">;
@@ -389,13 +401,11 @@ function generarEtiqueta(
 ): string {
   switch (categoria) {
     case "favoritas":
-      return empateFavoritas ? "Top favoritos" : "N° 1 en favoritos";
+      return empateFavoritas ? "Destacada por los usuarios" : "N° 1 en favoritos";
     case "estrenos_recientes":
-      return "Estreno reciente";
+      return "Recién estrenada";
     case "mejor_valoradas":
-      return typeof pelicula.calificacionTmdb === "number"
-        ? `Mejor valorada ★ ${pelicula.calificacionTmdb.toFixed(1)}`
-        : "Mejor valorada";
+      return "Mejor valorada";
     case "en_mas_salas":
       return "Tendencia en cines";
     case "preventas_esperadas":
@@ -548,7 +558,7 @@ export function seleccionarDestacadasConCategoria(
         elegida,
         regla.categoria === "favoritas" ? infoFavoritas.empateEnTope : false,
       ),
-      fechaEtiqueta: fechaEtiquetaPara(regla.categoria, elegida),
+      complemento: complementoPara(regla.categoria, elegida),
       rangoCategoria,
     });
     return true;
@@ -599,7 +609,7 @@ export function seleccionarDestacadasConCategoria(
         pelicula,
         categoria: "destacada",
         etiqueta: generarEtiqueta("destacada", pelicula),
-        fechaEtiqueta: fechaEtiquetaPara("destacada", pelicula),
+        complemento: complementoPara("destacada", pelicula),
       });
     }
   }

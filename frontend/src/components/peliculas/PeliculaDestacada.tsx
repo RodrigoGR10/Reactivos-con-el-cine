@@ -4,8 +4,12 @@ import type { Pelicula } from "../../types/types.ts";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
-import { CalendarIcon } from "../common/Icons.tsx";
-import { totalFavoritos, type CategoriaDestacada } from "../../utils/seleccionarDestacadas.ts";
+import { CalendarIcon, StarIcon } from "../common/Icons.tsx";
+import {
+  totalFavoritos,
+  type CategoriaDestacada,
+  type ComplementoEtiquetaDestacada,
+} from "../../utils/seleccionarDestacadas.ts";
 import {
   formatearFechaEstrenoCorta,
   resumirSinopsisDestacada,
@@ -111,14 +115,14 @@ function ajustarTextoSinopsisPorPalabras(
 interface PeliculaDestacadaProps {
   pelicula: Pelicula;
   etiqueta?: string;
-  fechaEtiqueta?: string;
+  complemento?: ComplementoEtiquetaDestacada;
   categoria?: CategoriaDestacada;
 }
 
 function PeliculaDestacada({
   pelicula,
   etiqueta,
-  fechaEtiqueta,
+  complemento,
   categoria,
 }: PeliculaDestacadaProps) {
   const { user, openAuthModal } = useAuth();
@@ -205,7 +209,7 @@ function PeliculaDestacada({
       desmontado = true;
       observador.disconnect();
     };
-  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, total, etiquetaMostrada, fechaEtiqueta]);
+  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, total, etiquetaMostrada, complemento?.tipo, complemento?.valor]);
 
   return (
     <section
@@ -223,12 +227,21 @@ function PeliculaDestacada({
       <div ref={contenidoRef} className="contenido-destacada">
         <div className="destacada-popularidad">
           <p className="etiqueta-destacada">{etiquetaMostrada}</p>
-          {fechaEtiqueta && (
-            <span className="etiqueta-fecha-destacada">
-              <CalendarIcon size={14} className="icono-fecha-destacada" />
-              <time dateTime={fechaEtiqueta}>
-                {formatearFechaEstrenoCorta(fechaEtiqueta)}
-              </time>
+          {complemento && (
+            <span className="etiqueta-dato-destacada">
+              {complemento.tipo === "fecha" ? (
+                <>
+                  <CalendarIcon size={14} className="icono-dato-destacada" />
+                  <time dateTime={complemento.valor}>
+                    {formatearFechaEstrenoCorta(complemento.valor)}
+                  </time>
+                </>
+              ) : (
+                <>
+                  <StarIcon size={14} filled className="icono-dato-destacada" />
+                  <span>{complemento.valor}</span>
+                </>
+              )}
             </span>
           )}
           {!esDesktop && contadorFavoritos}

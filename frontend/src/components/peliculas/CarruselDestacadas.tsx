@@ -142,7 +142,7 @@ export function CarruselDestacadas({
               <PeliculaDestacada
                 pelicula={transicion.anterior.pelicula}
                 etiqueta={transicion.anterior.etiqueta}
-                fechaEtiqueta={transicion.anterior.fechaEtiqueta}
+                complemento={transicion.anterior.complemento}
                 categoria={transicion.anterior.categoria}
               />
             </div>
@@ -156,7 +156,7 @@ export function CarruselDestacadas({
             <PeliculaDestacada
               pelicula={actual.pelicula}
               etiqueta={actual.etiqueta}
-              fechaEtiqueta={actual.fechaEtiqueta}
+              complemento={actual.complemento}
               categoria={actual.categoria}
             />
           </div>
