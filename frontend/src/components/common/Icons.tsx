@@ -188,6 +188,29 @@ export const CalendarIcon = ({
   </svg>
 );
 
+export const StarIcon = ({
+  size = 14,
+  className = "star-icon-svg",
+  filled = false,
+  ...props
+}: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? "currentColor" : "none"}
+    stroke={filled ? "none" : "currentColor"}
+    strokeWidth={filled ? undefined : "1.7"}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+    {...props}
+  >
+    <path d="M 11.83 2.77 Q 12 2.25 12.17 2.77 L 14.3 9.17 Q 14.44 9.59 14.89 9.6 L 21.63 9.64 Q 22.18 9.64 21.73 9.97 L 16.31 13.97 Q 15.95 14.23 16.08 14.66 L 18.12 21.08 Q 18.29 21.61 17.84 21.29 L 12.37 17.36 Q 12 17.1 11.63 17.36 L 6.16 21.29 Q 5.71 21.61 5.88 21.08 L 7.92 14.66 Q 8.05 14.23 7.69 13.97 L 2.27 9.97 Q 1.82 9.64 2.37 9.64 L 9.11 9.6 Q 9.56 9.59 9.7 9.17 Z" />
+  </svg>
+);
+
 export const LogOutIcon = ({
   size = 26,
   className = "logout-icon-svg",
