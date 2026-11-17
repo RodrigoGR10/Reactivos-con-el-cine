@@ -1,18 +1,27 @@
-import UserModel from "../models/user.ts";
+import { query } from "../db.ts";
+
+interface PopularidadRow {
+  id: string;
+  total: number;
+}
 
 export async function incluirPopularidad<T extends { id: string }>(
   peliculas: readonly T[],
 ): Promise<Array<T & { totalFavoritos: number }>> {
   if (!peliculas.length) return [];
   const ids = [...new Set(peliculas.map((pelicula) => pelicula.id))];
-  // Una pelicula cuenta una sola vez por usuario, incluso en datos antiguos duplicados.
-  // Al migrar, esta consulta equivale a COUNT(DISTINCT usuario_id) por pelicula.
-  const conteos = await UserModel.aggregate<{ _id: string; total: number }>([
-    { $match: { peliculasFavoritas: { $in: ids } } },
-    { $project: { favoritas: { $setIntersection: [{ $ifNull: ["$peliculasFavoritas", []] }, ids] } } },
-    { $unwind: "$favoritas" },
-    { $group: { _id: "$favoritas", total: { $sum: 1 } } },
-  ]);
-  const totales = new Map(conteos.map((conteo) => [conteo._id, conteo.total]));
+  const idsNumericos = ids.filter((id) => /^\d+$/.test(id)).map(Number);
+  const totales = new Map<string, number>();
+
+  if (idsNumericos.length) {
+    const { rows } = await query<PopularidadRow>(`
+      SELECT pelicula_id::text AS id, COUNT(DISTINCT user_id)::int AS total
+      FROM favoritos_peliculas
+      WHERE pelicula_id = ANY($1::int[])
+      GROUP BY pelicula_id;
+    `, [idsNumericos]);
+    for (const fila of rows) totales.set(fila.id, fila.total);
+  }
+
   return peliculas.map((pelicula) => ({ ...pelicula, totalFavoritos: totales.get(pelicula.id) ?? 0 }));
 }

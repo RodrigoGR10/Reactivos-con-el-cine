@@ -13,9 +13,10 @@ const getAll = async (): Promise<Pelicula[]> => {
     }));
 };
 
-const getCartelera = async (): Promise<Pelicula[]> => {
+const getCartelera = async (signal?: AbortSignal): Promise<Pelicula[]> => {
     const { data } = await axios.get<Pelicula[]>(baseUrl, {
         params: { cartelera: true },
+        signal,
     });
 
     return data.map((pelicula) => ({
