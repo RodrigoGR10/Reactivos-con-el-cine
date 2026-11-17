@@ -68,7 +68,9 @@ ALTER TABLE peliculas
     ADD COLUMN IF NOT EXISTS trailer_url TEXT,
     ADD COLUMN IF NOT EXISTS trailer_encontrado_en TIMESTAMP WITH TIME ZONE,
     ADD COLUMN IF NOT EXISTS trailer_idioma VARCHAR(20),
-    ADD COLUMN IF NOT EXISTS trailer_version VARCHAR(20);
+    ADD COLUMN IF NOT EXISTS trailer_version VARCHAR(20),
+    ADD COLUMN IF NOT EXISTS trailer_sin_resultado_firma TEXT,
+    ADD COLUMN IF NOT EXISTS trailer_sin_resultado_en TIMESTAMP WITH TIME ZONE;
 
 --------------------------------------------------
 -- 4. TABLA FUNCIONES (CARTELERA Y HORARIOS)

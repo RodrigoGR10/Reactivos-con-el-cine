@@ -9,6 +9,8 @@ export interface FuncionRecomendacion {
   peliculaImagenUrl?: string | null;
   cineId: string;
   cineNombre: string;
+  formato?: string | null;
+  idioma?: string | null;
 }
 
 const getFuncionesDisponibles = async (

@@ -1,25 +1,7 @@
 import type { Cine, Funcion, Horario, Pelicula } from "../../types/types";
 import { SeatIcon } from "../common/Icons";
+import { nombreCadena, obtenerEnlaceCompraSeguro } from "../../utils/enlaceCompra";
 import "./TarjetaFuncion.css";
-
-const cadenas: Record<string, { nombre: string; dominios: string[] }> = {
-  cinemark: { nombre: "Cinemark", dominios: ["www.cinemark.cl", "cinemark.cl"] },
-  cineplanet: { nombre: "Cineplanet", dominios: ["www.cineplanet.cl", "cineplanet.cl"] },
-  muvix: { nombre: "Muvix", dominios: ["muvix.cl", "www.muvix.cl"] },
-  cinestar: { nombre: "Cinestar", dominios: ["cinestar.cl", "www.cinestar.cl"] },
-  cinepolis: {
-    nombre: "Cinépolis",
-    dominios: [
-      "cinepolis.cl",
-      "www.cinepolis.cl",
-      "hoyts.cl",
-      "www.hoyts.cl",
-      "cinepolis.com",
-      "www.cinepolis.com",
-      "compra.cinepolis.com",
-    ],
-  },
-};
 
 const precioCLP = (precio: number) =>
   new Intl.NumberFormat("es-CL", {
@@ -27,20 +9,6 @@ const precioCLP = (precio: number) =>
     currency: "CLP",
     maximumFractionDigits: 0,
   }).format(precio);
-
-function enlaceSeguro(value: string | undefined, origen: string | undefined): string | undefined {
-  if (!value) return undefined;
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "https:") return undefined;
-    const dominios = cadenas[origen ?? ""]?.dominios;
-    if (dominios && !dominios.includes(url.hostname)) return undefined;
-    if (url.username || url.password) return undefined;
-    return url.href;
-  } catch {
-    return undefined;
-  }
-}
 
 type NivelDisponibilidad = "alta" | "media" | "baja" | "agotada" | "sin-total";
 
@@ -96,8 +64,8 @@ export function TarjetaFuncion({
     mostrarDetalle &&
     ((horario?.agotada ?? funcion?.agotada ?? false) || disponiblesValido === 0);
 
-  const enlace = enlaceSeguro(urlCompra, cine?.origen);
-  const cadena = cadenas[cine?.origen ?? ""]?.nombre ?? cine?.nombre ?? "Cine";
+  const enlace = obtenerEnlaceCompraSeguro(urlCompra, cine?.origen);
+  const cadena = nombreCadena(cine?.origen, cine?.nombre ?? "Cine");
   const tituloPelicula = pelicula?.titulo ?? "Película";
   const nombreCine = cine?.nombre ?? "Cine";
 
@@ -124,7 +92,6 @@ export function TarjetaFuncion({
           mostrarDetalle && !mostrarPrecio && !mostrarDisponibilidad ? ", sin datos" : ""
         }`
   }`;
-
   const contenido = (
     <>
       <span className="tarjeta-funcion-hora">{hora}</span>

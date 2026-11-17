@@ -44,8 +44,6 @@ function PaginaPrincipal() {
       {peliculasDestacadas.length > 0 && <CarruselDestacadas peliculas={peliculasDestacadas} />}
 
       <div className="contenido-principal">
-        <RecomendadorPeliculas />
-
         <FiltrosPeliculas
           busqueda={filtros.busqueda}
           onBusquedaChange={(valor) => cambiarFiltro("busqueda", valor)}
@@ -86,6 +84,7 @@ function PaginaPrincipal() {
             No encontramos películas que coincidan con tu búsqueda y filtros.
           </p>
         )}
+        <RecomendadorPeliculas />
       </div>
     </>
   );

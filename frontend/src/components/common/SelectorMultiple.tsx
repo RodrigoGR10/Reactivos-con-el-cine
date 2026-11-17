@@ -275,6 +275,10 @@ interface SelectorUnicoProps {
     cerrarLabel?: string;
     className?: string;
     disabled?: boolean;
+    conBusqueda?: boolean;
+    placeholderBusqueda?: string;
+    mensajeVacio?: string;
+    mostrarCantidad?: boolean;
 }
 
 /**
@@ -290,9 +294,19 @@ export function SelectorUnico({
     cerrarLabel = `Cerrar selector de ${titulo.toLowerCase()}`,
     className = "",
     disabled = false,
+    conBusqueda = false,
+    placeholderBusqueda = "Buscar...",
+    mensajeVacio = "No se encontraron opciones.",
+    mostrarCantidad = true,
 }: SelectorUnicoProps) {
-    const estado = useSelectorDesplegable();
+    const [busqueda, setBusqueda] = useState("");
+    const buscador = useRef<HTMLInputElement>(null);
+    const estado = useSelectorDesplegable(conBusqueda ? buscador : undefined);
     const etiqueta = opciones.find((opcion) => opcion.valor === seleccionada)?.nombre ?? etiquetaVacia;
+    const termino = normalizarTexto(busqueda.trim());
+    const visibles = termino
+        ? opciones.filter((opcion) => normalizarTexto(opcion.nombre).includes(termino) || opcion.valor.includes(termino))
+        : opciones;
 
     return (
         <SelectorDesplegable
@@ -304,9 +318,22 @@ export function SelectorUnico({
             cerrarLabel={cerrarLabel}
             className={className}
             disabled={disabled}
+            onAbrir={() => setBusqueda("")}
         >
+            {conBusqueda && (
+                <div className="cines-comunas-busqueda">
+                    <SearchIcon size={15} />
+                    <input
+                        ref={buscador}
+                        value={busqueda}
+                        onChange={(event) => setBusqueda(event.target.value)}
+                        aria-label={placeholderBusqueda.replace(/\.+$/, "")}
+                        placeholder={placeholderBusqueda}
+                    />
+                </div>
+            )}
             <div className="cines-comunas-opciones" role="listbox" aria-label={titulo}>
-                {opciones.map((opcion) => {
+                {visibles.map((opcion) => {
                     const activa = opcion.valor === seleccionada;
                     return (
                         <button
@@ -317,17 +344,21 @@ export function SelectorUnico({
                             className={`cines-comuna-opcion selector-unico-opcion ${activa ? "activo" : ""}`}
                             onClick={() => {
                                 onChange(activa ? "" : opcion.valor);
+                                setBusqueda("");
                                 estado.cerrar(true);
                             }}
                         >
                             <span className="selector-unico-radio" aria-hidden="true" />
                             <span>{opcion.nombre}</span>
-                            <span className="cines-comuna-cantidad" aria-hidden="true">
-                                {opcion.cantidad}
-                            </span>
+                            {mostrarCantidad && (
+                                <span className="cines-comuna-cantidad" aria-hidden="true">
+                                    {opcion.cantidad}
+                                </span>
+                            )}
                         </button>
                     );
                 })}
+                {!visibles.length && <p className="cines-comunas-vacio">{mensajeVacio}</p>}
             </div>
             {Boolean(seleccionada) && (
                 <div className="cines-comunas-panel-footer">
