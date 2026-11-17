@@ -5,16 +5,6 @@ import { seleccionarDestacadasConCategoria } from "../utils/seleccionarDestacada
 
 let peliculasEnMemoria: Pelicula[] = [];
 
-function crearRngConSemilla(semilla: number): () => number {
-  let estado = semilla >>> 0;
-  return () => {
-    estado = (estado + 0x6d2b79f5) | 0;
-    let t = Math.imul(estado ^ (estado >>> 15), 1 | estado);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 function mismaPelicula(a: Pelicula, b: Pelicula): boolean {
   return (
     a.id === b.id &&
@@ -25,6 +15,8 @@ function mismaPelicula(a: Pelicula, b: Pelicula): boolean {
     a.sinopsis === b.sinopsis &&
     a.poster === b.poster &&
     a.banner === b.banner &&
+    a.trailerUrl === b.trailerUrl &&
+    a.trailerVersion === b.trailerVersion &&
     a.estadoEstreno === b.estadoEstreno &&
     a.fechaEstreno === b.fechaEstreno &&
     a.totalFavoritos === b.totalFavoritos &&
@@ -46,9 +38,6 @@ function mismasPeliculas(actuales: Pelicula[], nuevas: Pelicula[]): boolean {
 
 export function usePeliculas() {
   const hayDatos = useRef(peliculasEnMemoria.length > 0);
-  const [semillaDestacadas] = useState(() =>
-    Math.floor(Math.random() * 2 ** 32),
-  );
   const [peliculas, setPeliculas] = useState<Pelicula[]>(() => peliculasEnMemoria);
   const [cargando, setCargando] = useState(() => peliculasEnMemoria.length === 0);
   const [error, setError] = useState<string | null>(null);
@@ -86,11 +75,8 @@ export function usePeliculas() {
   }, []);
 
   const peliculasDestacadas = useMemo(
-    () =>
-      seleccionarDestacadasConCategoria(peliculas, {
-        rng: crearRngConSemilla(semillaDestacadas),
-      }),
-    [peliculas, semillaDestacadas],
+    () => seleccionarDestacadasConCategoria(peliculas),
+    [peliculas],
   );
 
   return { peliculas, peliculasDestacadas, cargando, error };

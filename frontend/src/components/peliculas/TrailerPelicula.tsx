@@ -32,7 +32,20 @@ export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
   return (
     <section className="trailer-detalle" aria-labelledby={tituloId}>
       <div className="trailer-encabezado">
-        <h2 id={tituloId}>Tráiler</h2>
+        <div className="trailer-titulo">
+          <h2 id={tituloId}>Tráiler</h2>
+          {pelicula.trailerVersion && (
+            <span className="trailer-version">
+              {pelicula.trailerVersion === "subtitulado"
+                ? "Subtitulado al español"
+                : pelicula.trailerVersion === "doblado"
+                  ? "Doblado al español"
+                  : pelicula.trailerVersion === "original"
+                    ? "Audio original en español"
+                    : "Versión en español del cine"}
+            </span>
+          )}
+        </div>
         <div className="trailer-acciones">
           <a href={trailer.url} target="_blank" rel="noopener noreferrer">
             {trailer.tipo === "youtube" ? "Ver en YouTube" : "Abrir video"}<ChevronRightIcon size={16} />

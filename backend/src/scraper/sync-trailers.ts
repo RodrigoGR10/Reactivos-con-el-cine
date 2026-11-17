@@ -1,6 +1,6 @@
 import { pool } from "../db.ts";
 import {
-    buscarTrailerLatino,
+    buscarTrailerEspanol,
     type MetadatosYoutube,
     type PeliculaConVideos,
 } from "./tmdb/trailers.ts";
@@ -19,7 +19,7 @@ async function pedirJson<T>(url: URL): Promise<T | undefined> {
     return await response.json() as T;
 }
 
-export async function sincronizarTrailersLatinos(options: { apply?: boolean } = {}) {
+export async function sincronizarTrailersEnEspanol(options: { apply?: boolean } = {}) {
     const apply = options.apply === true;
     const { rows } = await pool.query<PeliculaPendiente>(`
         SELECT id, titulo, tmdb_id, trailer_url
@@ -29,7 +29,7 @@ export async function sincronizarTrailersLatinos(options: { apply?: boolean } = 
           AND (tmdb_id IS NOT NULL OR trailer_url IS NOT NULL)
         ORDER BY id;
     `);
-    const resumen = { revisadas: rows.length, confirmadas: 0, actualizadas: 0, sinVersionLatina: 0, errores: 0 };
+    const resumen = { revisadas: rows.length, confirmadas: 0, actualizadas: 0, sinVersionEspanol: 0, errores: 0 };
     const youtubeCache = new Map<string, Promise<MetadatosYoutube | undefined>>();
     const peliculaCache = new Map<number, Promise<PeliculaConVideos | undefined>>();
     const consultarYoutube = (url: string) => {
@@ -58,15 +58,15 @@ export async function sincronizarTrailersLatinos(options: { apply?: boolean } = 
         return pendiente;
     };
 
-    console.log(`Trailers pendientes de confirmar en espanol latino: ${rows.length}`);
+    console.log(`Trailers pendientes de confirmar en español: ${rows.length}`);
     for (const [index, pelicula] of rows.entries()) {
         try {
             const datos = pelicula.tmdb_id ? await consultarPelicula(pelicula.tmdb_id) : {};
             if (pelicula.tmdb_id && !datos) throw new Error("No se pudo verificar la ficha de TMDB.");
-            const trailer = await buscarTrailerLatino(pelicula.titulo, pelicula.trailer_url, datos ?? {}, consultarYoutube);
+            const trailer = await buscarTrailerEspanol(pelicula.titulo, pelicula.trailer_url, datos ?? {}, consultarYoutube);
             if (!trailer) {
-                resumen.sinVersionLatina++;
-                console.log(`[${index + 1}/${rows.length}] ${pelicula.titulo}: sin audio latino confirmado.`);
+                resumen.sinVersionEspanol++;
+                console.log(`[${index + 1}/${rows.length}] ${pelicula.titulo}: sin versión en español confirmada.`);
                 continue;
             }
             resumen.confirmadas++;
@@ -78,9 +78,25 @@ export async function sincronizarTrailersLatinos(options: { apply?: boolean } = 
                             WHEN trailer_url = $1 THEN COALESCE(trailer_encontrado_en, NOW())
                             ELSE NOW() END
                     WHERE id = $3 AND trailer_url IS NOT DISTINCT FROM $4::text
-                      AND (trailer_idioma IS DISTINCT FROM 'es-419'
-                        OR trailer_version IS NULL OR trailer_version NOT IN ('doblado', 'original'));
-                `, [trailer.url, trailer.version, pelicula.id, pelicula.trailer_url]);
+                      AND (
+                        trailer_idioma IS DISTINCT FROM 'es-419'
+                        OR trailer_version IS NULL
+                        OR trailer_version NOT IN ('doblado', 'original', 'subtitulado', 'espanol')
+                        OR CASE trailer_version
+                            WHEN 'doblado' THEN 3
+                            WHEN 'original' THEN 3
+                            WHEN 'subtitulado' THEN 2
+                            WHEN 'espanol' THEN 1
+                            ELSE 0
+                           END < CASE $5::text
+                            WHEN 'doblado' THEN 3
+                            WHEN 'original' THEN 3
+                            WHEN 'subtitulado' THEN 2
+                            WHEN 'espanol' THEN 1
+                            ELSE 0
+                           END
+                      );
+                `, [trailer.url, trailer.version, pelicula.id, pelicula.trailer_url, trailer.version]);
                 resumen.actualizadas += result.rowCount ?? 0;
             }
             console.log(`[${index + 1}/${rows.length}] ${pelicula.titulo}: ${trailer.version}, es-419.`);

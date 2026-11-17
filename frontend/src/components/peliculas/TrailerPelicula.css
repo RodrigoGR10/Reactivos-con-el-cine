@@ -17,7 +17,9 @@
 }
 
 .trailer-encabezado { justify-content: space-between; flex-wrap: wrap; min-height: 36px; }
+.trailer-titulo { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .trailer-encabezado h2 { margin: 0; font-size: 1.6rem; line-height: 1.2; }
+.trailer-version { padding: 4px 9px; border: 1px solid var(--color-borde); border-radius: 999px; color: var(--color-texto-secundario); font-size: 0.75rem; font-weight: 600; line-height: 1.2; }
 .trailer-acciones { flex-wrap: wrap; }
 .trailer-acciones a { display: inline-flex; align-items: center; gap: 4px; color: var(--color-texto-secundario); font-size: 0.875rem; text-decoration: none; }
 .trailer-acciones a:hover { color: var(--color-texto); }
