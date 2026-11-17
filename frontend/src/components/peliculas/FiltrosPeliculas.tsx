@@ -86,6 +86,7 @@ function FiltrosPeliculas({
                 <div className="filtros-cartelera-selectores">
                     <SelectorMultiple
                         className="filtro-generos"
+                        posicion="bottom-start"
                         opciones={generos}
                         seleccionadas={generosSeleccionados}
                         onChange={onGenerosChange}
@@ -102,6 +103,7 @@ function FiltrosPeliculas({
 
                     <SelectorMultiple
                         className="filtro-clasificacion"
+                        posicion="bottom-start"
                         opciones={clasificaciones}
                         seleccionadas={clasificacionesSeleccionadas}
                         onChange={onClasificacionesChange}

@@ -1,4 +1,6 @@
-import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useId, useRef, useState, type ReactNode, type RefObject } from "react";
+import { Drawer, Popover, type FloatingPosition } from "@mantine/core";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { CloseIcon, MapPinIcon, SearchIcon } from "./Icons";
 import { normalizarTexto } from "../../utils/normalizarTexto";
 import "../../pages/CinemasPage.css";
@@ -9,45 +11,13 @@ export interface OpcionFiltro {
     cantidad: number;
 }
 
-interface EstadoDesplegable {
-    abierto: boolean;
-    setAbierto: (fn: (prev: boolean) => boolean) => void;
-    contenedor: RefObject<HTMLDivElement | null>;
-    boton: RefObject<HTMLButtonElement | null>;
-    panelId: string;
-    tituloId: string;
-    cerrar: (devolverFoco?: boolean) => void;
-}
-
-function useSelectorDesplegable(focusOnOpenRef?: RefObject<HTMLInputElement | null>): EstadoDesplegable {
-    const [abierto, setAbierto] = useState(false);
-    const contenedor = useRef<HTMLDivElement>(null);
-    const boton = useRef<HTMLButtonElement>(null);
-    const panelId = useId();
-    const tituloId = useId();
-
-    useEffect(() => {
-        if (!abierto) return;
-        focusOnOpenRef?.current?.focus();
-        const cerrarFuera = (event: PointerEvent) => {
-            if (event.target instanceof Node && !contenedor.current?.contains(event.target)) {
-                setAbierto(false);
-            }
-        };
-        document.addEventListener("pointerdown", cerrarFuera);
-        return () => document.removeEventListener("pointerdown", cerrarFuera);
-    }, [abierto, focusOnOpenRef]);
-
-    const cerrar = (devolverFoco = false) => {
-        setAbierto(false);
-        if (devolverFoco) boton.current?.focus();
-    };
-
-    return { abierto, setAbierto, contenedor, boton, panelId, tituloId, cerrar };
-}
-
 interface SelectorDesplegableProps {
-    estado: EstadoDesplegable;
+    abierto: boolean;
+    onAbrir?: () => void;
+    onAlternar: () => void;
+    onCerrar: () => void;
+    focusAlAbrirRef?: RefObject<HTMLInputElement | null>;
+    posicion?: FloatingPosition;
     titulo: string;
     etiqueta: string;
     ariaLabel: string;
@@ -55,15 +25,20 @@ interface SelectorDesplegableProps {
     cerrarLabel: string;
     className?: string;
     disabled?: boolean;
-    onAbrir?: () => void;
     children: ReactNode;
 }
 
 /**
  * Contenedor desplegable compartido para selectores simples y múltiples.
+ * Usa Popover (Floating UI + Portal) en desktop y Drawer inferior en móvil.
  */
 function SelectorDesplegable({
-    estado,
+    abierto,
+    onAbrir,
+    onAlternar,
+    onCerrar,
+    focusAlAbrirRef,
+    posicion = "bottom-end",
     titulo,
     etiqueta,
     ariaLabel,
@@ -71,63 +46,115 @@ function SelectorDesplegable({
     cerrarLabel,
     className = "",
     disabled = false,
-    onAbrir,
     children,
 }: SelectorDesplegableProps) {
-    const { abierto, setAbierto, contenedor, boton, panelId, tituloId, cerrar } = estado;
+    const esMovil = useMediaQuery("(max-width: 600px), (max-width: 960px) and (max-height: 500px)") ?? false;
+    const panelId = useId();
+    const tituloId = useId();
 
-    return (
-        <div
-            ref={contenedor}
-            className={`cines-comunas-selector ${className}`.trim()}
+    const enfocarAlAbrir = () => {
+        focusAlAbrirRef?.current?.focus({ preventScroll: true });
+    };
+
+    const disparador = (
+        <button
+            type="button"
+            className={`cines-comunas-trigger ${tieneSeleccion ? "activo" : ""}`.trim()}
+            aria-label={ariaLabel}
+            aria-expanded={abierto}
+            aria-controls={abierto ? panelId : undefined}
+            disabled={disabled}
             onKeyDown={(event) => {
                 if (event.key === "Escape" && abierto) {
                     event.preventDefault();
-                    cerrar(true);
+                    onCerrar();
                 }
             }}
-            onBlur={(event) => {
-                if (
-                    event.relatedTarget instanceof Node &&
-                    !event.currentTarget.contains(event.relatedTarget)
-                ) {
-                    cerrar();
-                }
+            onClick={() => {
+                if (!abierto) onAbrir?.();
+                onAlternar();
             }}
         >
-            <button
-                ref={boton}
-                type="button"
-                className={`cines-comunas-trigger ${tieneSeleccion ? "activo" : ""}`.trim()}
-                aria-label={ariaLabel}
-                aria-expanded={abierto}
-                aria-controls={panelId}
-                disabled={disabled}
-                onClick={() => {
-                    if (!abierto) onAbrir?.();
-                    setAbierto((prev) => !prev);
+            <span>{etiqueta}</span>
+            <span className="cines-comunas-chevron" aria-hidden="true" />
+        </button>
+    );
+
+    const contenidoPanel = (
+        <>
+            <div className="cines-comunas-panel-header">
+                <strong id={tituloId}>{titulo}</strong>
+                <button
+                    type="button"
+                    className="cines-icon-button"
+                    onClick={onCerrar}
+                    aria-label={cerrarLabel}
+                    title="Cerrar"
+                >
+                    <CloseIcon size={16} />
+                </button>
+            </div>
+            {children}
+        </>
+    );
+
+    if (esMovil) {
+        return (
+            <div className={`cines-comunas-selector ${className}`.trim()}>
+                {disparador}
+                <Drawer.Root
+                    opened={abierto}
+                    onClose={onCerrar}
+                    position="bottom"
+                    size="auto"
+                    padding={0}
+                    zIndex={1200}
+                    shadow="none"
+                    returnFocus
+                    transitionProps={{
+                        duration: 220,
+                        exitDuration: 160,
+                        timingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                    onEnterTransitionEnd={enfocarAlAbrir}
+                >
+                    <Drawer.Overlay color="#000" backgroundOpacity={0.48} blur={3} />
+                    <Drawer.Content
+                        id={panelId}
+                        classNames={{ content: "cines-comunas-panel cines-comunas-panel--drawer" }}
+                        aria-labelledby={tituloId}
+                    >
+                        {contenidoPanel}
+                    </Drawer.Content>
+                </Drawer.Root>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`cines-comunas-selector ${className}`.trim()}>
+            <Popover
+                opened={abierto}
+                onChange={(siguienteAbierto) => {
+                    if (!siguienteAbierto) onCerrar();
                 }}
+                position={posicion}
+                width={focusAlAbrirRef ? "320px" : "max-content"}
+                offset={8}
+                middlewares={{ flip: true, shift: { padding: 12 }, size: { padding: 12 } }}
+                returnFocus
+                transitionProps={{ transition: "fade", duration: 150, exitDuration: 110 }}
+                onEnterTransitionEnd={enfocarAlAbrir}
+                disabled={disabled}
             >
-                <span>{etiqueta}</span>
-                <span className="cines-comunas-chevron" aria-hidden="true" />
-            </button>
-            {abierto && (
-                <div className="cines-comunas-panel" id={panelId} role="group" aria-labelledby={tituloId}>
-                    <div className="cines-comunas-panel-header">
-                        <strong id={tituloId}>{titulo}</strong>
-                        <button
-                            type="button"
-                            className="cines-icon-button"
-                            onClick={() => cerrar(true)}
-                            aria-label={cerrarLabel}
-                            title="Cerrar"
-                        >
-                            <CloseIcon size={16} />
-                        </button>
-                    </div>
-                    {children}
-                </div>
-            )}
+                <Popover.Target>{disparador}</Popover.Target>
+                <Popover.Dropdown
+                    className="cines-comunas-panel cines-comunas-panel--popover"
+                    aria-labelledby={tituloId}
+                >
+                    {contenidoPanel}
+                </Popover.Dropdown>
+            </Popover>
         </div>
     );
 }
@@ -144,6 +171,7 @@ interface SelectorMultipleProps {
     conBusqueda?: boolean;
     placeholderBusqueda?: string;
     mensajeVacio?: string;
+    posicion?: FloatingPosition;
     className?: string;
     disabled?: boolean;
 }
@@ -166,13 +194,14 @@ export function SelectorMultiple({
     conBusqueda = false,
     placeholderBusqueda = "Buscar...",
     mensajeVacio = "No se encontraron opciones.",
+    posicion = "bottom-end",
     className = "",
     disabled = false,
 }: SelectorMultipleProps) {
     const [busqueda, setBusqueda] = useState("");
     const [borrador, setBorrador] = useState<string[]>(seleccionadas);
     const buscador = useRef<HTMLInputElement>(null);
-    const estado = useSelectorDesplegable(conBusqueda ? buscador : undefined);
+    const [abierto, { close, toggle }] = useDisclosure(false);
 
     const etiqueta =
         seleccionadas.length === 1
@@ -188,7 +217,11 @@ export function SelectorMultiple({
 
     return (
         <SelectorDesplegable
-            estado={estado}
+            abierto={abierto}
+            onAlternar={toggle}
+            onCerrar={close}
+            focusAlAbrirRef={conBusqueda ? buscador : undefined}
+            posicion={posicion}
             titulo={titulo}
             etiqueta={etiqueta}
             ariaLabel={`${ariaLabelPrefijo}: ${etiqueta}`}
@@ -206,6 +239,7 @@ export function SelectorMultiple({
                     <SearchIcon size={15} />
                     <input
                         ref={buscador}
+                        data-autofocus
                         value={busqueda}
                         onChange={(event) => setBusqueda(event.target.value)}
                         aria-label={placeholderBusqueda.replace(/\.+$/, "")}
@@ -255,7 +289,7 @@ export function SelectorMultiple({
                     className="cines-comunas-listo"
                     onClick={() => {
                         if (!mismasSeleccionadas(borrador, seleccionadas)) onChange(borrador);
-                        estado.cerrar();
+                        close();
                     }}
                 >
                     Listo
@@ -273,6 +307,7 @@ interface SelectorUnicoProps {
     etiquetaVacia: string;
     ariaLabelPrefijo: string;
     cerrarLabel?: string;
+    posicion?: FloatingPosition;
     className?: string;
     disabled?: boolean;
 }
@@ -288,15 +323,19 @@ export function SelectorUnico({
     etiquetaVacia,
     ariaLabelPrefijo,
     cerrarLabel = `Cerrar selector de ${titulo.toLowerCase()}`,
+    posicion = "bottom-end",
     className = "",
     disabled = false,
 }: SelectorUnicoProps) {
-    const estado = useSelectorDesplegable();
+    const [abierto, { close, toggle }] = useDisclosure(false);
     const etiqueta = opciones.find((opcion) => opcion.valor === seleccionada)?.nombre ?? etiquetaVacia;
 
     return (
         <SelectorDesplegable
-            estado={estado}
+            abierto={abierto}
+            onAlternar={toggle}
+            onCerrar={close}
+            posicion={posicion}
             titulo={titulo}
             etiqueta={etiqueta}
             ariaLabel={`${ariaLabelPrefijo}: ${etiqueta}`}
@@ -317,7 +356,7 @@ export function SelectorUnico({
                             className={`cines-comuna-opcion selector-unico-opcion ${activa ? "activo" : ""}`}
                             onClick={() => {
                                 onChange(activa ? "" : opcion.valor);
-                                estado.cerrar(true);
+                                close();
                             }}
                         >
                             <span className="selector-unico-radio" aria-hidden="true" />
@@ -336,7 +375,7 @@ export function SelectorUnico({
                         className="cines-comunas-limpiar"
                         onClick={() => {
                             onChange("");
-                            estado.cerrar(true);
+                            close();
                         }}
                     >
                         Quitar selección

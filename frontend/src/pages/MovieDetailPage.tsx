@@ -330,6 +330,7 @@ function MovieDetailPage() {
                             <div className="filtros-cartelera-selectores">
                                 <SelectorMultiple
                                     className="cines-cadenas-selector"
+                                    posicion="bottom-start"
                                     opciones={cadenasDisponibles}
                                     seleccionadas={cadenasActivas}
                                     onChange={setCadenasSeleccionadas}

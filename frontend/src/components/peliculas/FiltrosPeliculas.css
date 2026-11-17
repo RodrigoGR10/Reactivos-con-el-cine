@@ -119,15 +119,6 @@
     min-width: 0;
 }
 
-@media (min-width: 601px) {
-    .filtro-generos .cines-comunas-panel,
-    .filtro-clasificacion .cines-comunas-panel,
-    .cines-cadenas-selector .cines-comunas-panel {
-        left: 0;
-        right: auto;
-    }
-}
-
 .filtros-peliculas-aplicados {
     display: flex;
     flex-wrap: wrap;
