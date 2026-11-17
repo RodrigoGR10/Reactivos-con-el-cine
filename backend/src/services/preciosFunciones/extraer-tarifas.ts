@@ -3,7 +3,6 @@ import { normalizeSessions } from "../../scraper/cinemark/normalize.ts";
 import { pricesForSchedule } from "../../scraper/cineplanet/normalize.ts";
 import { pricesForSchedule as cinepolisPrices } from "../../scraper/cinepolis/prices.ts";
 import { pricesForSchedule as vistaPrices } from "../../scraper/vista/normalize.ts";
-import { pricesForSchedule as cinepolisPrices } from "../../scraper/cinepolis/prices.ts";
 
 import type {
     RawPriceGroup,
