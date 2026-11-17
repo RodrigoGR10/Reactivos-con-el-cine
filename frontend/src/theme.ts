@@ -59,7 +59,21 @@ export const cineTheme = createTheme({
       defaultProps: { comboboxProps: { zIndex: 1300 } },
     }),
     Tooltip: Tooltip.extend({
-      defaultProps: { zIndex: 1300 },
+      defaultProps: {
+        zIndex: 1300,
+        color: "#1a1b21",
+        withArrow: true,
+        arrowSize: 6,
+      },
+      styles: {
+        tooltip: {
+          color: "var(--color-texto)",
+          fontWeight: 500,
+          fontSize: "0.82rem",
+          padding: "6px 12px",
+          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.55)",
+        },
+      },
     }),
   },
 });

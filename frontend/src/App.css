@@ -111,10 +111,18 @@ body {
     height: clamp(26px, 1.8vw, 34px);
 }
 
-.sidebar-btn:hover {
+@media (hover: hover) and (pointer: fine) {
+    .sidebar-btn:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.05);
+        transform: scale(1.08);
+    }
+}
+
+.sidebar-btn:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.05);
-    transform: scale(1.08);
 }
 
 .sidebar-btn.active {
