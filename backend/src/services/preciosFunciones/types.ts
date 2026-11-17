@@ -1,5 +1,4 @@
 import type { Origen } from "../../scraper/types.ts";
-import type { Butacas } from "../../scraper/butacas.ts";
 
 export type ScheduleRow = {
     id: number;
@@ -26,13 +25,16 @@ export type ScheduleRow = {
     consulta_precios_revision: string | null;
     consulta_precios_hasta: Date | null;
     consulta_precios_token: string | null;
-    butacas: Butacas | null;
+    butacas_disponibles: number | null;
+    butacas_total: number | null;
+    butacas_consultadas_en: Date | null;
     butacas_revision: string | null;
     butacas_actualizadas_en: Date | null;
     butacas_error_hasta: Date | null;
     butacas_error_revision: string | null;
     cine_origen_id: string;
     cine_nombre: string;
+    cine_cadena?: string;
     cine_url: string | null;
     pelicula_url_fuente: string | null;
     pelicula_origen_id_fuente: string;

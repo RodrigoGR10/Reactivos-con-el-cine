@@ -3,6 +3,8 @@ import type { Pelicula } from "../../types/types.ts";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { BotonFavorito } from "../common/BotonFavorito.tsx";
+import { CalendarIcon } from "../common/Icons.tsx";
+import { formatearFechaEstrenoCorta } from "../../utils/formatearPeliculaDestacada.ts";
 
 interface TarjetaPeliculaProps {
   pelicula: Pelicula;
@@ -40,6 +42,23 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
           )}
         </Link>
         <span className="clasificacion">{pelicula.clasificacion}</span>
+        {pelicula.estadoEstreno === "preventa" && (
+          <span className="etiqueta-preventa">
+            {pelicula.fechaEstreno ? (
+              <>
+                <CalendarIcon size={14} className="icono-preventa" />
+                <span className="texto-preventa">
+                  <span className="visualmente-oculto">Estreno: </span>
+                  <time dateTime={pelicula.fechaEstreno}>
+                    {formatearFechaEstrenoCorta(pelicula.fechaEstreno)}
+                  </time>
+                </span>
+              </>
+            ) : (
+              <span className="texto-preventa">Preventa</span>
+            )}
+          </span>
+        )}
         <div className="overlay-fav">
           <BotonFavorito
             activo={esFavorita}
@@ -50,13 +69,6 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
         </div>
       </div>
       <div className="contenido-tarjeta">
-        {pelicula.estadoEstreno === "preventa" && (
-          <p className="etiqueta-preventa">
-            {pelicula.fechaEstreno
-              ? <>Estreno: <time dateTime={pelicula.fechaEstreno}>{new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${pelicula.fechaEstreno}T00:00:00Z`))}</time></>
-              : "Preventa"}
-          </p>
-        )}
         <h3>
           <Link
             to={`/peliculas/${pelicula.id}`}

@@ -11,10 +11,15 @@ const SQL_ACTUALIZAR_PELICULA = `
     UPDATE peliculas
     SET
         tmdb_id = $1,
+        titulo_original = COALESCE(NULLIF(BTRIM(titulo_original), ''), $5),
         imagen_url = COALESCE(NULLIF(BTRIM(imagen_url), ''), $2),
         banner = COALESCE(NULLIF(BTRIM(banner), ''), $3),
-        sinopsis = COALESCE(NULLIF(BTRIM(sinopsis), ''), $4)
-    WHERE id = $5
+        sinopsis = COALESCE(NULLIF(BTRIM(sinopsis), ''), $4),
+        calificacion_tmdb = COALESCE(calificacion_tmdb, $6),
+        votos_tmdb = COALESCE(votos_tmdb, $7),
+        popularidad_tmdb = COALESCE(popularidad_tmdb, $8),
+        fecha_estreno_tmdb = COALESCE(NULLIF(BTRIM(fecha_estreno_tmdb), ''), $9)
+    WHERE id = $10
       AND tmdb_id IS NULL;
 `;
 
@@ -38,6 +43,11 @@ export async function aplicarCandidatos(
                 candidato.poster ?? null,
                 candidato.banner ?? null,
                 candidato.sinopsis ?? null,
+                candidato.tituloOriginal ?? null,
+                candidato.calificacionTmdb ?? null,
+                candidato.votosTmdb ?? null,
+                candidato.popularidadTmdb ?? null,
+                candidato.fechaEstrenoTmdb ?? null,
                 candidato.peliculaId,
             ]);
 

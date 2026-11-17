@@ -24,6 +24,7 @@ const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
+    path: "/",
 };
 
 const createSession = (
@@ -73,19 +74,29 @@ router.post("/register", async (req, res) => {
             .json({ error: "La contraseña debe tener al menos 6 caracteres" });
     }
 
-    const emailNormalizado = email.trim().toLowerCase();
-    const nombreNormalizado = nombre.trim();
-    if ([...nombreNormalizado].length < 2) {
-        return res.status(400).json({ error: "El nombre de usuario debe tener al menos 2 caracteres." });
+    if (nombre.trim().length < 2) {
+        return res.status(400).json({
+            error: "El nombre de usuario debe tener al menos 2 caracteres.",
+        });
     }
+
+    const nombreNormalizado = nombre.trim();
+
+    const emailNormalizado = email.trim().toLowerCase();
     if ([...nombreNormalizado].length > 150) {
-        return res.status(400).json({ error: "El nombre de usuario no puede superar 150 caracteres." });
+        return res.status(400).json({
+            error: "El nombre de usuario no puede superar 150 caracteres.",
+        });
     }
     if ([...emailNormalizado].length > 255) {
-        return res.status(400).json({ error: "El correo electrónico no puede superar 255 caracteres." });
+        return res.status(400).json({
+            error: "El correo electrónico no puede superar 255 caracteres.",
+        });
     }
     if (Buffer.byteLength(contrasena, "utf8") > 72) {
-        return res.status(400).json({ error: "La contraseña no puede superar 72 bytes." });
+        return res.status(400).json({
+            error: "La contraseña no puede superar 72 bytes.",
+        });
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailNormalizado)) {
@@ -185,12 +196,12 @@ router.get("/me", middleware.withUser, async (req, res) => {
 
     if (rows.length === 0) {
         return res
-            .status(404)
+            .status(401)
             .json({ error: "El usuario de la sesión no existe" });
     }
 
     res.setHeader("X-CSRF-Token", req.headers["x-csrf-token"] as string);
-    return res.json(rows[0]);
+    return res.json(usuarioPublico(rows[0]));
 });
 
 router.post("/logout", middleware.withUser, (req, res) => {

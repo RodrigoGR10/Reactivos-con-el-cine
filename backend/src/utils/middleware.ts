@@ -57,7 +57,14 @@ const requestLogger = (
 };
 
 const errorHandler = (
-    error: { name: string; message: string; status?: number; type?: string; code?: string; constraint?: string },
+    error: {
+        name: string;
+        message: string;
+        status?: number;
+        type?: string;
+        code?: string;
+        constraint?: string;
+    },
     request: Request,
     response: Response,
     next: NextFunction,
@@ -67,7 +74,6 @@ const errorHandler = (
     }
 
     logger.error(error.message);
-
     logger.error(error.name);
 
     if (error.name === "JsonWebTokenError" || error.name === "NotBeforeError") {
@@ -76,9 +82,10 @@ const errorHandler = (
         return response.status(401).json({ error: "La sesión ha expirado" });
     } else if (error.code === "23505") {
         return response.status(409).json({
-            error: error.constraint === "users_email_key"
-                ? "Este correo electrónico ya se encuentra registrado."
-                : "Ya existe un registro con esos datos.",
+            error:
+                error.constraint === "users_email_key"
+                    ? "Este correo electrónico ya se encuentra registrado."
+                    : "Ya existe un registro con esos datos.",
         });
     } else if (error.type === "entity.parse.failed") {
         return response.status(400).json({

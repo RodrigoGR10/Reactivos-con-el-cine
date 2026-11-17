@@ -1,6 +1,6 @@
 import type { Cine, Funcion, Horario, Pelicula } from "../../types/types";
+import { SeatIcon } from "../common/Icons";
 import "./TarjetaFuncion.css";
-import { ButacasFuncion } from "./ButacasFuncion";
 
 const cadenas: Record<string, { nombre: string; dominios: string[] }> = {
   cinemark: { nombre: "Cinemark", dominios: ["www.cinemark.cl", "cinemark.cl"] },
@@ -42,38 +42,88 @@ function enlaceSeguro(value: string | undefined, origen: string | undefined): st
   }
 }
 
+type NivelDisponibilidad = "alta" | "media" | "baja" | "agotada" | "sin-total";
+
+function obtenerNivelDisponibilidad(
+  horario: Horario | undefined,
+  disponibles: number,
+): NivelDisponibilidad {
+  const total = horario?.butacas?.total;
+  const totalValido =
+    typeof total === "number" && Number.isSafeInteger(total) && total >= disponibles && total > 0
+      ? total
+      : undefined;
+  if (!totalValido) return "sin-total";
+
+  const ocupacion = ((totalValido - disponibles) / totalValido) * 100;
+  if (ocupacion >= 85) return "baja";
+  if (ocupacion >= 60) return "media";
+  return "alta";
+}
+
 export interface TarjetaFuncionProps {
   horario?: Horario;
   funcion?: Funcion;
   pelicula?: Pelicula;
   cine?: Cine;
-  precioAnterior?: boolean;
-  consultadoEn?: string;
+  mostrarDetalle?: boolean;
 }
 
-export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFuncionProps) {
+/** Tarjeta compacta de horario con precio y disponibilidad revelados solo bajo consulta vigente (< 60 min). */
+export function TarjetaFuncion({
+  horario,
+  funcion,
+  pelicula,
+  cine,
+  mostrarDetalle = false,
+}: TarjetaFuncionProps) {
   const hora = horario?.horario ?? funcion?.horario ?? "";
   const idioma = horario?.idioma ?? funcion?.idioma ?? "";
-  const agotada = horario?.agotada ?? funcion?.agotada ?? false;
 
   const tarifa = funcion ?? horario?.tarifas?.[0];
   const formato = tarifa?.formato || horario?.formatoResumen || "2D";
-  const precio = tarifa?.precioOnline ?? tarifa?.precio;
+  const precio = mostrarDetalle ? (tarifa?.precioOnline ?? tarifa?.precio) : undefined;
   const urlCompra = tarifa?.urlCompra ?? horario?.urlCompra;
+
+  const butacas = mostrarDetalle ? horario?.butacas : undefined;
+  const disponiblesValido =
+    typeof butacas?.disponibles === "number" &&
+    Number.isSafeInteger(butacas.disponibles) &&
+    butacas.disponibles >= 0
+      ? butacas.disponibles
+      : undefined;
+  const agotada =
+    mostrarDetalle &&
+    ((horario?.agotada ?? funcion?.agotada ?? false) || disponiblesValido === 0);
 
   const enlace = enlaceSeguro(urlCompra, cine?.origen);
   const cadena = cadenas[cine?.origen ?? ""]?.nombre ?? cine?.nombre ?? "Cine";
   const tituloPelicula = pelicula?.titulo ?? "Película";
   const nombreCine = cine?.nombre ?? "Cine";
-  const butacas = horario?.butacas;
-  const resumenButacas = butacas && Number.isSafeInteger(butacas.disponibles) && butacas.disponibles >= 0
-    ? `, última consulta de butacas: ${butacas.disponibles}${butacas.total ? ` de ${butacas.total}` : ""} libres` : "";
+
+  const mostrarPrecio = mostrarDetalle && !agotada && precio !== undefined;
+  const mostrarDisponibilidad =
+    mostrarDetalle && !agotada && disponiblesValido !== undefined;
+
+  const nivelDisponibilidad =
+    disponiblesValido !== undefined
+      ? obtenerNivelDisponibilidad(horario, disponiblesValido)
+      : "sin-total";
+
+  const resumenDisponibilidad =
+    disponiblesValido !== undefined
+      ? `${disponiblesValido} ${disponiblesValido === 1 ? "libre" : "libres"}`
+      : "";
 
   const etiquetaAria = `${tituloPelicula}, ${nombreCine}, ${hora} ${formato} ${idioma}${
-    precio !== undefined ? `, precio ${precioCLP(precio)}` : ""
-  }${resumenButacas}`;
-
-  const tienePrecio = precio !== undefined || agotada;
+    agotada
+      ? ", agotada"
+      : `${mostrarPrecio ? `, precio ${precioCLP(precio!)}` : ""}${
+          mostrarDisponibilidad ? `, ${resumenDisponibilidad}` : ""
+        }${
+          mostrarDetalle && !mostrarPrecio && !mostrarDisponibilidad ? ", sin datos" : ""
+        }`
+  }`;
 
   const contenido = (
     <>
@@ -81,12 +131,40 @@ export function TarjetaFuncion({ horario, funcion, pelicula, cine }: TarjetaFunc
       <span className="tarjeta-funcion-detalles">
         {formato} · {idioma}
       </span>
-      {tienePrecio && (
-        <span className={`tarjeta-funcion-precio ${agotada ? "agotada" : ""}`}>
-          {agotada ? "Agotada" : precioCLP(precio!)}
+      {mostrarDetalle && (
+        <span className="tarjeta-funcion-detalle">
+          {agotada ? (
+            <span className="tarjeta-funcion-butacas">
+              <SeatIcon size={14} className="tarjeta-funcion-icono-butaca agotada" />
+              <span className="tarjeta-funcion-agotada-texto">Agotada</span>
+            </span>
+          ) : !mostrarPrecio && !mostrarDisponibilidad ? (
+            <span className="tarjeta-funcion-sin-datos">Sin datos</span>
+          ) : (
+            <>
+              {mostrarPrecio && (
+                <span className="tarjeta-funcion-precio">{precioCLP(precio!)}</span>
+              )}
+              {mostrarPrecio && mostrarDisponibilidad && (
+                <span className="tarjeta-funcion-separador" aria-hidden="true">
+                  ·
+                </span>
+              )}
+              {mostrarDisponibilidad && (
+                <span className="tarjeta-funcion-butacas">
+                  <SeatIcon
+                    size={14}
+                    className={`tarjeta-funcion-icono-butaca ${nivelDisponibilidad}`}
+                  />
+                  <span className="tarjeta-funcion-butacas-texto">
+                    {resumenDisponibilidad}
+                  </span>
+                </span>
+              )}
+            </>
+          )}
         </span>
       )}
-      {horario && <ButacasFuncion horario={horario} />}
     </>
   );
 

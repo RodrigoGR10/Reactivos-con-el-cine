@@ -1,6 +1,9 @@
 import type { PoolClient } from "pg";
 import type { ScrapedMovie } from "../types.ts";
 import { normalizarTrailerUrl } from "../../utils/trailer.ts";
+import { normalizarClasificacion } from "../../utils/clasificaciones.ts";
+import { normalizarGeneros } from "../../utils/generos.ts";
+import { normalizarSinopsis } from "../../utils/sinopsis.ts";
 
 interface UpsertMovieResult {
     id: number;
@@ -35,6 +38,10 @@ export async function upsertMovie(
             : null;
 
     const estadoEstreno = pelicula.estadoEstreno ?? "cartelera";
+    const tituloOriginal = pelicula.tituloOriginal?.trim() || null;
+    const sinopsis = normalizarSinopsis(pelicula.sinopsis);
+    const genero = normalizarGeneros(pelicula.genero);
+    const clasificacion = normalizarClasificacion(pelicula.clasificacion);
 
     if (existing.rows.length > 0) {
         const id = existing.rows[0].pelicula_id;
@@ -69,29 +76,31 @@ export async function upsertMovie(
         await client.query(
             `
             UPDATE peliculas
-            SET titulo = CASE WHEN $8::boolean AND tmdb_id IS NULL THEN $2 ELSE titulo END,
-                sinopsis = CASE WHEN $8::boolean THEN $3 ELSE sinopsis END,
+            SET titulo = CASE WHEN $9::boolean AND tmdb_id IS NULL THEN $2 ELSE titulo END,
+                titulo_original = CASE WHEN $9::boolean THEN COALESCE($8, titulo_original) ELSE titulo_original END,
+                sinopsis = CASE WHEN $9::boolean THEN $3 ELSE sinopsis END,
                 duracion = CASE
-                    WHEN $8::boolean AND (NOT $9::boolean OR $4::int IS NOT NULL) THEN $4::int
+                    WHEN $9::boolean AND (NOT $10::boolean OR $4::int IS NOT NULL) THEN $4::int
                     ELSE duracion
                 END,
-                genero = CASE WHEN $8::boolean THEN $5 ELSE genero END,
-                clasificacion = CASE WHEN $8::boolean THEN $6 ELSE clasificacion END,
-                imagen_url = CASE WHEN $8::boolean THEN $7 ELSE imagen_url END,
-                trailer_url = COALESCE(NULLIF(BTRIM(trailer_url), ''), $10::text),
+                genero = CASE WHEN $9::boolean THEN $5 ELSE genero END,
+                clasificacion = CASE WHEN $9::boolean THEN $6 ELSE clasificacion END,
+                imagen_url = CASE WHEN $9::boolean THEN $7 ELSE imagen_url END,
+                trailer_url = COALESCE(NULLIF(BTRIM(trailer_url), ''), $11::text),
                 trailer_encontrado_en = CASE
-                    WHEN NULLIF(BTRIM(trailer_url), '') IS NULL AND $10::text IS NOT NULL THEN NOW()
+                    WHEN NULLIF(BTRIM(trailer_url), '') IS NULL AND $11::text IS NOT NULL THEN NOW()
                     ELSE trailer_encontrado_en END
             WHERE id = $1;
             `,
             [
                 id,
                 pelicula.titulo,
-                pelicula.sinopsis,
+                sinopsis,
                 pelicula.duracion,
-                pelicula.genero,
-                pelicula.clasificacion,
+                genero,
+                clasificacion,
                 pelicula.poster,
+                tituloOriginal,
                 puedeActualizarMetadatos,
                 tieneFuentesFusionadas,
                 trailerUrl,
@@ -121,18 +130,20 @@ export async function upsertMovie(
     const inserted = await client.query<{ id: number }>(
         `
         INSERT INTO peliculas (
-            titulo, sinopsis, duracion, genero,
+            titulo, titulo_original, sinopsis, duracion, genero,
             clasificacion, imagen_url, trailer_url, trailer_encontrado_en
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7::text, CASE WHEN $7::text IS NOT NULL THEN NOW() ELSE NULL END)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text,
+                CASE WHEN $8::text IS NOT NULL THEN NOW() ELSE NULL END)
         RETURNING id;
         `,
         [
             pelicula.titulo,
-            pelicula.sinopsis,
+            tituloOriginal,
+            sinopsis,
             pelicula.duracion,
-            pelicula.genero,
-            pelicula.clasificacion,
+            genero,
+            clasificacion,
             pelicula.poster,
             trailerUrl,
         ],

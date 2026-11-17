@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { Pelicula } from "../../types/types";
+import type { PeliculaDestacadaSeleccionada } from "../../utils/seleccionarDestacadas";
 import { useAuth } from "../../context/AuthContext";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { ChevronLeftIcon, ChevronRightIcon } from "../common/Icons";
@@ -9,13 +9,16 @@ import "./CarruselDestacadas.css";
 const INTERVALO_ROTACION_MS = 8_000;
 
 interface TransicionDestacada {
-  anterior: Pelicula;
-  posicionAnterior: number;
+  anterior: PeliculaDestacadaSeleccionada;
   destino: string;
   direccion: 1 | -1;
 }
 
-export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
+export function CarruselDestacadas({
+  peliculas,
+}: {
+  peliculas: readonly PeliculaDestacadaSeleccionada[];
+}) {
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
   const [transicion, setTransicion] = useState<TransicionDestacada | null>(null);
   const [tocando, setTocando] = useState(false);
@@ -26,21 +29,41 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
   const reducirMovimiento = useMediaQuery("(prefers-reduced-motion: reduce)");
   const { isAuthModalOpen } = useAuth();
   const contenidoId = useId();
-  const indice = Math.max(0, peliculas.findIndex((pelicula) => pelicula.id === seleccionada));
+  const indice = Math.max(
+    0,
+    peliculas.findIndex((item) => item.pelicula.id === seleccionada),
+  );
   const actual = peliculas[indice];
   const siguiente = peliculas[(indice + 1) % peliculas.length];
-  const siguienteId = siguiente?.id;
-  const enTransicion = !reducirMovimiento && transicion !== null && transicion.destino === actual?.id;
-  const avanceActivo = !reducirMovimiento && peliculas.length > 1 && !tocando
-    && enPantalla && paginaVisible && !isAuthModalOpen;
+  const siguienteId = siguiente?.pelicula.id;
+  const enTransicion =
+    !reducirMovimiento &&
+    transicion !== null &&
+    transicion.destino === actual?.pelicula.id;
+  const avanceActivo =
+    !reducirMovimiento &&
+    peliculas.length > 1 &&
+    !tocando &&
+    enPantalla &&
+    paginaVisible &&
+    !isAuthModalOpen;
 
-  const seleccionarPelicula = useCallback((id: string, direccion: 1 | -1) => {
-    if (!actual || id === actual.id) return;
-    setTransicion(reducirMovimiento ? null : {
-      anterior: actual, posicionAnterior: indice + 1, destino: id, direccion,
-    });
-    setSeleccionada(id);
-  }, [actual, indice, reducirMovimiento]);
+  const seleccionarPelicula = useCallback(
+    (id: string, direccion: 1 | -1) => {
+      if (!actual || id === actual.pelicula.id) return;
+      setTransicion(
+        reducirMovimiento
+          ? null
+          : {
+              anterior: actual,
+              destino: id,
+              direccion,
+            },
+      );
+      setSeleccionada(id);
+    },
+    [actual, reducirMovimiento],
+  );
 
   useEffect(() => {
     const actualizarVisibilidad = () => setPaginaVisible(document.visibilityState === "visible");
@@ -67,8 +90,8 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
 
   const mover = (paso: 1 | -1) => {
     const destino = (indice + paso + peliculas.length) % peliculas.length;
-    const pelicula = peliculas[destino];
-    if (pelicula) seleccionarPelicula(pelicula.id, paso);
+    const item = peliculas[destino];
+    if (item) seleccionarPelicula(item.pelicula.id, paso);
   };
   if (!actual) return null;
 
@@ -104,10 +127,10 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
       }}
       onTouchCancel={() => { inicioToque.current = null; setTocando(false); }}
     >
-      {siguiente && siguiente.id !== actual.id && (
+      {siguiente && siguiente.pelicula.id !== actual.pelicula.id && (
         <>
-          <link rel="preload" as="image" href={siguiente.poster} media="(max-width: 768px)" fetchPriority="low" />
-          <link rel="preload" as="image" href={siguiente.banner || siguiente.poster} media="(min-width: 769px)" fetchPriority="low" />
+          <link rel="preload" as="image" href={siguiente.pelicula.poster} media="(max-width: 768px)" fetchPriority="low" />
+          <link rel="preload" as="image" href={siguiente.pelicula.banner || siguiente.pelicula.poster} media="(min-width: 769px)" fetchPriority="low" />
         </>
       )}
       <div className="destacadas-ventana">
@@ -115,17 +138,27 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
           data-direccion={transicion?.direccion === -1 ? "anterior" : "siguiente"}
           aria-live={avanceActivo || enTransicion ? "off" : "polite"}>
           {enTransicion && transicion && (
-            <div key={`anterior-${transicion.anterior.id}`} className="destacadas-escena destacadas-escena-saliente" aria-hidden="true" inert>
-              <PeliculaDestacada pelicula={transicion.anterior} posicion={transicion.posicionAnterior} />
+            <div key={`anterior-${transicion.anterior.pelicula.id}`} className="destacadas-escena destacadas-escena-saliente" aria-hidden="true" inert>
+              <PeliculaDestacada
+                pelicula={transicion.anterior.pelicula}
+                etiqueta={transicion.anterior.etiqueta}
+                complemento={transicion.anterior.complemento}
+                categoria={transicion.anterior.categoria}
+              />
             </div>
           )}
-          <div key={actual.id} className={`destacadas-escena${enTransicion ? " destacadas-escena-entrante" : ""}`}
+          <div key={actual.pelicula.id} className={`destacadas-escena${enTransicion ? " destacadas-escena-entrante" : ""}`}
             onAnimationEnd={(event) => {
               if (event.target === event.currentTarget) {
-                setTransicion(vigente => vigente?.destino === actual.id ? null : vigente);
+                setTransicion(vigente => vigente?.destino === actual.pelicula.id ? null : vigente);
               }
             }}>
-            <PeliculaDestacada pelicula={actual} posicion={indice + 1} />
+            <PeliculaDestacada
+              pelicula={actual.pelicula}
+              etiqueta={actual.etiqueta}
+              complemento={actual.complemento}
+              categoria={actual.categoria}
+            />
           </div>
         </div>
       </div>
@@ -142,8 +175,8 @@ export function CarruselDestacadas({ peliculas }: { peliculas: Pelicula[] }) {
             <ChevronLeftIcon size={18} />
           </button>
           <nav className="destacadas-selector" aria-label="Seleccionar película destacada">
-            {peliculas.map((pelicula, posicion) => (
-              <button key={pelicula.id} type="button" aria-label={`Ver destacada ${posicion + 1}: ${pelicula.titulo}`} aria-current={indice === posicion ? "true" : undefined} title={pelicula.titulo} onClick={() => seleccionarPelicula(pelicula.id, posicion < indice ? -1 : 1)}>
+            {peliculas.map((item, posicion) => (
+              <button key={item.pelicula.id} type="button" aria-label={`Ver destacada ${posicion + 1}: ${item.pelicula.titulo}`} aria-current={indice === posicion ? "true" : undefined} title={item.pelicula.titulo} onClick={() => seleccionarPelicula(item.pelicula.id, posicion < indice ? -1 : 1)}>
                 <span className="destacadas-pista" aria-hidden="true">
                   <span
                     className={indice === posicion ? "destacadas-progreso" : undefined}

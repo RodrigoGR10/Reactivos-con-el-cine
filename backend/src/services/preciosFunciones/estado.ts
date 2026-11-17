@@ -1,3 +1,4 @@
+import { butacasPublicas } from "../estadoButacas.ts";
 import type { ScheduleRow, ScheduleWithPrices } from "./types.ts";
 import { butacasPublicas } from "../estadoButacas.ts";
 
@@ -54,6 +55,7 @@ export function horarioPublico(row: ScheduleWithPrices) {
         ...butacasPublicas(row),
         urlCompra: row.url_compra ?? row.pelicula_url ?? row.pelicula_url_fuente ?? undefined,
         estadoPrecio,
+        ...butacasPublicas(row),
         preciosConsultadosEn: compatible
             ? new Date(row.precios_consultados_en!).toISOString()
             : undefined,
@@ -62,6 +64,11 @@ export function horarioPublico(row: ScheduleWithPrices) {
             row.precios_error_hasta
                 ? new Date(row.precios_error_hasta).toISOString()
                 : undefined,
+        urlCompra:
+            row.url_compra ??
+            row.pelicula_url_fuente ??
+            row.pelicula_url ??
+            undefined,
         tarifas: tarifas.map((tarifa) => ({
             id: String(tarifa.id),
             origenId: tarifa.origen_id,

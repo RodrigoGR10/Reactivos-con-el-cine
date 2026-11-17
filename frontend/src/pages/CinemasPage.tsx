@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import type { Cine } from "../types/types";
 import cinesService from "../services/cines";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
-import { FilmIcon, MapPinIcon } from "../components/common/Icons";
+import { FilmIcon } from "../components/common/Icons";
 import { BotonFavorito } from "../components/common/BotonFavorito";
 import { BotonCercania, ChipsFiltrosActivos } from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
+import { TarjetaCine } from "../components/cines/TarjetaCine";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
-import { formatearDistancia } from "../utils/distancia";
-import { agruparCines, filtrarCines, obtenerCadena, obtenerComunas, ordenarCinesPorCercania, type CineOrdenado } from "../utils/agruparCines";
+import { agruparCines, filtrarCines, obtenerComunas, ordenarCinesPorCercania, type CineOrdenado } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
 import "./CinemasPage.css";
 
@@ -59,20 +58,14 @@ function CinemasPage() {
         }));
 
     const renderTarjetaCine = (cine: CineOrdenado) => {
-        const logo = cine.logo || obtenerCadena(cine).logo;
         const esFavorito = Boolean(user && isFavoriteCinema(cine.id));
         const etiquetaFavorito = esFavorito ? `Quitar ${cine.nombre} de habituales` : `Guardar ${cine.nombre} como habitual`;
         return (
-            <article key={cine.id} className="cine-card">
-                <Link
-                    to={`/cines/${cine.id}`}
-                    className="cine-card-enlace"
-                    aria-label={`Ver cartelera y funciones de ${cine.nombre}`}
-                />
-                <div className="cine-card-header">
-                    <div className="cine-logo-container" data-origen={cine.origen}>
-                        {logo ? <img src={logo} alt={`Logo de ${cine.nombre}`} className="cine-card-logo" /> : <FilmIcon size={24} />}
-                    </div>
+            <TarjetaCine
+                key={cine.id}
+                cine={cine}
+                distancia={cine.distancia}
+                accion={
                     <BotonFavorito
                         className="cine-card-fav"
                         activo={esFavorito}
@@ -83,14 +76,8 @@ function CinemasPage() {
                             else toggleFavoriteCinema(cine.id);
                         }}
                     />
-                </div>
-                <div className="cine-card-body">
-                    <h3 className="cine-card-nombre">{cine.nombre}</h3>
-                    <p className="cine-card-comuna"><MapPinIcon size={14} /><span>{cine.comuna}</span>
-                        {Number.isFinite(cine.distancia) && <span className="distancia-cine">{formatearDistancia(cine.distancia)}</span>}
-                    </p>
-                </div>
-            </article>
+                }
+            />
         );
     };
 

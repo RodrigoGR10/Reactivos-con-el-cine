@@ -2,12 +2,23 @@ import { CINES_CINEPOLIS, purchaseUrl } from "./client.ts";
 import { consultaCinepolis } from "./consulta.ts";
 import type { ScrapedSchedule, ScrapedSession } from "../types.ts";
 
+// La consulta GraphQL Tickets de Cinepolis devuelve bookingFee: null; segun la seccion 5
+// de sus Terminos y Condiciones ("Cargo por servicio digital"), el recargo web es $700 por entrada.
+const CARGO_SERVICIO_DIGITAL_CLP = 700;
+
+interface TicketConcession {
+  description?: string | null;
+  displayName?: string | null;
+  charge?: number | null;
+  quantity?: number | null;
+}
+
 interface Ticket {
   id: string;
   ticketTypeCode: string;
   description: string;
   priceInCents: number;
-  bookingFee: number;
+  bookingFee?: number | null;
   displaySequence: number;
   quantityAvailablePerOrder: number;
   loyaltyRecognitionId?: string | null;
@@ -15,7 +26,7 @@ interface Ticket {
   isPackageTicket: boolean;
   packageContent?: {
     tickets: Array<{ description: string; quantity: number }>;
-    concessions: unknown[];
+    concessions: TicketConcession[];
   } | null;
 }
 
@@ -30,7 +41,7 @@ const TICKETS_QUERY = `query Tickets($countryId: String!, $sessionId: String!, $
     tickets {
       id ticketTypeCode description priceInCents bookingFee displaySequence
       quantityAvailablePerOrder loyaltyRecognitionId type isPackageTicket
-      packageContent { tickets { description quantity } concessions { description } }
+      packageContent { tickets { description quantity } concessions { description displayName charge quantity } }
     }
   }
 }`;
@@ -58,11 +69,31 @@ export function normalizePrices(response: Prices, schedule: ScrapedSchedule): Sc
       const normalized = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
       if (!/^(?:ADULTO|GENERAL)\b/.test(normalized) || /PROMO|SOCIO|PACK|COMBO|CONVENIO|DESCUENTO|NINO|EDAD|ESTUDIANTE|CUPON|2X1|BANCO/.test(normalized)) continue;
       if (ticket.type !== "general" || ticket.loyaltyRecognitionId || !(ticket.quantityAvailablePerOrder > 0)) continue;
-      // Adulto Internet puede tener isPackageTicket=true sin ser un combo en el cliente web.
+      // Adulto Internet puede tener isPackageTicket=true sin ser un combo en el cliente web,
+      // y en funciones 3D incluye el arriendo obligatorio de lentes 3D en packageContent.concessions.
+      let recargoExtras = 0;
       const content = ticket.packageContent;
       if (content) {
         if (!Array.isArray(content.tickets) || !Array.isArray(content.concessions)) throw new Error("Contenido de tarifa de Cinepolis invalido.");
-        if (content.concessions.length) continue;
+        let esComboConfiteria = false;
+        for (const item of content.concessions) {
+          if (!item || typeof item !== "object") throw new Error("Concesion de tarifa de Cinepolis invalida.");
+          const etiqueta = `${item.displayName ?? ""} ${item.description ?? ""}`
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toUpperCase();
+          if (!/\bLENTES\s*3D\b/.test(etiqueta) && !/^\s*CARGO\s+POR\s+SERVICIO\s*$/.test(etiqueta)) {
+            esComboConfiteria = true;
+            break;
+          }
+          const cantidad = item.quantity ?? 1;
+          if (!Number.isSafeInteger(cantidad) || cantidad <= 0) {
+            throw new Error("Cantidad de recargo extra de Cinepolis invalida.");
+          }
+          const cobro = item.charge == null ? 0 : pesos(item.charge, "Recargo extra");
+          recargoExtras += cobro * cantidad;
+        }
+        if (esComboConfiteria) continue;
         if (content.tickets.some((item) => !item || !Number.isSafeInteger(item.quantity) || item.quantity <= 0)) {
           throw new Error("Cantidad de entradas de Cinepolis invalida.");
         }
@@ -71,9 +102,12 @@ export function normalizePrices(response: Prices, schedule: ScrapedSchedule): Sc
       if (typeof ticket.id !== "string" || !ticket.id || typeof ticket.ticketTypeCode !== "string" || !ticket.ticketTypeCode) {
         throw new Error("Falta la identidad de la tarifa de Cinepolis.");
       }
-      const precio = pesos(ticket.priceInCents, "Precio");
-      const cargoServicio = pesos(ticket.bookingFee, "Cargo de servicio");
-      if (precio === 0) continue;
+      const precioBase = pesos(ticket.priceInCents, "Precio");
+      if (precioBase === 0) continue;
+      const precio = precioBase + recargoExtras;
+      const cargoServicio = ticket.bookingFee == null
+        ? CARGO_SERVICIO_DIGITAL_CLP
+        : pesos(ticket.bookingFee, "Cargo de servicio");
       const sourceId = `${schedule.origenId}:${area.areaCategoryCode}:${ticket.ticketTypeCode}`;
       if (seen.has(sourceId)) throw new Error("Tarifa duplicada en la misma funcion de Cinepolis.");
       seen.add(sourceId);

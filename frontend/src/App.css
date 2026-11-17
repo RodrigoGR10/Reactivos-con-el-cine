@@ -626,15 +626,12 @@ body {
     border: 1px solid #29292e;
     border-radius: 6px;
     background: #111113;
-    transition:
-        border-color 180ms ease,
-        transform 180ms ease;
+    transition: border-color 180ms ease;
 }
 
 .poster-pelicula:hover,
 .poster-pelicula:focus-within {
     border-color: #686871;
-    transform: translateY(-3px);
 }
 
 .enlace-poster-pelicula {
@@ -670,8 +667,9 @@ body {
 }
 
 .boton-fav {
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 34px;
     height: 34px;
     padding: 0;
@@ -679,17 +677,26 @@ body {
     border-radius: 50%;
     background: #111113de;
     color: #ffffff;
+    line-height: 0;
+    box-sizing: border-box;
     cursor: pointer;
     pointer-events: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
     transition: border-color 160ms ease;
 }
 
 .icono-corazon-fav {
-    width: 17px;
-    height: 17px;
+    display: block;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
     fill: transparent;
     stroke: #ffffff;
     stroke-width: 2;
+    transform: translateZ(0) scale(1);
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
     transition:
         transform 180ms ease,
         fill 160ms ease,
@@ -699,7 +706,7 @@ body {
 .boton-fav:hover .icono-corazon-fav {
     fill: #ffffff;
     stroke: #ffffff;
-    transform: scale(1.22);
+    transform: translateZ(0) scale(1.18);
 }
 
 .boton-fav[aria-pressed="true"] .icono-corazon-fav,
@@ -709,7 +716,18 @@ body {
 }
 
 .boton-fav[aria-pressed="true"]:hover .icono-corazon-fav {
-    transform: scale(1.22);
+    transform: translateZ(0) scale(1.18);
+}
+
+.boton-fav.boton-fav-inline {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.boton-fav.boton-fav-inline .icono-corazon-fav {
+    width: 14px;
+    height: 14px;
 }
 
 .poster-placeholder {
@@ -758,18 +776,6 @@ body {
     flex: 1;
     flex-direction: column;
     padding: 12px 0 0;
-}
-
-.etiqueta-preventa {
-    margin: 0 0 6px;
-    color: var(--color-acento);
-    font-size: 12px;
-    line-height: 1.4;
-    font-weight: 600;
-}
-
-.etiqueta-preventa time {
-    color: inherit;
 }
 
 .contenido-tarjeta h3 {
@@ -830,6 +836,97 @@ body {
     border: 1px solid #ffffff30;
     border-radius: 3px;
     pointer-events: none;
+}
+
+.poster-pelicula:has(.etiqueta-preventa)::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 1;
+    height: 38%;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.72) 0%,
+        rgba(0, 0, 0, 0.25) 55%,
+        transparent 100%
+    );
+    pointer-events: none;
+}
+
+.etiqueta-preventa {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: max-content;
+    max-width: calc(100% - 20px);
+    padding: 5px 12px;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    background: rgba(0, 0, 0, 0.75);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 4px 12px rgba(0, 0, 0, 0.45);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.icono-preventa {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--color-acento);
+}
+
+.texto-preventa {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.etiqueta-preventa time {
+    color: inherit;
+}
+
+@supports not ((backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px))) {
+    .etiqueta-preventa {
+        background: rgba(17, 17, 19, 0.9);
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .etiqueta-preventa {
+        background: #111113;
+    }
+}
+
+@media (forced-colors: active) {
+    .poster-pelicula:has(.etiqueta-preventa)::after {
+        display: none;
+    }
+
+    .etiqueta-preventa {
+        background: Canvas;
+        color: CanvasText;
+        border-color: CanvasText;
+        box-shadow: none;
+    }
+
+    .icono-preventa {
+        color: CanvasText;
+    }
 }
 
 .sin-resultados {
@@ -1054,6 +1151,19 @@ body {
         font-size: 0.65rem;
     }
 
+    .etiqueta-preventa {
+        bottom: 8px;
+        gap: 5px;
+        max-width: calc(100% - 16px);
+        padding: 4px 10px;
+        font-size: 11.5px;
+    }
+
+    .icono-preventa {
+        width: 12px;
+        height: 12px;
+    }
+
     .overlay-fav {
         inset: 7px 7px auto auto;
     }
@@ -1130,7 +1240,8 @@ body {
     }
 
     .cinta-peliculas .datos-pelicula,
-    .cinta-peliculas .clasificacion {
+    .cinta-peliculas .clasificacion,
+    .cinta-peliculas .etiqueta-preventa {
         display: none;
     }
 }

@@ -1,3 +1,27 @@
+@property --fade-start {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@property --fade-end {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@keyframes reveal-fade-start {
+    to {
+        --fade-start: var(--fade-size);
+    }
+}
+
+@keyframes hide-fade-end {
+    from {
+        --fade-end: var(--fade-size);
+    }
+}
+
 .detalle-cine-page {
     width: 100%;
     flex: 1;
@@ -216,6 +240,7 @@
     border-radius: 14px;
     padding: 20px;
     display: flex;
+    align-items: center;
     gap: 24px;
     box-sizing: border-box;
     transition:
@@ -265,49 +290,16 @@
 }
 
 .pelicula-cine-header-text {
-    flex: 1;
-    min-width: 180px;
-}
-
-.btn-ver-precios {
-    background: transparent;
-    color: #b0b0b0;
-    border: 1px solid #383838;
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-ver-precios:hover:not(:disabled) {
-    background: #252525;
-    border-color: #555555;
-    color: #ffffff;
-}
-
-.btn-ver-precios:disabled {
-    opacity: 0.6;
-    cursor: wait;
-}
-
-.btn-ver-precios.cargado {
-    border-color: rgba(16, 185, 129, 0.4);
-    color: #10b981;
-}
-
-.btn-ver-precios.cargado:hover:not(:disabled) {
-    border-color: #10b981;
-    background: rgba(16, 185, 129, 0.1);
+    flex: 1 1 220px;
+    min-width: min(200px, 100%);
 }
 
 .pelicula-cine-header-info h3 {
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
     font-size: 1.35rem;
     font-weight: 700;
     color: #ffffff;
@@ -322,7 +314,7 @@
 }
 
 .pelicula-cine-titulo-link:hover {
-    color: #e50914;
+    color: var(--color-acento, #e50914);
 }
 
 .pelicula-cine-metadatos {
@@ -345,10 +337,77 @@
 }
 
 /* Grilla de Horarios */
-.horarios-grid-cine {
+.detalle-cine-page .horarios-grid-cine {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding-bottom: 8px;
+    --scrollbar-thumb: #6b6b76;
+    --scrollbar-track: #1a1a1e;
+    --fade-size: 2.5rem;
+    --fade-dir: right;
+    --fade-start-pos: 0;
+    --fade-end-pos: 100%;
+    scroll-padding-inline: var(--fade-size);
+    mask:
+        linear-gradient(black, black) no-clip subtract,
+        linear-gradient(to var(--fade-dir), black, transparent) var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
+        linear-gradient(to var(--fade-dir), transparent, black) var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
+    animation:
+        reveal-fade-start linear both,
+        hide-fade-end linear both;
+    animation-timeline: scroll(self inline);
+    animation-range:
+        0 var(--fade-size),
+        calc(100% - var(--fade-size)) 100%;
+    transition:
+        --fade-start 0.2s,
+        --fade-end 0.2s;
+}
+
+.detalle-cine-page .horarios-grid-cine:dir(rtl) {
+    --fade-dir: left;
+    --fade-start-pos: 100%;
+    --fade-end-pos: 0;
+}
+
+.detalle-cine-page .horarios-grid-cine.more-start {
+    --fade-start: var(--fade-size);
+}
+
+.detalle-cine-page .horarios-grid-cine.more-end {
+    --fade-end: var(--fade-size);
+}
+
+@media (min-width: 769px) {
+    .detalle-cine-page .horarios-grid-cine::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .detalle-cine-page .horarios-grid-cine::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+        border-radius: 999px;
+    }
+
+    .detalle-cine-page .horarios-grid-cine::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: 999px;
+    }
+
+    .detalle-cine-page .horarios-grid-cine::-webkit-scrollbar-thumb:hover {
+        background: #8b8b96;
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        .detalle-cine-page .horarios-grid-cine {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+    }
 }
 
 .horario-pill-item {
@@ -461,11 +520,12 @@
         text-align: center;
     }
 
+    .pelicula-cine-header-info h3,
     .pelicula-cine-metadatos {
         justify-content: center;
     }
 
-    .horarios-grid-cine {
-        justify-content: center;
+    .detalle-cine-page .horarios-grid-cine {
+        justify-content: flex-start;
     }
 }

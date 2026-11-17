@@ -1,8 +1,12 @@
+import type { MetricasTmdb } from "../tmdb/types.ts";
+
 export interface MovieRow {
     id: number;
     titulo: string;
+    titulo_original?: string | null;
     duracion: number | null;
     tmdb_id: number | null;
+    origen_id?: string | null;
 }
 
 export interface DiagnosticSummary {
@@ -21,9 +25,10 @@ export interface DiagnosticSummary {
     erroresManuales: number;
 }
 
-export interface CandidatoSeguro {
+export interface CandidatoSeguro extends MetricasTmdb {
     peliculaId: number;
     tmdbId: number;
+    tituloOriginal?: string;
     poster?: string;
     banner?: string;
     sinopsis?: string;

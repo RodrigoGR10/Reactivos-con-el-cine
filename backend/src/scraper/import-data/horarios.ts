@@ -14,6 +14,7 @@ export async function upsertSchedule(
     schedule: ScrapedSchedule,
     peliculaId: number,
     cineId: string,
+    peliculaUrl: string | null = null,
 ): Promise<UpsertScheduleResult> {
     // Evita que dos importaciones creen o actualicen simultáneamente
     // la misma sesión.
@@ -38,6 +39,12 @@ export async function upsertSchedule(
     );
 
     const peliculaOrigenId = sourceId(schedule.peliculaId, schedule.origen);
+    const hasButacas = Boolean(schedule.butacas);
+    const butacasDisponibles = schedule.butacas?.disponibles ?? null;
+    const butacasTotal = schedule.butacas?.total ?? null;
+    const butacasConsultadasEn = schedule.butacas?.consultadasEn ?? null;
+    const butacasRevision = schedule.butacas ? schedule.revision : null;
+    const butacasActualizadasEn = schedule.butacas?.consultadasEn ?? null;
 
     if (existing.rows.length > 0) {
         const current = existing.rows[0];
@@ -61,6 +68,7 @@ export async function upsertSchedule(
                 pelicula_id = $3,
                 cine_id = $4,
                 pelicula_origen_id = $5,
+                pelicula_url = COALESCE($18, pelicula_url),
                 sesion_id = $6,
                 fecha = $7,
                 horario = $8,
@@ -69,25 +77,37 @@ export async function upsertSchedule(
                 idioma = $11,
                 sala = $12,
                 agotada = $13,
-                url_compra = $14,
+                url_compra = COALESCE($14, url_compra),
                 revision = $15,
                 extraido_en = $16,
+                precios_revision =
+                    CASE WHEN $17 THEN NULL ELSE precios_revision END,
                 precios_consultados_en =
                     CASE WHEN $17 THEN NULL ELSE precios_consultados_en END,
                 precios_error_hasta =
                     CASE WHEN $17 THEN NULL ELSE precios_error_hasta END,
+                precios_error_revision =
+                    CASE WHEN $17 THEN NULL ELSE precios_error_revision END,
                 consulta_precios_hasta =
                     CASE WHEN $17 THEN NULL ELSE consulta_precios_hasta END,
+                consulta_precios_revision =
+                    CASE WHEN $17 THEN NULL ELSE consulta_precios_revision END,
                 consulta_precios_token =
                     CASE WHEN $17 THEN NULL ELSE consulta_precios_token END,
-                butacas = CASE WHEN $18::jsonb IS NOT NULL THEN $18::jsonb
-                    WHEN $17 THEN NULL ELSE butacas END,
-                butacas_revision = CASE WHEN $18::jsonb IS NOT NULL THEN $15::text
-                    WHEN $17 THEN NULL ELSE butacas_revision END,
-                butacas_actualizadas_en = CASE WHEN $18::jsonb IS NOT NULL THEN $19::timestamptz
-                    WHEN $17 THEN NULL ELSE butacas_actualizadas_en END,
-                butacas_error_hasta = CASE WHEN $17 OR $18::jsonb IS NOT NULL THEN NULL ELSE butacas_error_hasta END,
-                butacas_error_revision = CASE WHEN $17 OR $18::jsonb IS NOT NULL THEN NULL ELSE butacas_error_revision END
+                butacas_disponibles =
+                    CASE WHEN $19 THEN $20 WHEN $17 THEN NULL ELSE butacas_disponibles END,
+                butacas_total =
+                    CASE WHEN $19 THEN $21 WHEN $17 THEN NULL ELSE butacas_total END,
+                butacas_consultadas_en =
+                    CASE WHEN $19 THEN $22::timestamptz WHEN $17 THEN NULL ELSE butacas_consultadas_en END,
+                butacas_revision =
+                    CASE WHEN $19 THEN $23 WHEN $17 THEN NULL ELSE butacas_revision END,
+                butacas_actualizadas_en =
+                    CASE WHEN $19 THEN $24::timestamptz WHEN $17 THEN NULL ELSE butacas_actualizadas_en END,
+                butacas_error_hasta =
+                    CASE WHEN $19 OR $17 THEN NULL ELSE butacas_error_hasta END,
+                butacas_error_revision =
+                    CASE WHEN $19 OR $17 THEN NULL ELSE butacas_error_revision END
             WHERE id = $1;
             `,
             [
@@ -108,8 +128,13 @@ export async function upsertSchedule(
                 schedule.revision,
                 schedule.extraidoEn,
                 changed,
-                schedule.butacas ? JSON.stringify(schedule.butacas) : null,
-                schedule.butacas?.consultadasEn ?? null,
+                peliculaUrl,
+                hasButacas,
+                butacasDisponibles,
+                butacasTotal,
+                butacasConsultadasEn,
+                butacasRevision,
+                butacasActualizadasEn,
             ],
         );
 
@@ -128,6 +153,7 @@ export async function upsertSchedule(
             cine_id,
             origen,
             pelicula_origen_id,
+            pelicula_url,
             sesion_id,
             fecha,
             horario,
@@ -139,14 +165,15 @@ export async function upsertSchedule(
             url_compra,
             revision,
             extraido_en,
-            butacas,
+            butacas_disponibles,
+            butacas_total,
+            butacas_consultadas_en,
             butacas_revision,
             butacas_actualizadas_en
         )
         VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8,
-            $9, $10, $11, $12, $13, $14, $15, $16,
-            $17::jsonb, CASE WHEN $17::jsonb IS NOT NULL THEN $15::text ELSE NULL END, $18::timestamptz
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+            $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
         )
         RETURNING id;
         `,
@@ -156,6 +183,7 @@ export async function upsertSchedule(
             cineId,
             schedule.origen,
             peliculaOrigenId,
+            peliculaUrl,
             schedule.sesionId,
             schedule.fecha,
             schedule.horario,
@@ -167,8 +195,11 @@ export async function upsertSchedule(
             schedule.urlCompra ?? null,
             schedule.revision,
             schedule.extraidoEn,
-            schedule.butacas ? JSON.stringify(schedule.butacas) : null,
-            schedule.butacas?.consultadasEn ?? null,
+            butacasDisponibles,
+            butacasTotal,
+            butacasConsultadasEn,
+            butacasRevision,
+            butacasActualizadasEn,
         ],
     );
 

@@ -85,6 +85,61 @@ export async function completarMetadatosCanonica(
                     ORDER BY duplicada.id
                     LIMIT 1
                 )
+            ),
+            titulo_original = COALESCE(
+                NULLIF(BTRIM(principal.titulo_original), ''),
+                (
+                    SELECT NULLIF(BTRIM(duplicada.titulo_original), '')
+                    FROM peliculas AS duplicada
+                    WHERE duplicada.id = ANY($2::int[])
+                      AND NULLIF(BTRIM(duplicada.titulo_original), '') IS NOT NULL
+                    ORDER BY duplicada.id
+                    LIMIT 1
+                )
+            ),
+            calificacion_tmdb = COALESCE(
+                principal.calificacion_tmdb,
+                (
+                    SELECT duplicada.calificacion_tmdb
+                    FROM peliculas AS duplicada
+                    WHERE duplicada.id = ANY($2::int[])
+                      AND duplicada.calificacion_tmdb IS NOT NULL
+                    ORDER BY duplicada.id
+                    LIMIT 1
+                )
+            ),
+            votos_tmdb = COALESCE(
+                principal.votos_tmdb,
+                (
+                    SELECT duplicada.votos_tmdb
+                    FROM peliculas AS duplicada
+                    WHERE duplicada.id = ANY($2::int[])
+                      AND duplicada.votos_tmdb IS NOT NULL
+                    ORDER BY duplicada.id
+                    LIMIT 1
+                )
+            ),
+            popularidad_tmdb = COALESCE(
+                principal.popularidad_tmdb,
+                (
+                    SELECT duplicada.popularidad_tmdb
+                    FROM peliculas AS duplicada
+                    WHERE duplicada.id = ANY($2::int[])
+                      AND duplicada.popularidad_tmdb IS NOT NULL
+                    ORDER BY duplicada.id
+                    LIMIT 1
+                )
+            ),
+            fecha_estreno_tmdb = COALESCE(
+                NULLIF(BTRIM(principal.fecha_estreno_tmdb), ''),
+                (
+                    SELECT NULLIF(BTRIM(duplicada.fecha_estreno_tmdb), '')
+                    FROM peliculas AS duplicada
+                    WHERE duplicada.id = ANY($2::int[])
+                      AND NULLIF(BTRIM(duplicada.fecha_estreno_tmdb), '') IS NOT NULL
+                    ORDER BY duplicada.id
+                    LIMIT 1
+                )
             )
         WHERE principal.id = $1;
         `,

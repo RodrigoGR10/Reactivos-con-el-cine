@@ -1,11 +1,13 @@
 import {
     duracionValida,
     exigirApiKey,
+    extraerMetricasTmdb,
     obtenerPeliculaPorId,
     urlBanner,
     urlPoster,
 } from "./client.ts";
 import { diagnosticarPeliculaTmdb } from "./diagnostico.ts";
+import type { TmdbSearchOptions } from "./consulta.ts";
 import type { TmdbEnrichment, TmdbMetadataPorId } from "./types.ts";
 
 export async function fetchTmdbMovieMetadataById(
@@ -34,14 +36,31 @@ export async function fetchTmdbMovieMetadataById(
         poster: urlPoster(movie.poster_path),
         banner: urlBanner(movie.backdrop_path),
         sinopsis: movie.overview?.trim() || undefined,
+        ...extraerMetricasTmdb(movie),
     };
 }
 
 export async function fetchTmdbMovieMetadata(
     titulo: string,
-    apiKey = process.env.TMDB_API_KEY,
+    apiKeyOrOptions?: string | TmdbSearchOptions,
+    maybeOptions?: TmdbSearchOptions,
 ): Promise<TmdbEnrichment | null> {
-    const diagnostic = await diagnosticarPeliculaTmdb(titulo, apiKey);
+    const apiKey =
+        typeof apiKeyOrOptions === "string"
+            ? apiKeyOrOptions
+            : process.env.TMDB_API_KEY;
+    const options =
+        typeof apiKeyOrOptions === "string"
+            ? (maybeOptions ?? {})
+            : (apiKeyOrOptions ?? {});
+
+    const diagnostic = await diagnosticarPeliculaTmdb(
+        titulo,
+        apiKey,
+        options.duracion,
+        options.tituloOriginal,
+        options.origenId,
+    );
 
     if (!diagnostic || diagnostic.estado !== "SEGURO") {
         return null;
@@ -49,8 +68,13 @@ export async function fetchTmdbMovieMetadata(
 
     return {
         tmdbId: diagnostic.tmdbId,
+        tituloOriginal: diagnostic.tituloOriginal,
         poster: diagnostic.poster,
         banner: diagnostic.banner,
         sinopsis: diagnostic.sinopsis,
+        calificacionTmdb: diagnostic.calificacionTmdb,
+        votosTmdb: diagnostic.votosTmdb,
+        popularidadTmdb: diagnostic.popularidadTmdb,
+        fechaEstrenoTmdb: diagnostic.fechaEstrenoTmdb,
     };
 }

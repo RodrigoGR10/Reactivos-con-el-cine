@@ -1,4 +1,5 @@
 import { pool } from "../../db.ts";
+import { areSameCatalogMovie } from "../tmdb/catalogo.ts";
 import type {
     CandidatoSeguro,
     MovieRow,
@@ -10,7 +11,32 @@ import { claveParaConflictos } from "../../utils/titulos.ts";
 interface PeliculaExistente {
     id: number;
     titulo: string;
+    titulo_original: string | null;
     tmdb_id: number;
+}
+
+function sonTitulosCompatibles(
+    a: { titulo: string; titulo_original?: string | null },
+    b: { titulo: string; titulo_original?: string | null },
+): boolean {
+    const claveA = claveParaConflictos(a.titulo);
+    const claveB = claveParaConflictos(b.titulo);
+    if (claveA.length > 0 && claveA === claveB) {
+        return true;
+    }
+
+    return areSameCatalogMovie(
+        {
+            titulo: a.titulo,
+            tituloOriginal: a.titulo_original ?? undefined,
+            duracion: 0,
+        },
+        {
+            titulo: b.titulo,
+            tituloOriginal: b.titulo_original ?? undefined,
+            duracion: 0,
+        },
+    );
 }
 
 // tmdbId -> ids de películas locales que lo proponen.
@@ -48,7 +74,7 @@ async function buscarExistentes(
 
     const result = await pool.query<PeliculaExistente>(
         `
-        SELECT id, titulo, tmdb_id
+        SELECT id, titulo, titulo_original, tmdb_id
         FROM peliculas
         WHERE tmdb_id = ANY($1::int[]);
         `,
@@ -77,10 +103,7 @@ function conflictosEntreCandidatos(
                 const a = peliculas[i]!;
                 const b = peliculas[j]!;
 
-                if (
-                    claveParaConflictos(a.titulo) ===
-                    claveParaConflictos(b.titulo)
-                ) {
+                if (sonTitulosCompatibles(a, b)) {
                     continue;
                 }
 
@@ -114,15 +137,9 @@ function conflictosConExistentes(
             const peliculaNueva = moviesById.get(candidato.peliculaId);
             if (!peliculaNueva) continue;
 
-            const tituloExistente = claveParaConflictos(existente.titulo);
-            const tituloNuevo = claveParaConflictos(peliculaNueva.titulo);
-
-            const titulosCompatibles =
-                tituloExistente.length > 0 &&
-                tituloNuevo.length > 0 &&
-                tituloExistente === tituloNuevo;
-
-            if (titulosCompatibles) continue;
+            if (sonTitulosCompatibles(existente, peliculaNueva)) {
+                continue;
+            }
 
             ids.push(candidato.peliculaId);
 

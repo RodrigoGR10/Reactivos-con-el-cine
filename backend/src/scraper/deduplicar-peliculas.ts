@@ -14,6 +14,7 @@ export async function deduplicarCatalogoPeliculas(
         SELECT
             p.id,
             p.titulo,
+            p.titulo_original,
             p.duracion,
             p.tmdb_id,
             EXISTS (

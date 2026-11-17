@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import type { Origen } from "../scraper/types.ts";
 import type { DatosEstreno } from "../utils/estreno.ts";
 
@@ -16,7 +13,7 @@ export interface Pelicula {
     id: number;
     titulo: string;
     tituloOriginal?: string;
-    duracion: number;
+    duracion: number | null;
     genero?: string;
     clasificacion: string;
     sinopsis: string;
@@ -24,6 +21,10 @@ export interface Pelicula {
     bannerUrl?: string;
     trailerUrl?: string;
     tmdbId?: number;
+    calificacionTmdb?: number;
+    votosTmdb?: number;
+    popularidadTmdb?: number;
+    fechaEstrenoTmdb?: string;
     url?: string;
     origen?: string;
     origenId?: string;

@@ -1,9 +1,6 @@
 import { query } from "../db.ts";
-
 import { consultarHorario } from "./preciosFunciones/consulta.ts";
-
-import { CACHE_PRECIOS_MS, horarioPublico } from "./preciosFunciones/estado.ts";
-
+import { horarioPublico } from "./preciosFunciones/estado.ts";
 import type {
     ScheduleRow,
     ScheduleWithPrices,
@@ -23,6 +20,7 @@ export async function preciosPorCine(
                h.fecha_cartelera::text AS fecha_cartelera,
                c.origen_id AS cine_origen_id,
                c.nombre AS cine_nombre,
+               c.cadena AS cine_cadena,
                c.url AS cine_url,
                pf.url AS pelicula_url_fuente,
                pf.origen_id AS pelicula_origen_id_fuente
@@ -62,14 +60,16 @@ export async function preciosPorCine(
 
     const updated: (ScheduleWithPrices | null)[] = [];
     if (schedules[0]?.origen === "cinepolis") {
-        // Cinepolis comparte una cola de navegador: no encolar todo el dia de golpe.
+        // Cinepolis comparte una cola de navegador: evita encolar el día completo.
         for (const schedule of schedules) {
             updated.push(await consultarHorario(schedule));
         }
     } else {
-        updated.push(...await Promise.all(
-            schedules.map((schedule) => consultarHorario(schedule)),
-        ));
+        updated.push(
+            ...(await Promise.all(
+                schedules.map((schedule) => consultarHorario(schedule)),
+            )),
+        );
     }
 
     return updated

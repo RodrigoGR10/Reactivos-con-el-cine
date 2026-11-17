@@ -199,8 +199,9 @@ const txt = (v: unknown): string | null => {
 const mensajeError = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 function incidencia(tipo: string, severidad: Severidad, mensaje: string, extra: Record<string, unknown> = {}): Incidencia {
-  // Ajustar al tipo real de Incidencia en ../types.ts si difiere.
-  return { origen: "cinepolis", tipo, severidad, mensaje, ...extra } as unknown as Incidencia;
+  const etapa: Incidencia["etapa"] =
+    tipo.includes("cine") ? "cine" : tipo.includes("pelicula") ? "pelicula" : "funcion";
+  return { etapa, origen: "cinepolis", tipo, severidad, mensaje, ...extra } as unknown as Incidencia;
 }
 
 function sumarDias(fecha: string, dias: number): string {

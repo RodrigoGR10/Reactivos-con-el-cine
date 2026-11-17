@@ -123,12 +123,17 @@ export async function consultarHorario(
                         UPDATE horarios
                         SET precios_revision = revision,
                             precios_consultados_en = NOW(),
-                            url_compra = COALESCE($2, url_compra),
                             precios_error_revision = NULL,
-                            precios_error_hasta = NULL
+                            precios_error_hasta = NULL,
+                            url_compra = COALESCE($2, url_compra)
                         WHERE id = $1;
                         `,
-                        [schedule.id, schedule.origen === "cinepolis" ? tarifas[0]?.urlCompra ?? null : null],
+                        [
+                            schedule.id,
+                            schedule.origen === "cinepolis" && tarifas[0]
+                                ? tarifas[0].urlCompra
+                                : null,
+                        ],
                     );
                 }
 

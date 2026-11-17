@@ -21,10 +21,22 @@ function pausa(ms: number): Promise<void> {
 // Solo diagnosticar películas que todavía no tienen TMDB ID.
 async function cargarPeliculasPendientes(): Promise<MovieRow[]> {
     const result = await pool.query<MovieRow>(`
-        SELECT id, titulo, duracion, tmdb_id
-        FROM peliculas
-        WHERE tmdb_id IS NULL
-        ORDER BY id;
+        SELECT
+            p.id,
+            p.titulo,
+            p.titulo_original,
+            p.duracion,
+            p.tmdb_id,
+            (
+                SELECT pf.origen_id
+                FROM pelicula_fuentes pf
+                WHERE pf.pelicula_id = p.id
+                ORDER BY (pf.origen = 'cinepolis') DESC, pf.origen
+                LIMIT 1
+            ) AS origen_id
+        FROM peliculas p
+        WHERE p.tmdb_id IS NULL
+        ORDER BY p.id;
     `);
 
     return result.rows;

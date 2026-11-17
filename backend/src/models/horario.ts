@@ -12,8 +12,7 @@ export interface Horario {
 
 export type CrearHorario = Omit<Horario, "id" | "creadoEn">;
 
-//Interfaz para tipar lo que devuelve "vista_cartelera"
-
+// Interfaz para tipar lo que devuelve "vista_cartelera"
 export interface VistaCarteleraItem {
     horarioId: number;
     fechaHora: Date | string;

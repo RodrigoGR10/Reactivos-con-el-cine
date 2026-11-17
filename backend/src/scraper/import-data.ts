@@ -1,5 +1,4 @@
 import { pool } from "../db.ts";
-
 import { upsertSchedule } from "./import-data/horarios.ts";
 import { upsertCinema } from "./import-data/cines.ts";
 import { upsertMovie } from "./import-data/peliculas.ts";
@@ -43,6 +42,10 @@ export async function importarDatosScraped(
             );
         }
     }
+
+    const movieUrls = new Map<string, string | null>(
+        data.peliculas.map((pelicula) => [pelicula.id, pelicula.url ?? null]),
+    );
 
     const client = await pool.connect();
 
@@ -93,7 +96,6 @@ export async function importarDatosScraped(
             }
 
             const peliculaId = await resolveMovieId(client, schedule, movieIds);
-
             const cineId = await resolveCinemaId(client, schedule, cinemaIds);
 
             const result = await upsertSchedule(
@@ -101,6 +103,7 @@ export async function importarDatosScraped(
                 schedule,
                 peliculaId,
                 cineId,
+                movieUrls.get(schedule.peliculaId) ?? null,
             );
 
             keptScheduleIds.push(result.id);

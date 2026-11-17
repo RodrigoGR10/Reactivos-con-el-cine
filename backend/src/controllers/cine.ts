@@ -1,8 +1,21 @@
 import { query, isCineId } from "../db.ts";
-import express from "express";
 import { normalizarComuna } from "../utils/comunas.ts";
+import express from "express";
 
 const router = express.Router();
+
+interface CineRow {
+    id: string;
+    nombre: string;
+    comuna: string;
+    ciudad: string | null;
+    direccion: string;
+    url: string | null;
+    latitud: number | null;
+    longitud: number | null;
+    logo: string | null;
+    origen: string;
+}
 
 const CINE_COLUMNS = `
     id,
@@ -10,13 +23,29 @@ const CINE_COLUMNS = `
     comuna,
     ciudad,
     direccion,
+    url,
     latitud,
     longitud,
     logo_url AS logo,
     cadena AS origen
-    `;
+`;
 
-router.get("/", async (req, res, next) => {
+function serializarCine(row: CineRow) {
+    return {
+        id: row.id,
+        nombre: row.nombre,
+        comuna: row.comuna,
+        direccion: row.direccion,
+        origen: row.origen,
+        ...(row.ciudad ? { ciudad: row.ciudad } : {}),
+        ...(row.url ? { url: row.url } : {}),
+        ...(row.logo ? { logo: row.logo } : {}),
+        ...(row.latitud !== null ? { latitud: row.latitud } : {}),
+        ...(row.longitud !== null ? { longitud: row.longitud } : {}),
+    };
+}
+
+router.get("/", async (req, res) => {
     const { cadena, comuna } = req.query;
     if (
         (cadena !== undefined &&
@@ -43,10 +72,13 @@ router.get("/", async (req, res, next) => {
         FROM cines
         ${whereClause}
         ORDER BY nombre ASC;
-        `;
+    `;
 
-    const { rows } = await query(sql, params);
-    const cines = rows.map((cine) => ({ ...cine, comuna: normalizarComuna(cine.comuna) }));
+    const { rows } = await query<CineRow>(sql, params);
+    const cines = rows.map((row) => ({
+        ...serializarCine(row),
+        comuna: normalizarComuna(row.comuna),
+    }));
     const comunaNormalizada = typeof comuna === "string"
         ? normalizarComuna(comuna)
         : undefined;
@@ -55,26 +87,28 @@ router.get("/", async (req, res, next) => {
         : cines);
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
     if (!isCineId(id)) {
         return res.status(400).json({ error: "ID de cine invalido" });
     }
 
-    //Aca $1 accede al id que se le ingresa en rows mediante un arreglo: [id]
     const sql = `
         SELECT ${CINE_COLUMNS}
         FROM cines
         WHERE id = $1;
-        `;
+    `;
 
-    const { rows } = await query(sql, [id]);
+    const { rows } = await query<CineRow>(sql, [id]);
 
     if (rows.length === 0) {
         return res.status(404).json({ error: "Cine no encontrado" });
     }
-    return res.json({ ...rows[0], comuna: normalizarComuna(rows[0].comuna) });
+    return res.json({
+        ...serializarCine(rows[0]!),
+        comuna: normalizarComuna(rows[0]!.comuna),
+    });
 });
 
 export default router;

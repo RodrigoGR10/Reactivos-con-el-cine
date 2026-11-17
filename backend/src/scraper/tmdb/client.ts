@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import type {
+    MetricasTmdb,
     TmdbMovieDetail,
     TmdbMovieResult,
     TmdbSearchResponse,
@@ -51,6 +52,47 @@ export function urlPoster(ruta: string | null | undefined): string | undefined {
 
 export function urlBanner(ruta: string | null | undefined): string | undefined {
     return ruta ? `${IMAGE_BASE}/original${ruta}` : undefined;
+}
+
+function numeroNoNegativo(valor: unknown): number | undefined {
+    return typeof valor === "number" && Number.isFinite(valor) && valor >= 0
+        ? valor
+        : undefined;
+}
+
+function enteroNoNegativo(valor: unknown): number | undefined {
+    return typeof valor === "number" && Number.isFinite(valor) && valor >= 0
+        ? Math.round(valor)
+        : undefined;
+}
+
+function fechaIsoValida(valor: unknown): string | undefined {
+    if (typeof valor !== "string") return undefined;
+    const limpia = valor.trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(limpia) ? limpia : undefined;
+}
+
+export function extraerMetricasTmdb(
+    source: Pick<
+        TmdbMovieResult | TmdbMovieDetail,
+        "vote_average" | "vote_count" | "popularity" | "release_date"
+    >,
+): MetricasTmdb {
+    const calificacionRaw = numeroNoNegativo(source.vote_average);
+    const calificacionTmdb =
+        calificacionRaw !== undefined && calificacionRaw <= 10
+            ? calificacionRaw
+            : undefined;
+    const votosTmdb = enteroNoNegativo(source.vote_count);
+    const popularidadTmdb = numeroNoNegativo(source.popularity);
+    const fechaEstrenoTmdb = fechaIsoValida(source.release_date);
+
+    return {
+        ...(calificacionTmdb !== undefined ? { calificacionTmdb } : {}),
+        ...(votosTmdb !== undefined ? { votosTmdb } : {}),
+        ...(popularidadTmdb !== undefined ? { popularidadTmdb } : {}),
+        ...(fechaEstrenoTmdb !== undefined ? { fechaEstrenoTmdb } : {}),
+    };
 }
 
 export async function buscarPeliculas(
@@ -117,9 +159,10 @@ export async function obtenerSinopsisRespaldo(
 export async function obtenerPeliculaPorId(
     tmdbId: number,
     apiKey: string,
+    idioma = "es-MX",
 ): Promise<TmdbMovieDetail | null> {
     const url = construirUrl(`/movie/${tmdbId}`, apiKey, {
-        language: "es-MX",
+        language: idioma,
     });
 
     const response = await pedir(url);
@@ -131,4 +174,16 @@ export async function obtenerPeliculaPorId(
     }
 
     return (await response.json()) as TmdbMovieDetail;
+}
+
+export async function obtenerDetalleSilencioso(
+    tmdbId: number,
+    apiKey: string,
+    idioma = "es-MX",
+): Promise<TmdbMovieDetail | null> {
+    try {
+        return await obtenerPeliculaPorId(tmdbId, apiKey, idioma);
+    } catch {
+        return null;
+    }
 }

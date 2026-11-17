@@ -3,8 +3,9 @@ import { resolve } from "node:path";
 
 import { scrapeCinemark } from "./cinemark/scraper.ts";
 import { scrapeCineplanet } from "./cineplanet/scraper.ts";
-import { scrapeVista } from "./vista/scraper.ts";
+import { initializeCinepolis } from "./cinepolis/client.ts";
 import { scrapeCinepolis } from "./cinepolis/scraper.ts";
+import { scrapeVista } from "./vista/scraper.ts";
 
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
@@ -58,12 +59,9 @@ async function main() {
     const mode: Mode = args.includes("--sync") ? "sync" : "scrape";
 
     const chainArg = args.find((arg) => arg.startsWith("--chain="));
-
     const origenArg = chainArg?.slice("--chain=".length) ?? "cinemark";
 
-    const origenes = ORIGENES;
-
-    if (!origenes.includes(origenArg as Origen)) {
+    if (!ORIGENES.includes(origenArg as Origen)) {
         throw new Error(`Cadena desconocida: ${origenArg}`);
     }
 
@@ -72,18 +70,24 @@ async function main() {
         desde: localNow().slice(0, 10),
         dias: null,
         cines: args
-            .filter((arg) => arg.startsWith("--cine="))
-            .map((arg) => arg.slice("--cine=".length)),
+            .filter((arg) => arg.startsWith("--cine=") || arg.startsWith("--cinema="))
+            .map((arg) => arg.split("=")[1] ?? "")
+            .flatMap((value) => value.split(","))
+            .map((value) => value.trim())
+            .filter(Boolean),
         limitePorCine: null,
     };
 
     const desdeArg = args.find((arg) => arg.startsWith("--desde="));
     if (desdeArg) options.desde = desdeArg.split("=")[1];
 
-    const diasArg = args.find((arg) => arg.startsWith("--dias="));
+    const diasArg = args.find((arg) => arg.startsWith("--dias=") || arg.startsWith("--days="));
     if (diasArg) {
         const value = diasArg.split("=")[1];
         options.dias = value === "todos" ? null : Number(value);
+    }
+    if (args.includes("--all-dates")) {
+        options.dias = null;
     }
 
     const limiteArg = args.find((arg) => arg.startsWith("--limite-por-cine="));
@@ -96,12 +100,15 @@ async function main() {
 
     console.log(`Iniciando extracción: ${origen}`);
 
-    const scrapers = {
+    const scrapers: Record<Origen, () => ReturnType<typeof scrapeCinemark>> = {
         cinemark: () => scrapeCinemark(options),
         cineplanet: () => scrapeCineplanet(options),
         muvix: () => scrapeVista("muvix", options),
         cinestar: () => scrapeVista("cinestar", options),
-        cinepolis: () => scrapeCinepolis(options),
+        cinepolis: async () => {
+            await initializeCinepolis();
+            return scrapeCinepolis(options);
+        },
     };
 
     const data = await scrapers[origen]();
@@ -109,9 +116,7 @@ async function main() {
     validarScrapeResult(data);
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-
     const outputArg = args.find((arg) => arg.startsWith("--output="));
-
     const outputPath = resolve(
         process.cwd(),
         outputArg
@@ -120,7 +125,6 @@ async function main() {
     );
 
     await mkdir(resolve(outputPath, ".."), { recursive: true });
-
     await writeFile(outputPath, JSON.stringify(data, null, 2), "utf8");
 
     console.log(`JSON guardado: ${outputPath}`);
@@ -155,6 +159,3 @@ main()
     .finally(async () => {
         await pool.end();
     });
-
-//Para probar el cli mas adelante, se hace con:
-//pnpm tsx src/scraper/import-cli.ts data/cinemark.json

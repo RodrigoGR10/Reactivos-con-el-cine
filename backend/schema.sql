@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS cines (
 CREATE TABLE IF NOT EXISTS peliculas (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
+    titulo_original VARCHAR(255),
     sinopsis TEXT,
     duracion INT, -- En minutos
     genero VARCHAR(150),
@@ -46,6 +47,10 @@ CREATE TABLE IF NOT EXISTS peliculas (
     imagen_url TEXT,
     banner TEXT,
     tmdb_id INT,
+    calificacion_tmdb DOUBLE PRECISION CHECK (calificacion_tmdb >= 0 AND calificacion_tmdb <= 10),
+    votos_tmdb INT CHECK (votos_tmdb >= 0),
+    popularidad_tmdb DOUBLE PRECISION CHECK (popularidad_tmdb >= 0),
+    fecha_estreno_tmdb VARCHAR(10),
     creado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -70,7 +75,7 @@ ALTER TABLE peliculas
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS horarios (
     id SERIAL PRIMARY KEY,
-    origen_id VARCHAR(150) NOT NULL, -- Conservamos el ID del scraper para sincronización
+    origen_id TEXT NOT NULL, -- Conservamos el ID del scraper para sincronización
     pelicula_id INT NOT NULL REFERENCES peliculas(id) ON DELETE CASCADE,
     cine_id VARCHAR(100) NOT NULL REFERENCES cines(id) ON DELETE CASCADE,
     origen VARCHAR(20) NOT NULL,
@@ -94,12 +99,21 @@ CREATE TABLE IF NOT EXISTS horarios (
     consulta_precios_token VARCHAR(100),
     precios_revision TEXT,
     consulta_precios_revision TEXT,
-    precios_error_revision TEXT
+    precios_error_revision TEXT,
+    -- estado de la consulta de butacas bajo demanda
+    butacas_disponibles INT CHECK (butacas_disponibles >= 0),
+    butacas_total INT CHECK (butacas_total >= 1),
+    butacas_consultadas_en TIMESTAMP WITH TIME ZONE,
+    butacas_revision TEXT,
+    butacas_actualizadas_en TIMESTAMP WITH TIME ZONE,
+    butacas_error_hasta TIMESTAMP WITH TIME ZONE,
+    butacas_error_revision TEXT,
+    CHECK (butacas_total IS NULL OR butacas_disponibles IS NULL OR butacas_total >= butacas_disponibles)
 );
 
 CREATE TABLE IF NOT EXISTS tarifas (
     id SERIAL NOT NULL,
-    origen_id VARCHAR(200) NOT NULL, -- ID de la tarifa en el scraper
+    origen_id TEXT NOT NULL, -- ID de la tarifa en el scraper
     horario_id INT NOT NULL REFERENCES horarios(id) ON DELETE CASCADE,
     tipo_entrada VARCHAR(100) NOT NULL,
     formato VARCHAR(100) NOT NULL,
@@ -110,30 +124,6 @@ CREATE TABLE IF NOT EXISTS tarifas (
     extraido_en TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY (horario_id, id)
 );
-
--- Disponibilidad bajo demanda. ALTER permite actualizar tambien bases ya creadas.
-ALTER TABLE horarios
-    ADD COLUMN IF NOT EXISTS butacas JSONB,
-    ADD COLUMN IF NOT EXISTS butacas_revision TEXT,
-    ADD COLUMN IF NOT EXISTS butacas_actualizadas_en TIMESTAMP WITH TIME ZONE,
-    ADD COLUMN IF NOT EXISTS butacas_error_hasta TIMESTAMP WITH TIME ZONE,
-    ADD COLUMN IF NOT EXISTS butacas_error_revision TEXT;
-
--- Las revisiones incluyen identificadores y enlaces de longitud variable.
--- La vista se reconstruye abajo para actualizar tambien los tipos de sus columnas.
-DO $$
-BEGIN
-    EXECUTE format('DROP VIEW IF EXISTS %I.horarios_vigentes', current_schema());
-END;
-$$;
-
-ALTER TABLE horarios
-    ALTER COLUMN revision TYPE TEXT,
-    ALTER COLUMN precios_revision TYPE TEXT,
-    ALTER COLUMN consulta_precios_revision TYPE TEXT,
-    ALTER COLUMN precios_error_revision TYPE TEXT,
-    ALTER COLUMN butacas_revision TYPE TEXT,
-    ALTER COLUMN butacas_error_revision TYPE TEXT;
 
 -- Horarios que aun no han pasado, en hora de Chile (fecha + hora local).
 CREATE OR REPLACE VIEW horarios_vigentes AS

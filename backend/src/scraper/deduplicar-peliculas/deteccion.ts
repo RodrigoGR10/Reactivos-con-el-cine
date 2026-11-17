@@ -1,4 +1,4 @@
-import { claveParaDuplicados } from "../../utils/titulos.ts";
+import { areSameCatalogMovie } from "../tmdb/catalogo.ts";
 import type { GrupoDuplicado, PeliculaRow } from "./types.ts";
 
 function obtenerTipoEdicion(titulo: string): "original" | "aniversario" {
@@ -8,34 +8,28 @@ function obtenerTipoEdicion(titulo: string): "original" | "aniversario" {
 }
 
 function sonDuplicadas(a: PeliculaRow, b: PeliculaRow): boolean {
-    // Nunca mezclar ediciones diferentes.
     if (obtenerTipoEdicion(a.titulo) !== obtenerTipoEdicion(b.titulo)) {
         return false;
     }
 
-    // Si ambos tienen TMDB, debe coincidir.
     if (a.tmdb_id !== null && b.tmdb_id !== null) {
         return a.tmdb_id === b.tmdb_id;
     }
 
-    // Si solo uno tiene TMDB, no hay evidencia suficiente.
-    if (a.tmdb_id !== null || b.tmdb_id !== null) {
-        return false;
-    }
-
-    // Sin TMDB: comparar duración y título.
-    if (
-        a.duracion !== null &&
-        b.duracion !== null &&
-        Math.abs(a.duracion - b.duracion) > 10
-    ) {
-        return false;
-    }
-
-    const tituloA = claveParaDuplicados(a.titulo);
-    const tituloB = claveParaDuplicados(b.titulo);
-
-    return tituloA.length > 0 && tituloA === tituloB;
+    return areSameCatalogMovie(
+        {
+            titulo: a.titulo,
+            tituloOriginal: a.titulo_original ?? undefined,
+            duracion: a.duracion ?? 0,
+            tmdbId: a.tmdb_id ?? undefined,
+        },
+        {
+            titulo: b.titulo,
+            tituloOriginal: b.titulo_original ?? undefined,
+            duracion: b.duracion ?? 0,
+            tmdbId: b.tmdb_id ?? undefined,
+        },
+    );
 }
 
 function elegirCanonica(grupo: PeliculaRow[]): PeliculaRow {

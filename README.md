@@ -12,7 +12,7 @@ Aplicación web para explorar la cartelera de cine en Chile, comparar horarios y
 - **Backend:** Node.js, TypeScript, Express 5 y PostgreSQL.
 - **Acceso a datos:** `pg`, mediante un pool de conexiones.
 - **Autenticación:** JWT en cookie `httpOnly`, protección CSRF y contraseñas con hash bcrypt.
-- **Catálogo:** scrapers de Cinemark, Cineplanet, Muvix y Cine Star.
+- **Catálogo:** scrapers de Cinemark, Cineplanet, Cinépolis, Muvix y Cine Star.
 - **Metadatos:** integración opcional con TMDB.
 - **Entorno local:** Nix, PostgreSQL y `direnv`.
 
@@ -301,13 +301,14 @@ Desde `backend/`, ejecuta:
 ```bash
 npm run sync:cinemark
 npm run sync:cineplanet
+npm run sync:cinepolis
 npm run sync:muvix
 npm run sync:cinestar
 ```
 
 Conviene ejecutarlos secuencialmente para facilitar el diagnóstico y poder identificar qué cadena produjo un problema.
 
-Cada comando utiliza por defecto la fecha actual en Chile y consulta los próximos siete días.
+Cada comando utiliza por defecto la fecha actual en Chile e incluye todas las funciones futuras disponibles (se puede acotar con `--dias=N`).
 
 ### 6.3. Extraer datos sin importarlos
 
@@ -316,6 +317,7 @@ Si se necesita inspeccionar una extracción antes de modificar la base:
 ```bash
 npm run scrape:cinemark
 npm run scrape:cineplanet
+npm run scrape:cinepolis
 npm run scrape:muvix
 npm run scrape:cinestar
 ```
@@ -629,8 +631,10 @@ Todos los comandos de esta sección se ejecutan desde `backend/`, salvo que se i
 | `npm run scrape:cineplanet`                          | Extrae Cineplanet y guarda JSON.      | Ninguno.                                                     |
 | `npm run scrape:muvix`                               | Extrae Muvix y guarda JSON.           | Ninguno.                                                     |
 | `npm run scrape:cinestar`                            | Extrae Cine Star y guarda JSON.       | Ninguno.                                                     |
+| `npm run scrape:cinepolis`                           | Extrae Cinépolis y guarda JSON.       | Ninguno.                                                     |
 | `npm run sync:cinemark`                              | Extrae e importa Cinemark.            | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
 | `npm run sync:cineplanet`                            | Extrae e importa Cineplanet.          | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
+| `npm run sync:cinepolis`                             | Extrae e importa Cinépolis.           | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
 | `npm run sync:muvix`                                 | Extrae e importa Muvix.               | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
 | `npm run sync:cinestar`                              | Extrae e importa Cine Star.           | Inserta y actualiza datos; puede limpiar horarios obsoletos. |
 | `npm run import:scrape -- data/scrapes/ARCHIVO.json` | Importa un JSON existente.            | Inserta y actualiza datos.                                   |
@@ -696,6 +700,7 @@ Las rutas privadas requieren la cookie de sesión JWT y la cabecera `X-CSRF-Toke
 | `GET`  | `/api/cines/:id`                           | Pública    | Obtiene un cine.                                         |
 | `GET`  | `/api/funciones/horarios`                  | Pública    | Lista horarios; requiere `peliculaId`, `cineId` o ambos. |
 | `GET`  | `/api/funciones/precios`                   | Pública    | Consulta precios por película, cine y fecha.             |
+| `GET`  | `/api/funciones/butacas`                   | Pública    | Consulta disponibilidad de butacas por cine y fecha.     |
 | `POST` | `/api/auth/register`                       | Pública    | Registra un usuario.                                     |
 | `POST` | `/api/auth/login`                          | Pública    | Inicia sesión.                                           |
 | `POST` | `/api/auth/logout`                         | JWT + CSRF | Cierra la sesión.                                        |

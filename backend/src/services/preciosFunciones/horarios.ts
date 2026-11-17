@@ -13,6 +13,7 @@ export async function cargarHorario(
                h.fecha_cartelera::text AS fecha_cartelera,
                c.origen_id AS cine_origen_id,
                c.nombre AS cine_nombre,
+               c.cadena AS cine_cadena,
                c.url AS cine_url,
                pf.url AS pelicula_url_fuente,
                pf.origen_id AS pelicula_origen_id_fuente
@@ -94,6 +95,7 @@ export async function cargarHorarios(
                h.fecha_cartelera::text AS fecha_cartelera,
                c.origen_id AS cine_origen_id,
                c.nombre AS cine_nombre,
+               c.cadena AS cine_cadena,
                c.url AS cine_url,
                pf.url AS pelicula_url_fuente,
                pf.origen_id AS pelicula_origen_id_fuente

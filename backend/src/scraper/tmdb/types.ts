@@ -1,8 +1,16 @@
 export type TipoContenido =
     "PELICULA" | "ANIVERSARIO" | "CONCIERTO" | "EVENTO" | "DESCONOCIDO";
 
-export interface TmdbEnrichment {
+export interface MetricasTmdb {
+    calificacionTmdb?: number;
+    votosTmdb?: number;
+    popularidadTmdb?: number;
+    fechaEstrenoTmdb?: string;
+}
+
+export interface TmdbEnrichment extends MetricasTmdb {
     tmdbId: number;
+    tituloOriginal?: string;
     poster?: string;
     banner?: string;
     sinopsis?: string;
@@ -18,7 +26,7 @@ export interface SegundoCandidatoTmdb {
     diferenciaDuracion?: number;
 }
 
-export interface TmdbMatchDiagnostic {
+export interface TmdbMatchDiagnostic extends MetricasTmdb {
     tmdbId: number;
     tituloTmdb: string;
     tipoDetectado: TipoContenido;
@@ -36,7 +44,7 @@ export interface TmdbMatchDiagnostic {
     estado: "SEGURO" | "DUDOSO";
 }
 
-export interface TmdbMetadataPorId {
+export interface TmdbMetadataPorId extends MetricasTmdb {
     tmdbId: number;
     tituloTmdb: string;
     tituloOriginal: string;
@@ -58,6 +66,8 @@ export interface TmdbMovieResult {
     backdrop_path: string | null;
     release_date?: string;
     popularity?: number;
+    vote_average?: number;
+    vote_count?: number;
 }
 
 export interface TmdbSearchResponse {
@@ -73,4 +83,7 @@ export interface TmdbMovieDetail {
     backdrop_path?: string | null;
     release_date?: string;
     runtime?: number | null;
+    popularity?: number;
+    vote_average?: number;
+    vote_count?: number;
 }

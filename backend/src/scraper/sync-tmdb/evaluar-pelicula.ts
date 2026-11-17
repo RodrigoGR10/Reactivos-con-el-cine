@@ -69,9 +69,14 @@ async function evaluarResolucionManual(
             candidato: {
                 peliculaId: movie.id,
                 tmdbId: metadata.tmdbId,
+                tituloOriginal: metadata.tituloOriginal,
                 poster: metadata.poster,
                 banner: metadata.banner,
                 sinopsis: metadata.sinopsis,
+                calificacionTmdb: metadata.calificacionTmdb,
+                votosTmdb: metadata.votosTmdb,
+                popularidadTmdb: metadata.popularidadTmdb,
+                fechaEstrenoTmdb: metadata.fechaEstrenoTmdb,
             },
             resultado: crearResultado(movie, {
                 estado: "ASIGNADO_MANUALMENTE",
@@ -109,6 +114,8 @@ async function evaluarAutomatico(
         movie.titulo,
         undefined,
         movie.duracion,
+        movie.titulo_original,
+        movie.origen_id,
     );
 
     if (!diagnostic) {
@@ -122,10 +129,7 @@ async function evaluarAutomatico(
         };
     }
 
-    const seguro =
-        diagnostic.estado === "SEGURO" &&
-        diagnostic.tipoDetectado === "DESCONOCIDO" &&
-        tipoDetectado === "DESCONOCIDO";
+    const seguro = diagnostic.estado === "SEGURO";
 
     const segundo = diagnostic.segundoCandidato;
 
@@ -161,9 +165,14 @@ async function evaluarAutomatico(
         candidato: {
             peliculaId: movie.id,
             tmdbId: diagnostic.tmdbId,
+            tituloOriginal: diagnostic.tituloOriginal,
             poster: diagnostic.poster,
             banner: diagnostic.banner,
             sinopsis: diagnostic.sinopsis,
+            calificacionTmdb: diagnostic.calificacionTmdb,
+            votosTmdb: diagnostic.votosTmdb,
+            popularidadTmdb: diagnostic.popularidadTmdb,
+            fechaEstrenoTmdb: diagnostic.fechaEstrenoTmdb,
         },
     };
 }

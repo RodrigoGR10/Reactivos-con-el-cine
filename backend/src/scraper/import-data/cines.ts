@@ -6,6 +6,7 @@ export async function upsertCinema(
     client: PoolClient,
     cine: ScrapedCinema,
 ): Promise<string> {
+    const comunaNormalizada = normalizarComuna(cine.comuna);
     const result = await client.query<{ id: string }>(
         `
         INSERT INTO cines (
@@ -28,7 +29,7 @@ export async function upsertCinema(
             cine.id,
             cine.nombre,
             cine.direccion,
-            normalizarComuna(cine.comuna),
+            comunaNormalizada,
             cine.ciudad,
             cine.origen,
             cine.origenId,

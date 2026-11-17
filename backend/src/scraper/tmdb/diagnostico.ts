@@ -1,87 +1,39 @@
 import {
     buscarPeliculas,
+    duracionValida,
     exigirApiKey,
-    obtenerDuracion,
-    obtenerSinopsisRespaldo,
+    extraerMetricasTmdb,
+    obtenerDetalleSilencioso,
     urlBanner,
     urlPoster,
 } from "./client.ts";
-import { parseMovieTitleForSearch } from "./consulta.ts";
-import { esCoincidenciaExacta, puntuarCandidato } from "./puntaje.ts";
+import {
+    buildTargetTitles,
+    parseMovieTitleForSearch,
+    type ParsedMovieSearch,
+} from "./consulta.ts";
+import {
+    MIN_CANDIDATE_SCORE,
+    MIN_TITLE_SCORE,
+    STRONG_CANDIDATE_SCORE,
+    STRONG_TITLE_SCORE,
+    scoreCandidate,
+} from "./puntaje.ts";
 import { detectarTipoContenido } from "./tipo-contenido.ts";
 import type {
     SegundoCandidatoTmdb,
-    TipoContenido,
     TmdbMatchDiagnostic,
+    TmdbMovieDetail,
     TmdbMovieResult,
 } from "./types.ts";
 
-const PUNTAJE_MINIMO_SEGURO = 70;
-const MARGEN_MINIMO_ENTRE_CANDIDATOS = 15;
-const DURACION_CERCANA_MIN = 10;
-const DURACION_LEJANA_MIN = 15;
-const SEPARACION_DURACION_MIN = 10;
-
-interface Candidato {
-    movie: TmdbMovieResult;
+interface EvaluacionCandidato {
+    item: TmdbMovieResult;
     score: number;
-    matchedPrimary: boolean;
-    exactPrimaryTitle: boolean;
+    bestTitleScore: number;
     query: string;
+    matchedPrimary: boolean;
 }
-
-// ---------- Búsqueda y ranking ----------
-
-function debeReemplazar(previo: Candidato, nuevo: Candidato): boolean {
-    return (
-        (nuevo.matchedPrimary && !previo.matchedPrimary) ||
-        (nuevo.matchedPrimary === previo.matchedPrimary &&
-            nuevo.score > previo.score)
-    );
-}
-
-async function reunirCandidatos(
-    queries: string[],
-    year: number | undefined,
-    apiKey: string,
-): Promise<Map<number, Candidato>> {
-    const candidatos = new Map<number, Candidato>();
-
-    for (let indice = 0; indice < queries.length; indice++) {
-        const query = queries[indice]!;
-        const results = await buscarPeliculas(query, apiKey, "es-MX");
-
-        for (const movie of results) {
-            const nuevo: Candidato = {
-                movie,
-                // Cada resultado se evalúa contra la consulta que realmente lo encontró.
-                score: puntuarCandidato(movie, query, year),
-                matchedPrimary: indice === 0,
-                exactPrimaryTitle: esCoincidenciaExacta(movie, queries[0]!),
-                query,
-            };
-
-            const previo = candidatos.get(movie.id);
-
-            if (!previo || debeReemplazar(previo, nuevo)) {
-                candidatos.set(movie.id, nuevo);
-            }
-        }
-    }
-
-    return candidatos;
-}
-
-function ordenarCandidatos(candidatos: Map<number, Candidato>): Candidato[] {
-    return [...candidatos.values()].sort(
-        (a, b) =>
-            b.score - a.score ||
-            Number(b.exactPrimaryTitle) - Number(a.exactPrimaryTitle) ||
-            Number(b.matchedPrimary) - Number(a.matchedPrimary),
-    );
-}
-
-// ---------- Duraciones ----------
 
 function normalizarDuracionLocal(
     duracion: number | null | undefined,
@@ -102,172 +54,267 @@ function diferencia(
         : undefined;
 }
 
-async function obtenerDuraciones(
-    best: Candidato,
-    second: Candidato | undefined,
+function descripcionSegundoCandidato(
+    second: EvaluacionCandidato | undefined,
+    secondDetail: TmdbMovieDetail | null,
     duracionLocal: number | undefined,
-    apiKey: string,
-): Promise<{ duracionTmdb?: number; segundaDuracionTmdb?: number }> {
-    if (duracionLocal === undefined) return {};
-
-    const [duracionTmdb, segundaDuracionTmdb] = await Promise.all([
-        obtenerDuracion(best.movie.id, apiKey).catch(() => undefined),
-        second
-            ? obtenerDuracion(second.movie.id, apiKey).catch(() => undefined)
-            : Promise.resolve(undefined),
-    ]);
-
-    return { duracionTmdb, segundaDuracionTmdb };
-}
-
-// ---------- Decisión: ¿coincidencia segura? ----------
-
-function coincideAnio(movie: TmdbMovieResult, year: number | undefined) {
-    return (
-        year === undefined ||
-        (movie.release_date !== undefined &&
-            Number(movie.release_date.slice(0, 4)) === year)
-    );
-}
-
-function duracionDistingueCandidato(
-    diferenciaBest: number | undefined,
-    diferenciaSegundo: number | undefined,
-): boolean {
-    return (
-        diferenciaBest !== undefined &&
-        diferenciaSegundo !== undefined &&
-        diferenciaBest <= DURACION_CERCANA_MIN &&
-        diferenciaSegundo >= DURACION_LEJANA_MIN &&
-        diferenciaSegundo - diferenciaBest >= SEPARACION_DURACION_MIN
-    );
-}
-
-interface EvidenciaSeguridad {
-    best: Candidato;
-    second: Candidato | undefined;
-    exactos: Candidato[];
-    year: number | undefined;
-    diferenciaBest: number | undefined;
-    diferenciaSegundo: number | undefined;
-    tipoDetectado: TipoContenido;
-}
-
-function esCoincidenciaSegura(e: EvidenciaSeguridad): boolean {
-    const unicoExacto =
-        e.best.exactPrimaryTitle &&
-        e.exactos.length === 1 &&
-        e.exactos[0]!.movie.id === e.best.movie.id;
-
-    const margenSuficiente =
-        e.second !== undefined &&
-        e.best.score - e.second.score >= MARGEN_MINIMO_ENTRE_CANDIDATOS;
-
-    return (
-        e.best.score >= PUNTAJE_MINIMO_SEGURO &&
-        e.best.matchedPrimary &&
-        (unicoExacto ||
-            margenSuficiente ||
-            duracionDistingueCandidato(
-                e.diferenciaBest,
-                e.diferenciaSegundo,
-            )) &&
-        coincideAnio(e.best.movie, e.year) &&
-        e.tipoDetectado === "DESCONOCIDO"
-    );
-}
-
-// ---------- Resultado ----------
-
-function describirSegundoCandidato(
-    second: Candidato | undefined,
-    duracionTmdb: number | undefined,
-    diferenciaDuracion: number | undefined,
 ): SegundoCandidatoTmdb | undefined {
     if (!second) return undefined;
 
+    const duracionTmdb = duracionValida(secondDetail?.runtime);
     return {
-        tmdbId: second.movie.id,
-        titulo: second.movie.title,
-        tituloOriginal: second.movie.original_title,
-        fechaEstreno: second.movie.release_date,
-        score: second.score,
+        tmdbId: second.item.id,
+        titulo: second.item.title,
+        tituloOriginal: second.item.original_title,
+        fechaEstreno: second.item.release_date,
+        score: Math.round(second.score),
         duracionTmdb,
-        diferenciaDuracion,
+        diferenciaDuracion: diferencia(duracionLocal, duracionTmdb),
     };
+}
+
+function coincideTituloFuerte(
+    parsed: ParsedMovieSearch,
+    bestTitleScore: number,
+    finalScore: number,
+): boolean {
+    if (parsed.isFestival) {
+        return (
+            bestTitleScore >= STRONG_TITLE_SCORE &&
+            finalScore >= STRONG_CANDIDATE_SCORE
+        );
+    }
+
+    return (
+        finalScore >= MIN_CANDIDATE_SCORE && bestTitleScore >= MIN_TITLE_SCORE
+    );
 }
 
 export async function diagnosticarPeliculaTmdb(
     titulo: string,
     apiKey = process.env.TMDB_API_KEY,
     duracionEsperada?: number | null,
+    tituloOriginal?: string | null,
+    origenId?: string | null,
 ): Promise<TmdbMatchDiagnostic | null> {
     const clave = exigirApiKey(apiKey);
-    const { queries, year } = parseMovieTitleForSearch(titulo);
-
-    const ranked = ordenarCandidatos(
-        await reunirCandidatos(queries, year, clave),
-    );
-
-    if (ranked.length === 0) return null;
-
-    const best = ranked[0]!;
-    const movie = best.movie;
-
-    // Los candidatos que coinciden con el título completo
-    // tienen prioridad sobre los que solo coinciden con el título base.
-    const exactos = ranked.filter((candidato) => candidato.exactPrimaryTitle);
-    const second = exactos.length > 1 ? exactos[1] : undefined;
-
     const duracionLocal = normalizarDuracionLocal(duracionEsperada);
-    const { duracionTmdb, segundaDuracionTmdb } = await obtenerDuraciones(
-        best,
-        second,
-        duracionLocal,
-        clave,
+    const searchOptions = {
+        tituloOriginal,
+        duracion: duracionLocal,
+        origenId,
+    };
+
+    const parsed = parseMovieTitleForSearch(titulo, searchOptions);
+    const targetTitles = buildTargetTitles(parsed, searchOptions);
+    const isLiveEvent = /\b(?:LIVE VIEWING|WORLD TOUR|CONCERT|TOUR)\b/i.test(
+        titulo,
     );
 
-    const diferenciaDuracion = diferencia(duracionLocal, duracionTmdb);
-    const segundaDiferenciaDuracion = diferencia(
-        duracionLocal,
-        segundaDuracionTmdb,
-    );
+    const candidatesById = new Map<number, EvaluacionCandidato>();
+    const detailCache = new Map<number, TmdbMovieDetail | null>();
 
-    const sinopsis =
-        movie.overview?.trim() ||
-        (await obtenerSinopsisRespaldo(movie.id, clave));
+    const considerResults = (
+        results: TmdbMovieResult[],
+        query: string,
+        indice: number,
+    ) => {
+        for (const item of results) {
+            const { score, bestTitleScore } = scoreCandidate(
+                item,
+                targetTitles,
+                parsed,
+            );
+            const prev = candidatesById.get(item.id);
+            if (!prev || score > prev.score) {
+                candidatesById.set(item.id, {
+                    item,
+                    score,
+                    bestTitleScore,
+                    query,
+                    matchedPrimary: indice < parsed.titulosPrincipales.length,
+                });
+            }
+        }
+    };
+
+    const getEsMxDetail = async (
+        id: number,
+    ): Promise<TmdbMovieDetail | null> => {
+        if (!detailCache.has(id)) {
+            detailCache.set(
+                id,
+                await obtenerDetalleSilencioso(id, clave, "es-MX"),
+            );
+        }
+        return detailCache.get(id) ?? null;
+    };
+
+    const hasStrongCandidate = () => {
+        const top = [...candidatesById.values()].sort(
+            (a, b) => b.score - a.score,
+        )[0];
+        return Boolean(
+            top &&
+                top.score >= STRONG_CANDIDATE_SCORE &&
+                top.bestTitleScore >= STRONG_TITLE_SCORE,
+        );
+    };
+
+    const pickValidated = async () => {
+        const ranked = [...candidatesById.values()]
+            .filter(
+                (candidate) =>
+                    candidate.score >= MIN_CANDIDATE_SCORE &&
+                    candidate.bestTitleScore >= MIN_TITLE_SCORE,
+            )
+            .sort((a, b) => b.score - a.score);
+
+        let winner: {
+            candidate: EvaluacionCandidato;
+            detail: TmdbMovieDetail | null;
+            finalScore: number;
+        } | null = null;
+
+        for (const candidate of ranked.slice(0, 3)) {
+            const detail = await getEsMxDetail(candidate.item.id);
+            let finalScore = candidate.score;
+
+            if (
+                !isLiveEvent &&
+                detail?.runtime &&
+                detail.runtime > 0 &&
+                duracionLocal
+            ) {
+                const diff = Math.abs(detail.runtime - duracionLocal);
+                if (diff > 30) {
+                    finalScore -= 50;
+                } else if (diff <= 10) {
+                    finalScore += 10;
+                }
+            }
+
+            if (
+                finalScore >= MIN_CANDIDATE_SCORE &&
+                (!winner || finalScore > winner.finalScore)
+            ) {
+                winner = { candidate, detail, finalScore };
+            }
+        }
+
+        return { winner, ranked };
+    };
+
+    for (let i = 0; i < parsed.queries.length; i++) {
+        const query = parsed.queries[i]!;
+        considerResults(
+            await buscarPeliculas(query, clave, "es-MX"),
+            query,
+            i,
+        );
+        if (hasStrongCandidate()) break;
+    }
+
+    let { winner, ranked } = await pickValidated();
+
+    if (
+        !parsed.isFestival &&
+        (!winner || winner.candidate.bestTitleScore < STRONG_TITLE_SCORE)
+    ) {
+        for (let i = 0; i < parsed.queries.length; i++) {
+            const query = parsed.queries[i]!;
+            considerResults(
+                await buscarPeliculas(query, clave, "en-US"),
+                query,
+                i,
+            );
+            if (hasStrongCandidate()) break;
+        }
+        ({ winner, ranked } = await pickValidated());
+    }
+
+    if (!winner) {
+        const fallback = [...candidatesById.values()].sort(
+            (a, b) => b.score - a.score,
+        )[0];
+        if (!fallback) return null;
+
+        const detail = await getEsMxDetail(fallback.item.id);
+        const duracionTmdb = duracionValida(detail?.runtime);
+
+        return {
+            tmdbId: fallback.item.id,
+            tituloTmdb: fallback.item.title,
+            tipoDetectado: detectarTipoContenido(titulo),
+            tituloOriginal: fallback.item.original_title,
+            fechaEstreno: fallback.item.release_date,
+            score: Math.round(fallback.score),
+            duracionTmdb,
+            diferenciaDuracion: diferencia(duracionLocal, duracionTmdb),
+            consultaCoincidente: fallback.query,
+            coincideConsultaPrincipal: fallback.matchedPrimary,
+            poster: urlPoster(detail?.poster_path ?? fallback.item.poster_path),
+            banner: urlBanner(
+                detail?.backdrop_path ?? fallback.item.backdrop_path,
+            ),
+            sinopsis: detail?.overview?.trim() || undefined,
+            ...extraerMetricasTmdb(detail ?? fallback.item),
+            estado: "DUDOSO",
+        };
+    }
+
+    let sinopsis = winner.detail?.overview?.trim() || undefined;
+    if (!sinopsis) {
+        const esEsDetail = await obtenerDetalleSilencioso(
+            winner.candidate.item.id,
+            clave,
+            "es-ES",
+        );
+        if (esEsDetail?.overview?.trim()) {
+            sinopsis = esEsDetail.overview.trim();
+        }
+    }
+
+    const posterPath =
+        winner.detail?.poster_path ?? winner.candidate.item.poster_path;
+    const backdropPath =
+        winner.detail?.backdrop_path ?? winner.candidate.item.backdrop_path;
+    const duracionTmdb = duracionValida(winner.detail?.runtime);
+    const second = ranked.find(
+        (candidate) => candidate.item.id !== winner.candidate.item.id,
+    );
+    const secondDetail = second ? detailCache.get(second.item.id) ?? null : null;
 
     const tipoDetectado = detectarTipoContenido(titulo);
-
-    const seguro = esCoincidenciaSegura({
-        best,
-        second,
-        exactos,
-        year,
-        diferenciaBest: diferenciaDuracion,
-        diferenciaSegundo: segundaDiferenciaDuracion,
-        tipoDetectado,
-    });
+    const seguro = coincideTituloFuerte(
+        parsed,
+        winner.candidate.bestTitleScore,
+        winner.finalScore,
+    );
 
     return {
-        tmdbId: movie.id,
-        tituloTmdb: movie.title,
+        tmdbId: winner.candidate.item.id,
+        tituloTmdb: winner.candidate.item.title,
         tipoDetectado,
-        tituloOriginal: movie.original_title,
-        fechaEstreno: movie.release_date,
-        score: best.score,
+        tituloOriginal: winner.candidate.item.original_title,
+        fechaEstreno:
+            winner.detail?.release_date ?? winner.candidate.item.release_date,
+        score: Math.round(winner.finalScore),
         duracionTmdb,
-        diferenciaDuracion,
-        consultaCoincidente: best.query,
-        coincideConsultaPrincipal: best.matchedPrimary,
-        segundoCandidato: describirSegundoCandidato(
+        diferenciaDuracion: diferencia(duracionLocal, duracionTmdb),
+        consultaCoincidente: winner.candidate.query,
+        coincideConsultaPrincipal:
+            winner.candidate.matchedPrimary ||
+            winner.candidate.bestTitleScore >= STRONG_TITLE_SCORE,
+        segundoCandidato: descripcionSegundoCandidato(
             second,
-            segundaDuracionTmdb,
-            segundaDiferenciaDuracion,
+            secondDetail,
+            duracionLocal,
         ),
-        poster: urlPoster(movie.poster_path),
-        banner: urlBanner(movie.backdrop_path),
+        poster: urlPoster(posterPath),
+        banner: urlBanner(backdropPath),
         sinopsis,
+        ...extraerMetricasTmdb(winner.detail ?? winner.candidate.item),
         estado: seguro ? "SEGURO" : "DUDOSO",
     };
 }
