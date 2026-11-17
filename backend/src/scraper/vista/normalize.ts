@@ -50,9 +50,9 @@ export function normalizeSchedule(chain: CadenaVista, session: Session, movie: M
   if (!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(session.Showtime) || !isDate(session.Showtime.slice(0, 10)) || !isDate(session.SessionBusinessDate.slice(0, 10))) throw new Error("Fecha u hora de funcion invalida.");
   const attributes = session.SessionAttributesNames;
   if (!Array.isArray(attributes) || !attributes.length) throw new Error("Faltan los atributos de la funcion.");
-  const languages = attributes.filter((value) => ["DOB", "SUB", "ESP", "VO"].includes(value));
+  const languages = attributes.filter((value) => ["DOB", "SUB", "ESP", "VO", "ORI"].includes(value));
   if (languages.length !== 1) throw new Error("Idioma de funcion desconocido o ambiguo.");
-  const formato = attributes.filter((value) => !["DOB", "SUB", "ESP", "VO", "RES", "TRADICIONA", "TRADICIONAL"].includes(value));
+  const formato = attributes.filter((value) => !["DOB", "SUB", "ESP", "VO", "ORI", "RES", "TRADICIONA", "TRADICIONAL"].includes(value));
   if (!formato.some((value) => /^(2D|3D)$/.test(value))) throw new Error("Falta el formato de proyeccion.");
   if (!Number.isSafeInteger(session.SeatsAvailable) || session.SeatsAvailable < 0) throw new Error("Disponibilidad de funcion invalida.");
   const sourceId = `${session.CinemaId}:${session.SessionId}`;

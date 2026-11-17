@@ -70,7 +70,7 @@ async function main() {
     const origen: Origen = origenArg as Origen;
     const options: ScrapeOptions = {
         desde: localNow().slice(0, 10),
-        dias: 7,
+        dias: null,
         cines: args
             .filter((arg) => arg.startsWith("--cine="))
             .map((arg) => arg.slice("--cine=".length)),

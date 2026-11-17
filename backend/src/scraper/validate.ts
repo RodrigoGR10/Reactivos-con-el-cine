@@ -1,4 +1,5 @@
 import { ORIGENES } from "./types.ts";
+import { isDate } from "./normalize.ts";
 import { normalizarTrailerUrl } from "../utils/trailer.ts";
 import type {
     ScrapeResult,
@@ -12,15 +13,7 @@ function esObjeto(value: unknown): value is Record<string, unknown> {
 }
 
 function esFecha(value: unknown): value is string {
-    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        return false;
-    }
-
-    const date = new Date(`${value}T12:00:00.000Z`);
-    return (
-        !Number.isNaN(date.getTime()) &&
-        date.toISOString().slice(0, 10) === value
-    );
+    return typeof value === "string" && isDate(value);
 }
 
 function validarRegistros(
