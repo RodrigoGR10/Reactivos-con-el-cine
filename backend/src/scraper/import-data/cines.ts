@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import type { ScrapedCinema } from "../types.ts";
+import { normalizarComuna } from "../../utils/comunas.ts";
 
 export async function upsertCinema(
     client: PoolClient,
@@ -27,7 +28,7 @@ export async function upsertCinema(
             cine.id,
             cine.nombre,
             cine.direccion,
-            cine.comuna,
+            normalizarComuna(cine.comuna),
             cine.ciudad,
             cine.origen,
             cine.origenId,

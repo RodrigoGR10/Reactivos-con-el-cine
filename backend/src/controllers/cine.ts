@@ -1,5 +1,6 @@
 import { query, isCineId } from "../db.ts";
 import express from "express";
+import { normalizarComuna } from "../utils/comunas.ts";
 
 const router = express.Router();
 
@@ -17,21 +18,23 @@ const CINE_COLUMNS = `
 
 router.get("/", async (req, res, next) => {
     const { cadena, comuna } = req.query;
-    const conditions: string[] = [];
-    const params: any[] = [];
+    if (
+        (cadena !== undefined &&
+            (typeof cadena !== "string" || !cadena.trim() || cadena.length > 50)) ||
+        (comuna !== undefined &&
+            (typeof comuna !== "string" || !comuna.trim() || comuna.length > 100))
+    ) {
+        return res.status(400).json({ error: "Los filtros de cadena o comuna son inválidos" });
+    }
 
-    if (cadena && typeof cadena === "string") {
-        params.push(cadena);
+    const conditions: string[] = [];
+    const params: string[] = [];
+
+    if (typeof cadena === "string") {
+        params.push(cadena.trim().toLowerCase());
         conditions.push(`cadena = $${params.length}`);
     }
 
-    if (comuna && typeof comuna === "string") {
-        params.push(comuna);
-        conditions.push(`comuna = $${params.length}`);
-    }
-
-    // Esto obliga a que la cadena/comuna tengan longitudes coincidentes
-    // con lo que se intreso (i.e si comuna.len = 3, checkea que realmente sea asi)
     const whereClause =
         conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
@@ -43,7 +46,13 @@ router.get("/", async (req, res, next) => {
         `;
 
     const { rows } = await query(sql, params);
-    res.json(rows);
+    const cines = rows.map((cine) => ({ ...cine, comuna: normalizarComuna(cine.comuna) }));
+    const comunaNormalizada = typeof comuna === "string"
+        ? normalizarComuna(comuna)
+        : undefined;
+    return res.json(comunaNormalizada
+        ? cines.filter((cine) => cine.comuna === comunaNormalizada)
+        : cines);
 });
 
 router.get("/:id", async (req, res, next) => {
@@ -65,7 +74,7 @@ router.get("/:id", async (req, res, next) => {
     if (rows.length === 0) {
         return res.status(404).json({ error: "Cine no encontrado" });
     }
-    return res.json(rows[0]);
+    return res.json({ ...rows[0], comuna: normalizarComuna(rows[0].comuna) });
 });
 
 export default router;
