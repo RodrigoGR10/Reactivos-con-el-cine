@@ -34,6 +34,7 @@ body {
         "Segoe UI",
         Roboto,
         sans-serif;
+    line-height: normal;
     -webkit-font-smoothing: antialiased;
 }
 

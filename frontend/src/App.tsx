@@ -1,4 +1,6 @@
+import { MantineProvider } from "@mantine/core";
 import "./App.css";
+import { cineCssVariablesResolver, cineTheme } from "./theme";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
@@ -13,24 +15,30 @@ import LoginPage from "./pages/LoginPage";
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <FavoritesProvider>
-          <Routes>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<PaginaPrincipal />} />
-              <Route path="/peliculas/:id" element={<MovieDetailPage />} />
-              <Route path="/cines" element={<CinemasPage />} />
-              <Route path="/cines/:id" element={<CinemaDetailPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route element={<ProtectedRoute />}>
-                <Route path="/perfil" element={<ProfilePage />} />
+    <MantineProvider
+      theme={cineTheme}
+      cssVariablesResolver={cineCssVariablesResolver}
+      forceColorScheme="dark"
+    >
+      <AuthProvider>
+        <BrowserRouter>
+          <FavoritesProvider>
+            <Routes>
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<PaginaPrincipal />} />
+                <Route path="/peliculas/:id" element={<MovieDetailPage />} />
+                <Route path="/cines" element={<CinemasPage />} />
+                <Route path="/cines/:id" element={<CinemaDetailPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/perfil" element={<ProfilePage />} />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
-        </FavoritesProvider>
-      </BrowserRouter>
-    </AuthProvider>
+            </Routes>
+          </FavoritesProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </MantineProvider>
   );
 }
 export default App;
