@@ -1,4 +1,6 @@
-import { useState, useEffect, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
+import { Loader, Modal, type MantineTransition } from "@mantine/core";
+import { useTimeout } from "@mantine/hooks";
 import { useAuth } from "../../context/AuthContext";
 import {
   CloseIcon,
@@ -15,6 +17,12 @@ interface AuthModalProps {
   onSuccess?: () => void;
   initialMode?: "login" | "register";
 }
+
+const AUTH_MODAL_TRANSITION: MantineTransition = {
+  in: { opacity: 1, transform: "scale(1) translateY(0)" },
+  out: { opacity: 0, transform: "scale(0.96) translateY(10px)" },
+  transitionProperty: "transform, opacity",
+};
 
 export const AuthModal = ({
   isOpen,
@@ -43,29 +51,28 @@ export const AuthModal = ({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
-  // Cierra con Escape; el bloqueo de scroll se hace vía CSS :has() en AuthModal.css
-  useEffect(() => {
-    if (!isOpen) return;
+  const { start: scheduleClose, clear: clearClose } = useTimeout(onClose, 650);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
+  const handleClose = () => {
+    clearClose();
+    onClose();
+  };
 
   const switchView = (toRegister: boolean) => {
+    clearClose();
     setIsRegisterActive(toRegister);
     setErrorMsg(null);
     setSuccessMsg(null);
+  };
+
+  const resetModalState = () => {
+    clearClose();
+    setIsRegisterActive(initialMode === "register");
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setShowLoginPassword(false);
+    setShowRegPassword(false);
+    setShowRegConfirmPassword(false);
   };
 
   const handleLoginSubmit = async (e: SubmitEvent) => {
@@ -99,9 +106,7 @@ export const AuthModal = ({
       }
       setSuccessMsg("¡Sesión iniciada con éxito!");
       // Cierra tras breve delay para que el usuario vea el mensaje de éxito
-      setTimeout(() => {
-        onClose();
-      }, 600);
+      scheduleClose();
     } catch (err) {
       setErrorMsg(
         err instanceof Error ? err.message : "Error al iniciar sesión.",
@@ -155,9 +160,7 @@ export const AuthModal = ({
         return;
       }
       setSuccessMsg("¡Cuenta creada e iniciada con éxito!");
-      setTimeout(() => {
-        onClose();
-      }, 700);
+      scheduleClose();
     } catch (err) {
       setErrorMsg(
         err instanceof Error ? err.message : "Error al registrar la cuenta.",
@@ -167,27 +170,54 @@ export const AuthModal = ({
     }
   };
 
+  const renderSubmitLabel = (idle: string, loading: string) =>
+    cargando ? (
+      <>
+        <Loader size={16} color="#ffffff" />
+        <span>{loading}</span>
+      </>
+    ) : (
+      idle
+    );
+
   return (
-    <div
-      className="auth-modal-overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
+    <Modal.Root
+      opened={isOpen}
+      onClose={handleClose}
+      centered
+      size={410}
+      padding={0}
+      zIndex={1200}
+      shadow="none"
+      transitionProps={{
+        transition: AUTH_MODAL_TRANSITION,
+        duration: 220,
+        exitDuration: 160,
+        timingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
       }}
-      role="dialog"
-      aria-modal="true"
+      onExitTransitionEnd={resetModalState}
       aria-label="Iniciar Sesión o Registrarse"
     >
-      <div className={`auth-modal-wrapper ${isRegisterActive ? "active" : ""}`}>
-        <button
-          type="button"
-          className="auth-icon-close"
-          onClick={onClose}
-          aria-label="Cerrar modal"
-        >
-          <CloseIcon size={20} />
-        </button>
+      <Modal.Overlay color="#000" backgroundOpacity={0.48} blur={3} />
+      <Modal.Content
+        radius={20}
+        styles={{
+          content: {
+            background: "transparent",
+            border: "none",
+            boxShadow: "none",
+          },
+        }}
+      >
+        <div className={`auth-modal-wrapper ${isRegisterActive ? "active" : ""}`}>
+          <button
+            type="button"
+            className="auth-icon-close"
+            onClick={handleClose}
+            aria-label="Cerrar modal"
+          >
+            <CloseIcon size={20} />
+          </button>
 
         <div className="auth-form-box login" inert={isRegisterActive}>
           <h2>Iniciar Sesión</h2>
@@ -208,6 +238,7 @@ export const AuthModal = ({
                 id="login-email"
                 type="email"
                 autoComplete="username"
+                data-autofocus={!isRegisterActive || undefined}
                 required
                 placeholder=" "
                 value={loginEmail}
@@ -254,7 +285,7 @@ export const AuthModal = ({
               className="auth-btn-submit"
               disabled={cargando}
             >
-              {cargando ? "Ingresando..." : "Iniciar Sesión"}
+              {renderSubmitLabel("Iniciar Sesión", "Ingresando...")}
             </button>
 
             <div className="auth-switch-link">
@@ -293,6 +324,7 @@ export const AuthModal = ({
                 id="register-username"
                 type="text"
                 autoComplete="nickname"
+                data-autofocus={isRegisterActive || undefined}
                 required
                 placeholder=" "
                 value={regUsername}
@@ -390,7 +422,7 @@ export const AuthModal = ({
               className="auth-btn-submit"
               disabled={cargando}
             >
-              {cargando ? "Registrando..." : "Registrarse"}
+              {renderSubmitLabel("Registrarse", "Registrando...")}
             </button>
 
             <div className="auth-switch-link">
@@ -410,7 +442,8 @@ export const AuthModal = ({
           </form>
         </div>
       </div>
-    </div>
+      </Modal.Content>
+    </Modal.Root>
   );
 };
 

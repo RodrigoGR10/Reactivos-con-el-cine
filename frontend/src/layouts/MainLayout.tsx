@@ -12,9 +12,7 @@ function MainLayout() {
       <main className="main-principal">
         <Outlet />
       </main>
-      {isAuthModalOpen && (
-        <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
-      )}
+      <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
     </div>
   );
 }

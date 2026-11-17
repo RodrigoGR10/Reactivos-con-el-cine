@@ -1,37 +1,7 @@
-html:has(.auth-modal-overlay),
-body:has(.auth-modal-overlay) {
-    overflow: hidden;
-}
-
-.auth-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.42);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    padding: 20px;
-    box-sizing: border-box;
-    animation: authOverlayFadeIn 0.16s ease-out;
-    overscroll-behavior: contain;
-}
-
-@keyframes authOverlayFadeIn {
-    from {
-        background-color: rgba(0, 0, 0, 0);
-    }
-    to {
-        background-color: rgba(0, 0, 0, 0.42);
-    }
-}
-
 .auth-modal-wrapper {
     position: relative;
-    width: 410px;
+    width: 100%;
+    max-width: 410px;
     height: 465px;
     background: #1b1b1d;
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -50,16 +20,6 @@ body:has(.auth-modal-overlay) {
     transition:
         height 0.35s ease,
         transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    animation: authCardPop 0.16s ease-out;
-}
-
-@keyframes authCardPop {
-    from {
-        transform: scale(0.96) translateZ(0);
-    }
-    to {
-        transform: scale(1) translateZ(0);
-    }
 }
 
 .auth-modal-wrapper.active {
@@ -317,6 +277,7 @@ body:has(.auth-modal-overlay) {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     letter-spacing: -0.2px;
 }
 
