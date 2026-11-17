@@ -7,6 +7,7 @@ export interface Pelicula {
   sinopsis: string;
   poster: string;
   banner?: string;
+  trailerUrl?: string;
   estadoEstreno?: "cartelera" | "preventa" | "proximamente";
   fechaEstreno?: string;
   totalFavoritos?: number;

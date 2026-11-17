@@ -17,8 +17,11 @@
         "sync:muvix": "node src/scraper/cli.ts --chain=muvix --sync",
         "scrape:cinestar": "node src/scraper/cli.ts --chain=cinestar",
         "sync:cinestar": "node src/scraper/cli.ts --chain=cinestar --sync",
+        "scrape:cinepolis": "node src/scraper/cli.ts --chain=cinepolis",
+        "sync:cinepolis": "node src/scraper/cli.ts --chain=cinepolis --sync",
         "import:scrape": "node src/scraper/import-cli.ts",
-        "sync:tmdb": "node src/scraper/import-cli.ts --tmdb"
+        "sync:tmdb": "node src/scraper/import-cli.ts --tmdb",
+        "sync:trailers": "node src/scraper/import-cli.ts --trailers"
     },
     "keywords": [],
     "author": "",

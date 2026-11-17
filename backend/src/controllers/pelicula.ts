@@ -17,6 +17,12 @@ const PELICULA_COLUMNS = `
     p.clasificacion,
     p.imagen_url AS poster,
     p.banner,
+    CASE
+        WHEN p.trailer_idioma = 'es-419'
+            AND p.trailer_version IN ('doblado', 'original')
+        THEN p.trailer_url
+        ELSE NULL
+    END AS "trailerUrl",
     p.tmdb_id AS "tmdbId",
     (
         SELECT to_char(MIN(fecha_estreno), 'YYYY-MM-DD')

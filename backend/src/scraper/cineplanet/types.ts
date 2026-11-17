@@ -19,6 +19,7 @@ export interface Movie {
     ratingDescription: string;
     synopsis: string;
     posterUrl: string;
+    trailer?: string;
     movieDetailsUrl: string;
     cinemas: {
         cinemaId: string;

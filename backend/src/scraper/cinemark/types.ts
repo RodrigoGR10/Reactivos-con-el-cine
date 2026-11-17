@@ -19,6 +19,7 @@ export interface RawMovie {
   rating: string;
   synopsis: string;
   posterUrl: string;
+  trailerUrl?: string;
 }
 
 export interface RawSession {

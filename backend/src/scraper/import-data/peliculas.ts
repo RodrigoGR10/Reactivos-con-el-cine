@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import type { ScrapedMovie } from "../types.ts";
+import { normalizarTrailerUrl } from "../../utils/trailer.ts";
 
 interface UpsertMovieResult {
     id: number;
@@ -10,6 +11,8 @@ export async function upsertMovie(
     client: PoolClient,
     pelicula: ScrapedMovie,
 ): Promise<UpsertMovieResult> {
+    const trailerUrl = normalizarTrailerUrl(pelicula.trailerUrl) ?? null;
+
     // Serializa importaciones concurrentes de la misma película de origen.
     await client.query(
         `SELECT pg_advisory_xact_lock(hashtextextended($1, 0));`,
@@ -74,7 +77,11 @@ export async function upsertMovie(
                 END,
                 genero = CASE WHEN $8::boolean THEN $5 ELSE genero END,
                 clasificacion = CASE WHEN $8::boolean THEN $6 ELSE clasificacion END,
-                imagen_url = CASE WHEN $8::boolean THEN $7 ELSE imagen_url END
+                imagen_url = CASE WHEN $8::boolean THEN $7 ELSE imagen_url END,
+                trailer_url = COALESCE(NULLIF(BTRIM(trailer_url), ''), $10::text),
+                trailer_encontrado_en = CASE
+                    WHEN NULLIF(BTRIM(trailer_url), '') IS NULL AND $10::text IS NOT NULL THEN NOW()
+                    ELSE trailer_encontrado_en END
             WHERE id = $1;
             `,
             [
@@ -87,6 +94,7 @@ export async function upsertMovie(
                 pelicula.poster,
                 puedeActualizarMetadatos,
                 tieneFuentesFusionadas,
+                trailerUrl,
             ],
         );
 
@@ -114,9 +122,9 @@ export async function upsertMovie(
         `
         INSERT INTO peliculas (
             titulo, sinopsis, duracion, genero,
-            clasificacion, imagen_url
+            clasificacion, imagen_url, trailer_url, trailer_encontrado_en
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7::text, CASE WHEN $7::text IS NOT NULL THEN NOW() ELSE NULL END)
         RETURNING id;
         `,
         [
@@ -126,6 +134,7 @@ export async function upsertMovie(
             pelicula.genero,
             pelicula.clasificacion,
             pelicula.poster,
+            trailerUrl,
         ],
     );
 

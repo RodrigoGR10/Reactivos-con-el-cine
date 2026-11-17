@@ -21,6 +21,7 @@ export interface CinepolisMovie {
   ratingDescription?: string;
   synopsis: string;
   poster: string;
+  trailerUrl?: string;
   releaseDate?: string;
   /** true si falta la duración o el póster y se usó un dato de respaldo. */
   datosIncompletos?: boolean;

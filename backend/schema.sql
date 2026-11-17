@@ -59,6 +59,12 @@ CREATE TABLE IF NOT EXISTS pelicula_fuentes (
     PRIMARY KEY (origen, origen_id)         -- una fuente pertenece a una sola pelicula
 );
 
+ALTER TABLE peliculas
+    ADD COLUMN IF NOT EXISTS trailer_url TEXT,
+    ADD COLUMN IF NOT EXISTS trailer_encontrado_en TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN IF NOT EXISTS trailer_idioma VARCHAR(20),
+    ADD COLUMN IF NOT EXISTS trailer_version VARCHAR(20);
+
 --------------------------------------------------
 -- 4. TABLA FUNCIONES (CARTELERA Y HORARIOS)
 --------------------------------------------------

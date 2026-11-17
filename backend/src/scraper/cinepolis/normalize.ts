@@ -1,6 +1,7 @@
 import { fechaDeEstreno, scheduleRevision } from "../normalize.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
 import { normalizarComuna } from "../../utils/comunas.ts";
+import { normalizarTrailerUrl } from "../../utils/trailer.ts";
 import { SITE } from "./client.ts";
 import type { ScrapedCinema, ScrapedMovie, ScrapedSchedule } from "../types.ts";
 import type {
@@ -83,6 +84,7 @@ export function normalizeMovie(movie: CinepolisMovie, extractedAt: string): Cine
     clasificacionDescripcion: movie.ratingDescription,
     sinopsis: normalizarSinopsis(movie.synopsis),
     poster: text(movie.poster, "poster"),
+    trailerUrl: normalizarTrailerUrl(movie.trailerUrl),
     url: `${SITE}/detalle?movie=${encodeURIComponent(text(movie.slug, "slug de pelicula"))}`,
     datosIncompletos: movie.datosIncompletos ?? false,
   };

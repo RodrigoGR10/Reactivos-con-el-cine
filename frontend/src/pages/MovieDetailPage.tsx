@@ -18,6 +18,7 @@ import {
 } from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
+import { TrailerPelicula } from "../components/peliculas/TrailerPelicula";
 import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import { filtrarCines, obtenerCadena, obtenerComunas } from "../utils/agruparCines";
@@ -262,6 +263,8 @@ function MovieDetailPage() {
                     <p className="sinopsis-detalle">{pelicula.sinopsis}</p>
                 </div>
             </section>
+
+            <TrailerPelicula pelicula={pelicula} />
 
             <section
                 className="seccion-funciones"

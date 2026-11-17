@@ -36,6 +36,7 @@ export interface ScrapedMovie extends SourceRecord, DatosEstreno {
   clasificacion: string;
   sinopsis: string;
   poster: string;
+  trailerUrl?: string;
   url?: string;
 }
 

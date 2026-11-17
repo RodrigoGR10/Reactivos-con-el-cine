@@ -1,4 +1,5 @@
 import { ORIGENES } from "./types.ts";
+import { normalizarTrailerUrl } from "../utils/trailer.ts";
 import type {
     ScrapeResult,
     ScrapedCinema,
@@ -61,6 +62,9 @@ function validarRegistros(
 
         if (tipo === "pelicula") {
             const pelicula = value as unknown as ScrapedMovie;
+            if (pelicula.trailerUrl !== undefined && !normalizarTrailerUrl(pelicula.trailerUrl)) {
+                throw new Error(`Película ${pelicula.id}: enlace de tráiler inválido.`);
+            }
             if (
                 typeof pelicula.titulo !== "string" ||
                 (pelicula.duracion !== null &&

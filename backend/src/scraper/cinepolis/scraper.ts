@@ -4,6 +4,7 @@ import { API_KEY, CINES_CINEPOLIS, purchaseUrl } from "./client.ts";
 import { normalizeCinema, normalizeMovie, normalizeSchedule } from "./normalize.ts";
 import { startChromeSession } from "./browser.ts";
 import { localNow } from "../../utils/localNow.ts";
+import { normalizarTrailerUrl } from "../../utils/trailer.ts";
 import type { CinepolisCinema, CinepolisMovie, CinepolisShowtime, FormatoFuente, Proyeccion } from "./types.ts";
 import type { ScrapedCinema, ScrapedMovie, ScrapedSchedule, ScrapeOptions, ScrapeResult } from "../types.ts";
 
@@ -50,6 +51,7 @@ const PAGE_SCRIPT = `async (cfg) => {
 
   const MOVIES_QUERY = 'query Movies($countryId: String!, $limit: Int) { movies(countryId: $countryId, limit: $limit) { edges { node { id name originalName genre rating ratingDescription length releaseDate synopsis media { resource type code sizes { large } } } } } }';
   const BILLBOARD_QUERY = 'query Billboard($countryId: String!, $cinemaId: String!, $timezone: String!, $isAbsoluteExperiencePath: Boolean) { billboardByCinema(countryId: $countryId, cinemaId: $cinemaId, timezone: $timezone, isAbsoluteExperiencePath: $isAbsoluteExperiencePath) { schedules { movieId dates { date languages { language displayLanguage showtimes { format { name } experience { name } sessionId datetime screen movieVistaId cinemaVistaId availability } } } } } }';
+  const TRAILER_QUERY = 'query MovieTrailer($countryId: String!, $id: String!) { movie(countryId: $countryId, id: $id, isAbsoluteMediaPath: true) { media { resource type code sizes { large } } } }';
 
   const errores = [];
   const m = await post({ operationName: "Movies", variables: { countryId: cfg.countryId, limit: cfg.movieLimit }, query: MOVIES_QUERY });
@@ -95,6 +97,19 @@ const PAGE_SCRIPT = `async (cfg) => {
     if (i + cfg.concurrency < cfg.cinemas.length) {
       await new Promise((resolve) => setTimeout(resolve, cfg.pausaMs));
     }
+  }
+
+  const movieIdsInBillboards = new Set(Object.values(billboards).flatMap((billboard) => billboard.schedules.map((schedule) => schedule.movieId)));
+  for (const movie of movies) {
+    if (!movieIdsInBillboards.has(movie.id) || !movie.media || !movie.media.some((media) => media.type === "video" || /trailer/i.test(media.code || ""))) continue;
+    await new Promise((resolve) => setTimeout(resolve, cfg.pausaMs));
+    const detail = await post({
+      operationName: "MovieTrailer",
+      variables: { countryId: cfg.countryId, id: movie.id },
+      query: TRAILER_QUERY,
+    });
+    const media = detail.json?.data?.movie?.media;
+    if (Array.isArray(media)) movie.media = media;
   }
 
   return { movies, errores, billboards };
@@ -331,6 +346,10 @@ function movieDesdeApi(raw: RawGqlMovie): CinepolisMovie {
     ratingDescription: raw.ratingDescription || undefined,
     synopsis: raw.synopsis || "Sin sinopsis disponible.",
     poster: buildPosterUrl(posterPath, posterItem?.resource),
+    trailerUrl: raw.media
+      ?.filter((media) => media.type === "video" || /trailer/i.test(media.code ?? ""))
+      .map((media) => normalizarTrailerUrl(media.sizes?.large) ?? normalizarTrailerUrl(media.resource))
+      .find((url) => url !== undefined),
     releaseDate: raw.releaseDate ? raw.releaseDate.slice(0, 10) : undefined,
     datosIncompletos: duracion === null || !posterItem,
   };

@@ -4,12 +4,13 @@ import { resolve } from "node:path";
 import { scrapeCinemark } from "./cinemark/scraper.ts";
 import { scrapeCineplanet } from "./cineplanet/scraper.ts";
 import { scrapeVista } from "./vista/scraper.ts";
+import { scrapeCinepolis } from "./cinepolis/scraper.ts";
 
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
 import { deduplicarCatalogoPeliculas } from "./deduplicar-peliculas.ts";
 
-import type { Origen, ScrapeOptions } from "./types.ts";
+import { ORIGENES, type Origen, type ScrapeOptions } from "./types.ts";
 import { localNow } from "../utils/localNow.ts";
 import { pool } from "../db.ts";
 
@@ -60,7 +61,7 @@ async function main() {
 
     const origenArg = chainArg?.slice("--chain=".length) ?? "cinemark";
 
-    const origenes = ["cinemark", "cineplanet", "muvix", "cinestar"] as const;
+    const origenes = ORIGENES;
 
     if (!origenes.includes(origenArg as Origen)) {
         throw new Error(`Cadena desconocida: ${origenArg}`);
@@ -93,10 +94,6 @@ async function main() {
     // Validar las opciones definitivas, después de aplicar los argumentos CLI.
     validarOpciones(options);
 
-    if (!["cinemark", "cineplanet", "muvix", "cinestar"].includes(origen)) {
-        throw new Error(`Cadena desconocida: ${origen}`);
-    }
-
     console.log(`Iniciando extracción: ${origen}`);
 
     const scrapers = {
@@ -104,6 +101,7 @@ async function main() {
         cineplanet: () => scrapeCineplanet(options),
         muvix: () => scrapeVista("muvix", options),
         cinestar: () => scrapeVista("cinestar", options),
+        cinepolis: () => scrapeCinepolis(options),
     };
 
     const data = await scrapers[origen]();
