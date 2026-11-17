@@ -63,7 +63,7 @@ function validarRegistros(
         if (tipo === "pelicula") {
             const pelicula = value as unknown as ScrapedMovie;
             if (pelicula.trailerUrl !== undefined && !normalizarTrailerUrl(pelicula.trailerUrl)) {
-                throw new Error(`Película ${pelicula.id}: enlace de tráiler inválido.`);
+                throw new Error(`Película ${pelicula.id}: enlace de trailer invalido.`);
             }
             if (
                 typeof pelicula.titulo !== "string" ||
@@ -95,6 +95,16 @@ function validarRegistros(
                 throw new Error(
                     `Horario ${horario.id}: datos obligatorios inválidos.`,
                 );
+            }
+            const butacas = horario.butacas;
+            if (butacas !== undefined && (
+                !esObjeto(butacas) || !Number.isSafeInteger(butacas.disponibles) ||
+                typeof butacas.disponibles !== "number" || butacas.disponibles < 0 ||
+                typeof butacas.consultadasEn !== "string" || Number.isNaN(Date.parse(butacas.consultadasEn)) ||
+                (butacas.total !== undefined && (!Number.isSafeInteger(butacas.total) ||
+                    typeof butacas.total !== "number" || butacas.total < 1 || butacas.total < butacas.disponibles))
+            )) {
+                throw new Error(`Horario ${horario.id}: disponibilidad de butacas invalida.`);
             }
         }
     }

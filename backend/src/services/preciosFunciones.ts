@@ -19,6 +19,8 @@ export async function preciosPorCine(
     const result = await query<ScheduleRow>(
         `
         SELECT h.*,
+               h.fecha::text AS fecha,
+               h.fecha_cartelera::text AS fecha_cartelera,
                c.origen_id AS cine_origen_id,
                c.nombre AS cine_nombre,
                c.url AS cine_url,
@@ -29,6 +31,7 @@ export async function preciosPorCine(
         LEFT JOIN pelicula_fuentes pf
           ON pf.pelicula_id = h.pelicula_id
          AND pf.origen = h.origen
+         AND pf.origen_id = h.pelicula_origen_id
         WHERE h.pelicula_id = $1
           AND h.cine_id = $2
           AND h.fecha = $3
@@ -57,9 +60,17 @@ export async function preciosPorCine(
         );
     }
 
-    const updated = await Promise.all(
-        schedules.map((schedule) => consultarHorario(schedule)),
-    );
+    const updated: (ScheduleWithPrices | null)[] = [];
+    if (schedules[0]?.origen === "cinepolis") {
+        // Cinepolis comparte una cola de navegador: no encolar todo el dia de golpe.
+        for (const schedule of schedules) {
+            updated.push(await consultarHorario(schedule));
+        }
+    } else {
+        updated.push(...await Promise.all(
+            schedules.map((schedule) => consultarHorario(schedule)),
+        ));
+    }
 
     return updated
         .filter((schedule): schedule is ScheduleWithPrices => schedule !== null)

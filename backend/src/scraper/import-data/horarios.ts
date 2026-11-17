@@ -79,7 +79,15 @@ export async function upsertSchedule(
                 consulta_precios_hasta =
                     CASE WHEN $17 THEN NULL ELSE consulta_precios_hasta END,
                 consulta_precios_token =
-                    CASE WHEN $17 THEN NULL ELSE consulta_precios_token END
+                    CASE WHEN $17 THEN NULL ELSE consulta_precios_token END,
+                butacas = CASE WHEN $18::jsonb IS NOT NULL THEN $18::jsonb
+                    WHEN $17 THEN NULL ELSE butacas END,
+                butacas_revision = CASE WHEN $18::jsonb IS NOT NULL THEN $15::text
+                    WHEN $17 THEN NULL ELSE butacas_revision END,
+                butacas_actualizadas_en = CASE WHEN $18::jsonb IS NOT NULL THEN $19::timestamptz
+                    WHEN $17 THEN NULL ELSE butacas_actualizadas_en END,
+                butacas_error_hasta = CASE WHEN $17 OR $18::jsonb IS NOT NULL THEN NULL ELSE butacas_error_hasta END,
+                butacas_error_revision = CASE WHEN $17 OR $18::jsonb IS NOT NULL THEN NULL ELSE butacas_error_revision END
             WHERE id = $1;
             `,
             [
@@ -100,6 +108,8 @@ export async function upsertSchedule(
                 schedule.revision,
                 schedule.extraidoEn,
                 changed,
+                schedule.butacas ? JSON.stringify(schedule.butacas) : null,
+                schedule.butacas?.consultadasEn ?? null,
             ],
         );
 
@@ -128,11 +138,15 @@ export async function upsertSchedule(
             agotada,
             url_compra,
             revision,
-            extraido_en
+            extraido_en,
+            butacas,
+            butacas_revision,
+            butacas_actualizadas_en
         )
         VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8,
-            $9, $10, $11, $12, $13, $14, $15, $16
+            $9, $10, $11, $12, $13, $14, $15, $16,
+            $17::jsonb, CASE WHEN $17::jsonb IS NOT NULL THEN $15::text ELSE NULL END, $18::timestamptz
         )
         RETURNING id;
         `,
@@ -153,6 +167,8 @@ export async function upsertSchedule(
             schedule.urlCompra ?? null,
             schedule.revision,
             schedule.extraidoEn,
+            schedule.butacas ? JSON.stringify(schedule.butacas) : null,
+            schedule.butacas?.consultadasEn ?? null,
         ],
     );
 

@@ -1,4 +1,5 @@
 import type { ScheduleRow, ScheduleWithPrices } from "./types.ts";
+import { butacasPublicas } from "../estadoButacas.ts";
 
 export const CACHE_PRECIOS_MS = 15 * 60_000;
 
@@ -50,6 +51,8 @@ export function horarioPublico(row: ScheduleWithPrices) {
         idioma: row.idioma,
         sala: row.sala,
         agotada: row.agotada,
+        ...butacasPublicas(row),
+        urlCompra: row.url_compra ?? row.pelicula_url ?? row.pelicula_url_fuente ?? undefined,
         estadoPrecio,
         preciosConsultadosEn: compatible
             ? new Date(row.precios_consultados_en!).toISOString()

@@ -21,6 +21,7 @@ export async function cargarHorario(
         LEFT JOIN pelicula_fuentes pf
           ON pf.pelicula_id = h.pelicula_id
          AND pf.origen = h.origen
+         AND pf.origen_id = h.pelicula_origen_id
         WHERE h.id = $1;
         `,
         [id],
@@ -101,6 +102,7 @@ export async function cargarHorarios(
         LEFT JOIN pelicula_fuentes pf
           ON pf.pelicula_id = h.pelicula_id
          AND pf.origen = h.origen
+         AND pf.origen_id = h.pelicula_origen_id
         WHERE ${conditions.join(" AND ")}
         ORDER BY (h.fecha + h.horario) ASC;
         `,

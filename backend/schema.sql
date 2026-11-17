@@ -85,16 +85,16 @@ CREATE TABLE IF NOT EXISTS horarios (
     sala VARCHAR(50) NOT NULL DEFAULT '',
     agotada BOOLEAN NOT NULL DEFAULT FALSE,
     url_compra TEXT,
-    revision VARCHAR(300) NOT NULL,
+    revision TEXT NOT NULL,
     extraido_en TIMESTAMP WITH TIME ZONE NOT NULL,
     -- estado de la consulta de precios bajo demanda
     precios_consultados_en TIMESTAMP WITH TIME ZONE,
     precios_error_hasta TIMESTAMP WITH TIME ZONE,
     consulta_precios_hasta TIMESTAMP WITH TIME ZONE,
     consulta_precios_token VARCHAR(100),
-    precios_revision VARCHAR(300),
-    consulta_precios_revision VARCHAR(300),
-    precios_error_revision VARCHAR(300)
+    precios_revision TEXT,
+    consulta_precios_revision TEXT,
+    precios_error_revision TEXT
 );
 
 CREATE TABLE IF NOT EXISTS tarifas (
@@ -110,6 +110,30 @@ CREATE TABLE IF NOT EXISTS tarifas (
     extraido_en TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY (horario_id, id)
 );
+
+-- Disponibilidad bajo demanda. ALTER permite actualizar tambien bases ya creadas.
+ALTER TABLE horarios
+    ADD COLUMN IF NOT EXISTS butacas JSONB,
+    ADD COLUMN IF NOT EXISTS butacas_revision TEXT,
+    ADD COLUMN IF NOT EXISTS butacas_actualizadas_en TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN IF NOT EXISTS butacas_error_hasta TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN IF NOT EXISTS butacas_error_revision TEXT;
+
+-- Las revisiones incluyen identificadores y enlaces de longitud variable.
+-- La vista se reconstruye abajo para actualizar tambien los tipos de sus columnas.
+DO $$
+BEGIN
+    EXECUTE format('DROP VIEW IF EXISTS %I.horarios_vigentes', current_schema());
+END;
+$$;
+
+ALTER TABLE horarios
+    ALTER COLUMN revision TYPE TEXT,
+    ALTER COLUMN precios_revision TYPE TEXT,
+    ALTER COLUMN consulta_precios_revision TYPE TEXT,
+    ALTER COLUMN precios_error_revision TYPE TEXT,
+    ALTER COLUMN butacas_revision TYPE TEXT,
+    ALTER COLUMN butacas_error_revision TYPE TEXT;
 
 -- Horarios que aun no han pasado, en hora de Chile (fecha + hora local).
 CREATE OR REPLACE VIEW horarios_vigentes AS

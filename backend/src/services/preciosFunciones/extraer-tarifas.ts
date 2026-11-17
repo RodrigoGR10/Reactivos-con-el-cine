@@ -2,6 +2,7 @@ import { cinemarkData, ensureCinemark } from "../../scraper/cinemark/client.ts";
 import { normalizeSessions } from "../../scraper/cinemark/normalize.ts";
 import { pricesForSchedule } from "../../scraper/cineplanet/normalize.ts";
 import { pricesForSchedule as vistaPrices } from "../../scraper/vista/normalize.ts";
+import { pricesForSchedule as cinepolisPrices } from "../../scraper/cinepolis/prices.ts";
 
 import type {
     RawPriceGroup,
@@ -35,6 +36,10 @@ export async function extraerTarifas(
 
     if (row.origen === "muvix" || row.origen === "cinestar") {
         return vistaPrices(row.origen, schedule);
+    }
+
+    if (row.origen === "cinepolis") {
+        return cinepolisPrices(schedule);
     }
 
     await ensureCinemark();

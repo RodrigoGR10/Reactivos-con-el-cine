@@ -4,6 +4,8 @@ import { preciosPorCine } from "../services/preciosFunciones.ts";
 import { cargarHorarios } from "../services/preciosFunciones/horarios.ts";
 
 import { horarioPublico } from "../services/preciosFunciones/estado.ts";
+import { isDate } from "../scraper/normalize.ts";
+import { butacasPorCine } from "../services/butacasFunciones.ts";
 
 const router = express.Router();
 
@@ -106,7 +108,7 @@ router.get("/precios", async (req, res) => {
         typeof cineId !== "string" ||
         !isCineId(cineId) ||
         typeof fecha !== "string" ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(fecha)
+        !isDate(fecha)
     ) {
         return res.status(400).json({
             error: "Indica peliculaId, cineId y una fecha válida.",
@@ -119,6 +121,17 @@ router.get("/precios", async (req, res) => {
         horarios,
         cacheMinutos: 15,
     });
+});
+
+router.get("/butacas", async (req, res) => {
+    const { peliculaId, cineId, fecha } = req.query;
+    if (typeof peliculaId !== "string" || !isNumericId(peliculaId) ||
+        typeof cineId !== "string" || !isCineId(cineId) ||
+        typeof fecha !== "string" || !isDate(fecha)) {
+        return res.status(400).json({ error: "Indica peliculaId, cineId y una fecha valida." });
+    }
+    const horarios = await butacasPorCine(peliculaId, cineId, fecha);
+    return res.json({ horarios: horarios.map(horarioPublico), cacheSegundos: 120 });
 });
 
 router.get("/:id", async (req, res) => {
