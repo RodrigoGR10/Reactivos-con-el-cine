@@ -19,6 +19,7 @@ import {
 } from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
+import { TrailerPelicula } from "../components/peliculas/TrailerPelicula";
 import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import { filtrarCines, obtenerCadena, obtenerComunas } from "../utils/agruparCines";
@@ -257,8 +258,12 @@ function MovieDetailPage() {
                         <span>{pelicula.clasificacion}</span>
                         <span aria-hidden="true">•</span>
                         <span>{pelicula.genero}</span>
-                        <span aria-hidden="true">•</span>
-                        <span>{pelicula.duracion} min</span>
+                        {pelicula.duracion !== null && (
+                            <>
+                                <span aria-hidden="true">•</span>
+                                <span>{pelicula.duracion} min</span>
+                            </>
+                        )}
                         <button
                             type="button"
                             className={`boton-fav-peli ${isFavoriteMovie(pelicula.id) ? "activo" : ""}`}
@@ -282,6 +287,8 @@ function MovieDetailPage() {
                     <p className="sinopsis-detalle">{pelicula.sinopsis}</p>
                 </div>
             </section>
+
+            <TrailerPelicula pelicula={pelicula} />
 
             <section
                 className="seccion-funciones"

@@ -11,6 +11,7 @@ import funcionRouter from "./controllers/funcion.ts";
 import cineRouter from "./controllers/cine.ts";
 import authRouter from "./controllers/auth.ts";
 import perfilRouter from "./controllers/perfil.ts";
+import recomendacionRouter from "./controllers/recomendaciones.ts";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use(middleware.requestLogger);
 app.use("/api/peliculas", peliculaRouter);
 app.use("/api/funciones", funcionRouter);
 app.use("/api/cines", cineRouter);
+app.use("/api/recomendaciones", recomendacionRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/perfil", perfilRouter);
 app.use("/api", middleware.unknownEndpoint);

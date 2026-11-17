@@ -17,6 +17,7 @@ interface PeliculaRow {
     genero: string | null;
     clasificacion: string | null;
     poster: string | null;
+    trailerUrl: string | null;
     banner: string | null;
     tmdb_id: number | null;
     calificacion_tmdb: number | null;
@@ -44,6 +45,12 @@ const PELICULA_COLUMNS = `
     p.genero,
     p.clasificacion,
     p.imagen_url AS poster,
+    CASE
+        WHEN p.trailer_idioma = 'es-419'
+            AND p.trailer_version IN ('doblado', 'original')
+        THEN p.trailer_url
+        ELSE NULL
+    END AS "trailerUrl",
     p.banner,
     p.tmdb_id,
     p.calificacion_tmdb,
@@ -62,11 +69,12 @@ function serializarPelicula(
         id: String(row.id),
         titulo: row.titulo,
         ...(row.titulo_original ? { tituloOriginal: row.titulo_original } : {}),
-        duracion: row.duracion ?? 0,
+        duracion: row.duracion,
         genero: row.genero ?? "",
         clasificacion: normalizarClasificacion(row.clasificacion),
         sinopsis: normalizarSinopsis(row.sinopsis),
         poster: row.poster ?? "",
+        ...(row.trailerUrl ? { trailerUrl: row.trailerUrl } : {}),
         ...(row.banner ? { banner: row.banner } : {}),
         ...(row.tmdb_id !== null ? { tmdbId: row.tmdb_id } : {}),
         ...(row.calificacion_tmdb !== null

@@ -1,6 +1,7 @@
 import { fechaDeEstreno, scheduleRevision } from "../normalize.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
 import { normalizarComuna } from "../../utils/comunas.ts";
+import { normalizarTrailerUrl } from "../../utils/trailer.ts";
 import { SITE } from "./client.ts";
 import type { ScrapedCinema, ScrapedMovie, ScrapedSchedule } from "../types.ts";
 import type {
@@ -65,7 +66,7 @@ export function normalizeCinema(cinema: CinepolisCinema, extractedAt: string): C
 
 export function normalizeMovie(movie: CinepolisMovie, extractedAt: string): CinepolisMovieFull {
   const id = text(movie.id, "id de pelicula");
-  if (!Number.isInteger(movie.runTime) || movie.runTime <= 0) {
+  if (movie.runTime !== null && (!Number.isInteger(movie.runTime) || movie.runTime < 30)) {
     throw new Error(`Duración de Cinépolis inválida para ${movie.id}.`);
   }
   return {
@@ -83,6 +84,7 @@ export function normalizeMovie(movie: CinepolisMovie, extractedAt: string): Cine
     clasificacionDescripcion: movie.ratingDescription,
     sinopsis: normalizarSinopsis(movie.synopsis),
     poster: text(movie.poster, "poster"),
+    trailerUrl: normalizarTrailerUrl(movie.trailerUrl),
     url: `${SITE}/detalle?movie=${encodeURIComponent(text(movie.slug, "slug de pelicula"))}`,
     datosIncompletos: movie.datosIncompletos ?? false,
   };

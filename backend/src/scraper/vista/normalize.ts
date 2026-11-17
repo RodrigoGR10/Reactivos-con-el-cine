@@ -2,6 +2,7 @@ import { load } from "cheerio";
 import { normalizarButacas } from "../butacas.ts";
 import { fechaDeEstreno, isDate, scheduleRevision } from "../normalize.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
+import { normalizarTrailerUrl } from "../../utils/trailer.ts";
 import { CADENAS, purchaseUrl, ticketPage } from "./client.ts";
 import type {
     ScrapedCinema,
@@ -77,6 +78,7 @@ export function normalizeMovie(
         clasificacion: text(movie.Rating, "clasificacion"),
         sinopsis: normalizarSinopsis(movie.Synopsis),
         poster: `${site}/CDN/media/entity/get/FilmPosterGraphic/${encodeURIComponent(id)}?referenceScheme=HeadOffice&allowPlaceHolder=true`,
+        trailerUrl: normalizarTrailerUrl(movie.TrailerUrl),
         url: `${site}/Browsing/Movies/Details/h-${encodeURIComponent(id)}`,
     };
 }

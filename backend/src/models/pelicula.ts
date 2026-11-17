@@ -13,7 +13,7 @@ export interface Pelicula {
     id: number;
     titulo: string;
     tituloOriginal?: string;
-    duracion: number;
+    duracion: number | null;
     genero?: string;
     clasificacion: string;
     sinopsis: string;

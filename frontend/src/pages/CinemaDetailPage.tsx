@@ -402,8 +402,12 @@ function CinemaDetailPage() {
                         </h3>
                         <p className="pelicula-cine-metadatos">
                           <span>{pelicula.genero}</span>
-                          <span aria-hidden="true">•</span>
-                          <span>{pelicula.duracion} min</span>
+                          {pelicula.duracion !== null && (
+                            <>
+                              <span aria-hidden="true">•</span>
+                              <span>{pelicula.duracion} min</span>
+                            </>
+                          )}
                           <span aria-hidden="true">•</span>
                           <span className="badge-clasif">
                             {pelicula.clasificacion}

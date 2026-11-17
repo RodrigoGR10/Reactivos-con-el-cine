@@ -149,7 +149,9 @@ function PeliculaDestacada({
 
   const metadatos = [
     pelicula.genero ? { clave: "genero", contenido: pelicula.genero, className: "destacada-genero" } : null,
-    pelicula.duracion > 0 ? { clave: "duracion", contenido: `${pelicula.duracion} min` } : null,
+    pelicula.duracion !== null && pelicula.duracion > 0
+      ? { clave: "duracion", contenido: `${pelicula.duracion} min` }
+      : null,
     pelicula.clasificacion ? { clave: "clasificacion", contenido: pelicula.clasificacion, className: "destacada-clasificacion" } : null,
   ].filter((item) => item !== null);
 

@@ -15,14 +15,15 @@ export interface CinepolisMovie {
   title: string;
   originalTitle?: string;
   slug: string;
-  runTime: number;
+  runTime: number | null;
   genre: string;
   rating: string;
   ratingDescription?: string;
   synopsis: string;
   poster: string;
+  trailerUrl?: string;
   releaseDate?: string;
-  /** true si faltan datos (duración o póster) y se usaron valores por defecto */
+  /** true si falta la duración o el póster y se usó un dato de respaldo. */
   datosIncompletos?: boolean;
 }
 

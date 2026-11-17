@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { fechaDeEstreno, isDate, scheduleRevision } from "../normalize.ts";
 import { localNow } from "../../utils/localNow.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
+import { normalizarTrailerUrl } from "../../utils/trailer.ts";
 import { cineplanetData, SITE } from "./client.ts";
 import type {
     ScrapedCinema,
@@ -66,6 +67,7 @@ export function normalizeMovie(
         clasificacion: text(movie.ratingDescription, "clasificacion"),
         sinopsis: normalizarSinopsis(movie.synopsis),
         poster: text(movie.posterUrl, "poster"),
+        trailerUrl: normalizarTrailerUrl(movie.trailer),
         url: `${SITE}/peliculas/${encodeURIComponent(text(movie.movieDetailsUrl, "slug de pelicula"))}`,
     };
 }

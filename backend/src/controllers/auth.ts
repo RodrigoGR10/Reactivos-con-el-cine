@@ -80,7 +80,24 @@ router.post("/register", async (req, res) => {
         });
     }
 
+    const nombreNormalizado = nombre.trim();
+
     const emailNormalizado = email.trim().toLowerCase();
+    if ([...nombreNormalizado].length > 150) {
+        return res.status(400).json({
+            error: "El nombre de usuario no puede superar 150 caracteres.",
+        });
+    }
+    if ([...emailNormalizado].length > 255) {
+        return res.status(400).json({
+            error: "El correo electrónico no puede superar 255 caracteres.",
+        });
+    }
+    if (Buffer.byteLength(contrasena, "utf8") > 72) {
+        return res.status(400).json({
+            error: "La contraseña no puede superar 72 bytes.",
+        });
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailNormalizado)) {
         return res
@@ -110,7 +127,7 @@ router.post("/register", async (req, res) => {
     const { rows } = await query(insertSql, [
         emailNormalizado,
         passwordHash,
-        nombre.trim(),
+        nombreNormalizado,
     ]);
 
     const user = rows[0];
@@ -162,7 +179,7 @@ router.post("/login", async (req, res) => {
 
 router.get("/me", middleware.withUser, async (req, res) => {
     const userId = req.userId;
-    
+
     if (typeof userId !== "string" || !isUuid(userId)) {
         return res
             .status(401)

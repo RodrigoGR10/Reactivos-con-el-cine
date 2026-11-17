@@ -58,9 +58,19 @@ export async function preciosPorCine(
         );
     }
 
-    const updated = await Promise.all(
-        schedules.map((schedule) => consultarHorario(schedule)),
-    );
+    const updated: (ScheduleWithPrices | null)[] = [];
+    if (schedules[0]?.origen === "cinepolis") {
+        // Cinepolis comparte una cola de navegador: evita encolar el día completo.
+        for (const schedule of schedules) {
+            updated.push(await consultarHorario(schedule));
+        }
+    } else {
+        updated.push(
+            ...(await Promise.all(
+                schedules.map((schedule) => consultarHorario(schedule)),
+            )),
+        );
+    }
 
     return updated
         .filter((schedule): schedule is ScheduleWithPrices => schedule !== null)

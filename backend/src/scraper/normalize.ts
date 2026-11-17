@@ -4,7 +4,7 @@ export { localNow } from "../utils/localNow.ts";
 
 export function isDate(value: string): boolean {
     return (
-        /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+        /^(?!0000)\d{4}-\d{2}-\d{2}$/.test(value) &&
         !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) &&
         new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value
     );

@@ -1,6 +1,7 @@
 import { SITE } from "./client.ts";
 import { normalizarButacas } from "../butacas.ts";
 import { normalizarSinopsis } from "../../utils/sinopsis.ts";
+import { normalizarTrailerUrl } from "../../utils/trailer.ts";
 import { fechaDeEstreno, isDate, scheduleRevision } from "../normalize.ts";
 import type {
     RawCinema,
@@ -86,6 +87,7 @@ export function normalizeMovie(
         clasificacion: text(movie.rating, "clasificacion"),
         sinopsis: normalizarSinopsis(movie.synopsis),
         poster: text(movie.posterUrl, "poster"),
+        trailerUrl: normalizarTrailerUrl(movie.trailerUrl),
         url: `${SITE}/pelicula/${encodeURIComponent(text(movie.slug, "slug de pelicula"))}`,
     };
 }

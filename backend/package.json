@@ -21,6 +21,7 @@
     "sync:cinepolis": "node src/scraper/cli.ts --chain=cinepolis --sync",
     "import:scrape": "node src/scraper/import-cli.ts",
     "sync:tmdb": "node src/scraper/import-cli.ts --tmdb",
+    "sync:trailers": "node src/scraper/import-cli.ts --trailers",
     "deduplicar:peliculas": "node src/scraper/cli.ts --deduplicar"
   },
   "keywords": [],

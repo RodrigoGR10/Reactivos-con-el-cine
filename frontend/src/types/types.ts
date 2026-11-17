@@ -1,12 +1,13 @@
 export interface Pelicula {
   id: string;
   titulo: string;
-  duracion: number;
+  duracion: number | null;
   genero: string;
   clasificacion: string;
   sinopsis: string;
   poster: string;
   banner?: string;
+  trailerUrl?: string;
   estadoEstreno?: "cartelera" | "preventa" | "proximamente";
   fechaEstreno?: string;
   totalFavoritos?: number;

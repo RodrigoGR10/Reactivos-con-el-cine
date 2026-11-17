@@ -1,4 +1,6 @@
 import { ORIGENES } from "./types.ts";
+import { isDate } from "./normalize.ts";
+import { normalizarTrailerUrl } from "../utils/trailer.ts";
 import type {
     ScrapeResult,
     ScrapedCinema,
@@ -11,15 +13,7 @@ function esObjeto(value: unknown): value is Record<string, unknown> {
 }
 
 function esFecha(value: unknown): value is string {
-    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        return false;
-    }
-
-    const date = new Date(`${value}T12:00:00.000Z`);
-    return (
-        !Number.isNaN(date.getTime()) &&
-        date.toISOString().slice(0, 10) === value
-    );
+    return typeof value === "string" && isDate(value);
 }
 
 function validarRegistros(
@@ -61,9 +55,15 @@ function validarRegistros(
 
         if (tipo === "pelicula") {
             const pelicula = value as unknown as ScrapedMovie;
+            if (pelicula.trailerUrl !== undefined && !normalizarTrailerUrl(pelicula.trailerUrl)) {
+                throw new Error(`Película ${pelicula.id}: enlace de trailer invalido.`);
+            }
             if (
                 typeof pelicula.titulo !== "string" ||
-                typeof pelicula.duracion !== "number" ||
+                (pelicula.duracion !== null &&
+                    (typeof pelicula.duracion !== "number" ||
+                        !Number.isFinite(pelicula.duracion) ||
+                        pelicula.duracion < 30)) ||
                 typeof pelicula.genero !== "string"
             ) {
                 throw new Error(
@@ -88,6 +88,16 @@ function validarRegistros(
                 throw new Error(
                     `Horario ${horario.id}: datos obligatorios inválidos.`,
                 );
+            }
+            const butacas = horario.butacas;
+            if (butacas !== undefined && (
+                !esObjeto(butacas) || !Number.isSafeInteger(butacas.disponibles) ||
+                typeof butacas.disponibles !== "number" || butacas.disponibles < 0 ||
+                typeof butacas.consultadasEn !== "string" || Number.isNaN(Date.parse(butacas.consultadasEn)) ||
+                (butacas.total !== undefined && (!Number.isSafeInteger(butacas.total) ||
+                    typeof butacas.total !== "number" || butacas.total < 1 || butacas.total < butacas.disponibles))
+            )) {
+                throw new Error(`Horario ${horario.id}: disponibilidad de butacas invalida.`);
             }
         }
     }

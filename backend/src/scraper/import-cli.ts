@@ -4,23 +4,30 @@ import { sincronizarMetadatosTmdb } from "./sync-tmdb/index.ts";
 import { pool } from "../db.ts";
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
+import { sincronizarTrailersLatinos } from "./sync-trailers.ts";
 
 async function main() {
     const args = process.argv.slice(2);
 
-    if (args.includes("--tmdb")) {
+    if (args.includes("--tmdb") || args.includes("--trailers")) {
         const dryRun = args.includes("--dry-run");
         const apply = args.includes("--apply");
 
         if (dryRun === apply) {
+            const script = args.includes("--trailers") ? "sync:trailers" : "sync:tmdb";
             throw new Error(
                 "Debes indicar exactamente un modo:\n" +
-                    "npm run sync:tmdb -- --dry-run\n" +
-                    "npm run sync:tmdb -- --apply",
+                    `npm run ${script} -- --dry-run\n` +
+                    `npm run ${script} -- --apply`,
             );
         }
 
-        await sincronizarMetadatosTmdb({ apply });
+        if (args.includes("--trailers")) {
+            await sincronizarTrailersLatinos({ apply });
+        } else {
+            await sincronizarMetadatosTmdb({ apply });
+            if (apply) await sincronizarTrailersLatinos({ apply: true });
+        }
         return;
     }
 

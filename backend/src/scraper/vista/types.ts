@@ -22,6 +22,7 @@ export interface Movie {
   RunTime: string;
   Rating: string;
   Synopsis: string;
+  TrailerUrl?: string;
 }
 
 export interface Session {
