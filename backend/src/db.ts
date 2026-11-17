@@ -58,6 +58,8 @@ export const isCineId = (val: unknown, maxLength = 100): val is string =>
 
 //Validación para peliculas.id, horarios.id y tarifas.id (SERIAL)
 export const isNumericId = (val: string | number): boolean => {
-    const num = typeof val === "string" ? parseInt(val, 10) : val;
-    return !isNaN(num) && num > 0;
+    if (typeof val === "string" && !/^\d+$/.test(val)) return false;
+
+    const num = Number(val);
+    return Number.isInteger(num) && num > 0 && num <= 2_147_483_647;
 };
