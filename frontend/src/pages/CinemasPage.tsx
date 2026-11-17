@@ -108,7 +108,6 @@ function CinemasPage() {
                         <BotonCercania
                             activo={ordenarPorCercania}
                             cargando={estado === "cargando"}
-                            tituloActivo="Volver al orden por cadena"
                             tituloInactivo="Ordenar por cercanía"
                             onToggle={() => {
                                 if (ordenarPorCercania) {

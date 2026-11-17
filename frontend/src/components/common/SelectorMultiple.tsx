@@ -1,9 +1,11 @@
 import { useId, useRef, useState, type ReactNode, type RefObject } from "react";
-import { Drawer, Popover, type FloatingPosition } from "@mantine/core";
+import { Checkbox, Drawer, Loader, Popover, Tooltip, type FloatingPosition } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { CloseIcon, MapPinIcon, SearchIcon } from "./Icons";
 import { normalizarTexto } from "../../utils/normalizarTexto";
 import "../../pages/CinemasPage.css";
+
+const TOOLTIP_EVENTS_DESKTOP = { hover: true, focus: true, touch: false } as const;
 
 export interface OpcionFiltro {
     valor: string;
@@ -89,7 +91,6 @@ function SelectorDesplegable({
                     className="cines-icon-button"
                     onClick={onCerrar}
                     aria-label={cerrarLabel}
-                    title="Cerrar"
                 >
                     <CloseIcon size={16} />
                 </button>
@@ -245,23 +246,38 @@ export function SelectorMultiple({
                         aria-label={placeholderBusqueda.replace(/\.+$/, "")}
                         placeholder={placeholderBusqueda}
                     />
+                    {busqueda && (
+                        <button
+                            type="button"
+                            className="cines-comunas-busqueda-limpiar"
+                            onClick={() => {
+                                setBusqueda("");
+                                buscador.current?.focus();
+                            }}
+                            aria-label="Limpiar búsqueda"
+                        >
+                            <CloseIcon size={14} />
+                        </button>
+                    )}
                 </div>
             )}
             <div className="cines-comunas-opciones">
                 {visibles.map((opcion) => (
                     <label key={opcion.valor} className="cines-comuna-opcion">
-                        <input
-                            type="checkbox"
+                        <Checkbox
+                            size="xs"
+                            color="cine"
                             checked={borrador.includes(opcion.valor)}
-                            onChange={(event) =>
+                            onChange={(event) => {
+                                const marcada = event.currentTarget.checked;
                                 setBorrador((prev) =>
-                                    event.target.checked
+                                    marcada
                                         ? prev.includes(opcion.valor)
                                             ? prev
                                             : [...prev, opcion.valor]
                                         : prev.filter((valor) => valor !== opcion.valor),
-                                )
-                            }
+                                );
+                            }}
                         />
                         <span>{opcion.nombre}</span>
                         <span className="cines-comuna-cantidad" aria-hidden="true">
@@ -403,21 +419,38 @@ export function BotonCercania({
     cargando,
     onToggle,
     tituloInactivo = "Ordenar por cercanía",
-    tituloActivo = "Volver al orden predeterminado",
+    tituloActivo = "Desactivar cercanía",
     className = "",
 }: BotonCercaniaProps) {
+    const desactivarTooltip =
+        useMediaQuery("(max-width: 600px), (hover: none), (pointer: coarse)") ?? false;
+    const etiquetaTooltip = activo ? tituloActivo : tituloInactivo;
+
     return (
-        <button
-            type="button"
-            className={`boton-cercania-cine ${activo ? "activo" : ""} ${className}`.trim()}
-            aria-pressed={activo}
-            title={activo ? tituloActivo : tituloInactivo}
-            onClick={onToggle}
-            disabled={cargando}
+        <Tooltip
+            label={etiquetaTooltip}
+            position="bottom"
+            offset={8}
+            openDelay={250}
+            floatingStrategy="fixed"
+            disabled={desactivarTooltip || cargando}
+            events={TOOLTIP_EVENTS_DESKTOP}
         >
-            <MapPinIcon size={16} />
-            <span>{cargando ? "Ubicando..." : "Cerca de mí"}</span>
-        </button>
+            <button
+                type="button"
+                className={`boton-cercania-cine ${activo ? "activo" : ""} ${className}`.trim()}
+                aria-pressed={activo}
+                onClick={onToggle}
+                disabled={cargando}
+            >
+                {cargando ? (
+                    <Loader size={15} color="currentColor" aria-hidden="true" />
+                ) : (
+                    <MapPinIcon size={16} />
+                )}
+                <span>{cargando ? "Ubicando..." : "Cerca de mí"}</span>
+            </button>
+        </Tooltip>
     );
 }
 
@@ -451,7 +484,6 @@ export function ChipsFiltrosActivos({
                     className="filtro-pelicula-aplicado"
                     onClick={chip.onQuitar}
                     aria-label={chip.ariaLabel}
-                    title={chip.ariaLabel}
                 >
                     <span>{chip.etiqueta}</span>
                     <CloseIcon size={13} />
