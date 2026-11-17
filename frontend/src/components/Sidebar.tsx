@@ -41,6 +41,7 @@ const NAV_ITEMS: readonly SidebarNavItem[] = [
 
 interface TooltipSharedProps {
   position: "right";
+  floatingStrategy: "fixed";
   offset: number;
   disabled: boolean;
   events: typeof TOOLTIP_EVENTS;
@@ -87,6 +88,7 @@ function Sidebar() {
 
   const tooltipProps: TooltipSharedProps = {
     position: "right",
+    floatingStrategy: "fixed",
     offset: 12,
     disabled: esMovil,
     events: TOOLTIP_EVENTS,
