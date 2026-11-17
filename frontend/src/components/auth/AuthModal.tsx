@@ -70,6 +70,13 @@ export const AuthModal = ({
     setIsRegisterActive(initialMode === "register");
     setErrorMsg(null);
     setSuccessMsg(null);
+    setCargando(false);
+    setLoginEmail("");
+    setLoginPassword("");
+    setRegUsername("");
+    setRegEmail("");
+    setRegPassword("");
+    setRegConfirmPassword("");
     setShowLoginPassword(false);
     setShowRegPassword(false);
     setShowRegConfirmPassword(false);
@@ -77,7 +84,7 @@ export const AuthModal = ({
 
   const handleLoginSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
-    if (cargando) return;
+    if (cargando || successMsg) return;
     setErrorMsg(null);
     setSuccessMsg(null);
 
@@ -118,7 +125,7 @@ export const AuthModal = ({
 
   const handleRegisterSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
-    if (cargando) return;
+    if (cargando || successMsg) return;
     setErrorMsg(null);
     setSuccessMsg(null);
 
@@ -283,7 +290,7 @@ export const AuthModal = ({
             <button
               type="submit"
               className="auth-btn-submit"
-              disabled={cargando}
+              disabled={cargando || Boolean(successMsg)}
             >
               {renderSubmitLabel("Iniciar Sesión", "Ingresando...")}
             </button>
@@ -420,7 +427,7 @@ export const AuthModal = ({
             <button
               type="submit"
               className="auth-btn-submit"
-              disabled={cargando}
+              disabled={cargando || Boolean(successMsg)}
             >
               {renderSubmitLabel("Registrarse", "Registrando...")}
             </button>
