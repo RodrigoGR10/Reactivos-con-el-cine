@@ -7,6 +7,7 @@ import { useFiltrosPeliculas } from "../hooks/useFiltrosPeliculas.ts";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar.ts";
 import { totalFavoritos } from "../utils/seleccionarDestacadas.ts";
 import type { Pelicula } from "../types/types.ts";
+import { Mensaje } from "../components/common/Mensaje.tsx";
 import RecomendadorPeliculas from "../components/recomendador/RecomendadorPeliculas.tsx";
 
 function PaginaPrincipal() {
@@ -34,7 +35,15 @@ function PaginaPrincipal() {
       || a.titulo.localeCompare(b.titulo));
 
   if (cargando) return null;
-  if (error) return <p className="sin-resultados">{error}</p>;
+  if (error) {
+    return (
+      <Mensaje
+        tipo="error"
+        titulo="Error al cargar la cartelera"
+        texto={error}
+      />
+    );
+  }
   if (peliculas.length === 0) {
     return <p className="sin-resultados">No hay películas disponibles.</p>;
   }

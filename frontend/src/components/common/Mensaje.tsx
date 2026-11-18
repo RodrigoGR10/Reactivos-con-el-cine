@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Alert, Loader } from "@mantine/core";
+import type { EstadoUbicacion } from "../../hooks/useUbicacion";
 import { AlertCircleIcon } from "./Icons";
 import "./Mensaje.css";
 
@@ -10,7 +11,10 @@ interface MensajeProps {
   tipo?: TipoMensaje;
   titulo?: string;
   compacto?: boolean;
+  embebido?: boolean;
   accion?: ReactNode;
+  onCerrar?: () => void;
+  cerrarLabel?: string;
   className?: string;
 }
 
@@ -23,7 +27,10 @@ export function Mensaje({
   tipo = "estado",
   titulo,
   compacto = false,
+  embebido = false,
   accion,
+  onCerrar,
+  cerrarLabel = "Cerrar aviso",
   className = "",
 }: MensajeProps) {
   if (tipo === "error") {
@@ -35,6 +42,9 @@ export function Mensaje({
           radius="md"
           icon={<AlertCircleIcon size={18} />}
           title={titulo}
+          withCloseButton={Boolean(onCerrar)}
+          onClose={onCerrar}
+          closeButtonLabel={cerrarLabel}
           className={`mensaje-alerta-compacta ${className}`.trim()}
         >
           <div className="mensaje-alerta-contenido">
@@ -45,36 +55,42 @@ export function Mensaje({
       );
     }
 
-    return (
-      <div className={`mensaje-pagina ${className}`.trim()}>
-        <Alert
-          variant="default"
-          radius={12}
-          title={titulo}
-          className="mensaje-panel-error"
-        >
-          <div className="mensaje-alerta-contenido">
-            <p>{texto}</p>
-            {accion}
-          </div>
-        </Alert>
-      </div>
+    const panelError = (
+      <Alert
+        variant="default"
+        radius={12}
+        title={titulo}
+        className={`mensaje-panel-error ${embebido ? className : ""}`.trim()}
+      >
+        <div className="mensaje-alerta-contenido">
+          <p>{texto}</p>
+          {accion}
+        </div>
+      </Alert>
     );
+
+    if (embebido) return panelError;
+
+    return <div className={`mensaje-pagina ${className}`.trim()}>{panelError}</div>;
   }
 
   if (tipo === "cargando") {
     const contenido = (
       <div
-        className={`mensaje-carga ${compacto ? className : ""}`.trim()}
+        className={`mensaje-carga ${compacto || embebido ? className : ""}`.trim()}
         role="status"
         aria-live="polite"
       >
-        <Loader size={compacto ? "xs" : "sm"} color="cine" aria-hidden="true" />
+        <Loader
+          size={compacto ? "xs" : "sm"}
+          color="cine"
+          aria-hidden="true"
+        />
         <p>{texto}</p>
       </div>
     );
 
-    if (compacto) return contenido;
+    if (compacto || embebido) return contenido;
 
     return (
       <div
@@ -89,11 +105,46 @@ export function Mensaje({
     return <p className={className}>{texto}</p>;
   }
 
-  return (
-    <div className={`mensaje-pagina ${className}`.trim()}>
-      <div className="mensaje-estado-caja">
-        <p>{texto}</p>
-      </div>
+  const cajaEstado = (
+    <div className={`mensaje-estado-caja ${embebido ? className : ""}`.trim()}>
+      <p>{texto}</p>
     </div>
+  );
+
+  if (embebido) return cajaEstado;
+
+  return <div className={`mensaje-pagina ${className}`.trim()}>{cajaEstado}</div>;
+}
+
+interface AvisoUbicacionProps {
+  estado: EstadoUbicacion;
+  onCerrar: () => void;
+  className?: string;
+}
+
+/**
+ * Banner compacto y cerrable para avisos de permiso o error de geolocalización.
+ */
+export function AvisoUbicacion({
+  estado,
+  onCerrar,
+  className = "",
+}: AvisoUbicacionProps) {
+  if (estado !== "denegado" && estado !== "error") return null;
+
+  const texto =
+    estado === "denegado"
+      ? "No pudimos acceder a tu ubicación. Habilita el permiso en tu navegador para ordenar por cercanía."
+      : "No se pudo obtener tu ubicación. Intenta nuevamente.";
+
+  return (
+    <Mensaje
+      tipo="error"
+      compacto
+      texto={texto}
+      onCerrar={onCerrar}
+      cerrarLabel="Cerrar aviso de ubicación"
+      className={className}
+    />
   );
 }

@@ -6,6 +6,7 @@ import { useFavorites } from "../context/FavoritesContext";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { FilmIcon } from "../components/common/Icons";
 import { BotonFavorito } from "../components/common/BotonFavorito";
+import { AvisoUbicacion, Mensaje } from "../components/common/Mensaje";
 import { BotonCercania, ChipsFiltrosActivos } from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import { TarjetaCine } from "../components/cines/TarjetaCine";
@@ -18,7 +19,7 @@ function CinemasPage() {
     const { user, openAuthModal } = useAuth();
     const { isFavoriteCinema, toggleFavoriteCinema } = useFavorites();
     const { cinesFavoritosAlEntrar } = useFavoritosAlEntrar();
-    const { ubicacion, estado, solicitar } = useUbicacion();
+    const { ubicacion, estado, solicitar, descartarAviso } = useUbicacion();
     const [cercaniaActiva, setCercaniaActiva] = useState(true);
     const [cines, setCines] = useState<Cine[]>([]);
     const [cargando, setCargando] = useState(true);
@@ -123,13 +124,21 @@ function CinemasPage() {
                 <ChipsFiltrosActivos chips={chipsComunas} ariaLabel="Comunas seleccionadas" />
             </section>
 
-            {estado === "denegado" && <p className="aviso-cercania">No pudimos acceder a tu ubicación. Habilita el permiso en tu navegador para ordenar por cercanía.</p>}
-            {estado === "error" && <p className="aviso-cercania">No se pudo obtener tu ubicación. Intenta nuevamente.</p>}
+            <AvisoUbicacion
+                estado={estado}
+                onCerrar={descartarAviso}
+                className="cines-aviso-ubicacion"
+            />
 
             {cargando ? (
                 <div className="cines-loading" role="status"><p>Cargando complejos cinematográficos...</p></div>
             ) : error ? (
-                <div className="cines-error" role="alert"><p>{error}</p></div>
+                <Mensaje
+                    tipo="error"
+                    embebido
+                    titulo="Error al cargar los cines"
+                    texto={error}
+                />
             ) : cinesFiltrados.length === 0 ? (
                 <div className="cines-empty">
                     <FilmIcon size={32} />

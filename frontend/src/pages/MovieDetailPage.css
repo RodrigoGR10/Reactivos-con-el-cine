@@ -395,10 +395,8 @@
     border-radius: 12px;
 }
 
-.aviso-cercania {
+.detalle-aviso-ubicacion {
     margin: 0 0 16px;
-    color: var(--color-texto-secundario);
-    font-size: 0.88rem;
 }
 
 .sin-funciones span {

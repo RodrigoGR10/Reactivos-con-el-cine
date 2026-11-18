@@ -21,7 +21,7 @@
   font-size: 0.95rem;
 }
 
-.mensaje-pagina .mensaje-panel-error {
+.mensaje-panel-error.mantine-Alert-root {
   width: 100%;
   padding: 48px 24px;
   background-color: #121212;
@@ -47,22 +47,57 @@
   gap: 8px;
 }
 
-.mensaje-alerta-compacta {
-  background: rgba(204, 18, 11, 0.14);
-  border: 1px solid rgba(204, 18, 11, 0.38);
+.mensaje-alerta-compacta.mantine-Alert-root {
+  padding: 10px 14px;
+  background-color: #141214;
+  border: 1px solid rgba(204, 18, 11, 0.34);
   color: var(--color-texto);
 }
 
+.mensaje-alerta-compacta .mantine-Alert-wrapper {
+  align-items: center;
+}
+
 .mensaje-alerta-compacta .mantine-Alert-icon {
-  color: #f87171;
+  margin: 0 12px 0 0;
+  color: var(--color-acento);
 }
 
 .mensaje-alerta-compacta .mantine-Alert-label {
-  color: #fca5a5;
+  color: var(--color-acento);
 }
 
 .mensaje-alerta-compacta .mantine-Alert-message {
-  color: #e4e4e7;
+  color: #d4d4d8;
+  font-size: 0.86rem;
+}
+
+.mensaje-alerta-compacta .mantine-Alert-closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #9898a2;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.mensaje-alerta-compacta .mantine-Alert-closeButton:hover {
+  color: #f5f5f6;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mensaje-alerta-compacta .mantine-Alert-closeButton:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
 }
 
 .mensaje-alerta-contenido {

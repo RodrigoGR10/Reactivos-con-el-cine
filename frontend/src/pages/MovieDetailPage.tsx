@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
-import { Mensaje } from "../components/common/Mensaje";
+import { AvisoUbicacion, Mensaje } from "../components/common/Mensaje";
 import { BotonFavorito } from "../components/common/BotonFavorito";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { BotonDetalleFunciones } from "../components/funciones/BotonDetalleFunciones";
@@ -44,7 +44,7 @@ function MovieDetailPage() {
     const { cinesFavoritosAlEntrar } = useFavoritosAlEntrar();
     const { user, openAuthModal } = useAuth();
 
-    const { ubicacion, estado, solicitar } = useUbicacion();
+    const { ubicacion, estado, solicitar, descartarAviso } = useUbicacion();
     const [cercaniaActiva, setCercaniaActiva] = useState(false);
     const ordenarPorCercania = cercaniaActiva && estado === "listo" && ubicacion !== null;
 
@@ -424,19 +424,11 @@ function MovieDetailPage() {
                     </div>
                 ) : (
                     <>
-                        {estado === "denegado" && (
-                            <p className="aviso-cercania">
-                                No pudimos acceder a tu ubicación. Habilita el
-                                permiso en tu navegador para ordenar por
-                                cercanía.
-                            </p>
-                        )}
-                        {estado === "error" && (
-                            <p className="aviso-cercania">
-                                No se pudo obtener tu ubicación. Intenta
-                                nuevamente.
-                            </p>
-                        )}
+                        <AvisoUbicacion
+                            estado={estado}
+                            onCerrar={descartarAviso}
+                            className="detalle-aviso-ubicacion"
+                        />
                         <div className="lista-cines">
                             {gruposFiltrados.map(
                                 ({ cine, horarios: sesiones, distancia }) => {

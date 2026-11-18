@@ -151,10 +151,8 @@
     stroke: #181316;
 }
 
-.aviso-cercania {
-    color: #b1b1b8;
-    font-size: 0.85rem;
-    margin: -8px 0 0;
+.cines-aviso-ubicacion {
+    margin-top: -8px;
 }
 
 .cines-comunas-selector {
@@ -487,13 +485,13 @@
     font-size: 1.5rem;
 }
 
-.cines-loading, .cines-error, .cines-empty {
+.cines-loading, .cines-empty {
     padding: 48px 16px;
     text-align: center;
     color: #a1a1aa;
 }
 
-.cines-loading p, .cines-error p {
+.cines-loading p {
     font-size: 0.9rem;
 }
 

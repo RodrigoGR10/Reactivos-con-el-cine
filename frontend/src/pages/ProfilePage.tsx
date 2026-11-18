@@ -10,6 +10,7 @@ import {
   CalendarIcon,
 } from "../components/common/Icons";
 import { TarjetaCine } from "../components/cines/TarjetaCine";
+import { Mensaje } from "../components/common/Mensaje";
 import peliculasService from "../services/peliculas";
 import cinesService from "../services/cines";
 import { normalizarTexto } from "../utils/normalizarTexto";
@@ -200,9 +201,12 @@ const ProfilePage = () => {
           </div>
         ) : error ? (
           <div className="content-area">
-            <div className="empty-state-ultra" role="alert">
-              <p>{error}</p>
-            </div>
+            <Mensaje
+              tipo="error"
+              embebido
+              titulo="Error al cargar favoritos"
+              texto={error}
+            />
           </div>
         ) : (
           <>
