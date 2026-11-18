@@ -18,7 +18,7 @@
 }
 
 .detalle-estado-alerta {
-  color: #f87171;
+  color: var(--color-acento);
   font-weight: 500;
 }
 

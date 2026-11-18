@@ -101,7 +101,7 @@
 }
 
 .tarjeta-funcion-agotada-texto {
-  color: #f87171;
+  color: var(--color-acento);
   font-weight: 600;
 }
 
