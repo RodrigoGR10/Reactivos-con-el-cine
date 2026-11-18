@@ -47,7 +47,6 @@ function BuscadorPeliculas({
                         type="button"
                         className="borrar-busqueda-peliculas"
                         aria-label="Borrar búsqueda"
-                        title="Borrar búsqueda"
                         onClick={() => {
                             onBusquedaChange("");
                             inputRef.current?.focus();

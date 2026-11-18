@@ -30,6 +30,10 @@
   color: #a1a1aa;
 }
 
+.btn-consultar-tooltip-wrap {
+  display: inline-flex;
+}
+
 .btn-consultar-detalle {
   background: transparent;
   color: #d4d4d8;
@@ -44,6 +48,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -87,8 +92,12 @@
     text-align: left;
   }
 
+  .btn-consultar-tooltip-wrap,
   .btn-consultar-detalle {
     width: 100%;
+  }
+
+  .btn-consultar-detalle {
     min-height: 44px;
   }
 }
