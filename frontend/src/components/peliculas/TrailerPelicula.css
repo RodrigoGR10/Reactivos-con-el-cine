@@ -1,69 +1,56 @@
 .trailer-detalle {
-  display: grid;
-  gap: 14px;
   width: 100%;
   min-width: 0;
-  margin: 0 0 48px;
-  padding-bottom: 28px;
-  border-bottom: 1px solid var(--color-borde);
+  margin: 0 0 40px;
   letter-spacing: 0;
 }
 
-.trailer-acordeon {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 48px;
-  padding: 10px 14px;
-  color: var(--color-texto);
+.trailer-acordeon-raiz .mantine-Accordion-item {
   background: var(--color-superficie);
   border: 1px solid var(--color-borde);
   border-radius: 8px;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
   transition: border-color 160ms ease, background-color 160ms ease;
 }
 
-.trailer-acordeon > span:first-child {
+.trailer-acordeon-raiz .mantine-Accordion-item:hover,
+.trailer-acordeon-raiz .mantine-Accordion-item[data-active] {
+  border-color: var(--color-acento);
+}
+
+.trailer-acordeon-raiz .mantine-Accordion-item[data-active] .mantine-Accordion-control {
+  background: var(--color-superficie-clara);
+  border-radius: 8px 8px 0 0;
+}
+
+.trailer-acordeon-raiz .mantine-Accordion-control {
+  min-height: 48px;
+  padding: 10px 14px;
+  color: var(--color-texto);
+  border-radius: 8px;
+  transition: background-color 160ms ease;
+}
+
+.trailer-acordeon-raiz .mantine-Accordion-control:hover {
+  background: var(--color-superficie-clara);
+}
+
+.trailer-acordeon-raiz .mantine-Accordion-chevron {
+  color: var(--color-texto-secundario);
+}
+
+.trailer-acordeon-titulo {
   font-size: 0.95rem;
   font-weight: 700;
 }
 
-.trailer-acordeon:hover,
-.trailer-acordeon[aria-expanded="true"] {
-  background: var(--color-superficie-clara);
-  border-color: var(--color-acento);
-}
-
-.trailer-acordeon > svg {
-  flex-shrink: 0;
-  margin-left: auto;
-  color: var(--color-texto-secundario);
-  transform: rotate(90deg);
-  transition: transform 160ms ease;
-}
-
-.trailer-acordeon[aria-expanded="true"] > svg {
-  transform: rotate(-90deg);
-}
-
-.trailer-version {
-  padding: 4px 9px;
-  color: var(--color-texto-secundario);
-  border: 1px solid var(--color-borde);
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.2;
+.trailer-acordeon-raiz .mantine-Accordion-content {
+  padding: 14px;
 }
 
 .trailer-contenido {
   display: grid;
   gap: 14px;
   min-width: 0;
-  animation: trailer-aparecer 160ms ease-out;
 }
 
 .trailer-encabezado {
@@ -191,40 +178,23 @@
   margin: 0;
 }
 
-.trailer-error button {
-  padding: 10px 16px;
-  color: var(--color-texto);
-  background: var(--color-acento);
-  border: 1px solid var(--color-acento);
-  border-radius: 6px;
-  font: inherit;
-  cursor: pointer;
-}
-
 .trailer-detalle :focus-visible {
   outline: 2px solid var(--color-acento);
   outline-offset: 3px;
 }
 
-@keyframes trailer-aparecer {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 @media (max-width: 600px) {
   .trailer-detalle {
-    margin-bottom: 32px;
-    padding-bottom: 22px;
+    margin-bottom: 28px;
   }
 
-  .trailer-acordeon {
+  .trailer-acordeon-raiz .mantine-Accordion-control {
     min-height: 48px;
     padding-inline: 12px;
   }
 
-  .trailer-version {
-    padding: 4px 7px;
-    font-size: 0.68rem;
+  .trailer-acordeon-raiz .mantine-Accordion-content {
+    padding: 12px;
   }
 
   .trailer-play {
@@ -239,12 +209,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .trailer-acordeon,
-  .trailer-acordeon > svg,
+  .trailer-acordeon-raiz .mantine-Accordion-item,
+  .trailer-acordeon-raiz .mantine-Accordion-control,
+  .trailer-acordeon-raiz .mantine-Accordion-chevron,
   .trailer-portada img,
-  .trailer-play,
-  .trailer-contenido {
+  .trailer-play {
     transition: none;
-    animation: none;
   }
 }
