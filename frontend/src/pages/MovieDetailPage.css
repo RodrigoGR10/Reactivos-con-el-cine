@@ -54,7 +54,8 @@
 }
 
 .poster-detalle img,
-.poster-detalle-placeholder {
+.poster-detalle-placeholder,
+.poster-detalle-skeleton {
     display: block;
     width: 100%;
     aspect-ratio: 2 / 2.95;
@@ -187,6 +188,12 @@
 }
 
 /* Filtros de la cartelera */
+.fechas-skeleton-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .cartelera-cine-filtros {
     display: flex;
     flex-direction: column;

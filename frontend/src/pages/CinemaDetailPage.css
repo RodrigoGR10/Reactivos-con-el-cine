@@ -78,6 +78,8 @@
     display: flex;
     align-items: center;
     gap: 22px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .detalle-cine-logo-wrap {
@@ -115,6 +117,7 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+    min-width: 0;
 }
 
 .detalle-cine-etiqueta {
@@ -220,6 +223,12 @@
 }
 
 /* Filtros de la cartelera */
+.fechas-skeleton-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .detalle-cine-page .cartelera-cine-filtros {
     display: flex;
     flex-direction: column;
@@ -452,8 +461,7 @@
     margin-top: 2px;
 }
 
-/* Estados vacíos y carga */
-.detalle-cine-loading,
+/* Estados vacíos */
 .cartelera-cine-empty {
     background-color: #121212;
     border: 1px solid #202020;
@@ -464,7 +472,6 @@
     box-sizing: border-box;
 }
 
-.detalle-cine-loading p,
 .cartelera-cine-empty p {
     margin: 0;
     font-size: 0.95rem;
