@@ -1,8 +1,9 @@
-import type { MouseEvent, ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { NavLink, useLocation, useMatch } from "react-router-dom";
-import { Tooltip } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { Alert, Button, Group, Modal, Text, Tooltip } from "@mantine/core";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import {
+  AlertCircleIcon,
   HomeIcon,
   TicketIcon,
   UserIcon,
@@ -77,6 +78,33 @@ function Sidebar() {
   const { user, logout, openAuthModal } = useAuth();
   const location = useLocation();
   const esMovil = useMediaQuery("(max-width: 560px)") ?? false;
+  const [confirmarSalida, { open: abrirConfirmacion, close: cerrarConfirmacion }] =
+    useDisclosure(false);
+  const [cerrandoSesion, setCerrandoSesion] = useState(false);
+  const [errorLogout, setErrorLogout] = useState<string | null>(null);
+
+  const manejarCerrarConfirmacion = () => {
+    if (cerrandoSesion) return;
+    cerrarConfirmacion();
+  };
+
+  const confirmarCerrarSesion = async () => {
+    if (cerrandoSesion) return;
+    setErrorLogout(null);
+    setCerrandoSesion(true);
+    try {
+      await logout();
+      cerrarConfirmacion();
+    } catch (error: unknown) {
+      setErrorLogout(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cerrar la sesión.",
+      );
+    } finally {
+      setCerrandoSesion(false);
+    }
+  };
 
   const manejarClicVista =
     (ruta: string) => (evento: MouseEvent<HTMLAnchorElement>) => {
@@ -95,64 +123,129 @@ function Sidebar() {
   };
 
   return (
-    <Tooltip.Group openDelay={200} closeDelay={80}>
-      <aside className="sidebar" aria-label="Navegación principal">
-        <div className="sidebar-top">
-          <div className="sidebar-logo">
-            <img
-              src="/logo.jpg"
-              alt="Reactivos con el Cine"
-              className="sidebar-logo-img"
-            />
+    <>
+      <Tooltip.Group openDelay={200} closeDelay={80}>
+        <aside className="sidebar" aria-label="Navegación principal">
+          <div className="sidebar-top">
+            <div className="sidebar-logo">
+              <img
+                src="/logo.jpg"
+                alt="Reactivos con el Cine"
+                className="sidebar-logo-img"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="sidebar-mid">
-          {NAV_ITEMS.map((item) => (
-            <SidebarNavLink
-              key={item.to}
-              item={item}
-              tooltipProps={tooltipProps}
-              onClick={manejarClicVista(item.to)}
-            />
-          ))}
-        </div>
+          <div className="sidebar-mid">
+            {NAV_ITEMS.map((item) => (
+              <SidebarNavLink
+                key={item.to}
+                item={item}
+                tooltipProps={tooltipProps}
+                onClick={manejarClicVista(item.to)}
+              />
+            ))}
+          </div>
 
-        <div className="sidebar-bottom">
-          {user ? (
-            <Tooltip label="Cerrar sesión" {...tooltipProps}>
-              <button
-                type="button"
-                className="sidebar-btn"
-                aria-label="Cerrar sesión"
-                onClick={() => {
-                  logout().catch((error: unknown) => {
-                    window.alert(
-                      error instanceof Error
-                        ? error.message
-                        : "No se pudo cerrar la sesión.",
-                    );
-                  });
-                }}
-              >
-                <LogOutIcon size={26} />
-              </button>
-            </Tooltip>
-          ) : (
-            <Tooltip label="Iniciar sesión" {...tooltipProps}>
-              <button
-                type="button"
-                className="sidebar-btn"
-                aria-label="Iniciar sesión"
-                onClick={openAuthModal}
-              >
-                <LogInIcon size={26} />
-              </button>
-            </Tooltip>
-          )}
-        </div>
-      </aside>
-    </Tooltip.Group>
+          <div className="sidebar-bottom">
+            {user ? (
+              <Tooltip label="Cerrar sesión" {...tooltipProps}>
+                <button
+                  type="button"
+                  className="sidebar-btn"
+                  aria-label="Cerrar sesión"
+                  onClick={() => {
+                    setErrorLogout(null);
+                    abrirConfirmacion();
+                  }}
+                >
+                  <LogOutIcon size={26} />
+                </button>
+              </Tooltip>
+            ) : (
+              <Tooltip label="Iniciar sesión" {...tooltipProps}>
+                <button
+                  type="button"
+                  className="sidebar-btn"
+                  aria-label="Iniciar sesión"
+                  onClick={openAuthModal}
+                >
+                  <LogInIcon size={26} />
+                </button>
+              </Tooltip>
+            )}
+          </div>
+        </aside>
+      </Tooltip.Group>
+
+      <Modal
+        opened={confirmarSalida}
+        onClose={manejarCerrarConfirmacion}
+        centered
+        size={390}
+        padding={0}
+        zIndex={1200}
+        shadow="none"
+        title="¿Cerrar sesión?"
+        closeButtonProps={{ "aria-label": "Cerrar confirmación" }}
+        closeOnClickOutside={!cerrandoSesion}
+        closeOnEscape={!cerrandoSesion}
+        withCloseButton={!cerrandoSesion}
+        returnFocus
+        overlayProps={{ color: "#000", backgroundOpacity: 0.48, blur: 3 }}
+        transitionProps={{
+          transition: "pop",
+          duration: 200,
+          exitDuration: 150,
+        }}
+        onExitTransitionEnd={() => setErrorLogout(null)}
+        classNames={{
+          content: "modal-confirmacion-contenido",
+          header: "modal-confirmacion-header",
+          title: "modal-confirmacion-titulo",
+          close: "modal-confirmacion-cerrar",
+          body: "modal-confirmacion-cuerpo",
+        }}
+      >
+        <Text size="sm" c="var(--color-texto-secundario)">
+          Tendrás que volver a iniciar sesión para guardar o ver tus cines y
+          películas favoritas.
+        </Text>
+
+        {errorLogout && (
+          <Alert
+            variant="light"
+            color="cine"
+            radius="md"
+            icon={<AlertCircleIcon size={18} />}
+            role="alert"
+            className="modal-confirmacion-alerta"
+          >
+            {errorLogout}
+          </Alert>
+        )}
+
+        <Group justify="flex-end" gap="sm" mt={20}>
+          <Button
+            type="button"
+            variant="default"
+            data-autofocus
+            disabled={cerrandoSesion}
+            onClick={manejarCerrarConfirmacion}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            color="cine"
+            loading={cerrandoSesion}
+            onClick={confirmarCerrarSesion}
+          >
+            Cerrar sesión
+          </Button>
+        </Group>
+      </Modal>
+    </>
   );
 }
 

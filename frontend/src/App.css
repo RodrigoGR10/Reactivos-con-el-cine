@@ -1283,3 +1283,62 @@ body {
         display: none;
     }
 }
+
+.modal-confirmacion-contenido {
+    padding: 20px 22px 22px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 14px;
+    color: var(--color-texto);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+}
+
+.modal-confirmacion-header {
+    min-height: auto;
+    margin-bottom: 10px;
+    padding: 0;
+    background: transparent;
+}
+
+.modal-confirmacion-titulo {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-texto);
+}
+
+.modal-confirmacion-cerrar {
+    width: 30px;
+    height: 30px;
+    color: var(--color-texto-secundario);
+    border-radius: 6px;
+}
+
+.modal-confirmacion-cerrar:hover {
+    color: var(--color-texto);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.modal-confirmacion-cerrar:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+}
+
+.modal-confirmacion-cuerpo {
+    padding: 0;
+}
+
+.modal-confirmacion-alerta.mantine-Alert-root {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: #141214;
+    border: 1px solid rgba(204, 18, 11, 0.34);
+    color: var(--color-texto);
+}
+
+.modal-confirmacion-alerta .mantine-Alert-icon {
+    color: var(--color-acento);
+}
+
+.modal-confirmacion-alerta .mantine-Alert-message {
+    color: var(--color-texto);
+}
