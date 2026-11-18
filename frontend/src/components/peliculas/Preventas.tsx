@@ -1,34 +1,37 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { Pelicula } from "../../types/types";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { paginacionCarrusel, tarjetasPreventaVisibles } from "../../utils/paginacionCarrusel";
 import { ChevronLeftIcon, ChevronRightIcon } from "../common/Icons";
 import TarjetaPelicula from "./TarjetaPelicula";
 import "./Preventas.css";
 
-const esMovil = () => window.matchMedia("(max-width: 560px)").matches;
-
 function Preventas({ peliculas }: { peliculas: Pelicula[] }) {
+  const esMovil = useMediaQuery("(max-width: 560px)");
   const [pagina, setPagina] = useState(0);
-  const [visibles, setVisibles] = useState(() => tarjetasPreventaVisibles(window.innerWidth, esMovil()));
+  const [visibles, setVisibles] = useState(() =>
+    tarjetasPreventaVisibles(window.innerWidth, false),
+  );
   const seccionRef = useRef<HTMLElement>(null);
   const inicioToque = useRef<{ x: number; y: number } | null>(null);
   const { pagina: paginaActual, ultimaPagina, posicion: actual, desde, hasta } = paginacionCarrusel(peliculas.length, visibles, pagina);
 
   useEffect(() => {
+    if (esMovil) return;
     const seccion = seccionRef.current;
     if (!seccion) return;
     const observador = new ResizeObserver(([entrada]) => {
-      setVisibles(tarjetasPreventaVisibles(entrada.contentRect.width, esMovil()));
+      setVisibles(tarjetasPreventaVisibles(entrada.contentRect.width, false));
     });
     observador.observe(seccion);
     return () => observador.disconnect();
-  }, []);
+  }, [esMovil]);
 
   const mover = (paso: number) => setPagina(Math.max(0, Math.min(ultimaPagina, paginaActual + paso)));
 
   return (
-    <section ref={seccionRef} className="seccion-preventas" aria-labelledby="titulo-preventas" aria-roledescription="carrusel" onKeyDown={(event) => {
-      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    <section ref={seccionRef} className="seccion-preventas" aria-labelledby="titulo-preventas" aria-roledescription={esMovil ? undefined : "carrusel"} onKeyDown={(event) => {
+      if (!esMovil && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
         event.preventDefault();
         mover(event.key === "ArrowLeft" ? -1 : 1);
       }
@@ -39,19 +42,32 @@ function Preventas({ peliculas }: { peliculas: Pelicula[] }) {
           <h2 id="titulo-preventas">Preventa</h2>
         </div>
         {peliculas.length > 0 && (
-          <div className="navegacion-preventas">
-            <p className="estado-preventas" role="status">{desde}–{hasta} <span>de {peliculas.length}</span></p>
-            {ultimaPagina > 0 && (
-              <div className="controles-preventas" role="group" aria-label="Navegar preventas">
-                <button type="button" aria-label="Ver preventas anteriores" title="Anteriores" aria-controls="fila-preventas" disabled={paginaActual === 0} onClick={() => mover(-1)}><ChevronLeftIcon /></button>
-                <button type="button" aria-label="Ver siguientes preventas" title="Siguientes" aria-controls="fila-preventas" disabled={paginaActual === ultimaPagina} onClick={() => mover(1)}><ChevronRightIcon /></button>
-              </div>
-            )}
-          </div>
+          esMovil ? (
+            <p aria-live="polite">
+              {peliculas.length}{" "}
+              {peliculas.length === 1 ? "película" : "películas"}
+            </p>
+          ) : (
+            <div className="navegacion-preventas">
+              <p className="estado-preventas" role="status">{desde}–{hasta} <span>de {peliculas.length}</span></p>
+              {ultimaPagina > 0 && (
+                <div className="controles-preventas" role="group" aria-label="Navegar preventas">
+                  <button type="button" aria-label="Ver preventas anteriores" title="Anteriores" aria-controls="fila-preventas" disabled={paginaActual === 0} onClick={() => mover(-1)}><ChevronLeftIcon /></button>
+                  <button type="button" aria-label="Ver siguientes preventas" title="Siguientes" aria-controls="fila-preventas" disabled={paginaActual === ultimaPagina} onClick={() => mover(1)}><ChevronRightIcon /></button>
+                </div>
+              )}
+            </div>
+          )
         )}
       </div>
       {peliculas.length === 0 ? (
         <p className="sin-resultados" role="status">No hay preventas que coincidan con tu búsqueda y filtros.</p>
+      ) : esMovil ? (
+        <div className="cinta-peliculas">
+          {peliculas.map((pelicula) => (
+            <TarjetaPelicula key={pelicula.id} pelicula={pelicula} />
+          ))}
+        </div>
       ) : (
         <div className="carrusel-preventas">
           <div className="ventana-preventas"
