@@ -528,19 +528,26 @@ function MovieDetailPage() {
                                         >
                                             <div className="cabecera-cine">
                                                 <div className="cabecera-cine-left">
-                                                    <div
-                                                        className="logo-cine"
-                                                        data-origen={cine.origen}
+                                                    <Link
+                                                        to={`/cines/${cine.id}`}
+                                                        className="logo-cine-link"
+                                                        tabIndex={-1}
+                                                        aria-hidden="true"
                                                     >
-                                                        {logoCine ? (
-                                                            <img
-                                                                src={logoCine}
-                                                                alt={`Logo de ${cine.nombre}`}
-                                                            />
-                                                        ) : (
-                                                            <span>🎬</span>
-                                                        )}
-                                                    </div>
+                                                        <div
+                                                            className="logo-cine"
+                                                            data-origen={cine.origen}
+                                                        >
+                                                            {logoCine ? (
+                                                                <img
+                                                                    src={logoCine}
+                                                                    alt=""
+                                                                />
+                                                            ) : (
+                                                                <span>🎬</span>
+                                                            )}
+                                                        </div>
+                                                    </Link>
 
                                                     <div className="nombre-cine">
                                                         <strong>

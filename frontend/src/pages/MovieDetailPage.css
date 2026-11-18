@@ -365,6 +365,19 @@
     color: var(--color-acento);
 }
 
+.enlace-cine-detalle:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.logo-cine-link {
+    display: inline-flex;
+    flex-shrink: 0;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
 .logo-cine {
     position: relative;
     display: grid;
@@ -376,6 +389,11 @@
 
     background: #ffffff;
     border-radius: 10px;
+    transition: transform 0.2s ease;
+}
+
+.logo-cine-link:hover .logo-cine {
+    transform: scale(1.03);
 }
 
 .logo-cine[data-origen="cinestar"] {
@@ -453,5 +471,16 @@
 
     .contenido-detalle h1 {
         font-size: 2.8rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .logo-cine,
+    .enlace-cine-detalle {
+        transition: none;
+    }
+
+    .logo-cine-link:hover .logo-cine {
+        transform: none;
     }
 }
