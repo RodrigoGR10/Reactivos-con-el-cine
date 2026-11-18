@@ -56,8 +56,9 @@ function obtenerNivelDisponibilidad(
   if (!totalValido) return "sin-total";
 
   const ocupacion = ((totalValido - disponibles) / totalValido) * 100;
-  if (ocupacion >= 85) return "baja";
-  if (ocupacion >= 60) return "media";
+  // En salas de cine el ultimo ~25% suele corresponder a filas delanteras y bordes.
+  if (ocupacion >= 75) return "baja";
+  if (ocupacion >= 50) return "media";
   return "alta";
 }
 
