@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { Alert, Badge, Button } from "@mantine/core";
 import type { Cine } from "../../types/types";
 import cinesService from "../../services/cines";
 import recomendacionesService, { type FuncionRecomendacion } from "../../services/recomendaciones";
+import { AlertCircleIcon } from "../common/Icons";
 import { SelectorUnico, type OpcionFiltro } from "../common/SelectorMultiple";
 import { obtenerComunas } from "../../utils/agruparCines";
 import { normalizarTexto } from "../../utils/normalizarTexto";
@@ -43,7 +45,7 @@ function mostrarFechaHora(fechaHora: string): string {
 }
 
 function RecomendadorPeliculas() {
-  const inicial = useMemo(fechaYHoraInicial, []);
+  const inicial = useMemo(() => fechaYHoraInicial(), []);
   const [fecha, setFecha] = useState(inicial.fecha);
   const [hora, setHora] = useState(inicial.hora);
   const [tipoUbicacion, setTipoUbicacion] = useState<TipoUbicacion>("comuna");
@@ -151,6 +153,7 @@ function RecomendadorPeliculas() {
             etiquetaVacia="Selecciona dónde buscar"
             ariaLabelPrefijo="Buscar por"
             mostrarCantidad={false}
+            deseleccionable={false}
           />
         </div>
         <div className="recomendador-campo">
@@ -170,19 +173,60 @@ function RecomendadorPeliculas() {
             disabled={cinesCargando || Boolean(cinesError)}
           />
         </div>
-        <button className="recomendador-boton" type="submit" disabled={cinesCargando || Boolean(cinesError) || cargando || !ubicacion}>
+        <Button
+          type="submit"
+          color="cine"
+          radius={10}
+          h={46}
+          px={18}
+          fz="1rem"
+          fw={700}
+          loading={cargando}
+          disabled={cinesCargando || Boolean(cinesError) || !ubicacion}
+          className="recomendador-boton"
+        >
           {cargando ? "Buscando..." : "Recomiéndame películas"}
-        </button>
+        </Button>
       </form>
 
-      {cinesError && <p className="recomendador-mensaje error" role="alert">{cinesError}</p>}
-      {error && <p className="recomendador-mensaje" role="status">{error}</p>}
+      {cinesError && (
+        <Alert
+          variant="light"
+          color="cine"
+          radius="md"
+          icon={<AlertCircleIcon size={18} />}
+          role="alert"
+          className="recomendador-alerta recomendador-alerta--error"
+        >
+          {cinesError}
+        </Alert>
+      )}
+      {error && (
+        <Alert
+          variant="default"
+          radius="md"
+          role="status"
+          className="recomendador-alerta"
+        >
+          {error}
+        </Alert>
+      )}
 
       {resultados.length > 0 && (
         <div className="recomendador-resultados" aria-live="polite">
           <div className="recomendador-resultados-encabezado">
             <p>{resultados.length} {resultados.length === 1 ? "opción al azar" : "opciones al azar"}</p>
-            {candidatas.length > resultados.length && <button type="button" onClick={() => recomendar(candidatas)}>Probar otra selección</button>}
+            {candidatas.length > resultados.length && (
+              <Button
+                type="button"
+                variant="default"
+                radius="md"
+                size="sm"
+                onClick={() => recomendar(candidatas)}
+              >
+                Probar otra selección
+              </Button>
+            )}
           </div>
           <div className="recomendador-grilla">
             {resultados.map(({ peliculaId, funcion, comuna }) => {
@@ -199,7 +243,15 @@ function RecomendadorPeliculas() {
                       : <span>🎬</span>}
                   </span>
                   <span className="recomendador-detalle">
-                    <span className="recomendador-etiqueta">Sugerencia al azar</span>
+                    <Badge
+                      size="xs"
+                      variant="light"
+                      color="cine"
+                      radius="sm"
+                      className="recomendador-etiqueta"
+                    >
+                      Sugerencia al azar
+                    </Badge>
                     <span className="recomendador-titulo">{funcion.peliculaTitulo}</span>
                     <span className="recomendador-cine">{funcion.cineNombre}</span>
                     <span className="recomendador-comuna">{comuna}</span>

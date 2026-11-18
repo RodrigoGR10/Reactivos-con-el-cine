@@ -528,6 +528,7 @@ interface SelectorUnicoProps {
     placeholderBusqueda?: string;
     mensajeVacio?: string;
     mostrarCantidad?: boolean;
+    deseleccionable?: boolean;
 }
 
 function ListaOpcionesUnico({
@@ -543,6 +544,7 @@ function ListaOpcionesUnico({
     placeholderBusqueda = "Buscar...",
     mensajeVacio = "No se encontraron opciones.",
     mostrarCantidad = true,
+    deseleccionable = true,
 }: {
     titulo: string;
     opciones: OpcionFiltro[];
@@ -556,6 +558,7 @@ function ListaOpcionesUnico({
     placeholderBusqueda?: string;
     mensajeVacio?: string;
     mostrarCantidad?: boolean;
+    deseleccionable?: boolean;
 }) {
     return (
         <>
@@ -578,7 +581,9 @@ function ListaOpcionesUnico({
                             role="option"
                             aria-selected={activa}
                             className={`cines-comuna-opcion selector-unico-opcion ${activa ? "activo" : ""}`}
-                            onClick={() => onElegir(activa ? "" : opcion.valor)}
+                            onClick={() =>
+                                onElegir(activa && deseleccionable ? "" : opcion.valor)
+                            }
                         >
                             <span className="selector-unico-radio" aria-hidden="true" />
                             <span>{opcion.nombre}</span>
@@ -614,6 +619,7 @@ export function SelectorUnico({
     placeholderBusqueda = "Buscar...",
     mensajeVacio = "No se encontraron opciones.",
     mostrarCantidad = true,
+    deseleccionable = true,
 }: SelectorUnicoProps) {
     const grupo = useContext(GrupoFiltrosContext);
     const filtroId = useId();
@@ -622,10 +628,10 @@ export function SelectorUnico({
     const buscador = useRef<HTMLInputElement>(null);
     const [abierto, { close, toggle }] = useDisclosure(false);
 
-    const estadoRef = useRef({ borrador, seleccionada, onChange });
+    const estadoRef = useRef({ borrador, seleccionada, onChange, deseleccionable });
     useEffect(() => {
-        estadoRef.current = { borrador, seleccionada, onChange };
-    }, [borrador, seleccionada, onChange]);
+        estadoRef.current = { borrador, seleccionada, onChange, deseleccionable };
+    }, [borrador, seleccionada, onChange, deseleccionable]);
 
     useEffect(() => {
         if (!grupo) return;
@@ -642,6 +648,7 @@ export function SelectorUnico({
                 }
             },
             clear: () => {
+                if (!estadoRef.current.deseleccionable) return;
                 estadoRef.current = { ...estadoRef.current, borrador: "" };
                 setBorrador("");
             },
@@ -675,6 +682,7 @@ export function SelectorUnico({
                     placeholderBusqueda={placeholderBusqueda}
                     mensajeVacio={mensajeVacio}
                     mostrarCantidad={mostrarCantidad}
+                    deseleccionable={deseleccionable}
                 />
             </SeccionAcordeon>
         );
@@ -701,7 +709,7 @@ export function SelectorUnico({
                 opciones={visibles}
                 seleccionada={seleccionada}
                 onElegir={(valor) => {
-                    onChange(valor);
+                    if (valor !== seleccionada) onChange(valor);
                     setBusqueda("");
                     close();
                 }}
@@ -712,8 +720,9 @@ export function SelectorUnico({
                 placeholderBusqueda={placeholderBusqueda}
                 mensajeVacio={mensajeVacio}
                 mostrarCantidad={mostrarCantidad}
+                deseleccionable={deseleccionable}
             />
-            {Boolean(seleccionada) && (
+            {deseleccionable && Boolean(seleccionada) && (
                 <div className="cines-comunas-panel-footer">
                     <button
                         type="button"

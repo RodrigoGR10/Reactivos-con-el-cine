@@ -95,48 +95,44 @@
 }
 
 .recomendador .cines-comunas-trigger:hover:not(:disabled),
-.recomendador .cines-comunas-trigger[aria-expanded="true"],
-.recomendador .cines-comunas-trigger.activo {
+.recomendador .cines-comunas-trigger[aria-expanded="true"] {
   color: var(--color-texto);
   background: var(--color-superficie-clara);
   border-color: var(--color-acento);
 }
 
-.recomendador-boton {
-  min-height: 46px;
-  padding: 0 18px;
+.recomendador .cines-comunas-trigger.activo:not(:hover):not([aria-expanded="true"]) {
   color: var(--color-texto);
-  background: var(--color-acento);
-  border: 1px solid var(--color-acento);
-  border-radius: 10px;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease;
+  background: var(--color-superficie-clara);
+  border-color: var(--color-borde);
 }
 
-.recomendador-boton:hover:not(:disabled) {
-  background: var(--color-acento-oscuro);
-  border-color: var(--color-acento-oscuro);
+.recomendador-alerta.mantine-Alert-root {
+  margin-top: 18px;
 }
 
-.recomendador-boton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.recomendador-mensaje {
-  margin: 18px 0 0;
-  padding: 12px 14px;
+.recomendador-alerta:not(.recomendador-alerta--error).mantine-Alert-root {
+  background: var(--color-superficie-clara);
+  border-color: var(--color-borde);
   color: var(--color-texto-secundario);
-  background: var(--color-superficie-clara);
-  border: 1px solid var(--color-borde);
-  border-radius: 8px;
 }
 
-.recomendador-mensaje.error {
+.recomendador-alerta:not(.recomendador-alerta--error) .mantine-Alert-message {
+  color: var(--color-texto-secundario);
+}
+
+.recomendador-alerta--error.mantine-Alert-root {
+  background: #141214;
+  border: 1px solid rgba(204, 18, 11, 0.34);
   color: var(--color-texto);
-  border-color: var(--color-acento);
+}
+
+.recomendador-alerta--error .mantine-Alert-icon {
+  color: var(--color-acento);
+}
+
+.recomendador-alerta--error .mantine-Alert-message {
+  color: var(--color-texto);
 }
 
 .recomendador-resultados {
@@ -155,16 +151,6 @@
   margin: 0;
   color: var(--color-texto-secundario);
   font-size: 0.9rem;
-}
-
-.recomendador-resultados-encabezado button {
-  padding: 8px 12px;
-  color: var(--color-texto);
-  background: var(--color-superficie-clara);
-  border: 1px solid var(--color-borde);
-  border-radius: 8px;
-  font: inherit;
-  cursor: pointer;
 }
 
 .recomendador-grilla {
@@ -222,13 +208,9 @@
   padding: 14px 14px 14px 0;
 }
 
-.recomendador-etiqueta {
+.recomendador-etiqueta.mantine-Badge-root {
   margin-bottom: 6px;
-  color: var(--color-acento);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .recomendador-titulo {
