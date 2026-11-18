@@ -11,8 +11,10 @@ import { AvisoUbicacion, Mensaje } from "../components/common/Mensaje";
 import {
     BotonCercania,
     ChipsFiltrosActivos,
+    GrupoFiltros,
     SelectorMultiple,
 } from "../components/common/SelectorMultiple";
+import { useEsMovilFiltros } from "../hooks/useEsMovilFiltros";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import { TarjetaCine, TarjetaCineSkeleton } from "../components/cines/TarjetaCine";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
@@ -42,6 +44,7 @@ function CinemasPage() {
     const [busqueda, setBusqueda] = useState("");
     const [comunasSeleccionadas, setComunasSeleccionadas] = useState<string[]>([]);
     const [cadenasSeleccionadas, setCadenasSeleccionadas] = useState<string[]>([]);
+    const esMovil = useEsMovilFiltros();
 
     useEffect(() => {
         let activo = true;
@@ -128,7 +131,9 @@ function CinemasPage() {
             </header>
 
             <section className="cines-filtros" aria-label="Búsqueda y filtros de cines">
-                <div className="herramientas-cartelera">
+                <div
+                    className={`herramientas-cartelera ${esMovil ? "herramientas-cartelera--movil" : ""}`.trim()}
+                >
                     <BuscadorPeliculas
                         busqueda={busqueda}
                         onBusquedaChange={setBusqueda}
@@ -136,23 +141,29 @@ function CinemasPage() {
                         placeholder="Buscar cines..."
                     />
                     <div className="filtros-cartelera-selectores">
-                        <SelectorMultiple
-                            className="cines-cadenas-selector"
-                            posicion="bottom-start"
-                            opciones={cadenas}
-                            seleccionadas={cadenasSeleccionadas}
-                            onChange={setCadenasSeleccionadas}
-                            titulo="Cadenas"
-                            etiquetaTodas="Cadenas"
-                            etiquetaPlural="cadenas"
-                            etiquetaSingular="1 cadena"
-                            ariaLabelPrefijo="Filtrar por cadenas"
-                            disabled={cadenas.length === 0}
-                        />
-                        <SelectorComunas opciones={comunas} seleccionadas={comunasSeleccionadas} onChange={setComunasSeleccionadas} />
+                        <GrupoFiltros
+                            cantidadActivos={chipsFiltros.length}
+                            disabled={cadenas.length === 0 && comunas.length === 0}
+                        >
+                            <SelectorMultiple
+                                className="cines-cadenas-selector"
+                                posicion="bottom-start"
+                                opciones={cadenas}
+                                seleccionadas={cadenasSeleccionadas}
+                                onChange={setCadenasSeleccionadas}
+                                titulo="Cadenas"
+                                etiquetaTodas="Cadenas"
+                                etiquetaPlural="cadenas"
+                                etiquetaSingular="1 cadena"
+                                ariaLabelPrefijo="Filtrar por cadenas"
+                                disabled={cadenas.length === 0}
+                            />
+                            <SelectorComunas opciones={comunas} seleccionadas={comunasSeleccionadas} onChange={setComunasSeleccionadas} />
+                        </GrupoFiltros>
                         <BotonCercania
                             activo={ordenarPorCercania}
                             cargando={estado === "cargando"}
+                            compacto={esMovil}
                             tituloInactivo="Ordenar por cercanía"
                             onToggle={() => {
                                 if (ordenarPorCercania) {

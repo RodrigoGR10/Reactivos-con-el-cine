@@ -13,10 +13,12 @@ import { SelectorFechas } from "../components/funciones/SelectorFechas";
 import {
     BotonCercania,
     ChipsFiltrosActivos,
+    GrupoFiltros,
     SelectorMultiple,
     SelectorUnico,
     type ChipFiltroActivo,
 } from "../components/common/SelectorMultiple";
+import { useEsMovilFiltros } from "../hooks/useEsMovilFiltros";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
 import { TrailerPelicula } from "../components/peliculas/TrailerPelicula";
@@ -73,6 +75,7 @@ function MovieDetailPage() {
     const [busqueda, setBusqueda] = useState("");
     const [comunasSeleccionadas, setComunasSeleccionadas] = useState<string[]>([]);
     const [cadenasSeleccionadas, setCadenasSeleccionadas] = useState<string[]>([]);
+    const esMovil = useEsMovilFiltros();
 
     useEffect(() => {
         if (
@@ -397,7 +400,9 @@ function MovieDetailPage() {
                 {/* Filtros de la cartelera */}
                 {horarios.length > 0 && (
                     <div className="cartelera-cine-filtros">
-                        <div className="herramientas-cartelera">
+                        <div
+                            className={`herramientas-cartelera ${esMovil ? "herramientas-cartelera--movil" : ""}`.trim()}
+                        >
                             <BuscadorPeliculas
                                 busqueda={busqueda}
                                 onBusquedaChange={setBusqueda}
@@ -405,44 +410,54 @@ function MovieDetailPage() {
                                 placeholder="Buscar por cine o comuna..."
                             />
                             <div className="filtros-cartelera-selectores">
-                                <SelectorMultiple
-                                    className="cines-cadenas-selector"
-                                    posicion="bottom-start"
-                                    opciones={cadenasDisponibles}
-                                    seleccionadas={cadenasActivas}
-                                    onChange={setCadenasSeleccionadas}
-                                    titulo="Cadenas"
-                                    etiquetaTodas="Cadenas"
-                                    etiquetaPlural="cadenas"
-                                    etiquetaSingular="1 cadena"
-                                    ariaLabelPrefijo="Filtrar por cadenas"
-                                    disabled={cadenasDisponibles.length === 0}
-                                />
-
-                                {comunasDisponibles.length > 0 && (
-                                    <SelectorComunas
-                                        opciones={comunasDisponibles}
-                                        seleccionadas={comunasActivas}
-                                        onChange={setComunasSeleccionadas}
+                                <GrupoFiltros
+                                    cantidadActivos={chipsFiltros.length}
+                                    disabled={
+                                        cadenasDisponibles.length === 0 &&
+                                        comunasDisponibles.length === 0 &&
+                                        opcionesFormato.length <= 1
+                                    }
+                                >
+                                    <SelectorMultiple
+                                        className="cines-cadenas-selector"
+                                        posicion="bottom-start"
+                                        opciones={cadenasDisponibles}
+                                        seleccionadas={cadenasActivas}
+                                        onChange={setCadenasSeleccionadas}
+                                        titulo="Cadenas"
+                                        etiquetaTodas="Cadenas"
+                                        etiquetaPlural="cadenas"
+                                        etiquetaSingular="1 cadena"
+                                        ariaLabelPrefijo="Filtrar por cadenas"
+                                        disabled={cadenasDisponibles.length === 0}
                                     />
-                                )}
 
-                                {opcionesFormato.length > 1 && (
-                                    <SelectorUnico
-                                        className="filtro-formato"
-                                        opciones={opcionesFormato}
-                                        seleccionada={formatoActual === "Todos" ? "" : formatoActual}
-                                        onChange={(valor) => setFormatoSeleccionado(valor || "Todos")}
-                                        titulo="Formato"
-                                        etiquetaVacia="Formato"
-                                        ariaLabelPrefijo="Filtrar por formato"
-                                    />
-                                )}
+                                    {comunasDisponibles.length > 0 && (
+                                        <SelectorComunas
+                                            opciones={comunasDisponibles}
+                                            seleccionadas={comunasActivas}
+                                            onChange={setComunasSeleccionadas}
+                                        />
+                                    )}
+
+                                    {opcionesFormato.length > 1 && (
+                                        <SelectorUnico
+                                            className="filtro-formato"
+                                            opciones={opcionesFormato}
+                                            seleccionada={formatoActual === "Todos" ? "" : formatoActual}
+                                            onChange={(valor) => setFormatoSeleccionado(valor || "Todos")}
+                                            titulo="Formato"
+                                            etiquetaVacia="Formato"
+                                            ariaLabelPrefijo="Filtrar por formato"
+                                        />
+                                    )}
+                                </GrupoFiltros>
 
                                 {grupos.length > 0 && (
                                     <BotonCercania
                                         activo={ordenarPorCercania}
                                         cargando={estado === "cargando"}
+                                        compacto={esMovil}
                                         tituloInactivo="Ordenar por cercanía"
                                         onToggle={() => {
                                             if (ordenarPorCercania) {

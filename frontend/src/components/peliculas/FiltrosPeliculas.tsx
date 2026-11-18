@@ -1,11 +1,13 @@
 import BuscadorPeliculas from "./BuscadorPeliculas.tsx";
 import {
     ChipsFiltrosActivos,
+    GrupoFiltros,
     SelectorMultiple,
     SelectorUnico,
     type ChipFiltroActivo,
     type OpcionFiltro,
 } from "../common/SelectorMultiple";
+import { useEsMovilFiltros } from "../../hooks/useEsMovilFiltros";
 import "./FiltrosPeliculas.css";
 
 interface FiltrosPeliculasProps {
@@ -35,6 +37,7 @@ function FiltrosPeliculas({
     onClasificacionesChange,
     onDuracionChange,
 }: FiltrosPeliculasProps) {
+    const esMovil = useEsMovilFiltros();
     const duracionActiva = duraciones.find(
         (opcion) => opcion.valor === duracionSeleccionada,
     );
@@ -77,53 +80,57 @@ function FiltrosPeliculas({
             className="panel-filtros filtros-cartelera"
             aria-label="Búsqueda y filtros de cartelera"
         >
-            <div className="herramientas-cartelera">
+            <div
+                className={`herramientas-cartelera ${esMovil ? "herramientas-cartelera--movil" : ""}`.trim()}
+            >
                 <BuscadorPeliculas
                     id="busqueda-pelicula"
                     busqueda={busqueda}
                     onBusquedaChange={onBusquedaChange}
                 />
                 <div className="filtros-cartelera-selectores">
-                    <SelectorMultiple
-                        className="filtro-generos"
-                        posicion="bottom-start"
-                        opciones={generos}
-                        seleccionadas={generosSeleccionados}
-                        onChange={onGenerosChange}
-                        titulo="Géneros"
-                        etiquetaTodas="Géneros"
-                        etiquetaPlural="géneros"
-                        etiquetaSingular="1 género"
-                        ariaLabelPrefijo="Filtrar por géneros"
-                        conBusqueda={generos.length > 8}
-                        placeholderBusqueda="Buscar género..."
-                        mensajeVacio="No se encontraron géneros."
-                        disabled={generos.length === 0}
-                    />
+                    <GrupoFiltros cantidadActivos={chips.length}>
+                        <SelectorMultiple
+                            className="filtro-generos"
+                            posicion="bottom-start"
+                            opciones={generos}
+                            seleccionadas={generosSeleccionados}
+                            onChange={onGenerosChange}
+                            titulo="Géneros"
+                            etiquetaTodas="Géneros"
+                            etiquetaPlural="géneros"
+                            etiquetaSingular="1 género"
+                            ariaLabelPrefijo="Filtrar por géneros"
+                            conBusqueda={generos.length > 8}
+                            placeholderBusqueda="Buscar género..."
+                            mensajeVacio="No se encontraron géneros."
+                            disabled={generos.length === 0}
+                        />
 
-                    <SelectorMultiple
-                        className="filtro-clasificacion"
-                        posicion="bottom-start"
-                        opciones={clasificaciones}
-                        seleccionadas={clasificacionesSeleccionadas}
-                        onChange={onClasificacionesChange}
-                        titulo="Clasificación"
-                        etiquetaTodas="Clasificación"
-                        etiquetaPlural="clasificaciones"
-                        etiquetaSingular="1 clasificación"
-                        ariaLabelPrefijo="Filtrar por clasificación"
-                        disabled={clasificaciones.length === 0}
-                    />
+                        <SelectorMultiple
+                            className="filtro-clasificacion"
+                            posicion="bottom-start"
+                            opciones={clasificaciones}
+                            seleccionadas={clasificacionesSeleccionadas}
+                            onChange={onClasificacionesChange}
+                            titulo="Clasificación"
+                            etiquetaTodas="Clasificación"
+                            etiquetaPlural="clasificaciones"
+                            etiquetaSingular="1 clasificación"
+                            ariaLabelPrefijo="Filtrar por clasificación"
+                            disabled={clasificaciones.length === 0}
+                        />
 
-                    <SelectorUnico
-                        className="filtro-duracion"
-                        opciones={duraciones}
-                        seleccionada={duracionSeleccionada}
-                        onChange={onDuracionChange}
-                        titulo="Duración"
-                        etiquetaVacia="Duración"
-                        ariaLabelPrefijo="Filtrar por duración"
-                    />
+                        <SelectorUnico
+                            className="filtro-duracion"
+                            opciones={duraciones}
+                            seleccionada={duracionSeleccionada}
+                            onChange={onDuracionChange}
+                            titulo="Duración"
+                            etiquetaVacia="Duración"
+                            ariaLabelPrefijo="Filtrar por duración"
+                        />
+                    </GrupoFiltros>
                 </div>
             </div>
             <ChipsFiltrosActivos chips={chips} />
