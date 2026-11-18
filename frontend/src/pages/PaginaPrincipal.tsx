@@ -78,8 +78,6 @@ function PaginaPrincipal() {
       )}
 
       <div className="contenido-principal">
-        <RecomendadorPeliculas />
-
         <FiltrosPeliculas
           busqueda={filtros.busqueda}
           onBusquedaChange={(valor) => cambiarFiltro("busqueda", valor)}
@@ -161,6 +159,8 @@ function PaginaPrincipal() {
             )}
           </>
         )}
+
+        <RecomendadorPeliculas />
       </div>
     </>
   );

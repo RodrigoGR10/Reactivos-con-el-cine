@@ -510,6 +510,7 @@ body {
 
 .contenido-principal > .recomendador {
     width: 100%;
+    margin: 56px 0 0;
 }
 
 .panel-filtros {
@@ -954,6 +955,10 @@ body {
 @media (max-width: 820px) {
     .contenido-principal {
         padding: 28px 24px 60px;
+    }
+
+    .contenido-principal > .recomendador {
+        margin-top: 36px;
     }
 
     .contenido-navegacion {
