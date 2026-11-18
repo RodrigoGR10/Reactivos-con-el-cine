@@ -65,7 +65,7 @@ export const CONFIG_CUPOS_DESTACADAS: readonly ReglaCupoCategoria[] = [
     max: 2,
     pesoVariable: 1.2,
     estrategia: "aleatoria",
-    topAleatorio: 3,
+    topAleatorio: 2,
   },
   {
     categoria: "mejor_valoradas",
@@ -103,6 +103,10 @@ const VOTOS_MIN_MEJOR_VALORADA = 100;
 const RATING_MIN_MEJOR_VALORADA = 7.2;
 const PRIOR_VOTOS_BAYESIANO = 200;
 const PRIOR_RATING_BAYESIANO = 7.2;
+const PESO_FAVORITOS_PREVENTA = 0.4;
+const PESO_CINES_PREVENTA = 0.4;
+const PESO_POPULARIDAD_PREVENTA = 0.2;
+const PUNTAJE_MIN_PREVENTA_ESPERADA = 400;
 
 const CATEGORIAS_PRIMER_SLIDE = new Set<CategoriaDestacada>([
   "favoritas",
@@ -238,11 +242,60 @@ function puntajeTendencia(pelicula: Pelicula): number {
   return (pelicula.popularidadTmdb ?? 0) + (pelicula.totalCines ?? 0) * 3;
 }
 
-function puntajePreventa(pelicula: Pelicula): number {
+interface ReferenciaPreventa {
+  maxLogFavoritos: number;
+  maxCines: number;
+  maxLogPopularidad: number;
+}
+
+function calcularReferenciaPreventa(
+  catalogo: readonly Pelicula[],
+): ReferenciaPreventa {
+  let maxFavs = 0;
+  let maxCines = 0;
+  let maxPop = 0;
+
+  for (const pelicula of catalogo) {
+    maxFavs = Math.max(maxFavs, totalFavoritos(pelicula) ?? 0);
+    maxCines = Math.max(maxCines, pelicula.totalCines ?? 0);
+    maxPop = Math.max(maxPop, pelicula.popularidadTmdb ?? 0);
+  }
+
+  return {
+    maxLogFavoritos: Math.log1p(Math.max(maxFavs, 1)),
+    maxCines,
+    maxLogPopularidad: Math.log1p(maxPop),
+  };
+}
+
+function puntajePreventa(
+  pelicula: Pelicula,
+  ref: ReferenciaPreventa,
+): number {
+  const normFavs =
+    ref.maxLogFavoritos > 0
+      ? Math.log1p(totalFavoritos(pelicula) ?? 0) / ref.maxLogFavoritos
+      : 0;
+  const normPop =
+    ref.maxLogPopularidad > 0
+      ? Math.log1p(pelicula.popularidadTmdb ?? 0) / ref.maxLogPopularidad
+      : 0;
+
+  if (ref.maxCines > 0) {
+    const normCines = (pelicula.totalCines ?? 0) / ref.maxCines;
+    return (
+      1000 *
+      (PESO_FAVORITOS_PREVENTA * normFavs +
+        PESO_CINES_PREVENTA * normCines +
+        PESO_POPULARIDAD_PREVENTA * normPop)
+    );
+  }
+
+  const pesoDisponible = PESO_FAVORITOS_PREVENTA + PESO_POPULARIDAD_PREVENTA;
   return (
-    (totalFavoritos(pelicula) ?? 0) * 100 +
-    (pelicula.popularidadTmdb ?? 0) +
-    (pelicula.totalCines ?? 0) * 0.5
+    1000 *
+    ((PESO_FAVORITOS_PREVENTA / pesoDisponible) * normFavs +
+      (PESO_POPULARIDAD_PREVENTA / pesoDisponible) * normPop)
   );
 }
 
@@ -365,22 +418,29 @@ function obtenerPoolCategoria(
             compararBase(a, b),
         );
 
-    case "preventas_esperadas":
+    case "preventas_esperadas": {
+      const ref = calcularReferenciaPreventa(peliculas);
       return peliculas
-        .filter(
-          (p) =>
-            p.estadoEstreno === "preventa" &&
-            tieneBannerHero(p) &&
-            ((totalFavoritos(p) ?? 0) > 0 ||
-              (p.popularidadTmdb ?? 0) >= 10 ||
-              (p.totalCines ?? 0) >= 25),
-        )
+        .filter((p) => {
+          if (p.estadoEstreno !== "preventa" || !tieneBannerHero(p)) {
+            return false;
+          }
+          if (ref.maxCines > 0) {
+            return puntajePreventa(p, ref) >= PUNTAJE_MIN_PREVENTA_ESPERADA;
+          }
+          return (
+            (totalFavoritos(p) ?? 0) > 0 ||
+            (p.popularidadTmdb ?? 0) >= 10 ||
+            (p.totalCines ?? 0) >= 25
+          );
+        })
         .sort(
           (a, b) =>
-            puntajePreventa(b) - puntajePreventa(a) ||
+            puntajePreventa(b, ref) - puntajePreventa(a, ref) ||
             (a.fechaEstreno ?? "9999").localeCompare(b.fechaEstreno ?? "9999") ||
             compararBase(a, b),
         );
+    }
 
     case "reestrenos":
       return peliculas
