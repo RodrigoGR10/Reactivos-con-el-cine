@@ -18,6 +18,7 @@ interface PeliculaRow {
     clasificacion: string | null;
     poster: string | null;
     trailerUrl: string | null;
+    trailerVersion: "doblado" | "original" | "subtitulado" | "espanol" | null;
     banner: string | null;
     tmdb_id: number | null;
     calificacion_tmdb: number | null;
@@ -47,10 +48,16 @@ const PELICULA_COLUMNS = `
     p.imagen_url AS poster,
     CASE
         WHEN p.trailer_idioma = 'es-419'
-            AND p.trailer_version IN ('doblado', 'original')
+            AND p.trailer_version IN ('doblado', 'original', 'subtitulado', 'espanol')
         THEN p.trailer_url
         ELSE NULL
     END AS "trailerUrl",
+    CASE
+        WHEN p.trailer_idioma = 'es-419'
+            AND p.trailer_version IN ('doblado', 'original', 'subtitulado', 'espanol')
+        THEN p.trailer_version
+        ELSE NULL
+    END AS "trailerVersion",
     p.banner,
     p.tmdb_id,
     p.calificacion_tmdb,
@@ -75,6 +82,7 @@ function serializarPelicula(
         sinopsis: normalizarSinopsis(row.sinopsis),
         poster: row.poster ?? "",
         ...(row.trailerUrl ? { trailerUrl: row.trailerUrl } : {}),
+        ...(row.trailerVersion ? { trailerVersion: row.trailerVersion } : {}),
         ...(row.banner ? { banner: row.banner } : {}),
         ...(row.tmdb_id !== null ? { tmdbId: row.tmdb_id } : {}),
         ...(row.calificacion_tmdb !== null

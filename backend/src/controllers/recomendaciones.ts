@@ -31,7 +31,9 @@ router.get("/", async (req, res, next) => {
               p.titulo AS "peliculaTitulo",
               p.imagen_url AS "peliculaImagenUrl",
               c.id AS "cineId",
-              c.nombre AS "cineNombre"
+              c.nombre AS "cineNombre",
+              h.formato_resumen AS "formato",
+              h.idioma
             FROM horarios h
             INNER JOIN peliculas p ON h.pelicula_id = p.id
             INNER JOIN cines c ON h.cine_id = c.id

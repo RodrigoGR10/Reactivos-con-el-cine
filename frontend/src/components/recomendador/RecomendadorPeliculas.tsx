@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { Cine } from "../../types/types";
 import cinesService from "../../services/cines";
 import recomendacionesService, { type FuncionRecomendacion } from "../../services/recomendaciones";
+import { SelectorUnico, type OpcionFiltro } from "../common/SelectorMultiple";
 import { obtenerComunas } from "../../utils/agruparCines";
 import { normalizarTexto } from "../../utils/normalizarTexto";
 import "./RecomendadorPeliculas.css";
@@ -65,6 +66,16 @@ function RecomendadorPeliculas() {
 
   const comunas = useMemo(() => obtenerComunas(cines), [cines]);
   const cinesPorId = useMemo(() => new Map(cines.map((cine) => [cine.id, cine])), [cines]);
+  const opcionesTipoUbicacion: OpcionFiltro[] = [
+    { valor: "comuna", nombre: "Comuna o ubicación", cantidad: 1 },
+    { valor: "cine", nombre: "Cine específico", cantidad: 1 },
+  ];
+  const opcionesUbicacion = useMemo<OpcionFiltro[]>(
+    () => tipoUbicacion === "comuna"
+      ? comunas
+      : cines.map((cine) => ({ valor: cine.id, nombre: `${cine.nombre} · ${cine.comuna}`, cantidad: 1 })),
+    [tipoUbicacion, comunas, cines],
+  );
 
   const recomendar = (pool: GrupoRecomendacion[]) => {
     const aleatorias = mezclar(pool).slice(0, CANTIDAD_RECOMENDACIONES);
@@ -119,28 +130,46 @@ function RecomendadorPeliculas() {
       <form className="recomendador-formulario" onSubmit={enviar}>
         <label className="recomendador-campo">
           <span>Día</span>
-          <input type="date" value={fecha} min={fechaYHoraInicial().fecha} required onChange={(event) => setFecha(event.target.value)} />
+          <input type="date" value={fecha} min={fechaYHoraInicial().fecha} required onChange={(event) => { setFecha(event.target.value); setResultados([]); }} />
         </label>
         <label className="recomendador-campo">
           <span>Hora desde</span>
-          <input type="time" value={hora} required onChange={(event) => setHora(event.target.value)} />
+          <input type="time" value={hora} required onChange={(event) => { setHora(event.target.value); setResultados([]); }} />
         </label>
-        <label className="recomendador-campo">
+        <div className="recomendador-campo">
           <span>Buscar por</span>
-          <select value={tipoUbicacion} onChange={(event) => { setTipoUbicacion(event.target.value as TipoUbicacion); setUbicacion(""); }}>
-            <option value="comuna">Comuna o ubicación</option>
-            <option value="cine">Cine específico</option>
-          </select>
-        </label>
-        <label className="recomendador-campo">
+          <SelectorUnico
+            className="recomendador-selector"
+            opciones={opcionesTipoUbicacion}
+            seleccionada={tipoUbicacion}
+            onChange={(valor) => {
+              setTipoUbicacion(valor as TipoUbicacion);
+              setUbicacion("");
+              setResultados([]);
+            }}
+            titulo="Buscar por"
+            etiquetaVacia="Selecciona dónde buscar"
+            ariaLabelPrefijo="Buscar por"
+            mostrarCantidad={false}
+          />
+        </div>
+        <div className="recomendador-campo">
           <span>{tipoUbicacion === "comuna" ? "Comuna" : "Cine"}</span>
-          <select value={ubicacion} required disabled={cinesCargando || Boolean(cinesError)} onChange={(event) => setUbicacion(event.target.value)}>
-            <option value="" disabled>{cinesCargando ? "Cargando opciones..." : "Selecciona una opción"}</option>
-            {tipoUbicacion === "comuna"
-              ? comunas.map((comuna) => <option key={comuna.valor} value={comuna.valor}>{comuna.nombre}</option>)
-              : cines.map((cine) => <option key={cine.id} value={cine.id}>{cine.nombre} · {cine.comuna}</option>)}
-          </select>
-        </label>
+          <SelectorUnico
+            className="recomendador-selector"
+            opciones={opcionesUbicacion}
+            seleccionada={ubicacion}
+            onChange={(valor) => { setUbicacion(valor); setResultados([]); }}
+            titulo={tipoUbicacion === "comuna" ? "Comunas" : "Cines"}
+            etiquetaVacia={cinesCargando ? "Cargando opciones..." : "Selecciona una opción"}
+            ariaLabelPrefijo={tipoUbicacion === "comuna" ? "Seleccionar comuna" : "Seleccionar cine"}
+            conBusqueda
+            placeholderBusqueda={tipoUbicacion === "comuna" ? "Buscar comuna..." : "Buscar cine o comuna..."}
+            mensajeVacio={tipoUbicacion === "comuna" ? "No se encontraron comunas." : "No se encontraron cines."}
+            mostrarCantidad={tipoUbicacion === "comuna"}
+            disabled={cinesCargando || Boolean(cinesError)}
+          />
+        </div>
         <button className="recomendador-boton" type="submit" disabled={cinesCargando || Boolean(cinesError) || cargando || !ubicacion}>
           {cargando ? "Buscando..." : "Recomiéndame películas"}
         </button>
@@ -156,22 +185,43 @@ function RecomendadorPeliculas() {
             {candidatas.length > resultados.length && <button type="button" onClick={() => recomendar(candidatas)}>Probar otra selección</button>}
           </div>
           <div className="recomendador-grilla">
-            {resultados.map(({ peliculaId, funcion, comuna }) => (
-              <article className="recomendador-tarjeta" key={peliculaId}>
-                <Link className="recomendador-poster" to={`/peliculas/${peliculaId}`} aria-label={`Ver ${funcion.peliculaTitulo}`}>
-                  {funcion.peliculaImagenUrl
-                    ? <img src={funcion.peliculaImagenUrl} alt="" loading="lazy" />
-                    : <span aria-hidden="true">🎬</span>}
-                </Link>
-                <div className="recomendador-detalle">
-                  <p className="recomendador-etiqueta">Sugerencia al azar</p>
-                  <h3><Link to={`/peliculas/${peliculaId}`}>{funcion.peliculaTitulo}</Link></h3>
-                  <p className="recomendador-cine">{funcion.cineNombre}</p>
-                  <p className="recomendador-comuna">{comuna}</p>
-                  <time dateTime={funcion.fechaHora}>{mostrarFechaHora(funcion.fechaHora)}</time>
-                </div>
-              </article>
-            ))}
+            {resultados.map(({ peliculaId, funcion, comuna }) => {
+              const detallesFuncion = [funcion.formato, funcion.idioma].filter(Boolean).join(" · ");
+              const parametrosDetalle = new URLSearchParams({
+                fecha: funcion.fechaHora.slice(0, 10),
+                cineId: String(funcion.cineId),
+              });
+              const contenidoTarjeta = (
+                <>
+                  <span className="recomendador-poster" aria-hidden="true">
+                    {funcion.peliculaImagenUrl
+                      ? <img src={funcion.peliculaImagenUrl} alt="" loading="lazy" />
+                      : <span>🎬</span>}
+                  </span>
+                  <span className="recomendador-detalle">
+                    <span className="recomendador-etiqueta">Sugerencia al azar</span>
+                    <span className="recomendador-titulo">{funcion.peliculaTitulo}</span>
+                    <span className="recomendador-cine">{funcion.cineNombre}</span>
+                    <span className="recomendador-comuna">{comuna}</span>
+                    {detallesFuncion && <span className="recomendador-formato">{detallesFuncion}</span>}
+                    <time dateTime={funcion.fechaHora}>{mostrarFechaHora(funcion.fechaHora)}</time>
+                    <span className="recomendador-accion">Ver función en detalle</span>
+                  </span>
+                </>
+              );
+
+              return (
+                <article className="recomendador-tarjeta" key={`${peliculaId}-${funcion.id}`}>
+                  <Link
+                      className="recomendador-tarjeta-enlace"
+                      to={`/peliculas/${peliculaId}?${parametrosDetalle.toString()}`}
+                      aria-label={`Ver detalles de ${funcion.peliculaTitulo} con la función de ${funcion.cineNombre} a las ${mostrarFechaHora(funcion.fechaHora)}`}
+                  >
+                    {contenidoTarjeta}
+                  </Link>
+                </article>
+              );
+            })}
           </div>
         </div>
       )}

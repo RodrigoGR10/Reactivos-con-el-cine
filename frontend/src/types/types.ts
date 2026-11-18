@@ -8,6 +8,7 @@ export interface Pelicula {
   poster: string;
   banner?: string;
   trailerUrl?: string;
+  trailerVersion?: "doblado" | "original" | "subtitulado" | "espanol";
   estadoEstreno?: "cartelera" | "preventa" | "proximamente";
   fechaEstreno?: string;
   totalFavoritos?: number;

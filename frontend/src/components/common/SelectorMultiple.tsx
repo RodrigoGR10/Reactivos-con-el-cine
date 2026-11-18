@@ -214,6 +214,62 @@ interface SelectorMultipleProps {
 const mismasSeleccionadas = (a: string[], b: string[]) =>
     a.length === b.length && a.every((valor) => b.includes(valor));
 
+const filtrarOpcionesPorBusqueda = (
+    opciones: OpcionFiltro[],
+    busqueda: string,
+): OpcionFiltro[] => {
+    const termino = normalizarTexto(busqueda.trim());
+    if (!termino) return opciones;
+    return opciones.filter(
+        (opcion) =>
+            normalizarTexto(opcion.nombre).includes(termino) ||
+            normalizarTexto(opcion.valor).includes(termino),
+    );
+};
+
+interface BuscadorOpcionesProps {
+    buscadorRef?: RefObject<HTMLInputElement | null>;
+    autoFocus?: boolean;
+    busqueda: string;
+    onBusquedaChange: (valor: string) => void;
+    placeholderBusqueda: string;
+}
+
+function BuscadorOpciones({
+    buscadorRef,
+    autoFocus = true,
+    busqueda,
+    onBusquedaChange,
+    placeholderBusqueda,
+}: BuscadorOpcionesProps) {
+    return (
+        <div className="cines-comunas-busqueda">
+            <SearchIcon size={15} />
+            <input
+                ref={buscadorRef}
+                data-autofocus={autoFocus ? true : undefined}
+                value={busqueda}
+                onChange={(event) => onBusquedaChange(event.target.value)}
+                aria-label={placeholderBusqueda.replace(/\.+$/, "")}
+                placeholder={placeholderBusqueda}
+            />
+            {busqueda && (
+                <button
+                    type="button"
+                    className="cines-comunas-busqueda-limpiar"
+                    onClick={() => {
+                        onBusquedaChange("");
+                        buscadorRef?.current?.focus();
+                    }}
+                    aria-label="Limpiar búsqueda"
+                >
+                    <CloseIcon size={14} />
+                </button>
+            )}
+        </div>
+    );
+}
+
 interface PanelOpcionesMultipleProps {
     conBusqueda: boolean;
     buscadorRef: RefObject<HTMLInputElement | null>;
@@ -242,30 +298,13 @@ function PanelOpcionesMultiple({
     return (
         <>
             {conBusqueda && (
-                <div className="cines-comunas-busqueda">
-                    <SearchIcon size={15} />
-                    <input
-                        ref={buscadorRef}
-                        data-autofocus={autoFocusBusqueda ? true : undefined}
-                        value={busqueda}
-                        onChange={(event) => onBusquedaChange(event.target.value)}
-                        aria-label={placeholderBusqueda.replace(/\.+$/, "")}
-                        placeholder={placeholderBusqueda}
-                    />
-                    {busqueda && (
-                        <button
-                            type="button"
-                            className="cines-comunas-busqueda-limpiar"
-                            onClick={() => {
-                                onBusquedaChange("");
-                                buscadorRef.current?.focus();
-                            }}
-                            aria-label="Limpiar búsqueda"
-                        >
-                            <CloseIcon size={14} />
-                        </button>
-                    )}
-                </div>
+                <BuscadorOpciones
+                    buscadorRef={buscadorRef}
+                    autoFocus={autoFocusBusqueda}
+                    busqueda={busqueda}
+                    onBusquedaChange={onBusquedaChange}
+                    placeholderBusqueda={placeholderBusqueda}
+                />
             )}
             <div className="cines-comunas-opciones">
                 {visibles.map((opcion) => (
@@ -378,10 +417,7 @@ export function SelectorMultiple({
               ? `${activa.length} ${etiquetaPlural}`
               : etiquetaTodas;
 
-    const termino = normalizarTexto(busqueda.trim());
-    const visibles = termino
-        ? opciones.filter((opcion) => normalizarTexto(opcion.nombre).includes(termino) || opcion.valor.includes(termino))
-        : opciones;
+    const visibles = filtrarOpcionesPorBusqueda(opciones, busqueda);
 
     const actualizarLista = (lista: string[], valor: string, marcada: boolean) =>
         marcada
@@ -488,6 +524,10 @@ interface SelectorUnicoProps {
     posicion?: FloatingPosition;
     className?: string;
     disabled?: boolean;
+    conBusqueda?: boolean;
+    placeholderBusqueda?: string;
+    mensajeVacio?: string;
+    mostrarCantidad?: boolean;
 }
 
 function ListaOpcionesUnico({
@@ -495,34 +535,64 @@ function ListaOpcionesUnico({
     opciones,
     seleccionada,
     onElegir,
+    conBusqueda = false,
+    buscadorRef,
+    autoFocusBusqueda = true,
+    busqueda = "",
+    onBusquedaChange,
+    placeholderBusqueda = "Buscar...",
+    mensajeVacio = "No se encontraron opciones.",
+    mostrarCantidad = true,
 }: {
     titulo: string;
     opciones: OpcionFiltro[];
     seleccionada: string;
     onElegir: (valor: string) => void;
+    conBusqueda?: boolean;
+    buscadorRef?: RefObject<HTMLInputElement | null>;
+    autoFocusBusqueda?: boolean;
+    busqueda?: string;
+    onBusquedaChange?: (valor: string) => void;
+    placeholderBusqueda?: string;
+    mensajeVacio?: string;
+    mostrarCantidad?: boolean;
 }) {
     return (
-        <div className="cines-comunas-opciones" role="listbox" aria-label={titulo}>
-            {opciones.map((opcion) => {
-                const activa = opcion.valor === seleccionada;
-                return (
-                    <button
-                        key={opcion.valor}
-                        type="button"
-                        role="option"
-                        aria-selected={activa}
-                        className={`cines-comuna-opcion selector-unico-opcion ${activa ? "activo" : ""}`}
-                        onClick={() => onElegir(activa ? "" : opcion.valor)}
-                    >
-                        <span className="selector-unico-radio" aria-hidden="true" />
-                        <span>{opcion.nombre}</span>
-                        <span className="cines-comuna-cantidad" aria-hidden="true">
-                            {opcion.cantidad}
-                        </span>
-                    </button>
-                );
-            })}
-        </div>
+        <>
+            {conBusqueda && onBusquedaChange && (
+                <BuscadorOpciones
+                    buscadorRef={buscadorRef}
+                    autoFocus={autoFocusBusqueda}
+                    busqueda={busqueda}
+                    onBusquedaChange={onBusquedaChange}
+                    placeholderBusqueda={placeholderBusqueda}
+                />
+            )}
+            <div className="cines-comunas-opciones" role="listbox" aria-label={titulo}>
+                {opciones.map((opcion) => {
+                    const activa = opcion.valor === seleccionada;
+                    return (
+                        <button
+                            key={opcion.valor}
+                            type="button"
+                            role="option"
+                            aria-selected={activa}
+                            className={`cines-comuna-opcion selector-unico-opcion ${activa ? "activo" : ""}`}
+                            onClick={() => onElegir(activa ? "" : opcion.valor)}
+                        >
+                            <span className="selector-unico-radio" aria-hidden="true" />
+                            <span>{opcion.nombre}</span>
+                            {mostrarCantidad && (
+                                <span className="cines-comuna-cantidad" aria-hidden="true">
+                                    {opcion.cantidad}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
+                {!opciones.length && <p className="cines-comunas-vacio">{mensajeVacio}</p>}
+            </div>
+        </>
     );
 }
 
@@ -540,10 +610,16 @@ export function SelectorUnico({
     posicion = "bottom-end",
     className = "",
     disabled = false,
+    conBusqueda = false,
+    placeholderBusqueda = "Buscar...",
+    mensajeVacio = "No se encontraron opciones.",
+    mostrarCantidad = true,
 }: SelectorUnicoProps) {
     const grupo = useContext(GrupoFiltrosContext);
     const filtroId = useId();
+    const [busqueda, setBusqueda] = useState("");
     const [borrador, setBorrador] = useState(seleccionada);
+    const buscador = useRef<HTMLInputElement>(null);
     const [abierto, { close, toggle }] = useDisclosure(false);
 
     const estadoRef = useRef({ borrador, seleccionada, onChange });
@@ -574,6 +650,7 @@ export function SelectorUnico({
 
     const activa = grupo ? borrador : seleccionada;
     const etiqueta = opciones.find((opcion) => opcion.valor === activa)?.nombre ?? etiquetaVacia;
+    const visibles = conBusqueda ? filtrarOpcionesPorBusqueda(opciones, busqueda) : opciones;
 
     if (grupo) {
         return (
@@ -584,12 +661,20 @@ export function SelectorUnico({
             >
                 <ListaOpcionesUnico
                     titulo={titulo}
-                    opciones={opciones}
+                    opciones={visibles}
                     seleccionada={borrador}
                     onElegir={(siguiente) => {
                         setBorrador(siguiente);
                         grupo.actualizarConteo(filtroId, siguiente ? 1 : 0);
                     }}
+                    conBusqueda={conBusqueda}
+                    buscadorRef={buscador}
+                    autoFocusBusqueda={false}
+                    busqueda={busqueda}
+                    onBusquedaChange={setBusqueda}
+                    placeholderBusqueda={placeholderBusqueda}
+                    mensajeVacio={mensajeVacio}
+                    mostrarCantidad={mostrarCantidad}
                 />
             </SeccionAcordeon>
         );
@@ -598,8 +683,10 @@ export function SelectorUnico({
     return (
         <SelectorDesplegable
             abierto={abierto}
+            onAbrir={() => setBusqueda("")}
             onAlternar={toggle}
             onCerrar={close}
+            focusAlAbrirRef={conBusqueda ? buscador : undefined}
             posicion={posicion}
             titulo={titulo}
             etiqueta={etiqueta}
@@ -611,12 +698,20 @@ export function SelectorUnico({
         >
             <ListaOpcionesUnico
                 titulo={titulo}
-                opciones={opciones}
+                opciones={visibles}
                 seleccionada={seleccionada}
                 onElegir={(valor) => {
                     onChange(valor);
+                    setBusqueda("");
                     close();
                 }}
+                conBusqueda={conBusqueda}
+                buscadorRef={buscador}
+                busqueda={busqueda}
+                onBusquedaChange={setBusqueda}
+                placeholderBusqueda={placeholderBusqueda}
+                mensajeVacio={mensajeVacio}
+                mostrarCantidad={mostrarCantidad}
             />
             {Boolean(seleccionada) && (
                 <div className="cines-comunas-panel-footer">
@@ -625,6 +720,7 @@ export function SelectorUnico({
                         className="cines-comunas-limpiar"
                         onClick={() => {
                             onChange("");
+                            setBusqueda("");
                             close();
                         }}
                     >

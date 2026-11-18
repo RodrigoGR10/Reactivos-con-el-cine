@@ -4,7 +4,7 @@ import { sincronizarMetadatosTmdb } from "./sync-tmdb/index.ts";
 import { pool } from "../db.ts";
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
-import { sincronizarTrailersLatinos } from "./sync-trailers.ts";
+import { sincronizarTrailersEnEspanol } from "./sync-trailers.ts";
 
 async function main() {
     const args = process.argv.slice(2);
@@ -23,10 +23,10 @@ async function main() {
         }
 
         if (args.includes("--trailers")) {
-            await sincronizarTrailersLatinos({ apply });
+            await sincronizarTrailersEnEspanol({ apply });
         } else {
             await sincronizarMetadatosTmdb({ apply });
-            if (apply) await sincronizarTrailersLatinos({ apply: true });
+            if (apply) await sincronizarTrailersEnEspanol({ apply: true });
         }
         return;
     }
