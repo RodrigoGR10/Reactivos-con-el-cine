@@ -43,9 +43,22 @@ function Cartelera({ peliculas, hayFiltrosActivos = false, compararPrioridad }: 
         );
     }
 
-    // Celu sin filtros: una cinta horizontal por genero
+    // Celu: una cinta por genero sin filtros, o una sola fila horizontal al buscar/filtrar
 
-    if (esMovil && !hayFiltrosActivos) {
+    if (esMovil) {
+        if (hayFiltrosActivos) {
+            return (
+                <div className="cinta-peliculas">
+                    {peliculas.map((pelicula) => (
+                        <TarjetaPelicula
+                            key={pelicula.id}
+                            pelicula={pelicula}
+                        />
+                    ))}
+                </div>
+            );
+        }
+
         return (
             <div className="cintas-peliculas">
                 {grupos.map(([genero, lista]) => (
