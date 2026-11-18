@@ -240,6 +240,14 @@
     cursor: pointer;
 }
 
+.poster-card-skeleton {
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #141414;
+    border: 1px solid #202020;
+}
+
 .poster-card > a {
     display: block;
     width: 100%;

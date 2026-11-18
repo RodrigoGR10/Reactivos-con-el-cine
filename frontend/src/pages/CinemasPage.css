@@ -490,14 +490,10 @@
     font-size: 1.5rem;
 }
 
-.cines-loading, .cines-empty {
+.cines-empty {
     padding: 48px 16px;
     text-align: center;
     color: #a1a1aa;
-}
-
-.cines-loading p {
-    font-size: 0.9rem;
 }
 
 .cines-empty > svg {

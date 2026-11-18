@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Skeleton } from "@mantine/core";
 import type { Cine } from "../types/types";
 import cinesService from "../services/cines";
 import { useAuth } from "../context/AuthContext";
@@ -9,11 +10,14 @@ import { BotonFavorito } from "../components/common/BotonFavorito";
 import { AvisoUbicacion, Mensaje } from "../components/common/Mensaje";
 import { BotonCercania, ChipsFiltrosActivos } from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
-import { TarjetaCine } from "../components/cines/TarjetaCine";
+import { TarjetaCine, TarjetaCineSkeleton } from "../components/cines/TarjetaCine";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
 import { agruparCines, filtrarCines, obtenerComunas, ordenarCinesPorCercania, type CineOrdenado } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
 import "./CinemasPage.css";
+
+const GRUPOS_ESQUELETO = [0, 1];
+const TARJETAS_ESQUELETO = [0, 1, 2, 3];
 
 function CinemasPage() {
     const { user, openAuthModal } = useAuth();
@@ -131,7 +135,29 @@ function CinemasPage() {
             />
 
             {cargando ? (
-                <div className="cines-loading" role="status"><p>Cargando complejos cinematográficos...</p></div>
+                <div className="cines-grupos" role="status" aria-busy="true">
+                    <span className="visualmente-oculto">
+                        Cargando complejos cinematográficos...
+                    </span>
+                    {GRUPOS_ESQUELETO.map((grupoIdx) => (
+                        <div key={grupoIdx} className="cines-cadena" aria-hidden="true">
+                            <div className="cines-cadena-header">
+                                <Skeleton width={30} height={30} radius={5} />
+                                <Skeleton
+                                    width={grupoIdx === 0 ? 120 : 145}
+                                    height={18}
+                                    radius="sm"
+                                />
+                                <Skeleton width={56} height={14} radius="sm" ml="auto" />
+                            </div>
+                            <div className="cines-grid">
+                                {TARJETAS_ESQUELETO.map((cardIdx) => (
+                                    <TarjetaCineSkeleton key={cardIdx} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             ) : error ? (
                 <Mensaje
                     tipo="error"

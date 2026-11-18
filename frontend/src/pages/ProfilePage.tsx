@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useId } from "react";
+import { Skeleton } from "@mantine/core";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import type { Pelicula, Cine } from "../types/types";
@@ -9,12 +10,18 @@ import {
   MapPinIcon,
   CalendarIcon,
 } from "../components/common/Icons";
-import { TarjetaCine } from "../components/cines/TarjetaCine";
+import {
+  TarjetaCine,
+  TarjetaCineSkeleton,
+} from "../components/cines/TarjetaCine";
 import { Mensaje } from "../components/common/Mensaje";
 import peliculasService from "../services/peliculas";
 import cinesService from "../services/cines";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import "./ProfilePage.css";
+
+const POSTERS_ESQUELETO = [0, 1, 2, 3, 4, 5];
+const CINES_ESQUELETO = [0, 1, 2, 3];
 
 /** Formatea la fecha de registro dinámicamente en español */
 const formatearFechaRegistro = (fechaStr?: string): string => {
@@ -194,10 +201,27 @@ const ProfilePage = () => {
         </section>
 
         {cargando ? (
-          <div className="content-area">
-            <div className="empty-state-ultra" role="status">
-              <p>Cargando favoritos...</p>
-            </div>
+          <div className="content-area" role="status" aria-busy="true">
+            <span className="visualmente-oculto">Cargando favoritos...</span>
+            {tabActiva === "cines" ? (
+              <div className="cines-grid">
+                {CINES_ESQUELETO.map((idx) => (
+                  <TarjetaCineSkeleton key={idx} />
+                ))}
+              </div>
+            ) : (
+              <div className="posters-grid">
+                {POSTERS_ESQUELETO.map((idx) => (
+                  <div
+                    key={idx}
+                    className="poster-card-skeleton"
+                    aria-hidden="true"
+                  >
+                    <Skeleton height="100%" radius={0} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : error ? (
           <div className="content-area">

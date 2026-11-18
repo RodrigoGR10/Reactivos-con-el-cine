@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { Skeleton } from "@mantine/core";
 import type { Cine } from "../../types/types";
 import { obtenerLogoCine } from "../../utils/agruparCines";
 import { formatearDistancia } from "../../utils/distancia";
@@ -63,5 +64,21 @@ export function TarjetaCine({
         </p>
       </div>
     </article>
+  );
+}
+
+/** Esqueleto de carga con las proporciones exactas de `TarjetaCine`. */
+export function TarjetaCineSkeleton() {
+  return (
+    <div className="cine-card" aria-hidden="true">
+      <div className="cine-card-header">
+        <Skeleton width={46} height={46} radius={7} />
+        <Skeleton height={34} circle />
+      </div>
+      <div className="cine-card-body">
+        <Skeleton height={22} width="72%" radius="sm" />
+        <Skeleton height={16} width="45%" radius="sm" />
+      </div>
+    </div>
   );
 }
