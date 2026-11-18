@@ -1,5 +1,6 @@
 import { query } from "../db.ts";
 import { ensureCinemark, cinemarkData } from "../scraper/cinemark/client.ts";
+import { normalizarOcupacionCinemark } from "../scraper/cinemark/normalize.ts";
 import type { RawSession } from "../scraper/cinemark/types.ts";
 import { vistaData } from "../scraper/vista/client.ts";
 import type { Session } from "../scraper/vista/types.ts";
@@ -52,9 +53,8 @@ async function carteleraButacas(
                     fecha: sesion.sessionDateTime.slice(0, 10),
                     horario: sesion.sessionDateTime.slice(11, 16),
                     peliculaId: sesion.corporateId,
-                    butacas: normalizarButacas(
-                        sesion.occupation?.availableSeats,
-                        sesion.occupation?.capacity,
+                    butacas: normalizarOcupacionCinemark(
+                        sesion.occupation,
                         consultadasEn,
                     ),
                 });

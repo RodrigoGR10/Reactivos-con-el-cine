@@ -104,6 +104,19 @@ export function sessionDateTime(session: RawSession): {
     return { fecha: match[1], horario: `${match[2]}:${match[3]}` };
 }
 
+/** Normaliza butacas de Cinemark tolerando salas cuya API informa capacity ligeramente menor a availableSeats. */
+export function normalizarOcupacionCinemark(
+    occupation: RawSession["occupation"],
+    consultadasEn: string,
+) {
+    return normalizarButacas(
+        occupation?.availableSeats,
+        occupation?.capacity,
+        consultadasEn,
+        { ajustarTotalAlDisponible: true },
+    );
+}
+
 export function normalizeSchedule(
     session: RawSession,
     extractedAt: string,
@@ -132,11 +145,7 @@ export function normalizeSchedule(
         idioma: text(session.language?.name, "idioma"),
         sala: text(session.theaterRoom, "sala"),
         agotada: session.occupation?.availableSeats === 0,
-        butacas: normalizarButacas(
-            session.occupation?.availableSeats,
-            session.occupation?.capacity,
-            extractedAt,
-        ),
+        butacas: normalizarOcupacionCinemark(session.occupation, extractedAt),
     };
     return { ...schedule, revision: scheduleRevision(schedule) };
 }
