@@ -378,39 +378,12 @@
     border-radius: 10px;
 }
 
-.logo-cine {
-    position: relative;
-    display: grid;
-    width: 58px;
-    height: 58px;
-    flex-shrink: 0;
-    place-items: center;
-    padding: 8px;
-
-    background: #ffffff;
-    border-radius: 10px;
+.logo-cine-link .logo-cine-enlazado {
     transition: transform 0.2s ease;
 }
 
-.logo-cine-link:hover .logo-cine {
+.logo-cine-link:hover .logo-cine-enlazado {
     transform: scale(1.03);
-}
-
-.logo-cine[data-origen="cinestar"] {
-    padding: 0;
-    overflow: hidden;
-    background: transparent;
-}
-
-.logo-cine img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.logo-cine span {
-    font-size: 1.6rem;
 }
 
 .sin-funciones {
@@ -475,12 +448,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .logo-cine,
+    .logo-cine-link .logo-cine-enlazado,
     .enlace-cine-detalle {
         transition: none;
     }
 
-    .logo-cine-link:hover .logo-cine {
+    .logo-cine-link:hover .logo-cine-enlazado {
         transform: none;
     }
 }

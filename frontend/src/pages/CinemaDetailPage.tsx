@@ -26,8 +26,8 @@ import {
   obtenerFormatosDisponibles,
   obtenerIdiomasDisponibles,
 } from "../utils/agruparFunciones";
-import { obtenerLogoCine } from "../utils/agruparCines";
 import { normalizarTexto } from "../utils/normalizarTexto";
+import { LogoCine } from "../components/cines/LogoCine";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { BotonDetalleFunciones } from "../components/funciones/BotonDetalleFunciones";
 import { SelectorFechas } from "../components/funciones/SelectorFechas";
@@ -240,7 +240,6 @@ function CinemaDetailPage() {
     );
   }
 
-  const logo = obtenerLogoCine(cine);
   const esFavorito = isFavoriteCinema(cine.id);
 
   const handleToggleFavorito = () => {
@@ -342,17 +341,7 @@ function CinemaDetailPage() {
       {/* Header / Hero del Cine */}
       <header className="detalle-cine-header">
         <div className="detalle-cine-header-main">
-          <div className="detalle-cine-logo-wrap" data-origen={cine.origen}>
-            {logo ? (
-              <img
-                src={logo}
-                alt={`Logo de ${cine.nombre}`}
-                className="detalle-cine-logo-img"
-              />
-            ) : (
-              <span className="detalle-cine-fallback-icon">🎬</span>
-            )}
-          </div>
+          <LogoCine cine={cine} tamano="lg" />
           <div className="detalle-cine-info">
             <p className="detalle-cine-etiqueta">Complejo cinematográfico</p>
             <h1 className="detalle-cine-nombre">{cine.nombre}</h1>

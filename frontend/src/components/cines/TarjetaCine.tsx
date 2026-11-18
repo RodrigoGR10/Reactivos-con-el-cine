@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@mantine/core";
 import type { Cine } from "../../types/types";
-import { obtenerLogoCine } from "../../utils/agruparCines";
 import { formatearDistancia } from "../../utils/distancia";
-import { FilmIcon, MapPinIcon } from "../common/Icons";
+import { MapPinIcon } from "../common/Icons";
+import { LogoCine } from "./LogoCine";
 import "./TarjetaCine.css";
 
 interface TarjetaCineProps {
@@ -22,25 +22,12 @@ export function TarjetaCine({
   navegable = true,
   nivelTitulo = "h3",
 }: TarjetaCineProps) {
-  const logo = obtenerLogoCine(cine);
   const Heading = nivelTitulo;
 
   return (
     <article className="cine-card">
       <div className="cine-card-header">
-        <div className="cine-logo-container" data-origen={cine.origen}>
-          {logo ? (
-            <img
-              src={logo}
-              alt={`Logo de ${cine.nombre}`}
-              className="cine-card-logo"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <FilmIcon size={24} />
-          )}
-        </div>
+        <LogoCine cine={cine} tamano="sm" cargaDiferida />
         {accion}
       </div>
       <div className="cine-card-body">

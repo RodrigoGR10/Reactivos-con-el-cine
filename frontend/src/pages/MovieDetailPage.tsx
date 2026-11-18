@@ -20,6 +20,7 @@ import {
 } from "../components/common/SelectorMultiple";
 import { useEsMovilFiltros } from "../hooks/useEsMovilFiltros";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
+import { LogoCine } from "../components/cines/LogoCine";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
 import { TrailerPelicula } from "../components/peliculas/TrailerPelicula";
 import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
@@ -28,7 +29,6 @@ import {
     filtrarCines,
     obtenerCadenas,
     obtenerComunas,
-    obtenerLogoCine,
 } from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
 import {
@@ -552,8 +552,6 @@ function MovieDetailPage() {
                                         ? `Quitar ${cine.nombre} de cines favoritos`
                                         : `Guardar ${cine.nombre} en cines favoritos`;
 
-                                    const logoCine = obtenerLogoCine(cine);
-
                                     return (
                                         <article
                                             key={cine.id}
@@ -567,19 +565,12 @@ function MovieDetailPage() {
                                                         tabIndex={-1}
                                                         aria-hidden="true"
                                                     >
-                                                        <div
-                                                            className="logo-cine"
-                                                            data-origen={cine.origen}
-                                                        >
-                                                            {logoCine ? (
-                                                                <img
-                                                                    src={logoCine}
-                                                                    alt=""
-                                                                />
-                                                            ) : (
-                                                                <span>🎬</span>
-                                                            )}
-                                                        </div>
+                                                        <LogoCine
+                                                            cine={cine}
+                                                            alt=""
+                                                            tamano="md"
+                                                            className="logo-cine-enlazado"
+                                                        />
                                                     </Link>
 
                                                     <div className="nombre-cine">
