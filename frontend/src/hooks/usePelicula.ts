@@ -25,6 +25,8 @@ function mismaPelicula(a: Pelicula, b: Pelicula): boolean {
     a.sinopsis === b.sinopsis &&
     a.poster === b.poster &&
     a.banner === b.banner &&
+    a.trailerUrl === b.trailerUrl &&
+    a.trailerVersion === b.trailerVersion &&
     a.estadoEstreno === b.estadoEstreno &&
     a.fechaEstreno === b.fechaEstreno &&
     a.totalFavoritos === b.totalFavoritos &&

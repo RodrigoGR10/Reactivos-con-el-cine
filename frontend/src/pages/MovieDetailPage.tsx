@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
@@ -35,6 +35,9 @@ import type { Cine } from "../types/types";
 
 function MovieDetailPage() {
     const { id } = useParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const fechaSeleccionada = searchParams.get("fecha") ?? "";
+    const cineSeleccionadoId = searchParams.get("cineId") ?? "";
     const {
         toggleFavoriteCinema,
         toggleFavoriteMovie,
@@ -62,7 +65,6 @@ function MovieDetailPage() {
     const detalle = useDetalleFunciones();
 
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
-    const [fechaSeleccionada, setFechaSeleccionada] = useState("");
     const [busqueda, setBusqueda] = useState("");
     const [comunasSeleccionadas, setComunasSeleccionadas] = useState<string[]>([]);
     const [cadenasSeleccionadas, setCadenasSeleccionadas] = useState<string[]>([]);
@@ -185,7 +187,9 @@ function MovieDetailPage() {
             grupos.map((g) => g.cine),
             busqueda,
             comunasActivas,
-        ).map((c) => c.id),
+        )
+            .filter((cine) => !cineSeleccionadoId || cine.id === cineSeleccionadoId)
+            .map((cine) => cine.id),
     );
 
     const cadenasSet = new Set(cadenasActivas);
@@ -195,7 +199,23 @@ function MovieDetailPage() {
         return cinesFiltradosIds.has(g.cine.id) && coincideCadena;
     });
 
+    const cineSeleccionado = cines.find((cine) => cine.id === cineSeleccionadoId);
+
     const chipsFiltros: ChipFiltroActivo[] = [
+        ...(cineSeleccionado
+            ? [{
+                  id: `cine-${cineSeleccionado.id}`,
+                  etiqueta: cineSeleccionado.nombre,
+                  ariaLabel: `Quitar filtro ${cineSeleccionado.nombre}`,
+                  onQuitar: () => setSearchParams((anteriores) => {
+                      const siguientes = new URLSearchParams(anteriores);
+                      siguientes.delete("cineId");
+                      siguientes.delete("funcionId");
+                      siguientes.delete("hora");
+                      return siguientes;
+                  }, { replace: true }),
+              }]
+            : []),
         ...cadenasDisponibles
             .filter((cadena) => cadenasActivas.includes(cadena.valor))
             .map((cadena) => ({
@@ -312,8 +332,14 @@ function MovieDetailPage() {
                     fechas={fechasDisponibles}
                     fechaSeleccionada={fechaActual}
                     onSeleccionarFecha={(fecha) => {
-                        setFechaSeleccionada(fecha);
                         setFormatoSeleccionado("Todos");
+                        setSearchParams((anteriores) => {
+                            const siguientes = new URLSearchParams(anteriores);
+                            siguientes.set("fecha", fecha);
+                            siguientes.delete("funcionId");
+                            siguientes.delete("hora");
+                            return siguientes;
+                        }, { replace: true });
                     }}
                 />
 
@@ -400,6 +426,13 @@ function MovieDetailPage() {
                                 setComunasSeleccionadas([]);
                                 setFormatoSeleccionado("Todos");
                                 setCadenasSeleccionadas([]);
+                                setSearchParams((anteriores) => {
+                                    const siguientes = new URLSearchParams(anteriores);
+                                    siguientes.delete("cineId");
+                                    siguientes.delete("funcionId");
+                                    siguientes.delete("hora");
+                                    return siguientes;
+                                }, { replace: true });
                             }}
                         >
                             Restablecer filtros
