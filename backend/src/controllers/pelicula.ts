@@ -18,7 +18,7 @@ interface PeliculaRow {
     clasificacion: string | null;
     poster: string | null;
     trailerUrl: string | null;
-    trailerVersion: "doblado" | "original" | "subtitulado" | "espanol" | null;
+    trailerVersion: "doblado" | "original" | "subtitulado" | null;
     banner: string | null;
     tmdb_id: number | null;
     calificacion_tmdb: number | null;
@@ -47,14 +47,14 @@ const PELICULA_COLUMNS = `
     p.clasificacion,
     p.imagen_url AS poster,
     CASE
-        WHEN p.trailer_idioma = 'es-419'
-            AND p.trailer_version IN ('doblado', 'original', 'subtitulado', 'espanol')
+        WHEN p.trailer_idioma IS NOT NULL
+            AND p.trailer_version IN ('doblado', 'original', 'subtitulado', 'espanol', 'otro')
         THEN p.trailer_url
         ELSE NULL
     END AS "trailerUrl",
     CASE
-        WHEN p.trailer_idioma = 'es-419'
-            AND p.trailer_version IN ('doblado', 'original', 'subtitulado', 'espanol')
+        WHEN p.trailer_idioma IS NOT NULL
+            AND p.trailer_version IN ('doblado', 'original', 'subtitulado')
         THEN p.trailer_version
         ELSE NULL
     END AS "trailerVersion",
