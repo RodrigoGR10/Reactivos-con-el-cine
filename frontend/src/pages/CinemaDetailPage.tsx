@@ -14,13 +14,17 @@ import { MapPinIcon } from "../components/common/Icons";
 import { BotonFavorito } from "../components/common/BotonFavorito";
 import {
   ChipsFiltrosActivos,
+  GrupoFiltros,
   SelectorUnico,
   type ChipFiltroActivo,
 } from "../components/common/SelectorMultiple";
+import { useEsMovilFiltros } from "../hooks/useEsMovilFiltros";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
 import {
   agruparHorariosPorPelicula,
+  horarioCoincideIdioma,
   obtenerFormatosDisponibles,
+  obtenerIdiomasDisponibles,
 } from "../utils/agruparFunciones";
 import { obtenerLogoCine } from "../utils/agruparCines";
 import { normalizarTexto } from "../utils/normalizarTexto";
@@ -57,7 +61,9 @@ function CinemaDetailPage() {
   const [noEncontradoCarga, setNoEncontradoCarga] = useState(false);
   const [fechaSeleccionada, setFechaSeleccionada] = useState("");
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
+  const [idiomaSeleccionado, setIdiomaSeleccionado] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
+  const esMovil = useEsMovilFiltros();
   const detalle = useDetalleFunciones();
 
   useEffect(() => {
@@ -257,7 +263,7 @@ function CinemaDetailPage() {
     ? horarios.filter((h) => h.fecha === fechaActual)
     : horarios;
 
-  // Extrae formatos disponibles únicos y sus conteos para el día seleccionado
+  // Extrae formatos e idiomas disponibles únicos y sus conteos para el día seleccionado
   const opcionesFormato = obtenerFormatosDisponibles(horariosDelDia);
   const formatosDisponibles = ["Todos", ...opcionesFormato.map((f) => f.valor)];
 
@@ -265,8 +271,18 @@ function CinemaDetailPage() {
     ? formatoSeleccionado
     : "Todos";
 
-  const chipsFiltros: ChipFiltroActivo[] =
-    formatoActual !== "Todos"
+  const opcionesIdioma = obtenerIdiomasDisponibles(horariosDelDia);
+  const idiomasDisponibles = ["Todos", ...opcionesIdioma.map((i) => i.valor)];
+
+  const idiomaActual = idiomasDisponibles.includes(idiomaSeleccionado)
+    ? idiomaSeleccionado
+    : "Todos";
+
+  const hayFiltrosDesplegables =
+    opcionesFormato.length > 1 || opcionesIdioma.length > 1;
+
+  const chipsFiltros: ChipFiltroActivo[] = [
+    ...(formatoActual !== "Todos"
       ? [
           {
             id: `formato-${formatoActual}`,
@@ -275,19 +291,30 @@ function CinemaDetailPage() {
             onQuitar: () => setFormatoSeleccionado("Todos"),
           },
         ]
-      : [];
+      : []),
+    ...(idiomaActual !== "Todos"
+      ? [
+          {
+            id: `idioma-${idiomaActual}`,
+            etiqueta: idiomaActual,
+            ariaLabel: `Quitar filtro de idioma: ${idiomaActual}`,
+            onQuitar: () => setIdiomaSeleccionado("Todos"),
+          },
+        ]
+      : []),
+  ];
 
-  // Filtra horarios por formato seleccionado
-  const horariosFiltradosPorFormato =
-    formatoActual === "Todos"
-      ? horariosDelDia
-      : horariosDelDia.filter(
-          (h) => (h.formatoResumen || "2D") === formatoActual,
-        );
+  // Filtra horarios por formato e idioma seleccionados
+  const horariosFiltrados = horariosDelDia.filter(
+    (h) =>
+      (formatoActual === "Todos" ||
+        (h.formatoResumen || "2D") === formatoActual) &&
+      horarioCoincideIdioma(h, idiomaActual),
+  );
 
   // Agrupa por película y prioriza las películas favoritas al entrar a la vista
   const grupos = agruparHorariosPorPelicula(
-    horariosFiltradosPorFormato,
+    horariosFiltrados,
     peliculas,
   ).sort(
     (a, b) =>
@@ -377,30 +404,56 @@ function CinemaDetailPage() {
           onSeleccionarFecha={(fecha) => {
             setFechaSeleccionada(fecha);
             setFormatoSeleccionado("Todos");
+            setIdiomaSeleccionado("Todos");
           }}
         />
 
         {/* Filtros de la cartelera del cine */}
         {horarios.length > 0 && (
           <div className="cartelera-cine-filtros">
-            <div className="herramientas-cartelera">
+            <div
+              className={`herramientas-cartelera ${esMovil && hayFiltrosDesplegables ? "herramientas-cartelera--movil" : ""}`.trim()}
+            >
               <BuscadorPeliculas
                 busqueda={busqueda}
                 onBusquedaChange={setBusqueda}
                 label="Buscar película en este cine"
                 placeholder="Buscar película en este cine..."
               />
-              {opcionesFormato.length > 1 && (
+              {hayFiltrosDesplegables && (
                 <div className="filtros-cartelera-selectores">
-                  <SelectorUnico
-                    className="filtro-formato"
-                    opciones={opcionesFormato}
-                    seleccionada={formatoActual === "Todos" ? "" : formatoActual}
-                    onChange={(valor) => setFormatoSeleccionado(valor || "Todos")}
-                    titulo="Formato"
-                    etiquetaVacia="Formato"
-                    ariaLabelPrefijo="Filtrar por formato"
-                  />
+                  <GrupoFiltros cantidadActivos={chipsFiltros.length}>
+                    {opcionesFormato.length > 1 && (
+                      <SelectorUnico
+                        className="filtro-formato"
+                        opciones={opcionesFormato}
+                        seleccionada={
+                          formatoActual === "Todos" ? "" : formatoActual
+                        }
+                        onChange={(valor) =>
+                          setFormatoSeleccionado(valor || "Todos")
+                        }
+                        titulo="Formato"
+                        etiquetaVacia="Formato"
+                        ariaLabelPrefijo="Filtrar por formato"
+                      />
+                    )}
+                    {opcionesIdioma.length > 1 && (
+                      <SelectorUnico
+                        className="filtro-idioma"
+                        opciones={opcionesIdioma}
+                        seleccionada={
+                          idiomaActual === "Todos" ? "" : idiomaActual
+                        }
+                        onChange={(valor) =>
+                          setIdiomaSeleccionado(valor || "Todos")
+                        }
+                        titulo="Idioma"
+                        etiquetaVacia="Idioma"
+                        ariaLabelPrefijo="Filtrar por idioma"
+                      />
+                    )}
+                  </GrupoFiltros>
                 </div>
               )}
             </div>
@@ -422,6 +475,7 @@ function CinemaDetailPage() {
               onClick={() => {
                 setBusqueda("");
                 setFormatoSeleccionado("Todos");
+                setIdiomaSeleccionado("Todos");
               }}
             >
               Restablecer filtros
