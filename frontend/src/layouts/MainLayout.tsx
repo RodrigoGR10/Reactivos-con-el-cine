@@ -1,10 +1,11 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { AuthModal } from "../components/auth/AuthModal";
-import { useAuth } from "../context/AuthContext";
+import { useAuthStore } from "../stores/authStore";
 
 function MainLayout() {
-  const { isAuthModalOpen, closeAuthModal } = useAuth();
+  const isAuthModalOpen = useAuthStore((state) => state.isAuthModalOpen);
+  const closeAuthModal = useAuthStore((state) => state.closeAuthModal);
 
   return (
     <div className="layout-root">

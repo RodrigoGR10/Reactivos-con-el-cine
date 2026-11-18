@@ -7,10 +7,12 @@ import {
   LogInIcon,
   LogOutIcon,
 } from "./common/Icons";
-import { useAuth } from "../context/AuthContext";
+import { useAuthStore } from "../stores/authStore";
 
 function Sidebar() {
-  const { user, logout, openAuthModal } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const openAuthModal = useAuthStore((state) => state.openAuthModal);
   const location = useLocation();
 
   const manejarClicVista = (ruta: string) => (evento: MouseEvent<HTMLAnchorElement>) => {

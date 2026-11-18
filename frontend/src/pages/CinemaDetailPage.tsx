@@ -4,8 +4,8 @@ import type { Cine, Pelicula, Horario } from "../types/types";
 import cinesService from "../services/cines";
 import funcionesService from "../services/funciones";
 import peliculasService from "../services/peliculas";
-import { useAuth } from "../context/AuthContext";
-import { useFavorites } from "../context/FavoritesContext";
+import { useAuthStore } from "../stores/authStore";
+import { useFavoritesStore } from "../stores/favoritesStore";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { MapPinIcon } from "../components/common/Icons";
 import { BotonFavorito } from "../components/common/BotonFavorito";
@@ -43,13 +43,16 @@ const getCinemaLogo = (cine: Cine): string => {
 
 function CinemaDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user, openAuthModal } = useAuth();
-  const {
-    isFavoriteCinema,
-    toggleFavoriteCinema,
-    isFavoriteMovie,
-    toggleFavoriteMovie,
-  } = useFavorites();
+  const isAuthenticated = useAuthStore((state) => state.user !== null);
+  const openAuthModal = useAuthStore((state) => state.openAuthModal);
+  const favoriteCinemaIds = useFavoritesStore((state) => state.favoriteCinemaIds);
+  const favoriteMovieIds = useFavoritesStore((state) => state.favoriteMovieIds);
+  const toggleFavoriteCinema = useFavoritesStore(
+    (state) => state.toggleFavoriteCinema,
+  );
+  const toggleFavoriteMovie = useFavoritesStore(
+    (state) => state.toggleFavoriteMovie,
+  );
   const { peliculasFavoritasAlEntrar } = useFavoritosAlEntrar();
 
   const [cine, setCine] = useState<Cine | null>(null);
@@ -154,10 +157,10 @@ function CinemaDetailPage() {
   }
 
   const logo = getCinemaLogo(cine);
-  const esFavorito = isFavoriteCinema(cine.id);
+  const esFavorito = favoriteCinemaIds.includes(cine.id);
 
   const handleToggleFavorito = () => {
-    if (!user) {
+    if (!isAuthenticated) {
       openAuthModal();
       return;
     }
@@ -355,7 +358,7 @@ function CinemaDetailPage() {
                 (h) => h.peliculaId === pelicula.id,
               );
               const esPeliculaFavorita = Boolean(
-                user && isFavoriteMovie(pelicula.id),
+                isAuthenticated && favoriteMovieIds.includes(pelicula.id),
               );
               const etiquetaFavPelicula = esPeliculaFavorita
                 ? `Quitar ${pelicula.titulo} de películas favoritas`
@@ -392,7 +395,7 @@ function CinemaDetailPage() {
                             ariaLabel={etiquetaFavPelicula}
                             title={etiquetaFavPelicula}
                             onClick={() => {
-                              if (!user) {
+                              if (!isAuthenticated) {
                                 openAuthModal();
                                 return;
                               }

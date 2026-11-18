@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import type { Pelicula } from "../../types/types.ts";
-import { useFavorites } from "../../context/FavoritesContext.tsx";
-import { useAuth } from "../../context/AuthContext.tsx";
+import { useFavoritesStore } from "../../stores/favoritesStore.ts";
+import { useAuthStore } from "../../stores/authStore.ts";
 import { BotonFavorito } from "../common/BotonFavorito.tsx";
 import { CalendarIcon } from "../common/Icons.tsx";
 import { formatearFechaEstrenoCorta } from "../../utils/formatearPeliculaDestacada.ts";
@@ -11,12 +11,17 @@ interface TarjetaPeliculaProps {
 }
 
 function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
-  const { user, openAuthModal } = useAuth();
-  const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
-  const esFavorita = isFavoriteMovie(pelicula.id);
+  const isAuthenticated = useAuthStore((state) => state.user !== null);
+  const openAuthModal = useAuthStore((state) => state.openAuthModal);
+  const esFavorita = useFavoritesStore((state) =>
+    state.favoriteMovieIds.includes(pelicula.id),
+  );
+  const toggleFavoriteMovie = useFavoritesStore(
+    (state) => state.toggleFavoriteMovie,
+  );
 
   const handleToggleFavorito = () => {
-    if (!user) {
+    if (!isAuthenticated) {
       openAuthModal();
       return;
     }

@@ -1,9 +1,10 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuthStore } from "../../stores/authStore";
 import { Mensaje } from "../common/Mensaje";
 
 function ProtectedRoute() {
-  const { isAuthenticated, isLoadingSession } = useAuth();
+  const isAuthenticated = useAuthStore((state) => state.user !== null);
+  const isLoadingSession = useAuthStore((state) => state.isLoadingSession);
 
   if (isLoadingSession) {
     return <Mensaje texto="Comprobando sesión..." />;

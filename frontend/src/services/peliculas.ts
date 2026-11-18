@@ -22,8 +22,8 @@ const getCartelera = async (signal?: AbortSignal): Promise<Pelicula[]> => {
     return data.map(normalizarPelicula);
 };
 
-const getById = async (id: string): Promise<Pelicula> => {
-    const { data } = await axios.get<Pelicula>(`${baseUrl}/${id}`);
+const getById = async (id: string, signal?: AbortSignal): Promise<Pelicula> => {
+    const { data } = await axios.get<Pelicula>(`${baseUrl}/${id}`, { signal });
     return normalizarPelicula(data);
 };
 

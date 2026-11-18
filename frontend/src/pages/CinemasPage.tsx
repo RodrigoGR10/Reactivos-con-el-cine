@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import type { Cine } from "../types/types";
 import cinesService from "../services/cines";
-import { useAuth } from "../context/AuthContext";
-import { useFavorites } from "../context/FavoritesContext";
+import { useAuthStore } from "../stores/authStore";
+import { useFavoritesStore } from "../stores/favoritesStore";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { FilmIcon } from "../components/common/Icons";
 import { BotonFavorito } from "../components/common/BotonFavorito";
@@ -15,8 +15,12 @@ import { useUbicacion } from "../hooks/useUbicacion";
 import "./CinemasPage.css";
 
 function CinemasPage() {
-    const { user, openAuthModal } = useAuth();
-    const { isFavoriteCinema, toggleFavoriteCinema } = useFavorites();
+    const isAuthenticated = useAuthStore((state) => state.user !== null);
+    const openAuthModal = useAuthStore((state) => state.openAuthModal);
+    const favoriteCinemaIds = useFavoritesStore((state) => state.favoriteCinemaIds);
+    const toggleFavoriteCinema = useFavoritesStore(
+        (state) => state.toggleFavoriteCinema,
+    );
     const { cinesFavoritosAlEntrar } = useFavoritosAlEntrar();
     const { ubicacion, estado, solicitar } = useUbicacion();
     const [cercaniaActiva, setCercaniaActiva] = useState(true);
@@ -38,7 +42,7 @@ function CinemasPage() {
     const comunas = obtenerComunas(cines);
     const cinesFiltrados = filtrarCines(cines, busqueda, comunasSeleccionadas);
     const ordenarPorCercania = cercaniaActiva && estado === "listo" && ubicacion !== null;
-    const favoritosOrden = user ? [...cinesFavoritosAlEntrar] : [];
+    const favoritosOrden = isAuthenticated ? [...cinesFavoritosAlEntrar] : [];
     const grupos = agruparCines(cinesFiltrados, favoritosOrden, ordenarPorCercania ? ubicacion : null);
     const cinesPorCercania = ordenarPorCercania ? ordenarCinesPorCercania(cinesFiltrados, favoritosOrden, ubicacion) : [];
     const limpiarFiltros = () => {
@@ -58,7 +62,7 @@ function CinemasPage() {
         }));
 
     const renderTarjetaCine = (cine: CineOrdenado) => {
-        const esFavorito = Boolean(user && isFavoriteCinema(cine.id));
+        const esFavorito = isAuthenticated && favoriteCinemaIds.includes(cine.id);
         const etiquetaFavorito = esFavorito ? `Quitar ${cine.nombre} de habituales` : `Guardar ${cine.nombre} como habitual`;
         return (
             <TarjetaCine
@@ -72,7 +76,7 @@ function CinemasPage() {
                         ariaLabel={etiquetaFavorito}
                         title={etiquetaFavorito}
                         onClick={() => {
-                            if (!user) openAuthModal();
+                            if (!isAuthenticated) openAuthModal();
                             else toggleFavoriteCinema(cine.id);
                         }}
                     />

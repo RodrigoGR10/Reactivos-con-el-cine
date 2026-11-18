@@ -1,5 +1,5 @@
 import { useState, useEffect, type SubmitEvent } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuthStore } from "../../stores/authStore";
 import {
   CloseIcon,
   MailIcon,
@@ -22,7 +22,8 @@ export const AuthModal = ({
   onSuccess,
   initialMode = "login",
 }: AuthModalProps) => {
-  const { login, register } = useAuth();
+  const login = useAuthStore((state) => state.login);
+  const register = useAuthStore((state) => state.register);
 
   const [isRegisterActive, setIsRegisterActive] = useState(
     initialMode === "register",

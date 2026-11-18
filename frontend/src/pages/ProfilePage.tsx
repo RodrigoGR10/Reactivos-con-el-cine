@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useId } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useFavorites } from "../context/FavoritesContext";
+import { useAuthStore } from "../stores/authStore";
+import { useFavoritesStore } from "../stores/favoritesStore";
 import type { Pelicula, Cine } from "../types/types";
 import {
   SearchIcon,
@@ -29,13 +29,16 @@ const formatearFechaRegistro = (fechaStr?: string): string => {
 type TabType = "peliculas" | "cines";
 
 const ProfilePage = () => {
-  const { user, openAuthModal } = useAuth();
-  const {
-    favoriteMovieIds,
-    favoriteCinemaIds,
-    toggleFavoriteMovie,
-    toggleFavoriteCinema,
-  } = useFavorites();
+  const user = useAuthStore((state) => state.user);
+  const openAuthModal = useAuthStore((state) => state.openAuthModal);
+  const favoriteMovieIds = useFavoritesStore((state) => state.favoriteMovieIds);
+  const favoriteCinemaIds = useFavoritesStore((state) => state.favoriteCinemaIds);
+  const toggleFavoriteMovie = useFavoritesStore(
+    (state) => state.toggleFavoriteMovie,
+  );
+  const toggleFavoriteCinema = useFavoritesStore(
+    (state) => state.toggleFavoriteCinema,
+  );
 
   const [tabActiva, setTabActiva] = useState<TabType>("peliculas");
   const [busqueda, setBusqueda] = useState("");

@@ -1,10 +1,11 @@
 import { Navigate, useNavigate } from "react-router-dom";
 import { AuthModal } from "../components/auth/AuthModal";
 import { Mensaje } from "../components/common/Mensaje";
-import { useAuth } from "../context/AuthContext";
+import { useAuthStore } from "../stores/authStore";
 
 function LoginPage() {
-  const { isAuthenticated, isLoadingSession } = useAuth();
+  const isAuthenticated = useAuthStore((state) => state.user !== null);
+  const isLoadingSession = useAuthStore((state) => state.isLoadingSession);
   const navigate = useNavigate();
 
   if (isLoadingSession) {

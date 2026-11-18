@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { PeliculaDestacadaSeleccionada } from "../../utils/seleccionarDestacadas";
-import { useAuth } from "../../context/AuthContext";
+import { useAuthStore } from "../../stores/authStore";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { ChevronLeftIcon, ChevronRightIcon } from "../common/Icons";
 import PeliculaDestacada from "./PeliculaDestacada";
@@ -27,7 +27,7 @@ export function CarruselDestacadas({
   const carruselRef = useRef<HTMLElement>(null);
   const inicioToque = useRef<{ x: number; y: number } | null>(null);
   const reducirMovimiento = useMediaQuery("(prefers-reduced-motion: reduce)");
-  const { isAuthModalOpen } = useAuth();
+  const isAuthModalOpen = useAuthStore((state) => state.isAuthModalOpen);
   const contenidoId = useId();
   const indice = Math.max(
     0,

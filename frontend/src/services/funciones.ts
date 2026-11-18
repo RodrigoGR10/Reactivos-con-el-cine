@@ -21,8 +21,8 @@ const normalizarHorario = (horario: Horario): Horario => ({
     : [],
 });
 
-const getHorarios = async (peliculaId: string): Promise<Horario[]> => {
-  const { data } = await axios.get<Horario[]>(`${baseUrl}/horarios`, { params: { peliculaId } });
+const getHorarios = async (peliculaId: string, signal?: AbortSignal): Promise<Horario[]> => {
+  const { data } = await axios.get<Horario[]>(`${baseUrl}/horarios`, { params: { peliculaId }, signal });
   return data.map(normalizarHorario);
 };
 

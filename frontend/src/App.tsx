@@ -1,7 +1,6 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import { FavoritesProvider } from "./context/FavoritesContext";
+import { GlobalStateInitializer } from "./components/state/GlobalStateInitializer";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
 import PaginaPrincipal from "./pages/PaginaPrincipal";
@@ -13,24 +12,21 @@ import LoginPage from "./pages/LoginPage";
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <FavoritesProvider>
-          <Routes>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<PaginaPrincipal />} />
-              <Route path="/peliculas/:id" element={<MovieDetailPage />} />
-              <Route path="/cines" element={<CinemasPage />} />
-              <Route path="/cines/:id" element={<CinemaDetailPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route element={<ProtectedRoute />}>
-                <Route path="/perfil" element={<ProfilePage />} />
-              </Route>
-            </Route>
-          </Routes>
-        </FavoritesProvider>
-      </BrowserRouter>
-    </AuthProvider>
+    <BrowserRouter>
+      <GlobalStateInitializer />
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<PaginaPrincipal />} />
+          <Route path="/peliculas/:id" element={<MovieDetailPage />} />
+          <Route path="/cines" element={<CinemasPage />} />
+          <Route path="/cines/:id" element={<CinemaDetailPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/perfil" element={<ProfilePage />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 export default App;

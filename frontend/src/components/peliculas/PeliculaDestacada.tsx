@@ -1,8 +1,8 @@
 import { Fragment, useId, useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import type { Pelicula } from "../../types/types.ts";
-import { useAuth } from "../../context/AuthContext.tsx";
-import { useFavorites } from "../../context/FavoritesContext.tsx";
+import { useAuthStore } from "../../stores/authStore.ts";
+import { useFavoritesStore } from "../../stores/favoritesStore.ts";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
 import { CalendarIcon, StarIcon } from "../common/Icons.tsx";
 import {
@@ -125,15 +125,20 @@ function PeliculaDestacada({
   complemento,
   categoria,
 }: PeliculaDestacadaProps) {
-  const { user, openAuthModal } = useAuth();
-  const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
+  const isAuthenticated = useAuthStore((state) => state.user !== null);
+  const openAuthModal = useAuthStore((state) => state.openAuthModal);
+  const esFavorita = useFavoritesStore((state) =>
+    state.favoriteMovieIds.includes(pelicula.id),
+  );
+  const toggleFavoriteMovie = useFavoritesStore(
+    (state) => state.toggleFavoriteMovie,
+  );
   const tituloId = useId();
   const esDesktop = useMediaQuery("(min-width: 769px)");
   const esAlturaCorta = useMediaQuery("(max-height: 700px)");
   const peliculaRef = useRef<HTMLElement>(null);
   const contenidoRef = useRef<HTMLDivElement>(null);
   const sinopsisRef = useRef<HTMLParagraphElement>(null);
-  const esFavorita = isFavoriteMovie(pelicula.id);
   const tieneBanner = Boolean(pelicula.banner && pelicula.banner !== pelicula.poster);
   const total = totalFavoritos(pelicula);
   const { tituloPrincipal, subtitulo } = separarTituloDestacado(pelicula.titulo);
@@ -156,7 +161,7 @@ function PeliculaDestacada({
   ].filter((item) => item !== null);
 
   const handleToggleFavorita = () => {
-    if (!user) {
+    if (!isAuthenticated) {
       openAuthModal();
       return;
     }

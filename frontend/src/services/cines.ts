@@ -4,8 +4,8 @@ import { API_BASE_URL } from "./apiConfig";
 
 const baseUrl = `${API_BASE_URL}/cines`;
 
-const getAll = async (): Promise<Cine[]> => {
-  const { data } = await axios.get<Cine[]>(baseUrl);
+const getAll = async (signal?: AbortSignal): Promise<Cine[]> => {
+  const { data } = await axios.get<Cine[]>(baseUrl, { signal });
   return data;
 };
 

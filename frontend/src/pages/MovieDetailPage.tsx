@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useFavorites } from "../context/FavoritesContext";
+import { useAuthStore } from "../stores/authStore";
+import { useFavoritesStore } from "../stores/favoritesStore";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
 import { Mensaje } from "../components/common/Mensaje";
@@ -38,14 +38,17 @@ function MovieDetailPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const fechaSeleccionada = searchParams.get("fecha") ?? "";
     const cineSeleccionadoId = searchParams.get("cineId") ?? "";
-    const {
-        toggleFavoriteCinema,
-        toggleFavoriteMovie,
-        isFavoriteMovie,
-        isFavoriteCinema,
-    } = useFavorites();
+    const favoriteMovieIds = useFavoritesStore((state) => state.favoriteMovieIds);
+    const favoriteCinemaIds = useFavoritesStore((state) => state.favoriteCinemaIds);
+    const toggleFavoriteCinema = useFavoritesStore(
+        (state) => state.toggleFavoriteCinema,
+    );
+    const toggleFavoriteMovie = useFavoritesStore(
+        (state) => state.toggleFavoriteMovie,
+    );
     const { cinesFavoritosAlEntrar } = useFavoritosAlEntrar();
-    const { user, openAuthModal } = useAuth();
+    const isAuthenticated = useAuthStore((state) => state.user !== null);
+    const openAuthModal = useAuthStore((state) => state.openAuthModal);
 
     const { ubicacion, estado, solicitar } = useUbicacion();
     const [cercaniaActiva, setCercaniaActiva] = useState(false);
@@ -286,21 +289,21 @@ function MovieDetailPage() {
                         )}
                         <button
                             type="button"
-                            className={`boton-fav-peli ${isFavoriteMovie(pelicula.id) ? "activo" : ""}`}
+                            className={`boton-fav-peli ${favoriteMovieIds.includes(pelicula.id) ? "activo" : ""}`}
                             title={
-                                isFavoriteMovie(pelicula.id)
+                                favoriteMovieIds.includes(pelicula.id)
                                     ? "Quitar de películas favoritas"
                                     : "Guardar en películas favoritas"
                             }
                             onClick={() => {
-                                if (!user) {
+                                if (!isAuthenticated) {
                                     openAuthModal();
                                     return;
                                 }
                                 toggleFavoriteMovie(pelicula.id);
                             }}
                         >
-                            {isFavoriteMovie(pelicula.id) ? "♥" : "♡"}
+                            {favoriteMovieIds.includes(pelicula.id) ? "♥" : "♡"}
                         </button>
                     </div>
 
@@ -462,7 +465,7 @@ function MovieDetailPage() {
                                         (h) => h.cineId === cine.id,
                                     );
                                     const esCineFavorito = Boolean(
-                                        user && isFavoriteCinema(cine.id),
+                                        isAuthenticated && favoriteCinemaIds.includes(cine.id),
                                     );
                                     const etiquetaFavCine = esCineFavorito
                                         ? `Quitar ${cine.nombre} de cines favoritos`
@@ -503,7 +506,7 @@ function MovieDetailPage() {
                                                                 ariaLabel={etiquetaFavCine}
                                                                 title={etiquetaFavCine}
                                                                 onClick={() => {
-                                                                    if (!user) {
+                                                                    if (!isAuthenticated) {
                                                                         openAuthModal();
                                                                         return;
                                                                     }
