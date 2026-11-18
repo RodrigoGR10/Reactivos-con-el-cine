@@ -471,3 +471,27 @@ export const SlidersIcon = ({
     <circle cx="15" cy="17" r="2.2" fill="var(--color-superficie, #141416)" />
   </svg>
 );
+
+export const PencilIcon = ({
+  size = 16,
+  className = "pencil-icon-svg",
+  ...props
+}: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
+  </svg>
+);

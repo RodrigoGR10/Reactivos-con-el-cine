@@ -176,6 +176,10 @@
 }
 
 .btn-edit-minimal {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: #141414;
     border: 1px solid #262626;
     color: #ffffff;
@@ -187,6 +191,10 @@
     transition:
         background-color 0.2s ease,
         border-color 0.2s ease;
+}
+
+.btn-edit-icon {
+    display: none;
 }
 
 .btn-edit-minimal:hover {
@@ -452,16 +460,62 @@
         padding: 24px 20px;
     }
     .middle-nav-row {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .tabs-group {
         gap: 16px;
+        min-width: 0;
     }
     .actions-group {
-        width: 100%;
-        justify-content: space-between;
+        display: contents;
     }
     .search-box-minimal {
-        flex: 1;
+        order: 3;
+        flex: 1 0 100%;
+        width: 100%;
+    }
+    .btn-edit-minimal {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+    .btn-edit-minimal::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+    }
+    .btn-edit-text {
+        display: none;
+    }
+    .btn-edit-icon {
+        display: block;
+    }
+}
+
+@media (max-width: 400px) {
+    .tabs-group {
+        gap: 12px;
+    }
+    .tab-link {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .middle-nav-row {
+        gap: 8px;
+    }
+    .tabs-group {
+        gap: 10px;
+    }
+    .tab-link {
+        font-size: 0.8125rem;
     }
 }
 

@@ -9,6 +9,7 @@ import {
   FilmIcon,
   MapPinIcon,
   CalendarIcon,
+  PencilIcon,
 } from "../components/common/Icons";
 import {
   TarjetaCine,
@@ -192,9 +193,14 @@ const ProfilePage = () => {
                 type="button"
                 className={`btn-edit-minimal ${editando ? "active" : ""}`}
                 onClick={() => setModoEdicion((prev) => !prev)}
+                aria-label={editando ? "Finalizar edición" : "Editar guardados"}
+                aria-pressed={editando}
                 title={editando ? "Finalizar edición" : "Editar guardados"}
               >
-                {editando ? "listo" : "editar"}
+                <span className="btn-edit-text">
+                  {editando ? "listo" : "editar"}
+                </span>
+                <PencilIcon size={16} className="btn-edit-icon" />
               </button>
             )}
           </div>
