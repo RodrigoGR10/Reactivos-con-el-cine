@@ -18,11 +18,53 @@ function text(value: string, field: string) {
     return value.trim();
 }
 
+// Cineplanet publica "0, 0" en su API para Mall Barrio Independencia (Av. Independencia 565).
+const COORDENADAS_INDEPENDENCIA = {
+    latitud: -33.424655,
+    longitud: -70.654405,
+};
+
+const COORDENADAS_RESPALDO: Record<
+    string,
+    { latitud: number; longitud: number }
+> = {
+    "0000000012": COORDENADAS_INDEPENDENCIA,
+    "cp-independencia": COORDENADAS_INDEPENDENCIA,
+};
+
+function normalizarCoordenadas(
+    rawLat?: string,
+    rawLng?: string,
+): { latitud?: number; longitud?: number } {
+    const lat = rawLat?.trim() ? Number(rawLat) : NaN;
+    const lng = rawLng?.trim() ? Number(rawLng) : NaN;
+    if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng) ||
+        lat < -90 ||
+        lat > 90 ||
+        lng < -180 ||
+        lng > 180 ||
+        (lat === 0 && lng === 0)
+    ) {
+        return {};
+    }
+    return { latitud: lat, longitud: lng };
+}
+
 export function normalizeCinema(
     cinema: Cinema,
     extractedAt: string,
 ): ScrapedCinema {
     const id = text(cinema.ID, "id de cine");
+    const slug = text(cinema.formattedCinemaName, "slug de cine");
+    const coords = normalizarCoordenadas(cinema.latitude, cinema.longitude);
+    const coordenadas =
+        coords.latitud !== undefined && coords.longitud !== undefined
+            ? coords
+            : (COORDENADAS_RESPALDO[id] ??
+              COORDENADAS_RESPALDO[slug.toLowerCase()] ??
+              {});
     return {
         id: `cineplanet:${id}`,
         origen: "cineplanet",
@@ -32,14 +74,9 @@ export function normalizeCinema(
         comuna: text(cinema.city, "ciudad"),
         ciudad: cinema.city,
         direccion: text(cinema.address, "direccion"),
-        url: `${SITE}/cines/${encodeURIComponent(text(cinema.formattedCinemaName, "slug de cine"))}`,
+        url: `${SITE}/cines/${encodeURIComponent(slug)}`,
         logo: `${SITE}/f09f64a439c124b7d2a6.svg`,
-        ...(cinema.latitude && Number.isFinite(Number(cinema.latitude))
-            ? { latitud: Number(cinema.latitude) }
-            : {}),
-        ...(cinema.longitude && Number.isFinite(Number(cinema.longitude))
-            ? { longitud: Number(cinema.longitude) }
-            : {}),
+        ...coordenadas,
     };
 }
 
