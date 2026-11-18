@@ -35,6 +35,7 @@ const cineDark: MantineColorsTuple = [
 ];
 
 export const cineTheme = createTheme({
+  cursorType: "pointer",
   primaryColor: "cine",
   primaryShade: { light: 6, dark: 6 },
   colors: {
