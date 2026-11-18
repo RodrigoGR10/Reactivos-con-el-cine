@@ -58,13 +58,36 @@ export function obtenerComunas(cines: readonly Cine[]): OpcionComuna[] {
     return [...comunas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CL"));
 }
 
-export function filtrarCines(cines: readonly Cine[], busqueda: string, comunas: readonly string[]): Cine[] {
+export function obtenerCadenas(cines: readonly Cine[]): OpcionComuna[] {
+    const mapa = new Map<string, OpcionComuna>();
+    for (const cine of cines) {
+        const cadena = obtenerCadena(cine);
+        const anterior = mapa.get(cadena.id);
+        mapa.set(cadena.id, {
+            valor: cadena.id,
+            nombre: cadena.nombre,
+            cantidad: (anterior?.cantidad ?? 0) + 1,
+        });
+    }
+    return [...mapa.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CL"));
+}
+
+export function filtrarCines(
+    cines: readonly Cine[],
+    busqueda: string,
+    comunas: readonly string[],
+    cadenasSeleccionadas: readonly string[] = [],
+): Cine[] {
     const termino = normalizarTexto(busqueda.trim());
     const seleccionadas = new Set(comunas);
+    const cadenasSet = new Set(cadenasSeleccionadas);
     return cines.filter((cine) => {
         const comuna = normalizarTexto(cine.comuna.trim().replace(/\s+/g, " "));
-        return (normalizarTexto(cine.nombre).includes(termino) || comuna.includes(termino))
-            && (!seleccionadas.size || seleccionadas.has(comuna));
+        return (
+            (normalizarTexto(cine.nombre).includes(termino) || comuna.includes(termino)) &&
+            (!seleccionadas.size || seleccionadas.has(comuna)) &&
+            (!cadenasSet.size || cadenasSet.has(obtenerCadena(cine).id))
+        );
     });
 }
 

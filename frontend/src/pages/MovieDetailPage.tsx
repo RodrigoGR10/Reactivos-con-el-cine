@@ -16,7 +16,6 @@ import {
     SelectorMultiple,
     SelectorUnico,
     type ChipFiltroActivo,
-    type OpcionFiltro,
 } from "../components/common/SelectorMultiple";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
@@ -25,7 +24,7 @@ import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import {
     filtrarCines,
-    obtenerCadena,
+    obtenerCadenas,
     obtenerComunas,
     obtenerLogoCine,
 } from "../utils/agruparCines";
@@ -170,19 +169,7 @@ function MovieDetailPage() {
         valoresComunasDisponibles.has(valor),
     );
 
-    const mapaCadenas = new Map<string, OpcionFiltro>();
-    for (const { cine } of grupos) {
-        const cadena = obtenerCadena(cine);
-        const anterior = mapaCadenas.get(cadena.id);
-        mapaCadenas.set(cadena.id, {
-            valor: cadena.id,
-            nombre: cadena.nombre,
-            cantidad: (anterior?.cantidad ?? 0) + 1,
-        });
-    }
-    const cadenasDisponibles = [...mapaCadenas.values()].sort((a, b) =>
-        a.nombre.localeCompare(b.nombre, "es-CL"),
-    );
+    const cadenasDisponibles = obtenerCadenas(grupos.map((g) => g.cine));
     const valoresCadenasDisponibles = new Set(cadenasDisponibles.map((c) => c.valor));
     const cadenasActivas = cadenasSeleccionadas.filter((valor) =>
         valoresCadenasDisponibles.has(valor),
@@ -193,15 +180,13 @@ function MovieDetailPage() {
             grupos.map((g) => g.cine),
             busqueda,
             comunasActivas,
+            cadenasActivas,
         ).map((c) => c.id),
     );
 
-    const cadenasSet = new Set(cadenasActivas);
-    const gruposFiltrados = grupos.filter((g) => {
-        const coincideCadena =
-            !cadenasSet.size || cadenasSet.has(obtenerCadena(g.cine).id);
-        return cinesFiltradosIds.has(g.cine.id) && coincideCadena;
-    });
+    const gruposFiltrados = grupos.filter((g) =>
+        cinesFiltradosIds.has(g.cine.id),
+    );
 
     const chipsFiltros: ChipFiltroActivo[] = [
         ...cadenasDisponibles
