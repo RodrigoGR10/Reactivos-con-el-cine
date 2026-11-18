@@ -58,7 +58,7 @@ function MovieDetailPage() {
               )
             : Infinity;
 
-    const { pelicula, horarios, cines, error } = useDetallePelicula(id);
+    const { pelicula, horarios, cines, error, noEncontrada } = useDetallePelicula(id);
     const detalle = useDetalleFunciones();
 
     const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
@@ -230,8 +230,25 @@ function MovieDetailPage() {
             : []),
     ];
 
-    if (error) return <Mensaje texto={error} />;
-    if (!pelicula) return <Mensaje texto="Cargando película..." />;
+    if (error) {
+        return (
+            <Mensaje
+                tipo="error"
+                titulo={
+                    noEncontrada
+                        ? "Película no encontrada"
+                        : "Error al cargar la película"
+                }
+                texto={error}
+                accion={
+                    <Link to="/" className="mensaje-accion-link">
+                        ← Volver a cartelera
+                    </Link>
+                }
+            />
+        );
+    }
+    if (!pelicula) return <Mensaje tipo="cargando" texto="Cargando película..." />;
 
     return (
         <div className="detalle-pelicula">

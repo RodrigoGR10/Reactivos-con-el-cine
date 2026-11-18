@@ -1,0 +1,111 @@
+.mensaje-pagina {
+  width: 100%;
+  flex: 1;
+  padding: 36px 48px;
+  box-sizing: border-box;
+}
+
+.mensaje-pagina--centrado {
+  min-height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mensaje-carga {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-texto-secundario);
+  font-size: 0.95rem;
+}
+
+.mensaje-pagina .mensaje-panel-error {
+  width: 100%;
+  padding: 48px 24px;
+  background-color: #121212;
+  border: 1px solid #202020;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.mensaje-panel-error .mantine-Alert-title {
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f5f5f6;
+}
+
+.mensaje-panel-error .mantine-Alert-message {
+  color: #a1a1aa;
+  font-size: 0.95rem;
+}
+
+.mensaje-panel-error .mensaje-alerta-contenido {
+  align-items: center;
+  gap: 8px;
+}
+
+.mensaje-alerta-compacta {
+  background: rgba(204, 18, 11, 0.14);
+  border: 1px solid rgba(204, 18, 11, 0.38);
+  color: var(--color-texto);
+}
+
+.mensaje-alerta-compacta .mantine-Alert-icon {
+  color: #f87171;
+}
+
+.mensaje-alerta-compacta .mantine-Alert-label {
+  color: #fca5a5;
+}
+
+.mensaje-alerta-compacta .mantine-Alert-message {
+  color: #e4e4e7;
+}
+
+.mensaje-alerta-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mensaje-accion-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #9898a2;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.mensaje-accion-link:hover {
+  color: #ffffff;
+}
+
+.mensaje-accion-link:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.mensaje-estado-caja {
+  width: 100%;
+  padding: 48px 24px;
+  color: var(--color-texto-secundario);
+  text-align: center;
+  background-color: #121212;
+  border: 1px solid #202020;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .mensaje-pagina {
+    padding: 24px 18px 32px;
+  }
+}

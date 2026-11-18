@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { useParams, Link } from "react-router-dom";
+import { Mensaje } from "../components/common/Mensaje";
 import type { Cine, Pelicula, Horario } from "../types/types";
 import cinesService from "../services/cines";
 import funcionesService from "../services/funciones";
@@ -30,6 +32,8 @@ import {
 } from "../hooks/useDetalleFunciones";
 
 
+const HORARIOS_VACIOS: Horario[] = [];
+
 /** Resuelve logo de cine: usa el provisto o infiere por nombre conocido */
 const getCinemaLogo = (cine: Cine): string => {
   if (cine.logo) return cine.logo;
@@ -52,25 +56,20 @@ function CinemaDetailPage() {
   } = useFavorites();
   const { peliculasFavoritasAlEntrar } = useFavoritosAlEntrar();
 
-  const [cine, setCine] = useState<Cine | null>(null);
-  const [horarios, setHorarios] = useState<Horario[]>([]);
-  const [peliculas, setPeliculas] = useState<Pelicula[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [cineEstado, setCineEstado] = useState<Cine | null>(null);
+  const [horariosEstado, setHorariosEstado] = useState<Horario[]>([]);
+  const [peliculasEstado, setPeliculasEstado] = useState<Pelicula[]>([]);
+  const [idCargado, setIdCargado] = useState<string>();
+  const [errorCarga, setErrorCarga] = useState<string | null>(null);
+  const [noEncontradoCarga, setNoEncontradoCarga] = useState(false);
   const [fechaSeleccionada, setFechaSeleccionada] = useState("");
   const [formatoSeleccionado, setFormatoSeleccionado] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
   const detalle = useDetalleFunciones();
 
   useEffect(() => {
-    if (!id) {
-      setError("Cine no especificado.");
-      setCargando(false);
-      return;
-    }
-
-    setCargando(true);
-    setError(null);
+    if (!id) return;
+    let cancelado = false;
 
     Promise.all([
       cinesService.getById(id),
@@ -78,17 +77,42 @@ function CinemaDetailPage() {
       peliculasService.getAll(),
     ])
       .then(([cineData, horariosData, peliculasData]) => {
-        setCine(cineData);
-        setHorarios(horariosData);
-        setPeliculas(peliculasData);
+        if (cancelado) return;
+        setErrorCarga(null);
+        setNoEncontradoCarga(false);
+        setCineEstado(cineData);
+        setHorariosEstado(horariosData);
+        setPeliculasEstado(peliculasData);
+        setIdCargado(id);
       })
-      .catch(() => {
-        setError("No se pudo cargar la información del cine o su cartelera.");
-      })
-      .finally(() => {
-        setCargando(false);
+      .catch((err: unknown) => {
+        if (cancelado) return;
+        const es404 = axios.isAxiosError(err) && err.response?.status === 404;
+        setCineEstado(null);
+        setNoEncontradoCarga(es404);
+        setErrorCarga(
+          es404
+            ? "El cine que buscas no existe o ya no está disponible."
+            : "No se pudo cargar la información del cine o su cartelera.",
+        );
+        setIdCargado(id);
       });
+
+    return () => {
+      cancelado = true;
+    };
   }, [id]);
+
+  const cargando = Boolean(id && idCargado !== id);
+  const cine = id && idCargado === id ? cineEstado : null;
+  const horarios = id && idCargado === id ? horariosEstado : HORARIOS_VACIOS;
+  const peliculas = id && idCargado === id ? peliculasEstado : [];
+  const noEncontrado = !id || (idCargado === id && noEncontradoCarga);
+  const error = id
+    ? idCargado === id
+      ? errorCarga
+      : null
+    : "El cine que buscas no existe o ya no está disponible.";
 
   useEffect(() => {
     if (
@@ -142,14 +166,16 @@ function CinemaDetailPage() {
 
   if (error || !cine) {
     return (
-      <div className="detalle-cine-page">
-        <div className="detalle-cine-error">
-          <p>{error || "Cine no encontrado."}</p>
-          <Link to="/cines" className="btn-volver-cines">
+      <Mensaje
+        tipo="error"
+        titulo={noEncontrado || !cine ? "Cine no encontrado" : "Error al cargar el cine"}
+        texto={error || "El cine que buscas no existe o ya no está disponible."}
+        accion={
+          <Link to="/cines" className="mensaje-accion-link">
             ← Volver al listado de cines
           </Link>
-        </div>
-      </div>
+        }
+      />
     );
   }
 

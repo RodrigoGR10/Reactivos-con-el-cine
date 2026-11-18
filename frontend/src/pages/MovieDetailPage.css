@@ -386,8 +386,7 @@
     font-size: 1.6rem;
 }
 
-.sin-funciones,
-.mensaje-detalle {
+.sin-funciones {
     padding: 50px 20px;
     color: var(--color-texto-secundario);
     text-align: center;

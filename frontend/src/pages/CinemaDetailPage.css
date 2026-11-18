@@ -453,7 +453,6 @@
 
 /* Estados vacíos y carga */
 .detalle-cine-loading,
-.detalle-cine-error,
 .cartelera-cine-empty {
     background-color: #121212;
     border: 1px solid #202020;
@@ -465,7 +464,6 @@
 }
 
 .detalle-cine-loading p,
-.detalle-cine-error p,
 .cartelera-cine-empty p {
     margin: 0;
     font-size: 0.95rem;
