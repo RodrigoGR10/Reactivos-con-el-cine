@@ -95,8 +95,9 @@
 }
 
 .detalle-cine-logo-wrap[data-origen="cinestar"] {
-    background-color: #181818;
-    border: 1px solid #303034;
+    padding: 0;
+    overflow: hidden;
+    background-color: transparent;
 }
 
 .detalle-cine-logo-img {

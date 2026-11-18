@@ -7,8 +7,8 @@ const cadenas = [
     { id: "cinemark", nombre: "Cinemark", logo: "/cinemark.png" },
     { id: "cineplanet", nombre: "Cineplanet", logo: "/cineplanet.png" },
     { id: "cinepolis", nombre: "Cin\u00e9polis", logo: "/cinepolis.png" },
-    { id: "muvix", nombre: "Muvix" },
-    { id: "cinestar", nombre: "Cine Star" },
+    { id: "muvix", nombre: "Muvix", logo: "/muvix.png" },
+    { id: "cinestar", nombre: "Cine Star", logo: "/cinestar.png" },
 ];
 
 export interface OpcionComuna {
@@ -35,6 +35,11 @@ export function obtenerCadena(cine: Cine): Omit<GrupoCines, "cines"> {
     return cadenas.find((cadena) => cadena.id === origen)
         ?? cadenas.find((cadena) => nombre.includes(cadena.id))
         ?? { id: "otros", nombre: "Otros cines" };
+}
+
+/** Prioriza el logo local de cadenas conocidas y deja el remoto como respaldo. */
+export function obtenerLogoCine(cine: Cine): string | undefined {
+    return obtenerCadena(cine).logo || cine.logo || undefined;
 }
 
 export function obtenerComunas(cines: readonly Cine[]): OpcionComuna[] {

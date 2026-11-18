@@ -372,7 +372,9 @@
 }
 
 .logo-cine[data-origen="cinestar"] {
-    background: #121212;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
 }
 
 .logo-cine img {

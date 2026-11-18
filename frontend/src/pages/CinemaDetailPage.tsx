@@ -21,6 +21,7 @@ import {
   agruparHorariosPorPelicula,
   obtenerFormatosDisponibles,
 } from "../utils/agruparFunciones";
+import { obtenerLogoCine } from "../utils/agruparCines";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { BotonDetalleFunciones } from "../components/funciones/BotonDetalleFunciones";
@@ -33,17 +34,6 @@ import {
 
 
 const HORARIOS_VACIOS: Horario[] = [];
-
-/** Resuelve logo de cine: usa el provisto o infiere por nombre conocido */
-const getCinemaLogo = (cine: Cine): string => {
-  if (cine.logo) return cine.logo;
-  const nameLower = cine.nombre.toLowerCase();
-  if (nameLower.includes("cinemark")) return "/cinemark.png";
-  if (nameLower.includes("cinepolis") || nameLower.includes("cinépolis"))
-    return "/cinepolis.png";
-  if (nameLower.includes("cineplanet")) return "/cineplanet.png";
-  return "";
-};
 
 function CinemaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -179,7 +169,7 @@ function CinemaDetailPage() {
     );
   }
 
-  const logo = getCinemaLogo(cine);
+  const logo = obtenerLogoCine(cine);
   const esFavorito = isFavoriteCinema(cine.id);
 
   const handleToggleFavorito = () => {

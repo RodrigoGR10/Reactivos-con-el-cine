@@ -22,7 +22,12 @@ import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
 import { TrailerPelicula } from "../components/peliculas/TrailerPelicula";
 import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
-import { filtrarCines, obtenerCadena, obtenerComunas } from "../utils/agruparCines";
+import {
+    filtrarCines,
+    obtenerCadena,
+    obtenerComunas,
+    obtenerLogoCine,
+} from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
 import {
     useDetalleFunciones,
@@ -444,6 +449,8 @@ function MovieDetailPage() {
                                         ? `Quitar ${cine.nombre} de cines favoritos`
                                         : `Guardar ${cine.nombre} en cines favoritos`;
 
+                                    const logoCine = obtenerLogoCine(cine);
+
                                     return (
                                         <article
                                             key={cine.id}
@@ -455,9 +462,9 @@ function MovieDetailPage() {
                                                         className="logo-cine"
                                                         data-origen={cine.origen}
                                                     >
-                                                        {cine.logo ? (
+                                                        {logoCine ? (
                                                             <img
-                                                                src={cine.logo}
+                                                                src={logoCine}
                                                                 alt={`Logo de ${cine.nombre}`}
                                                             />
                                                         ) : (

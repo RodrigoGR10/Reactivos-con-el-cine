@@ -156,7 +156,7 @@ function CinemasPage() {
                         <section key={grupo.id} className={`cines-cadena ${grupo.id === "favoritos" ? "cines-cadena-favoritos" : ""}`} aria-labelledby={`cadena-${grupo.id}`}>
                             <header className="cines-cadena-header">
                                 {grupo.id === "favoritos" ? <span className="cines-cadena-favorito-icon" aria-hidden="true">♥</span>
-                                    : grupo.logo ? <img src={grupo.logo} alt="" className="cines-cadena-logo" />
+                                    : grupo.logo ? <img src={grupo.logo} alt="" className="cines-cadena-logo" data-origen={grupo.id} />
                                     : <FilmIcon size={24} />}
                                 <h2 id={`cadena-${grupo.id}`}>{grupo.nombre}</h2>
                                 <span className="cines-cadena-cantidad">{grupo.cines.length} {grupo.cines.length === 1 ? "cine" : "cines"}</span>

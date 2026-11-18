@@ -471,6 +471,11 @@
     object-fit: contain;
 }
 
+.cines-cadena-logo[data-origen="cinestar"] {
+    padding: 0;
+    background: transparent;
+}
+
 .cines-cadena-cantidad {
     flex-shrink: 0;
     margin-left: auto;

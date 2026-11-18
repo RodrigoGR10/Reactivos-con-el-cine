@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { Cine } from "../../types/types";
-import { obtenerCadena } from "../../utils/agruparCines";
+import { obtenerLogoCine } from "../../utils/agruparCines";
 import { formatearDistancia } from "../../utils/distancia";
 import { FilmIcon, MapPinIcon } from "../common/Icons";
 import "./TarjetaCine.css";
@@ -21,7 +21,7 @@ export function TarjetaCine({
   navegable = true,
   nivelTitulo = "h3",
 }: TarjetaCineProps) {
-  const logo = cine.logo || obtenerCadena(cine).logo;
+  const logo = obtenerLogoCine(cine);
   const Heading = nivelTitulo;
 
   return (
