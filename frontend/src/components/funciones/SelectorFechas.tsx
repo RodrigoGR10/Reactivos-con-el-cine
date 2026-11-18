@@ -1,3 +1,7 @@
+import {
+  formatearDiaSemanaCorto,
+  formatearFechaEstrenoCompacta,
+} from "../../utils/formatearPeliculaDestacada";
 import "./SelectorFechas.css";
 
 export interface SelectorFechasProps {
@@ -29,21 +33,9 @@ export function SelectorFechas({
       aria-label="Seleccionar fecha de funciones"
     >
       {fechas.map((fecha) => {
-        const [year, month, day] = fecha.split("-").map(Number);
-        const fechaObj = new Date(year, month - 1, day);
-
         const esHoy = fecha === hoyLocal || fecha === hoyChile;
-
-        const diaSemana = new Intl.DateTimeFormat("es-CL", { weekday: "short" })
-          .format(fechaObj)
-          .replace(".", "")
-          .toUpperCase();
-
-        const mes = new Intl.DateTimeFormat("es-CL", { month: "short" })
-          .format(fechaObj)
-          .replace(".", "")
-          .toUpperCase();
-
+        const diaSemana = formatearDiaSemanaCorto(fecha);
+        const fechaCorta = formatearFechaEstrenoCompacta(fecha, "/");
         const esActivo = fechaSeleccionada === fecha;
 
         return (
@@ -54,16 +46,14 @@ export function SelectorFechas({
             aria-selected={esActivo}
             className={`fecha-segmento-btn ${esActivo ? "active" : ""}`}
             onClick={() => onSeleccionarFecha(fecha)}
-            title={esHoy ? "Hoy" : `${diaSemana} ${day}/${mes}`}
+            title={esHoy ? "Hoy" : `${diaSemana} ${fechaCorta}`}
           >
             {esHoy ? (
               <span className="fecha-segmento-hoy">HOY</span>
             ) : (
               <>
                 <span className="fecha-segmento-dia">{diaSemana}</span>
-                <span className="fecha-segmento-fecha">
-                  {day}/{mes}
-                </span>
+                <span className="fecha-segmento-fecha">{fechaCorta}</span>
               </>
             )}
           </button>

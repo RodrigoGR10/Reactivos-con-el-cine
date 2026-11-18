@@ -914,6 +914,10 @@ body {
     color: inherit;
 }
 
+.fecha-preventa-corta {
+    display: none;
+}
+
 @supports not ((backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px))) {
     .etiqueta-preventa {
         background: rgba(17, 17, 19, 0.9);
@@ -1183,6 +1187,15 @@ body {
         max-width: calc(100% - 16px);
         padding: 4px 10px;
         font-size: 11.5px;
+    }
+
+    .fecha-preventa-larga {
+        display: none;
+    }
+
+    .fecha-preventa-corta {
+        display: inline;
+        letter-spacing: 0.04em;
     }
 
     .icono-preventa {

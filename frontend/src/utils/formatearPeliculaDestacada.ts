@@ -76,6 +76,27 @@ interface TemporalGlobal {
   };
 }
 
+function parsearFechaCalendarioUtc(fecha: string): Date | null {
+  const coincidencia = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha);
+  if (!coincidencia) return null;
+
+  const [, anio, mes, dia] = coincidencia;
+  const fechaUtc = new Date(
+    Date.UTC(Number(anio), Number(mes) - 1, Number(dia)),
+  );
+  return Number.isNaN(fechaUtc.getTime()) ? null : fechaUtc;
+}
+
+function formatearAbreviaturaEs(
+  fechaUtc: Date,
+  opciones: Intl.DateTimeFormatOptions,
+): string {
+  return new Intl.DateTimeFormat("es-CL", { ...opciones, timeZone: "UTC" })
+    .format(fechaUtc)
+    .replace(/\.$/, "")
+    .toUpperCase();
+}
+
 /** Formatea una fecha calendario ISO (YYYY-MM-DD) como día y mes completo sin desfase horario. */
 export function formatearFechaEstrenoCorta(fechaEstreno: string): string {
   const temporal = (globalThis as TemporalGlobal).Temporal;
@@ -90,18 +111,33 @@ export function formatearFechaEstrenoCorta(fechaEstreno: string): string {
     }
   }
 
-  const coincidencia = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fechaEstreno);
-  if (!coincidencia) return fechaEstreno;
-
-  const [, anio, mes, dia] = coincidencia;
-  const fechaUtc = new Date(
-    Date.UTC(Number(anio), Number(mes) - 1, Number(dia)),
-  );
-  if (Number.isNaN(fechaUtc.getTime())) return fechaEstreno;
+  const fechaUtc = parsearFechaCalendarioUtc(fechaEstreno);
+  if (!fechaUtc) return fechaEstreno;
 
   return new Intl.DateTimeFormat("es-CL", {
     day: "numeric",
     month: "long",
     timeZone: "UTC",
   }).format(fechaUtc);
+}
+
+/** Formatea una fecha calendario ISO (YYYY-MM-DD) como día y mes abreviado en mayúsculas (ej. "16 DIC" o "16/DIC"). */
+export function formatearFechaEstrenoCompacta(
+  fechaEstreno: string,
+  separador = " ",
+): string {
+  const fechaUtc = parsearFechaCalendarioUtc(fechaEstreno);
+  if (!fechaUtc) return fechaEstreno;
+
+  const dia = fechaUtc.getUTCDate();
+  const mes = formatearAbreviaturaEs(fechaUtc, { month: "short" });
+  return `${dia}${separador}${mes}`;
+}
+
+/** Formatea una fecha calendario ISO (YYYY-MM-DD) como día de semana abreviado en mayúsculas (ej. "JUE", "MIÉ"). */
+export function formatearDiaSemanaCorto(fecha: string): string {
+  const fechaUtc = parsearFechaCalendarioUtc(fecha);
+  if (!fechaUtc) return "";
+
+  return formatearAbreviaturaEs(fechaUtc, { weekday: "short" });
 }
