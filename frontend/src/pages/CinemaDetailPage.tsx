@@ -10,7 +10,7 @@ import peliculasService from "../services/peliculas";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
-import { MapPinIcon } from "../components/common/Icons";
+import { HeartIcon, MapPinIcon } from "../components/common/Icons";
 import { BotonFavorito } from "../components/common/BotonFavorito";
 import {
   ChipsFiltrosActivos,
@@ -167,11 +167,28 @@ function CinemaDetailPage() {
 
         <header className="detalle-cine-header" aria-hidden="true">
           <div className="detalle-cine-header-main">
-            <Skeleton width={84} height={84} radius={16} style={{ flexShrink: 0 }} />
+            <Skeleton
+              width={84}
+              height={84}
+              radius={16}
+              className="detalle-cine-logo-skeleton"
+              style={{ flexShrink: 0 }}
+            />
             <div className="detalle-cine-info">
-              <Skeleton width={150} height={13} radius="sm" maw="100%" />
-              <Skeleton width={240} height={32} radius="sm" maw="100%" />
-              <Skeleton width={190} height={16} radius="sm" maw="100%" />
+              <Skeleton
+                width={240}
+                height={32}
+                radius="sm"
+                maw="100%"
+                className="detalle-cine-nombre-skeleton"
+              />
+              <Skeleton
+                width={190}
+                height={16}
+                radius="sm"
+                maw="100%"
+                className="detalle-cine-ubicacion-skeleton"
+              />
             </div>
           </div>
           <div className="detalle-cine-header-actions">
@@ -329,6 +346,14 @@ function CinemaDetailPage() {
       )
     : grupos;
 
+  const direccion = cine.direccion?.trim();
+  const comuna = cine.comuna?.trim();
+  const ubicacionCine = direccion
+    ? comuna && !normalizarTexto(direccion).includes(normalizarTexto(comuna))
+      ? `${direccion}, ${comuna}`
+      : direccion
+    : comuna;
+
   return (
     <div className="detalle-cine-page">
       {/* Botón superior de retorno */}
@@ -343,16 +368,13 @@ function CinemaDetailPage() {
         <div className="detalle-cine-header-main">
           <LogoCine cine={cine} tamano="lg" />
           <div className="detalle-cine-info">
-            <p className="detalle-cine-etiqueta">Complejo cinematográfico</p>
             <h1 className="detalle-cine-nombre">{cine.nombre}</h1>
-            <p className="detalle-cine-comuna">
-              <MapPinIcon size={16} />
-              <span>
-                {cine.direccion
-                  ? `${cine.direccion} (${cine.comuna})`
-                  : cine.comuna}
-              </span>
-            </p>
+            {ubicacionCine && (
+              <p className="detalle-cine-comuna">
+                <MapPinIcon size={16} />
+                <span>{ubicacionCine}</span>
+              </p>
+            )}
           </div>
         </div>
 
@@ -360,6 +382,12 @@ function CinemaDetailPage() {
           <button
             type="button"
             className={`btn-fav-cine-detalle ${esFavorito ? "active" : ""}`}
+            aria-pressed={esFavorito}
+            aria-label={
+              esFavorito
+                ? `Quitar ${cine.nombre} de cines habituales`
+                : `Guardar ${cine.nombre} en cines habituales`
+            }
             onClick={handleToggleFavorito}
             title={
               esFavorito
@@ -367,7 +395,11 @@ function CinemaDetailPage() {
                 : "Guardar en cines habituales"
             }
           >
-            <span className="corazon-icon">{esFavorito ? "♥" : "♡"}</span>
+            <HeartIcon
+              size={16}
+              filled={esFavorito}
+              className="icono-fav-cine"
+            />
             <span>{esFavorito ? "Cine habitual" : "Guardar cine"}</span>
           </button>
         </div>
