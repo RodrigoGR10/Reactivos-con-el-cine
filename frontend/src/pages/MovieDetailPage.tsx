@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Skeleton } from "@mantine/core";
 import { useAuth } from "../context/AuthContext";
@@ -22,7 +22,13 @@ import { useEsMovilFiltros } from "../hooks/useEsMovilFiltros";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
 import { LogoCine } from "../components/cines/LogoCine";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
+import { SinopsisExpandible } from "../components/peliculas/SinopsisExpandible";
 import { TrailerPelicula } from "../components/peliculas/TrailerPelicula";
+import { CalendarIcon, HeartIcon } from "../components/common/Icons";
+import {
+    formatearFechaEstrenoCompacta,
+    formatearFechaEstrenoCorta,
+} from "../utils/formatearPeliculaDestacada";
 import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import {
@@ -37,7 +43,7 @@ import {
 } from "../hooks/useDetalleFunciones";
 import "./MovieDetailPage.css";
 
-import type { Cine } from "../types/types";
+import type { Cine, Pelicula } from "../types/types";
 
 const CINES_DETALLE_ESQUELETO = [0, 1];
 const HORARIOS_ESQUELETO = [0, 1, 2];
@@ -45,6 +51,14 @@ const OPCIONES_ACTUALIZACION_FILTRO = {
     replace: true,
     preventScrollReset: true,
 } as const;
+const ETIQUETAS_ESTRENO: Record<
+    NonNullable<Pelicula["estadoEstreno"]>,
+    string
+> = {
+    cartelera: "En cartelera",
+    preventa: "Preventa",
+    proximamente: "Próximamente",
+};
 
 function MovieDetailPage() {
     const { id } = useParams();
@@ -272,24 +286,35 @@ function MovieDetailPage() {
         return (
             <div className="detalle-pelicula" role="status" aria-busy="true">
                 <span className="visualmente-oculto">Cargando película...</span>
+                <nav className="detalle-pelicula-nav">
+                    <Link to="/" className="btn-volver-cartelera">
+                        ← Volver a cartelera
+                    </Link>
+                </nav>
                 <section className="hero-detalle" aria-hidden="true">
                     <div className="poster-detalle poster-detalle-skeleton">
                         <Skeleton height="100%" radius={0} />
                     </div>
                     <div className="contenido-detalle">
-                        <Skeleton width={160} height={14} radius="sm" />
-                        <Skeleton width="68%" height={48} radius="md" mt={10} mb={18} />
+                        <div className="detalle-estado-fila">
+                            <Skeleton width={110} height={14} radius="sm" />
+                        </div>
+                        <Skeleton width="68%" height={40} radius="md" mb={14} />
                         <div className="metadatos-detalle">
-                            <Skeleton width={46} height={26} radius={6} />
                             <Skeleton width={110} height={18} radius="sm" />
                             <Skeleton width={68} height={18} radius="sm" />
-                            <Skeleton height={34} circle />
+                            <Skeleton width={46} height={24} radius={4} />
                         </div>
                         <Skeleton width="100%" height={16} radius="sm" mb={10} />
                         <Skeleton width="92%" height={16} radius="sm" mb={10} />
                         <Skeleton width="64%" height={16} radius="sm" />
+                        <div className="acciones-detalle">
+                            <Skeleton width={132} height={42} radius={10} />
+                        </div>
                     </div>
                 </section>
+
+                <Skeleton height={48} radius={8} mb={36} />
 
                 <section className="seccion-funciones" aria-hidden="true">
                     <div className="encabezado-funciones">
@@ -337,8 +362,34 @@ function MovieDetailPage() {
         );
     }
 
+    const estadoEstreno = pelicula.estadoEstreno ?? "cartelera";
+    const etiquetaEstado = ETIQUETAS_ESTRENO[estadoEstreno];
+    const mostrarFechaEstreno =
+        (estadoEstreno === "preventa" || estadoEstreno === "proximamente") &&
+        Boolean(pelicula.fechaEstreno);
+    const esFavorita = isFavoriteMovie(pelicula.id);
+    const metadatos = [
+        pelicula.genero ? { clave: "genero", contenido: pelicula.genero } : null,
+        pelicula.duracion !== null && pelicula.duracion > 0
+            ? { clave: "duracion", contenido: `${pelicula.duracion} min` }
+            : null,
+        pelicula.clasificacion
+            ? {
+                  clave: "clasificacion",
+                  contenido: pelicula.clasificacion,
+                  className: "metadato-clasificacion",
+              }
+            : null,
+    ].filter((item) => item !== null);
+
     return (
         <div className="detalle-pelicula">
+            <nav className="detalle-pelicula-nav">
+                <Link to="/" className="btn-volver-cartelera">
+                    ← Volver a cartelera
+                </Link>
+            </nav>
+
             <section className="hero-detalle">
                 <div className="poster-detalle">
                     {pelicula.poster ? (
@@ -352,29 +403,71 @@ function MovieDetailPage() {
                 </div>
 
                 <div className="contenido-detalle">
-                    <p className="subtitulo-seccion">
-                        Información de la película
-                    </p>
+                    <div className="detalle-estado-fila">
+                        <p className="subtitulo-seccion">{etiquetaEstado}</p>
+                        {mostrarFechaEstreno && pelicula.fechaEstreno && (
+                            <span className="detalle-estado-fecha">
+                                <CalendarIcon
+                                    size={14}
+                                    className="detalle-estado-icono"
+                                />
+                                <time dateTime={pelicula.fechaEstreno}>
+                                    <span className="fecha-detalle-larga">
+                                        {formatearFechaEstrenoCorta(
+                                            pelicula.fechaEstreno,
+                                        )}
+                                    </span>
+                                    <span className="fecha-detalle-corta">
+                                        {formatearFechaEstrenoCompacta(
+                                            pelicula.fechaEstreno,
+                                        )}
+                                    </span>
+                                </time>
+                            </span>
+                        )}
+                    </div>
 
                     <h1>{pelicula.titulo}</h1>
 
-                    <div className="metadatos-detalle">
-                        <span>{pelicula.clasificacion}</span>
-                        <span aria-hidden="true">•</span>
-                        <span>{pelicula.genero}</span>
-                        {pelicula.duracion !== null && (
-                            <>
-                                <span aria-hidden="true">•</span>
-                                <span>{pelicula.duracion} min</span>
-                            </>
-                        )}
+                    {metadatos.length > 0 && (
+                        <div className="metadatos-detalle">
+                            {metadatos.map((item, indice) => (
+                                <Fragment key={item.clave}>
+                                    {indice > 0 && (
+                                        <span
+                                            className="metadato-separador"
+                                            aria-hidden="true"
+                                        >
+                                            •
+                                        </span>
+                                    )}
+                                    <span className={item.className}>
+                                        {item.contenido}
+                                    </span>
+                                </Fragment>
+                            ))}
+                        </div>
+                    )}
+
+                    <SinopsisExpandible
+                        key={pelicula.id}
+                        texto={pelicula.sinopsis}
+                    />
+
+                    <div className="acciones-detalle">
                         <button
                             type="button"
-                            className={`boton-fav-peli ${isFavoriteMovie(pelicula.id) ? "activo" : ""}`}
+                            className={`boton-fav-detalle${esFavorita ? " activo" : ""}`}
+                            aria-pressed={esFavorita}
+                            aria-label={
+                                esFavorita
+                                    ? `Quitar ${pelicula.titulo} de Mi lista`
+                                    : `Guardar ${pelicula.titulo} en Mi lista`
+                            }
                             title={
-                                isFavoriteMovie(pelicula.id)
-                                    ? "Quitar de películas favoritas"
-                                    : "Guardar en películas favoritas"
+                                esFavorita
+                                    ? "Quitar de Mi lista"
+                                    : "Guardar en Mi lista"
                             }
                             onClick={() => {
                                 if (!user) {
@@ -384,11 +477,14 @@ function MovieDetailPage() {
                                 toggleFavoriteMovie(pelicula.id);
                             }}
                         >
-                            {isFavoriteMovie(pelicula.id) ? "♥" : "♡"}
+                            <HeartIcon
+                                size={16}
+                                filled={esFavorita}
+                                className="icono-fav-detalle"
+                            />
+                            <span>{esFavorita ? "En Mi lista" : "Mi lista"}</span>
                         </button>
                     </div>
-
-                    <p className="sinopsis-detalle">{pelicula.sinopsis}</p>
                 </div>
             </section>
 
