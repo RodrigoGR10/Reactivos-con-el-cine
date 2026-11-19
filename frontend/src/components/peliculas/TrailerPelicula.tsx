@@ -50,8 +50,11 @@ export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
       >
         <Accordion.Item value="trailer">
           <Accordion.Control id={tituloId}>
-            <span className="trailer-acordeon-titulo">
-              {abierto ? "Ocultar tráiler" : "Ver tráiler"}
+            <span className="trailer-acordeon-principal">
+              <span className="trailer-acordeon-icono" aria-hidden="true">&#9654;</span>
+              <span className="trailer-acordeon-titulo">
+                {abierto ? "Ocultar tráiler" : "Ver tráiler"}
+              </span>
             </span>
           </Accordion.Control>
 

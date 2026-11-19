@@ -1,7 +1,7 @@
 .trailer-detalle {
   width: 100%;
   min-width: 0;
-  margin: 0 0 40px;
+  margin: 0 0 36px;
   letter-spacing: 0;
 }
 
@@ -36,6 +36,35 @@
 .trailer-acordeon-raiz .mantine-Accordion-control:hover .mantine-Accordion-chevron,
 .trailer-acordeon-raiz .mantine-Accordion-item[data-active] .mantine-Accordion-chevron {
   color: var(--color-texto);
+}
+
+.trailer-acordeon-principal {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.trailer-acordeon-icono {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding-left: 2px;
+  border-radius: 999px;
+  background: #202128;
+  border: 1px solid #34353e;
+  color: var(--color-texto-secundario);
+  font-size: 0.62rem;
+  line-height: 1;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.trailer-acordeon-raiz .mantine-Accordion-control:hover .trailer-acordeon-icono,
+.trailer-acordeon-raiz .mantine-Accordion-item[data-active] .trailer-acordeon-icono {
+  color: var(--color-texto);
+  border-color: #494a54;
 }
 
 .trailer-acordeon-titulo {
@@ -203,6 +232,7 @@
   .trailer-acordeon-raiz .mantine-Accordion-item,
   .trailer-acordeon-raiz .mantine-Accordion-control,
   .trailer-acordeon-raiz .mantine-Accordion-chevron,
+  .trailer-acordeon-icono,
   .trailer-portada img,
   .trailer-play {
     transition: none;
