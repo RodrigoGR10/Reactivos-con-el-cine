@@ -578,13 +578,24 @@ function MovieDetailPage() {
                                                     </Link>
 
                                                     <div className="nombre-cine">
-                                                        <strong>
-                                                            <Link
-                                                                to={`/cines/${cine.id}`}
-                                                                className="enlace-cine-detalle"
-                                                            >
-                                                                {cine.nombre}
-                                                            </Link>
+                                                        <div className="nombre-cine-titulo">
+                                                            <strong>
+                                                                <Link
+                                                                    to={`/cines/${cine.id}`}
+                                                                    className="enlace-cine-detalle"
+                                                                >
+                                                                    {cine.nombre}
+                                                                </Link>
+                                                                {Number.isFinite(
+                                                                    distancia,
+                                                                ) && (
+                                                                    <span className="distancia-cine">
+                                                                        {formatearDistancia(
+                                                                            distancia,
+                                                                        )}
+                                                                    </span>
+                                                                )}
+                                                            </strong>
                                                             <BotonFavorito
                                                                 className="boton-fav-inline"
                                                                 activo={esCineFavorito}
@@ -600,16 +611,7 @@ function MovieDetailPage() {
                                                                     );
                                                                 }}
                                                             />
-                                                            {Number.isFinite(
-                                                                distancia,
-                                                            ) && (
-                                                                <span className="distancia-cine">
-                                                                    {formatearDistancia(
-                                                                        distancia,
-                                                                    )}
-                                                                </span>
-                                                            )}
-                                                        </strong>
+                                                        </div>
                                                         <span>
                                                             {cine.comuna} ·{" "}
                                                             {sesiones.length}{" "}

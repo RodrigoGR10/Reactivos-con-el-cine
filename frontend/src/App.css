@@ -744,6 +744,18 @@ body {
     height: 14px;
 }
 
+@media (max-width: 600px) {
+    .boton-fav.boton-fav-inline {
+        width: 36px;
+        height: 36px;
+    }
+
+    .boton-fav.boton-fav-inline .icono-corazon-fav {
+        width: 17px;
+        height: 17px;
+    }
+}
+
 .poster-placeholder {
     position: relative;
     display: grid;
