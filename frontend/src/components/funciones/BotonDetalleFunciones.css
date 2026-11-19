@@ -18,7 +18,7 @@
 }
 
 .detalle-estado-alerta {
-  color: #f87171;
+  color: var(--color-acento);
   font-weight: 500;
 }
 
@@ -28,6 +28,10 @@
 
 .detalle-estado-tiempo {
   color: #a1a1aa;
+}
+
+.btn-consultar-tooltip-wrap {
+  display: inline-flex;
 }
 
 .btn-consultar-detalle {
@@ -44,6 +48,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -87,8 +92,12 @@
     text-align: left;
   }
 
+  .btn-consultar-tooltip-wrap,
   .btn-consultar-detalle {
     width: 100%;
+  }
+
+  .btn-consultar-detalle {
     min-height: 44px;
   }
 }

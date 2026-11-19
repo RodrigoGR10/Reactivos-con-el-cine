@@ -83,3 +83,17 @@ select {
 button:disabled {
     cursor: not-allowed;
 }
+
+[data-mantine-color-scheme="dark"] .mantine-Skeleton-root[data-visible]::before {
+    background-color: #18181d;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Skeleton-root[data-visible]::after {
+    background-color: #2e2f38;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mantine-Skeleton-root::after {
+        animation: none;
+    }
+}

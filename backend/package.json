@@ -22,6 +22,7 @@
     "import:scrape": "node src/scraper/import-cli.ts",
     "sync:tmdb": "node src/scraper/import-cli.ts --tmdb",
     "sync:trailers": "node src/scraper/import-cli.ts --trailers",
+    "sync:posters": "node src/scraper/import-cli.ts --posters",
     "deduplicar:peliculas": "node src/scraper/cli.ts --deduplicar"
   },
   "keywords": [],

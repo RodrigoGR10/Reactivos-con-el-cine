@@ -72,7 +72,7 @@
 }
 
 .fecha-segmento-btn.active {
-  background-color: #e50914;
+  background-color: var(--color-acento);
   color: #ffffff;
 }
 

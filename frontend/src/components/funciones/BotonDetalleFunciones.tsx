@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
+import { Loader, Tooltip } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { formatearTiempoRelativo } from "../../utils/detalleFunciones";
 import "./BotonDetalleFunciones.css";
+
+const TOOLTIP_EVENTS_DESKTOP = { hover: true, focus: true, touch: false } as const;
 
 interface BotonDetalleFuncionesProps {
   cargando: boolean;
@@ -58,8 +62,13 @@ export function BotonDetalleFunciones({
   contexto,
   onConsultar,
 }: BotonDetalleFuncionesProps) {
+  const desactivarTooltip =
+    useMediaQuery("(max-width: 600px), (hover: none), (pointer: coarse)") ?? false;
   const textoVisible = cargando ? "Consultando..." : "Consultar detalle";
   const deshabilitado = cargando || enCooldown;
+  const tooltipTexto = enCooldown
+    ? "Detalle actualizado recientemente"
+    : "Consultar precio y disponibilidad";
 
   return (
     <div className="funciones-acciones">
@@ -82,21 +91,31 @@ export function BotonDetalleFunciones({
           )}
         </p>
       )}
-      <button
-        type="button"
-        className="btn-consultar-detalle"
-        disabled={deshabilitado}
-        aria-busy={cargando || undefined}
-        aria-label={`${textoVisible} para ${contexto}`}
-        title={
-          enCooldown && !cargando
-            ? "Detalle actualizado recientemente"
-            : "Consultar precio y disponibilidad"
-        }
-        onClick={onConsultar}
+      <Tooltip
+        label={tooltipTexto}
+        position="top"
+        offset={8}
+        openDelay={250}
+        floatingStrategy="fixed"
+        disabled={desactivarTooltip || cargando}
+        events={TOOLTIP_EVENTS_DESKTOP}
       >
-        {textoVisible}
-      </button>
+        <span className="btn-consultar-tooltip-wrap">
+          <button
+            type="button"
+            className="btn-consultar-detalle"
+            disabled={deshabilitado}
+            aria-busy={cargando || undefined}
+            aria-label={`${textoVisible} para ${contexto}`}
+            onClick={onConsultar}
+          >
+            {cargando && (
+              <Loader size={13} color="currentColor" aria-hidden="true" />
+            )}
+            <span>{textoVisible}</span>
+          </button>
+        </span>
+      </Tooltip>
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { Skeleton } from "@mantine/core";
 import type { Cine } from "../../types/types";
-import { obtenerCadena } from "../../utils/agruparCines";
 import { formatearDistancia } from "../../utils/distancia";
-import { FilmIcon, MapPinIcon } from "../common/Icons";
+import { MapPinIcon } from "../common/Icons";
+import { LogoCine } from "./LogoCine";
 import "./TarjetaCine.css";
 
 interface TarjetaCineProps {
@@ -21,25 +22,12 @@ export function TarjetaCine({
   navegable = true,
   nivelTitulo = "h3",
 }: TarjetaCineProps) {
-  const logo = cine.logo || obtenerCadena(cine).logo;
   const Heading = nivelTitulo;
 
   return (
     <article className="cine-card">
       <div className="cine-card-header">
-        <div className="cine-logo-container" data-origen={cine.origen}>
-          {logo ? (
-            <img
-              src={logo}
-              alt={`Logo de ${cine.nombre}`}
-              className="cine-card-logo"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <FilmIcon size={24} />
-          )}
-        </div>
+        <LogoCine cine={cine} tamano="sm" cargaDiferida />
         {accion}
       </div>
       <div className="cine-card-body">
@@ -63,5 +51,21 @@ export function TarjetaCine({
         </p>
       </div>
     </article>
+  );
+}
+
+/** Esqueleto de carga con las proporciones exactas de `TarjetaCine`. */
+export function TarjetaCineSkeleton() {
+  return (
+    <div className="cine-card" aria-hidden="true">
+      <div className="cine-card-header">
+        <Skeleton width={46} height={46} radius={7} />
+        <Skeleton height={34} circle />
+      </div>
+      <div className="cine-card-body">
+        <Skeleton height={22} width="72%" radius="sm" />
+        <Skeleton height={16} width="45%" radius="sm" />
+      </div>
+    </div>
   );
 }

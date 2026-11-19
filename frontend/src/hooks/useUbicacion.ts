@@ -5,7 +5,7 @@ export interface Ubicacion {
     longitud: number;
 }
 
-type EstadoUbicacion = "inactivo" | "cargando" | "listo" | "denegado" | "error";
+export type EstadoUbicacion = "inactivo" | "cargando" | "listo" | "denegado" | "error";
 
 export function useUbicacion() {
     const [ubicacion, setUbicacion] = useState<Ubicacion | null>(null);
@@ -37,5 +37,11 @@ export function useUbicacion() {
         );
     }, []);
 
-    return { ubicacion, estado, solicitar };
+    const descartarAviso = useCallback(() => {
+        setEstado((prev) =>
+            prev === "denegado" || prev === "error" ? "inactivo" : prev,
+        );
+    }, []);
+
+    return { ubicacion, estado, solicitar, descartarAviso };
 }

@@ -6,7 +6,7 @@ function ProtectedRoute() {
   const { isAuthenticated, isLoadingSession } = useAuth();
 
   if (isLoadingSession) {
-    return <Mensaje texto="Comprobando sesión..." />;
+    return <Mensaje tipo="cargando" texto="Comprobando sesión..." />;
   }
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;

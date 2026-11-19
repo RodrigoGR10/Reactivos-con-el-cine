@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import type {
     MetricasTmdb,
+    TmdbImageItem,
+    TmdbImagesResponse,
     TmdbMovieDetail,
     TmdbMovieResult,
     TmdbSearchResponse,
@@ -185,5 +187,72 @@ export async function obtenerDetalleSilencioso(
         return await obtenerPeliculaPorId(tmdbId, apiKey, idioma);
     } catch {
         return null;
+    }
+}
+
+function esPosterVerticalLimpio(poster: TmdbImageItem): boolean {
+    if (poster.iso_639_1 !== null || !poster.file_path?.trim()) return false;
+    if (poster.height > 0 && poster.width > 0) {
+        return poster.width / poster.height <= 0.85;
+    }
+    return typeof poster.aspect_ratio === "number" && poster.aspect_ratio <= 0.85;
+}
+
+function compararPostersLimpios(a: TmdbImageItem, b: TmdbImageItem): number {
+    const aAltaRes = a.width >= 500 ? 1 : 0;
+    const bAltaRes = b.width >= 500 ? 1 : 0;
+    if (bAltaRes !== aAltaRes) return bAltaRes - aAltaRes;
+
+    const aVotes = (a.vote_count ?? 0) > 0 ? (a.vote_average ?? 0) : 0;
+    const bVotes = (b.vote_count ?? 0) > 0 ? (b.vote_average ?? 0) : 0;
+    if (bVotes !== aVotes) return bVotes - aVotes;
+
+    const aCount = a.vote_count ?? 0;
+    const bCount = b.vote_count ?? 0;
+    if (bCount !== aCount) return bCount - aCount;
+
+    return b.width - a.width;
+}
+
+export function seleccionarMejorPosterLimpio(
+    posters: TmdbImageItem[] | undefined,
+): string | undefined {
+    const candidatos = (posters ?? []).filter(esPosterVerticalLimpio);
+    if (!candidatos.length) return undefined;
+    candidatos.sort(compararPostersLimpios);
+    return urlPoster(candidatos[0].file_path);
+}
+
+/**
+ * Obtiene el mejor poster vertical sin texto (iso_639_1 = null) para la película.
+ */
+export async function obtenerPosterLimpio(
+    tmdbId: number,
+    apiKey: string,
+): Promise<string | undefined> {
+    const url = construirUrl(`/movie/${tmdbId}/images`, apiKey, {
+        include_image_language: "null",
+    });
+
+    const response = await pedir(url);
+
+    if (response.status === 404) return undefined;
+
+    if (!response.ok) {
+        throw new Error(`TMDB HTTP ${response.status} al obtener imágenes para ID ${tmdbId}`);
+    }
+
+    const data = (await response.json()) as TmdbImagesResponse;
+    return seleccionarMejorPosterLimpio(data.posters);
+}
+
+export async function obtenerPosterLimpioSilencioso(
+    tmdbId: number,
+    apiKey: string,
+): Promise<string | undefined> {
+    try {
+        return await obtenerPosterLimpio(tmdbId, apiKey);
+    } catch {
+        return undefined;
     }
 }

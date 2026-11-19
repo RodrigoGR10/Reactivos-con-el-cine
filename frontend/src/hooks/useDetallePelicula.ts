@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import type { Pelicula, Cine, Horario } from "../types/types";
 import peliculaService from "../services/peliculas";
 import cineService from "../services/cines";
@@ -10,6 +11,7 @@ export function useDetallePelicula(id?: string) {
   const [idCargado, setIdCargado] = useState<string>();
   const [cines, setCines] = useState<Cine[]>([]);
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
+  const [noEncontradaCarga, setNoEncontradaCarga] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -25,13 +27,21 @@ export function useDetallePelicula(id?: string) {
 
         if (cancelado) return;
         setErrorCarga(null);
+        setNoEncontradaCarga(false);
         setPelicula(peliculaData);
         setHorarios(horariosData);
         setIdCargado(id);
         setCines(cinesData);
-      } catch {
+      } catch (err: unknown) {
         if (!cancelado) {
-          setErrorCarga("No se pudo cargar la información.");
+          const es404 =
+            axios.isAxiosError(err) && err.response?.status === 404;
+          setNoEncontradaCarga(es404);
+          setErrorCarga(
+            es404
+              ? "La película que buscas no existe o ya no está disponible."
+              : "No se pudo obtener la información. Intenta nuevamente.",
+          );
           setIdCargado(id);
         }
       }
@@ -44,11 +54,18 @@ export function useDetallePelicula(id?: string) {
     };
   }, [id]);
 
-  const error = id ? (idCargado === id ? errorCarga : null) : "Pelicula no encontrada.";
+  const noEncontrada = !id || (idCargado === id && noEncontradaCarga);
+  const error = id
+    ? idCargado === id
+      ? errorCarga
+      : null
+    : "La película que buscas no existe o ya no está disponible.";
 
   return {
     pelicula: idCargado === id ? pelicula : null,
     horarios: idCargado === id ? horarios : [],
-    cines: idCargado === id ? cines : [], error,
+    cines: idCargado === id ? cines : [],
+    error,
+    noEncontrada,
   };
 }

@@ -129,7 +129,7 @@ export function CarruselDestacadas({
     >
       {siguiente && siguiente.pelicula.id !== actual.pelicula.id && (
         <>
-          <link rel="preload" as="image" href={siguiente.pelicula.poster} media="(max-width: 768px)" fetchPriority="low" />
+          <link rel="preload" as="image" href={siguiente.pelicula.posterLimpio || siguiente.pelicula.poster} media="(max-width: 768px)" fetchPriority="low" />
           <link rel="preload" as="image" href={siguiente.pelicula.banner || siguiente.pelicula.poster} media="(min-width: 769px)" fetchPriority="low" />
         </>
       )}

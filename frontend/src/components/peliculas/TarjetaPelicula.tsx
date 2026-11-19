@@ -4,7 +4,10 @@ import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { BotonFavorito } from "../common/BotonFavorito.tsx";
 import { CalendarIcon } from "../common/Icons.tsx";
-import { formatearFechaEstrenoCorta } from "../../utils/formatearPeliculaDestacada.ts";
+import {
+  formatearFechaEstrenoCompacta,
+  formatearFechaEstrenoCorta,
+} from "../../utils/formatearPeliculaDestacada.ts";
 
 interface TarjetaPeliculaProps {
   pelicula: Pelicula;
@@ -50,7 +53,12 @@ function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
                 <span className="texto-preventa">
                   <span className="visualmente-oculto">Estreno: </span>
                   <time dateTime={pelicula.fechaEstreno}>
-                    {formatearFechaEstrenoCorta(pelicula.fechaEstreno)}
+                    <span className="fecha-preventa-larga">
+                      {formatearFechaEstrenoCorta(pelicula.fechaEstreno)}
+                    </span>
+                    <span className="fecha-preventa-corta">
+                      {formatearFechaEstrenoCompacta(pelicula.fechaEstreno)}
+                    </span>
                   </time>
                 </span>
               </>

@@ -25,22 +25,43 @@
 .detalle-pelicula {
     width: 100%;
     margin: 0 auto;
-    padding: 36px 48px 80px;
+    padding: 28px 48px 80px;
     box-sizing: border-box;
+}
+
+.detalle-pelicula-nav {
+    margin-bottom: 18px;
+}
+
+.btn-volver-cartelera {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-texto-secundario);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.btn-volver-cartelera:hover {
+    color: var(--color-texto);
+}
+
+.btn-volver-cartelera:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 3px;
+    border-radius: 4px;
 }
 
 .hero-detalle {
     display: grid;
-    grid-template-columns: 270px 1fr;
-    gap: 42px;
+    grid-template-columns: 245px 1fr;
+    gap: 36px;
     align-items: center;
-    padding: 36px;
-    margin-bottom: 62px;
-
-    background:
-        linear-gradient(135deg, rgba(230, 45, 63, 0.14), transparent 45%),
-        var(--color-superficie);
-
+    padding: 32px;
+    margin-bottom: 20px;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde);
     border-radius: 16px;
     overflow: hidden;
@@ -49,12 +70,13 @@
 .poster-detalle {
     overflow: hidden;
     border-radius: 12px;
-    border: 1px solid #34353e;
+    border: 1px solid var(--color-borde);
     box-shadow: 0 22px 45px rgba(0, 0, 0, 0.4);
 }
 
 .poster-detalle img,
-.poster-detalle-placeholder {
+.poster-detalle-placeholder,
+.poster-detalle-skeleton {
     display: block;
     width: 100%;
     aspect-ratio: 2 / 2.95;
@@ -78,75 +100,133 @@
 
 .contenido-detalle {
     width: 100%;
+    min-width: 0;
+}
+
+.detalle-estado-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-bottom: 10px;
+}
+
+.detalle-estado-fila .subtitulo-seccion {
+    margin: 0;
+}
+
+.detalle-estado-fecha {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #e4e4e7;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.detalle-estado-icono {
+    color: var(--color-acento);
+    flex-shrink: 0;
+}
+
+.fecha-detalle-corta {
+    display: none;
 }
 
 .contenido-detalle h1 {
-    margin: 8px 0 18px;
+    margin: 0 0 14px;
     color: var(--color-texto);
-    font-size: clamp(2.8rem, 6vw, 5.5rem);
-    line-height: 0.98;
-    letter-spacing: -0.05em;
+    font-size: clamp(2rem, 3.8vw, 3.4rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
     text-transform: uppercase;
+    overflow-wrap: anywhere;
 }
 
 .metadatos-detalle {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 22px;
-    color: var(--color-texto-secundario);
-    font-weight: 700;
+    gap: 8px 10px;
+    margin-bottom: 16px;
+    color: #d2d2d6;
+    font-size: 1rem;
+    font-weight: 600;
 }
 
-.metadatos-detalle span:first-child {
-    padding: 5px 9px;
+.metadato-clasificacion {
+    display: inline-flex;
+    padding: 3px 8px;
+    border: 1px solid #a1a1aa80;
+    border-radius: 4px;
     color: #ffffff;
-    background: var(--color-acento);
-    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.25;
 }
 
-.metadatos-detalle span:nth-child(even) {
-    color: var(--color-acento);
-}
-
-.sinopsis-detalle {
-    width: 100%;
-    color: var(--color-texto-secundario);
-    font-size: 1.05rem;
-    line-height: 1.75;
-}
-
-.boton-fav-peli {
-    width: 34px;
-    height: 34px;
-    margin-left: 4px;
-    padding: 0;
-    border-radius: 50%;
-    border: 1px solid #34353e;
-    background-color: var(--color-superficie-clara);
-    color: var(--color-texto-secundario);
-    font-size: 1.15rem;
+.metadato-separador {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 1.15em;
+    font-weight: 700;
     line-height: 1;
+    user-select: none;
+}
+
+.acciones-detalle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.boton-fav-detalle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 9px;
+    min-height: 42px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--color-borde);
+    background-color: var(--color-superficie-clara);
+    color: var(--color-texto);
+    font-size: 0.92rem;
+    font-weight: 600;
     cursor: pointer;
     transition:
-        color 0.15s ease,
-        border-color 0.15s ease,
-        background-color 0.15s ease,
+        color 0.16s ease,
+        border-color 0.16s ease,
+        background-color 0.16s ease,
         transform 0.15s ease;
 }
 
-.boton-fav-peli:hover {
-    color: var(--color-acento);
+.boton-fav-detalle:hover {
     border-color: #494a54;
-    transform: scale(1.08);
+    background-color: #23242c;
+    transform: translateY(-1px);
 }
 
-.boton-fav-peli.activo {
+.boton-fav-detalle:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 3px;
+}
+
+.icono-fav-detalle {
+    color: var(--color-texto-secundario);
+    flex-shrink: 0;
+    transition: color 0.16s ease;
+}
+
+.boton-fav-detalle:hover .icono-fav-detalle,
+.boton-fav-detalle.activo .icono-fav-detalle {
     color: var(--color-acento);
+}
+
+.boton-fav-detalle.activo {
+    border-color: #494a54;
 }
 
 .seccion-funciones {
@@ -161,9 +241,14 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+    flex-wrap: wrap;
     border-bottom: 1px solid #1c1c1c;
     padding-bottom: 12px;
-    gap: 16px;
+    gap: 12px 16px;
+}
+
+.encabezado-funciones > div {
+    min-width: 0;
 }
 
 .encabezado-funciones h2 {
@@ -175,6 +260,7 @@
 }
 
 .conteo-cines-peli {
+    flex-shrink: 0;
     margin: 0;
     font-size: 0.85rem;
     font-weight: 500;
@@ -187,6 +273,12 @@
 }
 
 /* Filtros de la cartelera */
+.fechas-skeleton-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .cartelera-cine-filtros {
     display: flex;
     flex-direction: column;
@@ -232,7 +324,7 @@
 
 .cabecera-cine {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
@@ -240,7 +332,7 @@
 
 .cabecera-cine-left {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
     min-width: min(240px, 100%);
     flex: 1 1 260px;
@@ -249,24 +341,36 @@
 .nombre-cine {
     display: grid;
     gap: 6px;
+    flex: 1;
     min-width: 0;
     overflow-wrap: anywhere;
 }
 
-.nombre-cine strong {
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap;
+.nombre-cine-titulo {
+    display: flex;
+    align-items: flex-start;
     gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.nombre-cine strong {
+    display: block;
+    min-width: 0;
     font-size: 1.2rem;
+    line-height: 1.35;
 }
 
 .distancia-cine {
+    display: inline-block;
+    margin-left: 8px;
     color: var(--color-texto-secundario);
     font-size: 0.85rem;
     font-weight: 500;
     font-style: normal;
     opacity: 0.75;
+    white-space: nowrap;
 }
 
 .nombre-cine > span {
@@ -358,36 +462,28 @@
     color: var(--color-acento);
 }
 
-.logo-cine {
-    position: relative;
-    display: grid;
-    width: 58px;
-    height: 58px;
-    flex-shrink: 0;
-    place-items: center;
-    padding: 8px;
+.enlace-cine-detalle:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
 
-    background: #ffffff;
+.logo-cine-link {
+    display: inline-flex;
+    flex-shrink: 0;
+    text-decoration: none;
     border-radius: 10px;
 }
 
-.logo-cine[data-origen="cinestar"] {
-    background: #121212;
+.logo-cine-link .logo-cine-enlazado {
+    transition: transform 0.2s ease;
 }
 
-.logo-cine img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+.logo-cine-link:hover .logo-cine-enlazado {
+    transform: scale(1.03);
 }
 
-.logo-cine span {
-    font-size: 1.6rem;
-}
-
-.sin-funciones,
-.mensaje-detalle {
+.sin-funciones {
     padding: 50px 20px;
     color: var(--color-texto-secundario);
     text-align: center;
@@ -396,10 +492,8 @@
     border-radius: 12px;
 }
 
-.aviso-cercania {
+.detalle-aviso-ubicacion {
     margin: 0 0 16px;
-    color: var(--color-texto-secundario);
-    font-size: 0.88rem;
 }
 
 .sin-funciones span {
@@ -414,38 +508,96 @@
 
 @media (max-width: 820px) {
     .hero-detalle {
-        grid-template-columns: 210px 1fr;
-        gap: 28px;
-        padding: 28px;
+        grid-template-columns: 196px 1fr;
+        gap: 24px;
+        padding: 24px;
     }
 
     .contenido-detalle h1 {
-        font-size: 3rem;
-    }
-
-    .encabezado-funciones {
-        align-items: flex-start;
-        flex-direction: column;
+        font-size: clamp(1.75rem, 4.5vw, 2.5rem);
     }
 }
 
 @media (max-width: 600px) {
     .detalle-pelicula {
         width: min(100% - 28px, 1180px);
-        padding: 34px 0 60px;
+        padding: 20px 0 60px;
+    }
+
+    .detalle-pelicula-nav {
+        margin-bottom: 14px;
     }
 
     .hero-detalle {
         grid-template-columns: 1fr;
-        padding: 20px;
+        gap: 20px;
+        padding: 18px;
+        margin-bottom: 16px;
     }
 
     .poster-detalle {
-        width: min(230px, 100%);
+        width: min(176px, 52vw);
         margin: 0 auto;
     }
 
+    .fecha-detalle-larga {
+        display: none;
+    }
+
+    .fecha-detalle-corta {
+        display: inline;
+        letter-spacing: 0.04em;
+    }
+
     .contenido-detalle h1 {
-        font-size: 2.8rem;
+        font-size: clamp(1.65rem, 6.8vw, 2.15rem);
+        margin-bottom: 12px;
+    }
+
+    .metadatos-detalle {
+        gap: 6px 8px;
+        font-size: 0.9rem;
+    }
+
+    .metadato-clasificacion {
+        padding: 2px 7px;
+        font-size: 0.78rem;
+    }
+
+    .boton-fav-detalle {
+        width: 100%;
+        min-height: 44px;
+    }
+
+    .tarjeta-cine {
+        padding: 18px;
+    }
+
+    .cabecera-cine-left {
+        gap: 12px;
+    }
+
+    .nombre-cine-titulo {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .nombre-cine-titulo .boton-fav-inline {
+        margin-top: -3px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-volver-cartelera,
+    .boton-fav-detalle,
+    .icono-fav-detalle,
+    .logo-cine-link .logo-cine-enlazado,
+    .enlace-cine-detalle {
+        transition: none;
+    }
+
+    .boton-fav-detalle:hover,
+    .logo-cine-link:hover .logo-cine-enlazado {
+        transform: none;
     }
 }

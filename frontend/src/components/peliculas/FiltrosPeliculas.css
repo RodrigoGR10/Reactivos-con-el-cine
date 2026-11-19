@@ -71,7 +71,7 @@
     border-radius: 0;
     background: transparent;
     color: var(--color-texto);
-    font-size: 0.95rem;
+    font-size: 1rem;
     line-height: 1.4;
     font-weight: 400;
     letter-spacing: 0;
@@ -117,15 +117,6 @@
     gap: 10px;
     flex: 0 0 auto;
     min-width: 0;
-}
-
-@media (min-width: 601px) {
-    .filtro-generos .cines-comunas-panel,
-    .filtro-clasificacion .cines-comunas-panel,
-    .cines-cadenas-selector .cines-comunas-panel {
-        left: 0;
-        right: auto;
-    }
 }
 
 .filtros-peliculas-aplicados {
@@ -181,6 +172,78 @@
     outline-offset: 3px;
 }
 
+.cines-comunas-trigger.filtros-movil-trigger,
+.boton-cercania-cine.boton-cercania-cine--compacto {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    gap: 0;
+    flex-shrink: 0;
+}
+
+.cines-comunas-panel.filtros-movil-drawer {
+    background: var(--color-superficie-clara);
+    border-color: var(--color-borde);
+}
+
+.filtros-movil-drawer .cines-comunas-panel-header strong {
+    color: var(--color-texto);
+}
+
+.filtros-movil-drawer .cines-comunas-panel-footer {
+    border-top-color: var(--color-borde);
+}
+
+.filtros-movil-accordion-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4px 12px 12px;
+}
+
+.filtros-movil-accordion .mantine-Accordion-item {
+    background: var(--color-superficie);
+    border-color: var(--color-borde);
+}
+
+.filtros-movil-accordion .mantine-Accordion-control {
+    min-height: 46px;
+    color: var(--color-texto);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.filtros-movil-accordion .mantine-Accordion-control:hover {
+    background: var(--color-superficie-clara);
+}
+
+.filtros-movil-accordion .mantine-Accordion-chevron {
+    color: var(--color-texto-secundario);
+}
+
+.filtros-movil-accordion .mantine-Badge-root {
+    background: transparent;
+    border-color: var(--color-acento);
+    color: var(--color-texto);
+}
+
+.filtros-movil-accordion .mantine-Accordion-content {
+    padding: 4px 0 6px;
+}
+
+.cines-comunas-panel--drawer .filtros-movil-accordion .cines-comunas-busqueda {
+    margin: 4px 10px 8px;
+    border-color: var(--color-borde);
+    color: var(--color-texto-secundario);
+}
+
+.cines-comunas-panel--drawer .filtros-movil-accordion .cines-comunas-opciones {
+    max-height: min(200px, 30dvh);
+    overflow-y: auto;
+    scrollbar-color: var(--color-borde) var(--color-superficie);
+}
+
 @media (max-width: 960px) {
     .herramientas-cartelera {
         flex-direction: column;
@@ -204,6 +267,25 @@
     .cines-comunas-trigger,
     .boton-cercania-cine {
         height: 44px;
+    }
+}
+
+@media (max-width: 600px), (max-width: 960px) and (max-height: 500px) {
+    .herramientas-cartelera.herramientas-cartelera--movil {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .herramientas-cartelera.herramientas-cartelera--movil > .buscador {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+    }
+
+    .herramientas-cartelera.herramientas-cartelera--movil .filtros-cartelera-selectores {
+        flex-wrap: nowrap;
+        gap: 8px;
     }
 }
 

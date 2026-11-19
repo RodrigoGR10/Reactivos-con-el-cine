@@ -1,0 +1,146 @@
+.mensaje-pagina {
+  width: 100%;
+  flex: 1;
+  padding: 36px 48px;
+  box-sizing: border-box;
+}
+
+.mensaje-pagina--centrado {
+  min-height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mensaje-carga {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-texto-secundario);
+  font-size: 0.95rem;
+}
+
+.mensaje-panel-error.mantine-Alert-root {
+  width: 100%;
+  padding: 48px 24px;
+  background-color: #121212;
+  border: 1px solid #202020;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.mensaje-panel-error .mantine-Alert-title {
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f5f5f6;
+}
+
+.mensaje-panel-error .mantine-Alert-message {
+  color: #a1a1aa;
+  font-size: 0.95rem;
+}
+
+.mensaje-panel-error .mensaje-alerta-contenido {
+  align-items: center;
+  gap: 8px;
+}
+
+.mensaje-alerta-compacta.mantine-Alert-root {
+  padding: 10px 14px;
+  background-color: #141214;
+  border: 1px solid rgba(204, 18, 11, 0.34);
+  color: var(--color-texto);
+}
+
+.mensaje-alerta-compacta .mantine-Alert-wrapper {
+  align-items: center;
+}
+
+.mensaje-alerta-compacta .mantine-Alert-icon {
+  margin: 0 12px 0 0;
+  color: var(--color-acento);
+}
+
+.mensaje-alerta-compacta .mantine-Alert-label {
+  color: var(--color-acento);
+}
+
+.mensaje-alerta-compacta .mantine-Alert-message {
+  color: #d4d4d8;
+  font-size: 0.86rem;
+}
+
+.mensaje-alerta-compacta .mantine-Alert-closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #9898a2;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.mensaje-alerta-compacta .mantine-Alert-closeButton:hover {
+  color: #f5f5f6;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mensaje-alerta-compacta .mantine-Alert-closeButton:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+.mensaje-alerta-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mensaje-accion-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #9898a2;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.mensaje-accion-link:hover {
+  color: #ffffff;
+}
+
+.mensaje-accion-link:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.mensaje-estado-caja {
+  width: 100%;
+  padding: 48px 24px;
+  color: var(--color-texto-secundario);
+  text-align: center;
+  background-color: #121212;
+  border: 1px solid #202020;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .mensaje-pagina {
+    padding: 24px 18px 32px;
+  }
+}

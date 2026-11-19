@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useId } from "react";
+import { Skeleton } from "@mantine/core";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import type { Pelicula, Cine } from "../types/types";
@@ -8,12 +9,20 @@ import {
   FilmIcon,
   MapPinIcon,
   CalendarIcon,
+  PencilIcon,
 } from "../components/common/Icons";
-import { TarjetaCine } from "../components/cines/TarjetaCine";
+import {
+  TarjetaCine,
+  TarjetaCineSkeleton,
+} from "../components/cines/TarjetaCine";
+import { Mensaje } from "../components/common/Mensaje";
 import peliculasService from "../services/peliculas";
 import cinesService from "../services/cines";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import "./ProfilePage.css";
+
+const POSTERS_ESQUELETO = [0, 1, 2, 3, 4, 5];
+const CINES_ESQUELETO = [0, 1, 2, 3];
 
 /** Formatea la fecha de registro dinámicamente en español */
 const formatearFechaRegistro = (fechaStr?: string): string => {
@@ -172,7 +181,7 @@ const ProfilePage = () => {
                   id={searchInputId}
                   type="search"
                   placeholder={
-                    tabActiva === "cines" ? "buscar cines" : "buscar guardados"
+                    tabActiva === "cines" ? "Buscar cines..." : "Buscar guardados..."
                   }
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
@@ -184,25 +193,50 @@ const ProfilePage = () => {
                 type="button"
                 className={`btn-edit-minimal ${editando ? "active" : ""}`}
                 onClick={() => setModoEdicion((prev) => !prev)}
+                aria-label={editando ? "Finalizar edición" : "Editar guardados"}
+                aria-pressed={editando}
                 title={editando ? "Finalizar edición" : "Editar guardados"}
               >
-                {editando ? "listo" : "editar"}
+                <span className="btn-edit-text">
+                  {editando ? "listo" : "editar"}
+                </span>
+                <PencilIcon size={16} className="btn-edit-icon" />
               </button>
             )}
           </div>
         </section>
 
         {cargando ? (
-          <div className="content-area">
-            <div className="empty-state-ultra" role="status">
-              <p>Cargando favoritos...</p>
-            </div>
+          <div className="content-area" role="status" aria-busy="true">
+            <span className="visualmente-oculto">Cargando favoritos...</span>
+            {tabActiva === "cines" ? (
+              <div className="cines-grid">
+                {CINES_ESQUELETO.map((idx) => (
+                  <TarjetaCineSkeleton key={idx} />
+                ))}
+              </div>
+            ) : (
+              <div className="posters-grid">
+                {POSTERS_ESQUELETO.map((idx) => (
+                  <div
+                    key={idx}
+                    className="poster-card-skeleton"
+                    aria-hidden="true"
+                  >
+                    <Skeleton height="100%" radius={0} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : error ? (
           <div className="content-area">
-            <div className="empty-state-ultra" role="alert">
-              <p>{error}</p>
-            </div>
+            <Mensaje
+              tipo="error"
+              embebido
+              titulo="Error al cargar favoritos"
+              texto={error}
+            />
           </div>
         ) : (
           <>

@@ -30,6 +30,7 @@ export interface CandidatoSeguro extends MetricasTmdb {
     tmdbId: number;
     tituloOriginal?: string;
     poster?: string;
+    posterLimpio?: string;
     banner?: string;
     sinopsis?: string;
 }

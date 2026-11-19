@@ -12,6 +12,7 @@ export interface TmdbEnrichment extends MetricasTmdb {
     tmdbId: number;
     tituloOriginal?: string;
     poster?: string;
+    posterLimpio?: string;
     banner?: string;
     sinopsis?: string;
 }
@@ -37,6 +38,7 @@ export interface TmdbMatchDiagnostic extends MetricasTmdb {
     diferenciaDuracion?: number;
     segundoCandidato?: SegundoCandidatoTmdb;
     poster?: string;
+    posterLimpio?: string;
     banner?: string;
     sinopsis?: string;
     consultaCoincidente: string;
@@ -51,6 +53,7 @@ export interface TmdbMetadataPorId extends MetricasTmdb {
     fechaEstreno?: string;
     duracionTmdb?: number;
     poster?: string;
+    posterLimpio?: string;
     banner?: string;
     sinopsis?: string;
 }
@@ -68,6 +71,20 @@ export interface TmdbMovieResult {
     popularity?: number;
     vote_average?: number;
     vote_count?: number;
+}
+
+export interface TmdbImageItem {
+    file_path: string;
+    iso_639_1: string | null;
+    width: number;
+    height: number;
+    aspect_ratio?: number;
+    vote_average?: number;
+    vote_count?: number;
+}
+
+export interface TmdbImagesResponse {
+    posters?: TmdbImageItem[];
 }
 
 export interface TmdbSearchResponse {

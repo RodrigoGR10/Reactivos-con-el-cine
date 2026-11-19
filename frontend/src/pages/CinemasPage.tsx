@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Skeleton } from "@mantine/core";
 import type { Cine } from "../types/types";
 import cinesService from "../services/cines";
 import { useAuth } from "../context/AuthContext";
@@ -6,25 +7,45 @@ import { useFavorites } from "../context/FavoritesContext";
 import { useFavoritosAlEntrar } from "../hooks/useFavoritosAlEntrar";
 import { FilmIcon } from "../components/common/Icons";
 import { BotonFavorito } from "../components/common/BotonFavorito";
-import { BotonCercania, ChipsFiltrosActivos } from "../components/common/SelectorMultiple";
+import { AvisoUbicacion, Mensaje } from "../components/common/Mensaje";
+import {
+    BotonCercania,
+    ChipsFiltrosActivos,
+    GrupoFiltros,
+    SelectorMultiple,
+} from "../components/common/SelectorMultiple";
+import { useEsMovilFiltros } from "../hooks/useEsMovilFiltros";
 import { SelectorComunas } from "../components/cines/SelectorComunas";
-import { TarjetaCine } from "../components/cines/TarjetaCine";
+import { LogoCine } from "../components/cines/LogoCine";
+import { TarjetaCine, TarjetaCineSkeleton } from "../components/cines/TarjetaCine";
 import BuscadorPeliculas from "../components/peliculas/BuscadorPeliculas";
-import { agruparCines, filtrarCines, obtenerComunas, ordenarCinesPorCercania, type CineOrdenado } from "../utils/agruparCines";
+import {
+    agruparCines,
+    filtrarCines,
+    obtenerCadenas,
+    obtenerComunas,
+    ordenarCinesPorCercania,
+    type CineOrdenado,
+} from "../utils/agruparCines";
 import { useUbicacion } from "../hooks/useUbicacion";
 import "./CinemasPage.css";
+
+const GRUPOS_ESQUELETO = [0, 1];
+const TARJETAS_ESQUELETO = [0, 1, 2, 3];
 
 function CinemasPage() {
     const { user, openAuthModal } = useAuth();
     const { isFavoriteCinema, toggleFavoriteCinema } = useFavorites();
     const { cinesFavoritosAlEntrar } = useFavoritosAlEntrar();
-    const { ubicacion, estado, solicitar } = useUbicacion();
+    const { ubicacion, estado, solicitar, descartarAviso } = useUbicacion();
     const [cercaniaActiva, setCercaniaActiva] = useState(true);
     const [cines, setCines] = useState<Cine[]>([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [busqueda, setBusqueda] = useState("");
     const [comunasSeleccionadas, setComunasSeleccionadas] = useState<string[]>([]);
+    const [cadenasSeleccionadas, setCadenasSeleccionadas] = useState<string[]>([]);
+    const esMovil = useEsMovilFiltros();
 
     useEffect(() => {
         let activo = true;
@@ -36,7 +57,8 @@ function CinemasPage() {
     }, []);
 
     const comunas = obtenerComunas(cines);
-    const cinesFiltrados = filtrarCines(cines, busqueda, comunasSeleccionadas);
+    const cadenas = obtenerCadenas(cines);
+    const cinesFiltrados = filtrarCines(cines, busqueda, comunasSeleccionadas, cadenasSeleccionadas);
     const ordenarPorCercania = cercaniaActiva && estado === "listo" && ubicacion !== null;
     const favoritosOrden = user ? [...cinesFavoritosAlEntrar] : [];
     const grupos = agruparCines(cinesFiltrados, favoritosOrden, ordenarPorCercania ? ubicacion : null);
@@ -44,18 +66,32 @@ function CinemasPage() {
     const limpiarFiltros = () => {
         setBusqueda("");
         setComunasSeleccionadas([]);
+        setCadenasSeleccionadas([]);
     };
-    const chipsComunas = comunas
-        .filter((comuna) => comunasSeleccionadas.includes(comuna.valor))
-        .map((comuna) => ({
-            id: `comuna-${comuna.valor}`,
-            etiqueta: comuna.nombre,
-            ariaLabel: `Quitar filtro ${comuna.nombre}`,
-            onQuitar: () =>
-                setComunasSeleccionadas((anteriores) =>
-                    anteriores.filter((valor) => valor !== comuna.valor),
-                ),
-        }));
+    const chipsFiltros = [
+        ...cadenas
+            .filter((cadena) => cadenasSeleccionadas.includes(cadena.valor))
+            .map((cadena) => ({
+                id: `cadena-${cadena.valor}`,
+                etiqueta: cadena.nombre,
+                ariaLabel: `Quitar filtro ${cadena.nombre}`,
+                onQuitar: () =>
+                    setCadenasSeleccionadas((anteriores) =>
+                        anteriores.filter((valor) => valor !== cadena.valor),
+                    ),
+            })),
+        ...comunas
+            .filter((comuna) => comunasSeleccionadas.includes(comuna.valor))
+            .map((comuna) => ({
+                id: `comuna-${comuna.valor}`,
+                etiqueta: comuna.nombre,
+                ariaLabel: `Quitar filtro ${comuna.nombre}`,
+                onQuitar: () =>
+                    setComunasSeleccionadas((anteriores) =>
+                        anteriores.filter((valor) => valor !== comuna.valor),
+                    ),
+            })),
+    ];
 
     const renderTarjetaCine = (cine: CineOrdenado) => {
         const esFavorito = Boolean(user && isFavoriteCinema(cine.id));
@@ -96,19 +132,39 @@ function CinemasPage() {
             </header>
 
             <section className="cines-filtros" aria-label="Búsqueda y filtros de cines">
-                <div className="herramientas-cartelera">
+                <div
+                    className={`herramientas-cartelera ${esMovil ? "herramientas-cartelera--movil" : ""}`.trim()}
+                >
                     <BuscadorPeliculas
                         busqueda={busqueda}
                         onBusquedaChange={setBusqueda}
-                        label="Buscar cine o comuna"
-                        placeholder="Buscar por cine o comuna..."
+                        label="Buscar cines"
+                        placeholder="Buscar cines..."
                     />
                     <div className="filtros-cartelera-selectores">
-                        <SelectorComunas opciones={comunas} seleccionadas={comunasSeleccionadas} onChange={setComunasSeleccionadas} />
+                        <GrupoFiltros
+                            cantidadActivos={chipsFiltros.length}
+                            disabled={cadenas.length === 0 && comunas.length === 0}
+                        >
+                            <SelectorMultiple
+                                className="cines-cadenas-selector"
+                                posicion="bottom-start"
+                                opciones={cadenas}
+                                seleccionadas={cadenasSeleccionadas}
+                                onChange={setCadenasSeleccionadas}
+                                titulo="Cadenas"
+                                etiquetaTodas="Cadenas"
+                                etiquetaPlural="cadenas"
+                                etiquetaSingular="1 cadena"
+                                ariaLabelPrefijo="Filtrar por cadenas"
+                                disabled={cadenas.length === 0}
+                            />
+                            <SelectorComunas opciones={comunas} seleccionadas={comunasSeleccionadas} onChange={setComunasSeleccionadas} />
+                        </GrupoFiltros>
                         <BotonCercania
                             activo={ordenarPorCercania}
                             cargando={estado === "cargando"}
-                            tituloActivo="Volver al orden por cadena"
+                            compacto={esMovil}
                             tituloInactivo="Ordenar por cercanía"
                             onToggle={() => {
                                 if (ordenarPorCercania) {
@@ -121,16 +177,46 @@ function CinemasPage() {
                         />
                     </div>
                 </div>
-                <ChipsFiltrosActivos chips={chipsComunas} ariaLabel="Comunas seleccionadas" />
+                <ChipsFiltrosActivos chips={chipsFiltros} ariaLabel="Filtros seleccionados" />
             </section>
 
-            {estado === "denegado" && <p className="aviso-cercania">No pudimos acceder a tu ubicación. Habilita el permiso en tu navegador para ordenar por cercanía.</p>}
-            {estado === "error" && <p className="aviso-cercania">No se pudo obtener tu ubicación. Intenta nuevamente.</p>}
+            <AvisoUbicacion
+                estado={estado}
+                onCerrar={descartarAviso}
+                className="cines-aviso-ubicacion"
+            />
 
             {cargando ? (
-                <div className="cines-loading" role="status"><p>Cargando complejos cinematográficos...</p></div>
+                <div className="cines-grupos" role="status" aria-busy="true">
+                    <span className="visualmente-oculto">
+                        Cargando complejos cinematográficos...
+                    </span>
+                    {GRUPOS_ESQUELETO.map((grupoIdx) => (
+                        <div key={grupoIdx} className="cines-cadena" aria-hidden="true">
+                            <div className="cines-cadena-header">
+                                <Skeleton width={30} height={30} radius={5} />
+                                <Skeleton
+                                    width={grupoIdx === 0 ? 120 : 145}
+                                    height={18}
+                                    radius="sm"
+                                />
+                                <Skeleton width={56} height={14} radius="sm" ml="auto" />
+                            </div>
+                            <div className="cines-grid">
+                                {TARJETAS_ESQUELETO.map((cardIdx) => (
+                                    <TarjetaCineSkeleton key={cardIdx} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             ) : error ? (
-                <div className="cines-error" role="alert"><p>{error}</p></div>
+                <Mensaje
+                    tipo="error"
+                    embebido
+                    titulo="Error al cargar los cines"
+                    texto={error}
+                />
             ) : cinesFiltrados.length === 0 ? (
                 <div className="cines-empty">
                     <FilmIcon size={32} />
@@ -148,8 +234,7 @@ function CinemasPage() {
                         <section key={grupo.id} className={`cines-cadena ${grupo.id === "favoritos" ? "cines-cadena-favoritos" : ""}`} aria-labelledby={`cadena-${grupo.id}`}>
                             <header className="cines-cadena-header">
                                 {grupo.id === "favoritos" ? <span className="cines-cadena-favorito-icon" aria-hidden="true">♥</span>
-                                    : grupo.logo ? <img src={grupo.logo} alt="" className="cines-cadena-logo" />
-                                    : <FilmIcon size={24} />}
+                                    : <LogoCine src={grupo.logo} origen={grupo.id} alt="" tamano="xs" />}
                                 <h2 id={`cadena-${grupo.id}`}>{grupo.nombre}</h2>
                                 <span className="cines-cadena-cantidad">{grupo.cines.length} {grupo.cines.length === 1 ? "cine" : "cines"}</span>
                             </header>

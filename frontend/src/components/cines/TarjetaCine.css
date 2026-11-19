@@ -64,31 +64,6 @@
     gap: 16px;
 }
 
-.cine-logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 46px;
-    height: 46px;
-    padding: 5px;
-    border-radius: 7px;
-    background: #fff;
-    color: #29292d;
-}
-
-.cine-logo-container[data-origen="cinestar"] {
-    width: 92px;
-    background: #121214;
-}
-
-.cine-card-logo {
-    display: block;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
 .cine-card-fav {
     flex-shrink: 0;
 }

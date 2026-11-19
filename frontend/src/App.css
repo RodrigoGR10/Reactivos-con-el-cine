@@ -34,6 +34,7 @@ body {
         "Segoe UI",
         Roboto,
         sans-serif;
+    line-height: normal;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -110,10 +111,18 @@ body {
     height: clamp(26px, 1.8vw, 34px);
 }
 
-.sidebar-btn:hover {
+@media (hover: hover) and (pointer: fine) {
+    .sidebar-btn:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.05);
+        transform: scale(1.08);
+    }
+}
+
+.sidebar-btn:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.05);
-    transform: scale(1.08);
 }
 
 .sidebar-btn.active {
@@ -499,6 +508,11 @@ body {
     box-sizing: border-box;
 }
 
+.contenido-principal > .recomendador {
+    width: 100%;
+    margin: 56px 0 0;
+}
+
 .panel-filtros {
     padding: clamp(24px, 1.7vw, 36px);
     margin-bottom: clamp(52px, 3.6vw, 76px);
@@ -549,6 +563,14 @@ body {
     gap: 20px;
 }
 
+.titulo-cartelera:has(> p) {
+    align-items: last baseline;
+}
+
+.titulo-cartelera > div {
+    min-width: 0;
+}
+
 .titulo-cartelera h2,
 .titulo-cartelera p {
     margin: 0;
@@ -594,8 +616,10 @@ body {
 }
 
 .titulo-cartelera > p {
+    flex-shrink: 0;
     color: var(--color-texto-secundario);
     font-size: clamp(1rem, 1.1vw, 1.35rem);
+    white-space: nowrap;
 }
 
 .grilla-peliculas {
@@ -728,6 +752,18 @@ body {
 .boton-fav.boton-fav-inline .icono-corazon-fav {
     width: 14px;
     height: 14px;
+}
+
+@media (max-width: 600px) {
+    .boton-fav.boton-fav-inline {
+        width: 36px;
+        height: 36px;
+    }
+
+    .boton-fav.boton-fav-inline .icono-corazon-fav {
+        width: 17px;
+        height: 17px;
+    }
 }
 
 .poster-placeholder {
@@ -900,6 +936,10 @@ body {
     color: inherit;
 }
 
+.fecha-preventa-corta {
+    display: none;
+}
+
 @supports not ((backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px))) {
     .etiqueta-preventa {
         background: rgba(17, 17, 19, 0.9);
@@ -939,6 +979,14 @@ body {
 }
 
 @media (max-width: 820px) {
+    .contenido-principal {
+        padding: 28px 24px 60px;
+    }
+
+    .contenido-principal > .recomendador {
+        margin-top: 36px;
+    }
+
     .contenido-navegacion {
         grid-template-columns: 1fr auto;
         gap: 12px;
@@ -1003,6 +1051,10 @@ body {
         margin-left: 0;
         width: 100%;
         padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .contenido-principal {
+        padding: 24px 18px 48px;
     }
 
     .contenido-navegacion {
@@ -1126,9 +1178,12 @@ body {
         border-color: rgba(255, 255, 255, 0.16);
     }
 
-    .encabezado-filtros,
-    .titulo-cartelera {
+    .encabezado-filtros {
         align-items: flex-start;
+    }
+
+    .titulo-cartelera {
+        margin-bottom: 14px;
     }
 
     .panel-filtros {
@@ -1159,6 +1214,15 @@ body {
         font-size: 11.5px;
     }
 
+    .fecha-preventa-larga {
+        display: none;
+    }
+
+    .fecha-preventa-corta {
+        display: inline;
+        letter-spacing: 0.04em;
+    }
+
     .icono-preventa {
         width: 12px;
         height: 12px;
@@ -1172,17 +1236,6 @@ body {
         width: 32px;
         height: 32px;
         font-size: 20px;
-    }
-    .cintas-peliculas {
-        display: flex;
-        flex-direction: column;
-        gap: 22px;
-    }
-
-    .titulo-cinta {
-        margin: 0 0 10px;
-        font-size: 1.05rem;
-        font-weight: 700;
     }
 
     .cinta-peliculas {
@@ -1240,8 +1293,66 @@ body {
     }
 
     .cinta-peliculas .datos-pelicula,
-    .cinta-peliculas .clasificacion,
-    .cinta-peliculas .etiqueta-preventa {
+    .cinta-peliculas .clasificacion {
         display: none;
     }
+}
+
+.modal-confirmacion-contenido {
+    padding: 20px 22px 22px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 14px;
+    color: var(--color-texto);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+}
+
+.modal-confirmacion-header {
+    min-height: auto;
+    margin-bottom: 10px;
+    padding: 0;
+    background: transparent;
+}
+
+.modal-confirmacion-titulo {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-texto);
+}
+
+.modal-confirmacion-cerrar {
+    width: 30px;
+    height: 30px;
+    color: var(--color-texto-secundario);
+    border-radius: 6px;
+}
+
+.modal-confirmacion-cerrar:hover {
+    color: var(--color-texto);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.modal-confirmacion-cerrar:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+}
+
+.modal-confirmacion-cuerpo {
+    padding: 0;
+}
+
+.modal-confirmacion-alerta.mantine-Alert-root {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: #141214;
+    border: 1px solid rgba(204, 18, 11, 0.34);
+    color: var(--color-texto);
+}
+
+.modal-confirmacion-alerta .mantine-Alert-icon {
+    color: var(--color-acento);
+}
+
+.modal-confirmacion-alerta .mantine-Alert-message {
+    color: var(--color-texto);
 }

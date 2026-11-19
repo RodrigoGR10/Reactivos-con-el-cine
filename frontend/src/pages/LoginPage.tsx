@@ -8,7 +8,7 @@ function LoginPage() {
   const navigate = useNavigate();
 
   if (isLoadingSession) {
-    return <Mensaje texto="Comprobando sesión..." />;
+    return <Mensaje tipo="cargando" texto="Comprobando sesión..." />;
   }
 
   if (isAuthenticated) {
