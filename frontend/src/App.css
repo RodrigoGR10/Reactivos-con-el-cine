@@ -563,6 +563,14 @@ body {
     gap: 20px;
 }
 
+.titulo-cartelera:has(> p) {
+    align-items: last baseline;
+}
+
+.titulo-cartelera > div {
+    min-width: 0;
+}
+
 .titulo-cartelera h2,
 .titulo-cartelera p {
     margin: 0;
@@ -608,8 +616,10 @@ body {
 }
 
 .titulo-cartelera > p {
+    flex-shrink: 0;
     color: var(--color-texto-secundario);
     font-size: clamp(1rem, 1.1vw, 1.35rem);
+    white-space: nowrap;
 }
 
 .grilla-peliculas {
@@ -1168,9 +1178,12 @@ body {
         border-color: rgba(255, 255, 255, 0.16);
     }
 
-    .encabezado-filtros,
-    .titulo-cartelera {
+    .encabezado-filtros {
         align-items: flex-start;
+    }
+
+    .titulo-cartelera {
+        margin-bottom: 14px;
     }
 
     .panel-filtros {
