@@ -166,9 +166,14 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+    flex-wrap: wrap;
     border-bottom: 1px solid #1c1c1c;
     padding-bottom: 12px;
-    gap: 16px;
+    gap: 12px 16px;
+}
+
+.cartelera-sec-header > div {
+    min-width: 0;
 }
 
 .cartelera-sec-header h2 {
@@ -177,9 +182,11 @@
     font-weight: 700;
     color: #ffffff;
     letter-spacing: -0.4px;
+    overflow-wrap: anywhere;
 }
 
 .conteo-peliculas-cine {
+    flex-shrink: 0;
     margin: 0;
     font-size: 0.85rem;
     font-weight: 500;
@@ -214,8 +221,8 @@
 }
 
 .pelicula-cine-card {
-    background-color: #121212;
-    border: 1px solid #202020;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
     border-radius: 14px;
     padding: 20px;
     display: flex;
@@ -223,14 +230,11 @@
     gap: 24px;
     min-width: 0;
     box-sizing: border-box;
-    transition:
-        border-color 0.2s ease,
-        background-color 0.2s ease;
+    transition: border-color 180ms ease;
 }
 
 .pelicula-cine-card:hover {
-    border-color: #2e2e2e;
-    background-color: #141414;
+    border-color: #494a54;
 }
 
 .pelicula-cine-poster-link {
@@ -266,26 +270,34 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 12px;
+    gap: 12px 16px;
     flex-wrap: wrap;
+    min-width: 0;
 }
 
 .pelicula-cine-header-text {
-    flex: 1 1 220px;
-    min-width: min(200px, 100%);
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.pelicula-cine-titulo {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .pelicula-cine-header-info h3 {
     margin: 0;
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+    min-width: 0;
     font-size: 1.35rem;
     font-weight: 700;
     color: #ffffff;
     letter-spacing: -0.3px;
     line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
 .pelicula-cine-titulo-link {
@@ -305,7 +317,21 @@
     color: #888888;
     font-size: 0.88rem;
     margin: 6px 0 0 0;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.pelicula-cine-metadatos > span:not(.pelicula-cine-genero) {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.pelicula-cine-genero {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .badge-clasif {
@@ -491,18 +517,76 @@
         font-size: 1.8rem;
     }
 
-    .pelicula-cine-card {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .pelicula-cine-header-info h3,
-    .pelicula-cine-metadatos {
-        justify-content: center;
-    }
-
     .detalle-cine-page .horarios-grid-cine {
         justify-content: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .detalle-cine-page {
+        padding: 24px 14px;
+    }
+
+    .pelicula-cine-card {
+        display: grid;
+        grid-template-columns: 68px minmax(0, 1fr);
+        column-gap: 14px;
+        row-gap: 14px;
+        align-items: start;
+        padding: 18px;
+    }
+
+    .pelicula-cine-poster-link {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .pelicula-cine-poster,
+    .pelicula-cine-poster-skeleton {
+        width: 68px !important;
+        height: 102px !important;
+        border-radius: 8px;
+    }
+
+    .pelicula-cine-content,
+    .pelicula-cine-header-info {
+        display: contents;
+    }
+
+    .pelicula-cine-header-text {
+        grid-column: 2;
+        grid-row: 1;
+        position: relative;
+        align-self: center;
+        min-width: 0;
+        padding-right: 44px;
+    }
+
+    .pelicula-cine-titulo {
+        display: block;
+        width: 100%;
+    }
+
+    .pelicula-cine-header-info h3 {
+        font-size: clamp(1.04rem, 4.4vw, 1.16rem);
+    }
+
+    .pelicula-cine-titulo .boton-fav-inline {
+        position: absolute;
+        top: -2px;
+        right: 0;
+        margin-top: 0;
+    }
+
+    .pelicula-cine-metadatos {
+        margin-top: 6px;
+        gap: 5px;
+        font-size: 0.82rem;
+    }
+
+    .pelicula-cine-card .funciones-acciones,
+    .detalle-cine-page .horarios-grid-cine {
+        grid-column: 1 / -1;
+        min-width: 0;
     }
 }

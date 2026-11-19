@@ -196,7 +196,7 @@ function CinemaDetailPage() {
           <div className="peliculas-cine-lista">
             {PELICULAS_CINE_ESQUELETO.map((idx) => (
               <div key={idx} className="pelicula-cine-card">
-                <Skeleton width={110} height={165} radius={10} style={{ flexShrink: 0 }} />
+                <Skeleton width={110} height={165} radius={10} className="pelicula-cine-poster-skeleton" style={{ flexShrink: 0 }} />
                 <div className="pelicula-cine-content">
                   <div className="pelicula-cine-header-info">
                     <div className="pelicula-cine-header-text">
@@ -503,13 +503,15 @@ function CinemaDetailPage() {
                   <div className="pelicula-cine-content">
                     <div className="pelicula-cine-header-info">
                       <div className="pelicula-cine-header-text">
-                        <h3>
-                          <Link
-                            to={`/peliculas/${pelicula.id}`}
-                            className="pelicula-cine-titulo-link"
-                          >
-                            {pelicula.titulo}
-                          </Link>
+                        <div className="pelicula-cine-titulo">
+                          <h3>
+                            <Link
+                              to={`/peliculas/${pelicula.id}`}
+                              className="pelicula-cine-titulo-link"
+                            >
+                              {pelicula.titulo}
+                            </Link>
+                          </h3>
                           <BotonFavorito
                             className="boton-fav-inline"
                             activo={esPeliculaFavorita}
@@ -523,16 +525,22 @@ function CinemaDetailPage() {
                               toggleFavoriteMovie(pelicula.id);
                             }}
                           />
-                        </h3>
+                        </div>
                         <p className="pelicula-cine-metadatos">
-                          <span>{pelicula.genero}</span>
+                          {pelicula.genero && (
+                            <span className="pelicula-cine-genero">
+                              {pelicula.genero}
+                            </span>
+                          )}
                           {pelicula.duracion !== null && (
                             <>
-                              <span aria-hidden="true">•</span>
+                              {pelicula.genero && <span aria-hidden="true">•</span>}
                               <span>{pelicula.duracion} min</span>
                             </>
                           )}
-                          <span aria-hidden="true">•</span>
+                          {(pelicula.genero || pelicula.duracion !== null) && (
+                            <span aria-hidden="true">•</span>
+                          )}
                           <span className="badge-clasif">
                             {pelicula.clasificacion}
                           </span>
