@@ -4,6 +4,7 @@ import {
     exigirApiKey,
     extraerMetricasTmdb,
     obtenerDetalleSilencioso,
+    obtenerPosterLimpioSilencioso,
     urlBanner,
     urlPoster,
 } from "./client.ts";
@@ -291,6 +292,9 @@ export async function diagnosticarPeliculaTmdb(
         winner.candidate.bestTitleScore,
         winner.finalScore,
     );
+    const posterLimpio = seguro
+        ? await obtenerPosterLimpioSilencioso(winner.candidate.item.id, clave)
+        : undefined;
 
     return {
         tmdbId: winner.candidate.item.id,
@@ -312,6 +316,7 @@ export async function diagnosticarPeliculaTmdb(
             duracionLocal,
         ),
         poster: urlPoster(posterPath),
+        posterLimpio,
         banner: urlBanner(backdropPath),
         sinopsis,
         ...extraerMetricasTmdb(winner.detail ?? winner.candidate.item),

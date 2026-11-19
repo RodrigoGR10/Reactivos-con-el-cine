@@ -4,17 +4,26 @@ import { sincronizarMetadatosTmdb } from "./sync-tmdb/index.ts";
 import { pool } from "../db.ts";
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
+import { sincronizarPostersLimpios } from "./sync-posters.ts";
 import { sincronizarTrailersEnEspanol } from "./sync-trailers.ts";
 
 async function main() {
     const args = process.argv.slice(2);
 
-    if (args.includes("--tmdb") || args.includes("--trailers")) {
+    if (
+        args.includes("--tmdb") ||
+        args.includes("--trailers") ||
+        args.includes("--posters")
+    ) {
         const dryRun = args.includes("--dry-run");
         const apply = args.includes("--apply");
 
         if (dryRun === apply) {
-            const script = args.includes("--trailers") ? "sync:trailers" : "sync:tmdb";
+            const script = args.includes("--trailers")
+                ? "sync:trailers"
+                : args.includes("--posters")
+                  ? "sync:posters"
+                  : "sync:tmdb";
             throw new Error(
                 "Debes indicar exactamente un modo:\n" +
                     `npm run ${script} -- --dry-run\n` +
@@ -24,9 +33,17 @@ async function main() {
 
         if (args.includes("--trailers")) {
             await sincronizarTrailersEnEspanol({ apply });
+        } else if (args.includes("--posters")) {
+            await sincronizarPostersLimpios({
+                apply,
+                force: args.includes("--force"),
+            });
         } else {
             await sincronizarMetadatosTmdb({ apply });
-            if (apply) await sincronizarTrailersEnEspanol({ apply: true });
+            if (apply) {
+                await sincronizarTrailersEnEspanol({ apply: true });
+                await sincronizarPostersLimpios({ apply: true });
+            }
         }
         return;
     }

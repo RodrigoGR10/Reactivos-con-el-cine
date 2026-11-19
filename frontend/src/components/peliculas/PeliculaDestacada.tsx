@@ -4,14 +4,13 @@ import type { Pelicula } from "../../types/types.ts";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
-import { CalendarIcon, StarIcon } from "../common/Icons.tsx";
+import { CalendarIcon, HeartIcon, StarIcon } from "../common/Icons.tsx";
 import {
-  totalFavoritos,
   type CategoriaDestacada,
   type ComplementoEtiquetaDestacada,
 } from "../../utils/seleccionarDestacadas.ts";
 import {
-  formatearFechaEstrenoCorta,
+  formatearFechaEstrenoCompacta,
   resumirSinopsisDestacada,
   separarTituloDestacado,
 } from "../../utils/formatearPeliculaDestacada.ts";
@@ -135,17 +134,9 @@ function PeliculaDestacada({
   const sinopsisRef = useRef<HTMLParagraphElement>(null);
   const esFavorita = isFavoriteMovie(pelicula.id);
   const tieneBanner = Boolean(pelicula.banner && pelicula.banner !== pelicula.poster);
-  const total = totalFavoritos(pelicula);
   const { tituloPrincipal, subtitulo } = separarTituloDestacado(pelicula.titulo);
   const sinopsis = pelicula.sinopsis ? resumirSinopsisDestacada(pelicula.sinopsis) : "";
   const etiquetaMostrada = etiqueta || "Destacada de la semana";
-  const contadorFavoritos =
-    total !== undefined && total > 0 ? (
-      <span className="destacada-total-favoritos" aria-live="polite">
-        <span aria-hidden="true">♥</span>
-        {total.toLocaleString("es-CL")} {total === 1 ? "favorito" : "favoritos"}
-      </span>
-    ) : null;
 
   const metadatos = [
     pelicula.genero ? { clave: "genero", contenido: pelicula.genero, className: "destacada-genero" } : null,
@@ -211,7 +202,7 @@ function PeliculaDestacada({
       desmontado = true;
       observador.disconnect();
     };
-  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, total, etiquetaMostrada, complemento?.tipo, complemento?.valor]);
+  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, etiquetaMostrada, complemento?.tipo, complemento?.valor]);
 
   return (
     <section
@@ -222,7 +213,7 @@ function PeliculaDestacada({
     >
       <div className="decoracion-destacada">
         <picture>
-          <source media="(max-width: 768px)" srcSet={pelicula.poster} />
+          <source media="(max-width: 768px)" srcSet={pelicula.posterLimpio || pelicula.poster} />
           <img src={pelicula.banner || pelicula.poster} alt={`Imagen de ${pelicula.titulo}`} decoding="async" fetchPriority="high" />
         </picture>
       </div>
@@ -235,8 +226,16 @@ function PeliculaDestacada({
                 <>
                   <CalendarIcon size={14} className="icono-dato-destacada" />
                   <time dateTime={complemento.valor}>
-                    {formatearFechaEstrenoCorta(complemento.valor)}
+                    {formatearFechaEstrenoCompacta(complemento.valor)}
                   </time>
+                </>
+              ) : complemento.tipo === "favoritos" ? (
+                <>
+                  <HeartIcon size={14} filled className="icono-dato-destacada" />
+                  <span>{complemento.valor.toLocaleString("es-CL")}</span>
+                  <span className="visualmente-oculto">
+                    {complemento.valor === 1 ? " favorito" : " favoritos"}
+                  </span>
                 </>
               ) : (
                 <>
@@ -246,7 +245,6 @@ function PeliculaDestacada({
               )}
             </span>
           )}
-          {!esDesktop && contadorFavoritos}
         </div>
         <h1 id={tituloId} title={tituloPrincipal} className={tituloPrincipal.length > 70 ? "destacada-titulo-largo destacada-titulo-extenso" : tituloPrincipal.length > 45 ? "destacada-titulo-largo" : ""}>{tituloPrincipal}</h1>
         {subtitulo && <p className="subtitulo-destacada">{subtitulo}</p>}
@@ -278,7 +276,6 @@ function PeliculaDestacada({
             <span className="corazon-destacada" aria-hidden="true">{esFavorita ? "♥" : "♡"}</span>
             <span>Mi lista</span>
           </button>
-          {esDesktop && contadorFavoritos}
         </div>
       </div>
     </section>

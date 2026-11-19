@@ -17,6 +17,7 @@ interface PeliculaRow {
     genero: string | null;
     clasificacion: string | null;
     poster: string | null;
+    posterLimpio: string | null;
     trailerUrl: string | null;
     trailerVersion: "doblado" | "original" | "subtitulado" | null;
     banner: string | null;
@@ -46,6 +47,7 @@ const PELICULA_COLUMNS = `
     p.genero,
     p.clasificacion,
     p.imagen_url AS poster,
+    p.poster_limpio AS "posterLimpio",
     CASE
         WHEN p.trailer_idioma IS NOT NULL
             AND p.trailer_version IN ('doblado', 'original', 'subtitulado', 'espanol', 'otro')
@@ -81,6 +83,7 @@ function serializarPelicula(
         clasificacion: normalizarClasificacion(row.clasificacion),
         sinopsis: normalizarSinopsis(row.sinopsis),
         poster: row.poster ?? "",
+        ...(row.posterLimpio ? { posterLimpio: row.posterLimpio } : {}),
         ...(row.trailerUrl ? { trailerUrl: row.trailerUrl } : {}),
         ...(row.trailerVersion ? { trailerVersion: row.trailerVersion } : {}),
         ...(row.banner ? { banner: row.banner } : {}),

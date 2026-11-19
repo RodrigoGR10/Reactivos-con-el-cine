@@ -100,19 +100,6 @@
     flex-shrink: 0;
 }
 
-.destacada-total-favoritos {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: #e4e4e7;
-    font-size: clamp(0.84rem, 0.92vw, 1.05rem);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-}
-
-.destacada-total-favoritos > span { color: var(--color-acento); }
-
 .carrusel-destacadas .contenido-destacada h1 {
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -410,26 +397,91 @@
 }
 
 @media (max-width: 768px) {
-    .carrusel-destacadas { --destacadas-altura: clamp(360px, calc(100svh - 160px), 560px); }
-    .carrusel-destacadas .decoracion-destacada img { object-position: center 18%; }
-    .carrusel-destacadas .decoracion-destacada::after { background: linear-gradient(0deg, #080808 0%, #080808ed 12%, #080808b3 40%, #08080800 75%); }
-    .carrusel-destacadas .contenido-destacada { width: 100%; padding: 36px 20px 24px; }
-    .destacada-popularidad { gap: 8px 12px; margin-bottom: 12px; }
+    .carrusel-destacadas {
+        --destacadas-altura: clamp(360px, calc(100svh - 172px), 560px);
+        padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    }
+    .carrusel-destacadas .pelicula-destacada {
+        width: calc(100% - 28px);
+        margin: 0 auto;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 16px;
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.45);
+    }
+    .carrusel-destacadas .decoracion-destacada img { object-position: center 15%; }
+    .carrusel-destacadas .decoracion-destacada::after {
+        background: linear-gradient(
+            to bottom,
+            rgba(8, 8, 8, 0.12) 0%,
+            rgba(8, 8, 8, 0) 24%,
+            rgba(8, 8, 8, 0.52) 48%,
+            rgba(8, 8, 8, 0.9) 70%,
+            #080808 100%
+        );
+    }
+    .carrusel-destacadas .contenido-destacada {
+        width: 100%;
+        padding: 20px 16px 18px;
+        text-align: center;
+    }
+    .destacada-popularidad {
+        justify-content: center;
+        gap: 6px 12px;
+        margin-bottom: 8px;
+    }
     .carrusel-destacadas .etiqueta-destacada { font-size: 0.68rem; }
     .etiqueta-dato-destacada { gap: 5px; font-size: 0.68rem; }
-    .carrusel-destacadas .destacada-total-favoritos { font-size: 0.75rem; }
-    .carrusel-destacadas .contenido-destacada h1 { max-width: none; margin-bottom: 10px; font-size: clamp(2.1rem, 9.5vw, 3rem); line-height: 0.98; letter-spacing: -0.045em; -webkit-line-clamp: 4; line-clamp: 4; }
-    .carrusel-destacadas .contenido-destacada h1.destacada-titulo-largo { font-size: 27px; letter-spacing: -0.03em; }
-    .carrusel-destacadas .contenido-destacada h1.destacada-titulo-extenso { font-size: 24px; letter-spacing: -0.02em; }
-    .carrusel-destacadas .subtitulo-destacada { max-width: none; margin: 0 0 12px; padding-left: 0; font-size: 0.85rem; letter-spacing: 0.1em; }
+    .carrusel-destacadas .contenido-destacada h1 {
+        max-width: none;
+        margin: 0 auto 6px;
+        font-size: clamp(1.8rem, 8.2vw, 2.55rem);
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
+    .carrusel-destacadas .contenido-destacada h1.destacada-titulo-largo {
+        font-size: clamp(1.45rem, 6.2vw, 1.85rem);
+        letter-spacing: -0.03em;
+    }
+    .carrusel-destacadas .contenido-destacada h1.destacada-titulo-extenso {
+        font-size: clamp(1.25rem, 5.2vw, 1.55rem);
+        letter-spacing: -0.02em;
+    }
+    .carrusel-destacadas .subtitulo-destacada {
+        max-width: none;
+        margin: 0 0 8px;
+        padding-left: 0;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
     .carrusel-destacadas .sinopsis-destacada { display: none; }
-    .carrusel-destacadas .metadatos-destacada { gap: 6px 8px; margin-bottom: 16px; padding-left: 0; font-size: 0.85rem; }
-    .carrusel-destacadas .metadatos-destacada .destacada-clasificacion { padding: 2px 6px; font-size: 0.75rem; }
-    .carrusel-destacadas .acciones-destacada { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .carrusel-destacadas .metadatos-destacada {
+        justify-content: center;
+        gap: 4px 8px;
+        margin: 0 0 14px;
+        padding-left: 0;
+        font-size: 0.82rem;
+    }
+    .carrusel-destacadas .metadatos-destacada .destacada-clasificacion { padding: 1px 6px; font-size: 0.72rem; }
+    .carrusel-destacadas .acciones-destacada {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
     .carrusel-destacadas .boton-horarios,
-    .carrusel-destacadas .boton-fav-destacada { width: 100%; min-width: 0; padding: 12px 10px; border-radius: 8px; font-size: 0.9rem; }
-    .destacadas-controles { padding: 0 20px; gap: 8px; }
+    .carrusel-destacadas .boton-fav-destacada {
+        width: 100%;
+        min-width: 0;
+        padding: 11px 10px;
+        border-radius: 10px;
+        font-size: 0.88rem;
+    }
+    .destacadas-controles { height: 38px; padding: 2px 14px 0; gap: 6px; }
     .destacadas-selector { gap: 4px; }
+    .destacadas-selector button { height: 36px; }
 }
 
 @media (min-width: 769px) and (max-height: 700px) {
@@ -442,11 +494,11 @@
 }
 
 @media (max-width: 768px) and (max-height: 700px) {
-    .carrusel-destacadas .contenido-destacada { padding-block: 16px 20px; }
-    .carrusel-destacadas .contenido-destacada h1 { font-size: 28px; }
-    .carrusel-destacadas .contenido-destacada h1.destacada-titulo-largo { font-size: 24px; }
-    .carrusel-destacadas .contenido-destacada h1.destacada-titulo-extenso { font-size: 22px; }
-    .carrusel-destacadas .subtitulo-destacada { -webkit-line-clamp: 1; line-clamp: 1; }
+    .carrusel-destacadas .contenido-destacada { padding-block: 14px 16px; }
+    .carrusel-destacadas .contenido-destacada h1 { font-size: clamp(1.6rem, 7.6vw, 2rem); }
+    .carrusel-destacadas .contenido-destacada h1.destacada-titulo-largo { font-size: 22px; }
+    .carrusel-destacadas .contenido-destacada h1.destacada-titulo-extenso { font-size: 20px; }
+    .carrusel-destacadas .metadatos-destacada { margin-bottom: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

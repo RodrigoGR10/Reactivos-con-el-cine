@@ -6,6 +6,7 @@ export interface Pelicula {
   clasificacion: string;
   sinopsis: string;
   poster: string;
+  posterLimpio?: string;
   banner?: string;
   trailerUrl?: string;
   trailerVersion?: "doblado" | "original" | "subtitulado" | "espanol";

@@ -3,6 +3,7 @@ import {
     exigirApiKey,
     extraerMetricasTmdb,
     obtenerPeliculaPorId,
+    obtenerPosterLimpioSilencioso,
     urlBanner,
     urlPoster,
 } from "./client.ts";
@@ -19,7 +20,10 @@ export async function fetchTmdbMovieMetadataById(
     }
 
     const clave = exigirApiKey(apiKey);
-    const movie = await obtenerPeliculaPorId(tmdbId, clave);
+    const [movie, posterLimpio] = await Promise.all([
+        obtenerPeliculaPorId(tmdbId, clave),
+        obtenerPosterLimpioSilencioso(tmdbId, clave),
+    ]);
 
     if (movie === null) return null;
 
@@ -34,6 +38,7 @@ export async function fetchTmdbMovieMetadataById(
         fechaEstreno: movie.release_date || undefined,
         duracionTmdb: duracionValida(movie.runtime),
         poster: urlPoster(movie.poster_path),
+        posterLimpio,
         banner: urlBanner(movie.backdrop_path),
         sinopsis: movie.overview?.trim() || undefined,
         ...extraerMetricasTmdb(movie),
@@ -70,6 +75,7 @@ export async function fetchTmdbMovieMetadata(
         tmdbId: diagnostic.tmdbId,
         tituloOriginal: diagnostic.tituloOriginal,
         poster: diagnostic.poster,
+        posterLimpio: diagnostic.posterLimpio,
         banner: diagnostic.banner,
         sinopsis: diagnostic.sinopsis,
         calificacionTmdb: diagnostic.calificacionTmdb,

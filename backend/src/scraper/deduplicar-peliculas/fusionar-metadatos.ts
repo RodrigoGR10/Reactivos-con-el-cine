@@ -86,6 +86,17 @@ export async function completarMetadatosCanonica(
                     LIMIT 1
                 )
             ),
+            poster_limpio = COALESCE(
+                NULLIF(BTRIM(principal.poster_limpio), ''),
+                (
+                    SELECT NULLIF(BTRIM(duplicada.poster_limpio), '')
+                    FROM peliculas AS duplicada
+                    WHERE duplicada.id = ANY($2::int[])
+                      AND NULLIF(BTRIM(duplicada.poster_limpio), '') IS NOT NULL
+                    ORDER BY duplicada.id
+                    LIMIT 1
+                )
+            ),
             titulo_original = COALESCE(
                 NULLIF(BTRIM(principal.titulo_original), ''),
                 (

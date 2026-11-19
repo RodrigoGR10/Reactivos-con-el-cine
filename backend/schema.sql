@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS peliculas (
     clasificacion VARCHAR(20),
     imagen_url TEXT,
     banner TEXT,
+    poster_limpio TEXT,
     tmdb_id INT,
     calificacion_tmdb DOUBLE PRECISION CHECK (calificacion_tmdb >= 0 AND calificacion_tmdb <= 10),
     votos_tmdb INT CHECK (votos_tmdb >= 0),
@@ -65,6 +66,7 @@ CREATE TABLE IF NOT EXISTS pelicula_fuentes (
 );
 
 ALTER TABLE peliculas
+    ADD COLUMN IF NOT EXISTS poster_limpio TEXT,
     ADD COLUMN IF NOT EXISTS trailer_url TEXT,
     ADD COLUMN IF NOT EXISTS trailer_encontrado_en TIMESTAMP WITH TIME ZONE,
     ADD COLUMN IF NOT EXISTS trailer_idioma VARCHAR(20),

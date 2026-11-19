@@ -25,7 +25,8 @@ export interface ReglaCupoCategoria {
 
 export type ComplementoEtiquetaDestacada =
   | { tipo: "fecha"; valor: string }
-  | { tipo: "calificacion"; valor: string };
+  | { tipo: "calificacion"; valor: string }
+  | { tipo: "favoritos"; valor: number };
 
 export interface PeliculaDestacadaSeleccionada {
   pelicula: Pelicula;
@@ -316,6 +317,12 @@ function complementoPara(
     typeof pelicula.calificacionTmdb === "number"
   ) {
     return { tipo: "calificacion", valor: pelicula.calificacionTmdb.toFixed(1) };
+  }
+  if (categoria === "favoritas") {
+    const favs = totalFavoritos(pelicula);
+    return favs !== undefined && favs > 0
+      ? { tipo: "favoritos", valor: favs }
+      : undefined;
   }
   return undefined;
 }
