@@ -183,7 +183,7 @@ function CinemaDetailPage() {
           <div className="cartelera-sec-header">
             <div>
               <Skeleton width={140} height={13} radius="sm" mb={6} />
-              <Skeleton width={220} height={26} radius="sm" maw="100%" />
+              <Skeleton width={115} height={26} radius="sm" maw="100%" />
             </div>
             <Skeleton width={88} height={30} radius={20} />
           </div>
@@ -378,7 +378,7 @@ function CinemaDetailPage() {
         <div className="cartelera-sec-header">
           <div>
             <p className="subtitulo-seccion">Funciones disponibles</p>
-            <h2>Cartelera en {cine.nombre}</h2>
+            <h2>Cartelera</h2>
           </div>
           <p className="conteo-peliculas-cine" aria-live="polite">
             {gruposFiltrados.length}{" "}

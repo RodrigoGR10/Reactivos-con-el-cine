@@ -31,13 +31,6 @@
     display: flex;
     flex-direction: column;
     gap: 32px;
-    font-family:
-        "Inter",
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
 }
 
 .detalle-cine-nav {
