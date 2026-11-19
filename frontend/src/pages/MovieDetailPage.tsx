@@ -532,8 +532,8 @@ function MovieDetailPage() {
                             <BuscadorPeliculas
                                 busqueda={busqueda}
                                 onBusquedaChange={setBusqueda}
-                                label="Buscar por cine o comuna"
-                                placeholder="Buscar por cine o comuna..."
+                                label="Buscar cines"
+                                placeholder="Buscar cines..."
                             />
                             <div className="filtros-cartelera-selectores">
                                 <GrupoFiltros

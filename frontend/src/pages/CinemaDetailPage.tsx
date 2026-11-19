@@ -438,8 +438,8 @@ function CinemaDetailPage() {
               <BuscadorPeliculas
                 busqueda={busqueda}
                 onBusquedaChange={setBusqueda}
-                label="Buscar película en este cine"
-                placeholder="Buscar película en este cine..."
+                label="Buscar películas"
+                placeholder="Buscar películas..."
               />
               {hayFiltrosDesplegables && (
                 <div className="filtros-cartelera-selectores">

@@ -181,7 +181,7 @@ const ProfilePage = () => {
                   id={searchInputId}
                   type="search"
                   placeholder={
-                    tabActiva === "cines" ? "buscar cines" : "buscar guardados"
+                    tabActiva === "cines" ? "Buscar cines..." : "Buscar guardados..."
                   }
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
