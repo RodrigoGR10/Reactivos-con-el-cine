@@ -132,16 +132,8 @@
 .trailer-llamada {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 16px;
-  color: var(--color-texto);
-  font-size: 1rem;
-  font-weight: 700;
-  text-shadow: 0 1px 6px var(--color-fondo);
+  display: grid;
+  place-items: center;
 }
 
 .trailer-play {
@@ -154,7 +146,6 @@
   background: var(--color-acento);
   border-radius: 50%;
   font-size: 1.6rem;
-  text-shadow: none;
   box-shadow: 0 3px 22px var(--color-fondo);
   transition: transform 180ms ease;
 }

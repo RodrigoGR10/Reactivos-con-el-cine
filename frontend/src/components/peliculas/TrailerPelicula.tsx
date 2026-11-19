@@ -83,7 +83,6 @@ export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
                     )}
                     <span className="trailer-llamada">
                       <span className="trailer-play" aria-hidden="true">&#9654;</span>
-                      <span>Reproducir tráiler</span>
                     </span>
                   </button>
                 ) : error ? (
