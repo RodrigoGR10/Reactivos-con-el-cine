@@ -9,12 +9,7 @@
   background: var(--color-superficie);
   border: 1px solid var(--color-borde);
   border-radius: 8px;
-  transition: border-color 160ms ease, background-color 160ms ease;
-}
-
-.trailer-acordeon-raiz .mantine-Accordion-item:hover,
-.trailer-acordeon-raiz .mantine-Accordion-item[data-active] {
-  border-color: var(--color-acento);
+  transition: background-color 160ms ease;
 }
 
 .trailer-acordeon-raiz .mantine-Accordion-item[data-active] .mantine-Accordion-control {
@@ -36,6 +31,11 @@
 
 .trailer-acordeon-raiz .mantine-Accordion-chevron {
   color: var(--color-texto-secundario);
+}
+
+.trailer-acordeon-raiz .mantine-Accordion-control:hover .mantine-Accordion-chevron,
+.trailer-acordeon-raiz .mantine-Accordion-item[data-active] .mantine-Accordion-chevron {
+  color: var(--color-texto);
 }
 
 .trailer-acordeon-titulo {
