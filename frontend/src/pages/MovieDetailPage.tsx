@@ -41,6 +41,10 @@ import type { Cine } from "../types/types";
 
 const CINES_DETALLE_ESQUELETO = [0, 1];
 const HORARIOS_ESQUELETO = [0, 1, 2];
+const OPCIONES_ACTUALIZACION_FILTRO = {
+    replace: true,
+    preventScrollReset: true,
+} as const;
 
 function MovieDetailPage() {
     const { id } = useParams();
@@ -209,7 +213,7 @@ function MovieDetailPage() {
                       siguientes.delete("funcionId");
                       siguientes.delete("hora");
                       return siguientes;
-                  }, { replace: true }),
+                  }, OPCIONES_ACTUALIZACION_FILTRO),
               }]
             : []),
         ...cadenasDisponibles
@@ -419,7 +423,7 @@ function MovieDetailPage() {
                             siguientes.delete("funcionId");
                             siguientes.delete("hora");
                             return siguientes;
-                        }, { replace: true });
+                        }, OPCIONES_ACTUALIZACION_FILTRO);
                     }}
                 />
 
@@ -524,7 +528,7 @@ function MovieDetailPage() {
                                     siguientes.delete("funcionId");
                                     siguientes.delete("hora");
                                     return siguientes;
-                                }, { replace: true });
+                                }, OPCIONES_ACTUALIZACION_FILTRO);
                             }}
                         >
                             Restablecer filtros
