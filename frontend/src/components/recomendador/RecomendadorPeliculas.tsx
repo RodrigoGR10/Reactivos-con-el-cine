@@ -69,8 +69,8 @@ function RecomendadorPeliculas() {
   const comunas = useMemo(() => obtenerComunas(cines), [cines]);
   const cinesPorId = useMemo(() => new Map(cines.map((cine) => [cine.id, cine])), [cines]);
   const opcionesTipoUbicacion: OpcionFiltro[] = [
-    { valor: "comuna", nombre: "Comuna o ubicación", cantidad: 1 },
-    { valor: "cine", nombre: "Cine específico", cantidad: 1 },
+    { valor: "comuna", nombre: "Comuna", cantidad: 1 },
+    { valor: "cine", nombre: "Cine", cantidad: 1 },
   ];
   const opcionesUbicacion = useMemo<OpcionFiltro[]>(
     () => tipoUbicacion === "comuna"
@@ -167,7 +167,7 @@ function RecomendadorPeliculas() {
             etiquetaVacia={cinesCargando ? "Cargando opciones..." : "Selecciona una opción"}
             ariaLabelPrefijo={tipoUbicacion === "comuna" ? "Seleccionar comuna" : "Seleccionar cine"}
             conBusqueda
-            placeholderBusqueda={tipoUbicacion === "comuna" ? "Buscar comuna..." : "Buscar cine o comuna..."}
+            placeholderBusqueda={tipoUbicacion === "comuna" ? "Buscar comuna..." : "Buscar cine..."}
             mensajeVacio={tipoUbicacion === "comuna" ? "No se encontraron comunas." : "No se encontraron cines."}
             mostrarCantidad={tipoUbicacion === "comuna"}
             disabled={cinesCargando || Boolean(cinesError)}
