@@ -1224,17 +1224,6 @@ body {
         height: 32px;
         font-size: 20px;
     }
-    .cintas-peliculas {
-        display: flex;
-        flex-direction: column;
-        gap: 22px;
-    }
-
-    .titulo-cinta {
-        margin: 0 0 10px;
-        font-size: 1.05rem;
-        font-weight: 700;
-    }
 
     .cinta-peliculas {
         display: grid;

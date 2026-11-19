@@ -20,7 +20,6 @@ function PaginaPrincipal() {
   const {
     filtros,
     cambiarFiltro,
-    hayFiltrosActivos,
     peliculasFiltradas,
     generosDisponibles,
     clasificacionesDisponibles,
@@ -139,11 +138,7 @@ function PaginaPrincipal() {
                     {cartelera.length === 1 ? "película" : "películas"}
                   </p>
                 </div>
-                <Cartelera
-                  peliculas={cartelera}
-                  hayFiltrosActivos={hayFiltrosActivos}
-                  compararPrioridad={compararPrioridad}
-                />
+                <Cartelera peliculas={cartelera} />
               </section>
             )}
             {preventas.length > 0 && (
