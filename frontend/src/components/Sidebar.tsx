@@ -30,11 +30,13 @@ const NAV_ITEMS: readonly SidebarNavItem[] = [
   },
   {
     to: "/cines",
+    end: true,
     label: "Cines",
     renderIcon: (isActive) => <TicketIcon size={28} filled={isActive} />,
   },
   {
     to: "/perfil",
+    end: true,
     label: "Perfil",
     renderIcon: (isActive) => <UserIcon size={28} filled={isActive} />,
   },
