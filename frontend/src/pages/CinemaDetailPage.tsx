@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { Skeleton } from "@mantine/core";
 import { Mensaje } from "../components/common/Mensaje";
 import type { Cine, Pelicula, Horario } from "../types/types";
@@ -27,6 +27,7 @@ import {
   obtenerIdiomasDisponibles,
 } from "../utils/agruparFunciones";
 import { normalizarTexto } from "../utils/normalizarTexto";
+import { obtenerVolverA } from "../utils/navegacion";
 import { LogoCine } from "../components/cines/LogoCine";
 import { TarjetaFuncion } from "../components/funciones/TarjetaFuncion";
 import { BotonDetalleFunciones } from "../components/funciones/BotonDetalleFunciones";
@@ -44,6 +45,11 @@ const HORARIOS_CINE_ESQUELETO = [0, 1, 2];
 
 function CinemaDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const volverA = obtenerVolverA(location.state, {
+    to: "/cines",
+    label: "Volver a cines",
+  });
   const { user, openAuthModal } = useAuth();
   const {
     isFavoriteCinema,
@@ -160,8 +166,8 @@ function CinemaDetailPage() {
           Cargando información del cine y su cartelera...
         </span>
         <nav className="detalle-cine-nav">
-          <Link to="/cines" className="btn-volver-cines">
-            ← Volver a cines
+          <Link to={volverA.to} className="btn-volver-cines">
+            ← {volverA.label}
           </Link>
         </nav>
 
@@ -358,8 +364,8 @@ function CinemaDetailPage() {
     <div className="detalle-cine-page">
       {/* Botón superior de retorno */}
       <nav className="detalle-cine-nav">
-        <Link to="/cines" className="btn-volver-cines">
-          ← Volver a cines
+        <Link to={volverA.to} className="btn-volver-cines">
+          ← {volverA.label}
         </Link>
       </nav>
 
@@ -517,11 +523,19 @@ function CinemaDetailPage() {
                 ? `Quitar ${pelicula.titulo} de películas favoritas`
                 : `Guardar ${pelicula.titulo} en películas favoritas`;
 
+              const destinoVolverCine = {
+                volverA: {
+                  to: `/cines/${cine.id}`,
+                  label: `Volver a ${cine.nombre}`,
+                },
+              };
+
               return (
                 <article key={pelicula.id} className="pelicula-cine-card">
                   {/* Póster de la película */}
                   <Link
                     to={`/peliculas/${pelicula.id}`}
+                    state={destinoVolverCine}
                     className="pelicula-cine-poster-link"
                   >
                     <img
@@ -539,6 +553,7 @@ function CinemaDetailPage() {
                           <h3>
                             <Link
                               to={`/peliculas/${pelicula.id}`}
+                              state={destinoVolverCine}
                               className="pelicula-cine-titulo-link"
                             >
                               {pelicula.titulo}
