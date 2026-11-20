@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { Accordion, Button } from "@mantine/core";
+import { Accordion, Button, Skeleton } from "@mantine/core";
 import type { Pelicula } from "../../types/types";
 import { obtenerTrailer } from "../../utils/trailer";
 import { ChevronRightIcon } from "../common/Icons";
@@ -9,6 +9,7 @@ export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
   const tituloId = useId();
   const reproductorRef = useRef<HTMLDivElement>(null);
   const [valorAcordeon, setValorAcordeon] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
   const trailer = obtenerTrailer(pelicula.trailerUrl);
   const abierto = valorAcordeon === "trailer";
@@ -25,7 +26,10 @@ export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
     ? `https://www.youtube-nocookie.com/embed/${trailer.id}?${new URLSearchParams({ playsinline: "1", rel: "0", origin: window.location.origin })}`
     : undefined;
   const cambiarAcordeon = (siguiente: string | null) => {
-    if (abierto && siguiente === null) {
+    if (siguiente === "trailer") {
+      setCargando(true);
+      setError(false);
+    } else if (abierto && siguiente === null) {
       setError(false);
     }
     setValorAcordeon(siguiente);
@@ -63,19 +67,36 @@ export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
                 {error ? (
                   <div className="trailer-error" role="alert">
                     <p>No se pudo reproducir el tráiler.</p>
-                    <Button color="cine" size="sm" onClick={() => setError(false)}>
+                    <Button
+                      color="cine"
+                      size="sm"
+                      onClick={() => {
+                        setError(false);
+                        setCargando(true);
+                      }}
+                    >
                       Volver a intentar
                     </Button>
                   </div>
                 ) : trailer.tipo === "youtube" ? (
-                  <iframe
-                    src={embedUrl}
-                    title={`Tráiler de ${pelicula.titulo}`}
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    onError={() => setError(true)}
-                  />
+                  <>
+                    {cargando && (
+                      <Skeleton className="trailer-skeleton" radius={0} aria-hidden="true" />
+                    )}
+                    <iframe
+                      src={embedUrl}
+                      title={`Tráiler de ${pelicula.titulo}`}
+                      className={cargando ? "trailer-iframe-cargando" : undefined}
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      onLoad={() => setCargando(false)}
+                      onError={() => {
+                        setCargando(false);
+                        setError(true);
+                      }}
+                    />
+                  </>
                 ) : (
                   <video
                     controls

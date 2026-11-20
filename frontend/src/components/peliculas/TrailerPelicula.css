@@ -124,6 +124,7 @@
 
 .trailer-reproductor iframe,
 .trailer-reproductor video,
+.trailer-skeleton,
 .trailer-error {
   position: absolute;
   inset: 0;
@@ -131,6 +132,16 @@
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+.trailer-reproductor iframe {
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.trailer-reproductor iframe.trailer-iframe-cargando {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .trailer-error {
@@ -176,7 +187,8 @@
   .trailer-acordeon-raiz .mantine-Accordion-item,
   .trailer-acordeon-raiz .mantine-Accordion-control,
   .trailer-acordeon-raiz .mantine-Accordion-chevron,
-  .trailer-acordeon-icono {
+  .trailer-acordeon-icono,
+  .trailer-reproductor iframe {
     transition: none;
   }
 }
