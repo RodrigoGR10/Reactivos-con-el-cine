@@ -122,7 +122,6 @@
   border-radius: 8px;
 }
 
-.trailer-portada,
 .trailer-reproductor iframe,
 .trailer-reproductor video,
 .trailer-error {
@@ -132,55 +131,6 @@
   width: 100%;
   height: 100%;
   border: 0;
-}
-
-.trailer-portada {
-  padding: 0;
-  color: var(--color-texto);
-  background: var(--color-fondo);
-  cursor: pointer;
-}
-
-.trailer-portada img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.7;
-  transition: opacity 180ms ease;
-}
-
-.trailer-portada-poster img {
-  object-fit: contain;
-}
-
-.trailer-portada:hover img {
-  opacity: 0.85;
-}
-
-.trailer-llamada {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-}
-
-.trailer-play {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  padding-left: 4px;
-  color: var(--color-texto);
-  background: var(--color-acento);
-  border-radius: 50%;
-  font-size: 1.6rem;
-  box-shadow: 0 3px 22px var(--color-fondo);
-  transition: transform 180ms ease;
-}
-
-.trailer-portada:hover .trailer-play {
-  transform: scale(1.06);
 }
 
 .trailer-error {
@@ -217,12 +167,6 @@
     padding: 12px;
   }
 
-  .trailer-play {
-    width: 54px;
-    height: 54px;
-    font-size: 1.3rem;
-  }
-
   .trailer-encabezado a {
     min-height: 44px;
   }
@@ -232,9 +176,7 @@
   .trailer-acordeon-raiz .mantine-Accordion-item,
   .trailer-acordeon-raiz .mantine-Accordion-control,
   .trailer-acordeon-raiz .mantine-Accordion-chevron,
-  .trailer-acordeon-icono,
-  .trailer-portada img,
-  .trailer-play {
+  .trailer-acordeon-icono {
     transition: none;
   }
 }
