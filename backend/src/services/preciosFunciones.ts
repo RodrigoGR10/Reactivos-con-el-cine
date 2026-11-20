@@ -1,6 +1,8 @@
 import { query } from "../db.ts";
+import { pricesForSchedules as cinepolisPricesBatch } from "../scraper/cinepolis/prices.ts";
 import { consultarHorario } from "./preciosFunciones/consulta.ts";
-import { horarioPublico } from "./preciosFunciones/estado.ts";
+import { horarioPublico, isFresh } from "./preciosFunciones/estado.ts";
+import { buildSchedule } from "./preciosFunciones/horarios.ts";
 import type {
     ScheduleRow,
     ScheduleWithPrices,
@@ -60,9 +62,30 @@ export async function preciosPorCine(
 
     const updated: (ScheduleWithPrices | null)[] = [];
     if (schedules[0]?.origen === "cinepolis") {
-        // Cinepolis comparte una cola de navegador: evita encolar el día completo.
+        // Agrupa consultas de Cinepolis en lotes GraphQL para evitar 1 request por funcion.
+        const ahora = Date.now();
+        const pendientes = schedules.filter(
+            (s) =>
+                !s.agotada &&
+                !isFresh(s, ahora) &&
+                !(
+                    s.precios_error_revision === s.revision &&
+                    s.precios_error_hasta &&
+                    new Date(s.precios_error_hasta).getTime() > ahora
+                ),
+        );
+        const precargadas =
+            pendientes.length > 1
+                ? await cinepolisPricesBatch(pendientes.map(buildSchedule))
+                : undefined;
+
         for (const schedule of schedules) {
-            updated.push(await consultarHorario(schedule));
+            updated.push(
+                await consultarHorario(
+                    schedule,
+                    precargadas?.get(schedule.sesion_id),
+                ),
+            );
         }
     } else {
         updated.push(

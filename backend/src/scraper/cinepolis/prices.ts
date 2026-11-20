@@ -35,14 +35,19 @@ export interface Prices {
   errors?: unknown[];
 }
 
-const TICKETS_QUERY = `query Tickets($countryId: String!, $sessionId: String!, $cinemaVistaId: String!) {
-  tickets(countryId: $countryId, cinemaVistaId: $cinemaVistaId, sessionId: $sessionId) {
-    areaCategoryCode
+// Limite observado en la API GraphQL de Cinepolis: hasta 3 alias por consulta (4 devuelve HTTP 400).
+const TAMANO_LOTE_TARIFAS = 3;
+
+const CAMPOS_TARIFAS = `areaCategoryCode
     tickets {
       id ticketTypeCode description priceInCents bookingFee displaySequence
       quantityAvailablePerOrder loyaltyRecognitionId type isPackageTicket
       packageContent { tickets { description quantity } concessions { description displayName charge quantity } }
-    }
+    }`;
+
+const TICKETS_QUERY = `query Tickets($countryId: String!, $sessionId: String!, $cinemaVistaId: String!) {
+  tickets(countryId: $countryId, cinemaVistaId: $cinemaVistaId, sessionId: $sessionId) {
+    ${CAMPOS_TARIFAS}
   }
 }`;
 
@@ -137,4 +142,75 @@ export async function pricesForSchedule(schedule: ScrapedSchedule): Promise<Scra
   return normalizePrices(response, {
     ...schedule, urlCompra: purchaseUrl(movieId, cinema.slug, schedule.sesionId),
   });
+}
+
+/**
+ * Consulta tarifas de multiples sesiones del mismo cine usando alias GraphQL.
+ * Las sesiones cuyo lote falle quedan fuera del mapa para permitir fallback individual.
+ */
+export async function pricesForSchedules(
+  schedules: ScrapedSchedule[],
+  tamanoLote = TAMANO_LOTE_TARIFAS,
+): Promise<Map<string, ScrapedSession[]>> {
+  const resultados = new Map<string, ScrapedSession[]>();
+  const primero = schedules[0];
+  if (!primero || primero.origen !== "cinepolis" || !primero.cineId.startsWith("cinepolis:")) {
+    return resultados;
+  }
+  const cinemaId = primero.cineId.slice("cinepolis:".length);
+  const cinema = CINES_CINEPOLIS.find((item) => item.id === cinemaId);
+  if (!cinema) return resultados;
+
+  const validos = schedules.filter(
+    (s) =>
+      s.origen === "cinepolis" &&
+      s.cineId === primero.cineId &&
+      s.peliculaId.startsWith("cinepolis:") &&
+      s.peliculaId.length > "cinepolis:".length &&
+      /^\d+$/.test(s.sesionId),
+  );
+
+  for (let i = 0; i < validos.length; i += tamanoLote) {
+    const lote = validos.slice(i, i + tamanoLote);
+    const decls = lote.map((_, idx) => `$s${idx}: String!`).join(", ");
+    const alias = lote
+      .map(
+        (_, idx) =>
+          `s${idx}: tickets(countryId: $countryId, cinemaVistaId: $cinemaVistaId, sessionId: $s${idx}) { ${CAMPOS_TARIFAS} }`,
+      )
+      .join("\n  ");
+    const variables: Record<string, string> = {
+      countryId: "CL",
+      cinemaVistaId: cinema.vistaId,
+    };
+    lote.forEach((s, idx) => {
+      variables[`s${idx}`] = s.sesionId;
+    });
+
+    try {
+      const response = await consultaCinepolis<{
+        data?: Record<string, Array<{ areaCategoryCode: string; tickets: Ticket[] }> | undefined>;
+      }>("TicketsBatch", `query TicketsBatch($countryId: String!, $cinemaVistaId: String!, ${decls}) {\n  ${alias}\n}`, variables);
+      lote.forEach((schedule, idx) => {
+        const movieId = schedule.peliculaId.slice("cinepolis:".length);
+        const tickets = response.data?.[`s${idx}`];
+        if (!Array.isArray(tickets)) return;
+        try {
+          resultados.set(
+            schedule.sesionId,
+            normalizePrices(
+              { data: { tickets } },
+              { ...schedule, urlCompra: purchaseUrl(movieId, cinema.slug, schedule.sesionId) },
+            ),
+          );
+        } catch {
+          // Si falla la normalizacion de una sesion, se deja para el fallback individual.
+        }
+      });
+    } catch {
+      // Se omite el lote fallido para que el flujo normal haga fallback sesion por sesion.
+    }
+  }
+
+  return resultados;
 }

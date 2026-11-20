@@ -5,7 +5,10 @@ import type { RawSession } from "../scraper/cinemark/types.ts";
 import { vistaData } from "../scraper/vista/client.ts";
 import type { Session } from "../scraper/vista/types.ts";
 import { consultarButacasCineplanet } from "../scraper/cineplanet/butacas.ts";
-import { consultarButacasCinepolis } from "../scraper/cinepolis/butacas.ts";
+import {
+    consultarButacasCinepolis,
+    consultarButacasLoteCinepolis,
+} from "../scraper/cinepolis/butacas.ts";
 import { consultarButacasVista } from "../scraper/vista/butacas.ts";
 import { localNow } from "../utils/localNow.ts";
 import { normalizarButacas, type Butacas } from "../scraper/butacas.ts";
@@ -88,10 +91,7 @@ async function carteleraButacas(
     return consulta;
 }
 
-async function actualizarHorario(
-    row: ScheduleRow,
-): Promise<ScheduleWithPrices | null> {
-    const ahora = Date.now();
+function necesitaConsultarButacas(row: ScheduleRow, ahora: number): boolean {
     const actualizadasMs = row.butacas_actualizadas_en
         ? new Date(row.butacas_actualizadas_en).getTime()
         : 0;
@@ -103,9 +103,19 @@ async function actualizarHorario(
         row.butacas_revision === row.revision &&
         actualizadasMs > ahora - CACHE_BUTACAS_MS
     ) {
-        return cargarHorario(row.id);
+        return false;
     }
     if (row.butacas_error_revision === row.revision && errorHastaMs > ahora) {
+        return false;
+    }
+    return true;
+}
+
+async function actualizarHorario(
+    row: ScheduleRow,
+    precargadas?: Map<string, Butacas | undefined>,
+): Promise<ScheduleWithPrices | null> {
+    if (!necesitaConsultarButacas(row, Date.now())) {
         return cargarHorario(row.id);
     }
 
@@ -126,10 +136,12 @@ async function actualizarHorario(
                     row.sesion_id,
                 );
             } else if (row.origen === "cinepolis") {
-                butacas = await consultarButacasCinepolis(
-                    cineOrigenId,
-                    row.sesion_id,
-                );
+                butacas = precargadas?.has(row.sesion_id)
+                    ? precargadas.get(row.sesion_id)
+                    : await consultarButacasCinepolis(
+                          cineOrigenId,
+                          row.sesion_id,
+                      );
             } else if (
                 row.origen === "cinemark" ||
                 row.origen === "muvix" ||
@@ -253,6 +265,20 @@ export async function butacasPorCine(
         );
     }
 
+    let precargadasCinepolis: Map<string, Butacas | undefined> | undefined;
+    if (schedules[0]?.origen === "cinepolis") {
+        const ahoraMs = Date.now();
+        const pendientes = schedules.filter((row) =>
+            necesitaConsultarButacas(row, ahoraMs),
+        );
+        if (pendientes.length > 1) {
+            precargadasCinepolis = await consultarButacasLoteCinepolis(
+                schedules[0].cine_origen_id,
+                pendientes.map((row) => row.sesion_id),
+            );
+        }
+    }
+
     const actualizados: Array<ScheduleWithPrices | null> = [];
     // Limita las consultas por funcion; nunca se seleccionan entradas ni se reservan butacas.
     let indice = 0;
@@ -262,6 +288,7 @@ export async function butacasPorCine(
                 const posicion = indice++;
                 actualizados[posicion] = await actualizarHorario(
                     schedules[posicion]!,
+                    precargadasCinepolis,
                 );
             }
         }),

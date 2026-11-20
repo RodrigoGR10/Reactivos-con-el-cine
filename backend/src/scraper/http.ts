@@ -1,11 +1,31 @@
 import { setTimeout as delay } from "node:timers/promises";
 
+interface HostState {
+    lastRequest: number;
+    requestQueue: Promise<void>;
+    cooldownUntil: number;
+    activeRequests: number;
+    waiting: (() => void)[];
+}
+
 let interval = 500;
-let lastRequest = 0;
-let requestQueue = Promise.resolve();
-let cooldownUntil = 0;
-let activeRequests = 0;
-const waiting: (() => void)[] = [];
+const hosts = new Map<string, HostState>();
+
+function getHostState(url: string): HostState {
+    const host = new URL(url).host;
+    let state = hosts.get(host);
+    if (!state) {
+        state = {
+            lastRequest: 0,
+            requestQueue: Promise.resolve(),
+            cooldownUntil: 0,
+            activeRequests: 0,
+            waiting: [],
+        };
+        hosts.set(host, state);
+    }
+    return state;
+}
 
 export function configureRequests(delayMs = 500) {
     if (!Number.isSafeInteger(delayMs) || delayMs < 250)
@@ -13,20 +33,20 @@ export function configureRequests(delayMs = 500) {
     interval = delayMs;
 }
 
-async function waitForTurn() {
-    const turn = requestQueue.then(async () => {
-        let wait = Math.max(lastRequest + interval, cooldownUntil) - Date.now();
+async function waitForTurn(state: HostState) {
+    const turn = state.requestQueue.then(async () => {
+        let wait = Math.max(state.lastRequest + interval, state.cooldownUntil) - Date.now();
         while (wait > 0) {
             if (wait > 60_000)
                 throw new Error(
                     "El cine solicita esperar. Intenta nuevamente mas tarde.",
                 );
             await delay(wait);
-            wait = Math.max(lastRequest + interval, cooldownUntil) - Date.now();
+            wait = Math.max(state.lastRequest + interval, state.cooldownUntil) - Date.now();
         }
-        lastRequest = Date.now();
+        state.lastRequest = Date.now();
     });
-    requestQueue = turn.catch(() => {});
+    state.requestQueue = turn.catch(() => {});
     await turn;
 }
 
@@ -35,31 +55,33 @@ export async function request(
     headers: Record<string, string> = {},
     redirect: "follow" | "manual" = "follow",
 ): Promise<Response> {
-    if (activeRequests >= 3) {
-        if (waiting.length >= 100)
+    const state = getHostState(url);
+    if (state.activeRequests >= 3) {
+        if (state.waiting.length >= 100)
             throw new Error(
                 "Hay muchas consultas en curso. Intenta mas tarde.",
             );
-        await new Promise<void>((resolve) => waiting.push(resolve));
+        await new Promise<void>((resolve) => state.waiting.push(resolve));
     } else {
-        activeRequests++;
+        state.activeRequests++;
     }
     try {
-        return await performRequest(url, headers, redirect);
+        return await performRequest(state, url, headers, redirect);
     } finally {
-        const next = waiting.shift();
+        const next = state.waiting.shift();
         if (next) next();
-        else activeRequests--;
+        else state.activeRequests--;
     }
 }
 
 async function performRequest(
+    state: HostState,
     url: string,
     headers: Record<string, string>,
     redirect: "follow" | "manual",
 ): Promise<Response> {
     for (let attempt = 0; attempt < 3; attempt++) {
-        await waitForTurn();
+        await waitForTurn(state);
         let response: Response;
         try {
             response = await fetch(url, {
@@ -97,8 +119,8 @@ async function performRequest(
                       ? date - Date.now()
                       : 1000 * 2 ** attempt;
             if (response.status === 429)
-                cooldownUntil = Math.max(
-                    cooldownUntil,
+                state.cooldownUntil = Math.max(
+                    state.cooldownUntil,
                     Date.now() + Math.max(0, retryMs),
                 );
             if (attempt === 2)
