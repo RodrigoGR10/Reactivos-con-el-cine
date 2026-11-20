@@ -697,16 +697,16 @@ function MovieDetailPage() {
                                                                 >
                                                                     {cine.nombre}
                                                                 </Link>
-                                                                {Number.isFinite(
-                                                                    distancia,
-                                                                ) && (
-                                                                    <span className="distancia-cine">
-                                                                        {formatearDistancia(
-                                                                            distancia,
-                                                                        )}
-                                                                    </span>
-                                                                )}
                                                             </strong>
+                                                            {Number.isFinite(
+                                                                distancia,
+                                                            ) && (
+                                                                <span className="distancia-cine">
+                                                                    {formatearDistancia(
+                                                                        distancia,
+                                                                    )}
+                                                                </span>
+                                                            )}
                                                             <BotonFavorito
                                                                 className="boton-fav-inline"
                                                                 activo={esCineFavorito}
