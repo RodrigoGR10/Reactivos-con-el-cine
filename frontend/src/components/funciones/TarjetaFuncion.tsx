@@ -1,3 +1,4 @@
+import { Skeleton } from "@mantine/core";
 import type { Cine, Funcion, Horario, Pelicula } from "../../types/types";
 import { SeatIcon } from "../common/Icons";
 import { nombreCadena, obtenerEnlaceCompraSeguro } from "../../utils/enlaceCompra";
@@ -36,6 +37,13 @@ export interface TarjetaFuncionProps {
   pelicula?: Pelicula;
   cine?: Cine;
   mostrarDetalle?: boolean;
+  /** Muestra placeholders en los datos que aun no llegan de la consulta en curso. */
+  cargando?: boolean;
+}
+
+/** Placeholder del tamano aproximado de un dato de la tarjeta. */
+function DatoPendiente({ ancho }: { ancho: number }) {
+  return <Skeleton className="tarjeta-funcion-pendiente" height={10} width={ancho} radius="sm" />;
 }
 
 /** Tarjeta compacta de horario con precio y disponibilidad revelados solo bajo consulta vigente (< 60 min). */
@@ -45,6 +53,7 @@ export function TarjetaFuncion({
   pelicula,
   cine,
   mostrarDetalle = false,
+  cargando = false,
 }: TarjetaFuncionProps) {
   const hora = horario?.horario ?? funcion?.horario ?? "";
   const idioma = horario?.idioma ?? funcion?.idioma ?? "";
@@ -87,10 +96,14 @@ export function TarjetaFuncion({
   const etiquetaAria = `${tituloPelicula}, ${nombreCine}, ${hora} ${formato} ${idioma}${
     agotada
       ? ", agotada"
-      : `${mostrarPrecio ? `, precio ${precioCLP(precio!)}` : ""}${
-          mostrarDisponibilidad ? `, ${resumenDisponibilidad}` : ""
+      : `${mostrarDisponibilidad ? `, ${resumenDisponibilidad}` : ""}${
+          mostrarPrecio ? `, precio ${precioCLP(precio!)}` : ""
         }${
-          mostrarDetalle && !mostrarPrecio && !mostrarDisponibilidad ? ", sin datos" : ""
+          cargando
+            ? ", consultando detalle"
+            : mostrarDetalle && !mostrarPrecio && !mostrarDisponibilidad
+              ? ", sin datos"
+              : ""
         }`
   }`;
   const contenido = (
@@ -100,25 +113,17 @@ export function TarjetaFuncion({
         {formato} · {idioma}
       </span>
       {mostrarDetalle && (
-        <span className="tarjeta-funcion-detalle">
+        <div className="tarjeta-funcion-detalle">
           {agotada ? (
             <span className="tarjeta-funcion-butacas">
               <SeatIcon size={14} className="tarjeta-funcion-icono-butaca agotada" />
               <span className="tarjeta-funcion-agotada-texto">Agotada</span>
             </span>
-          ) : !mostrarPrecio && !mostrarDisponibilidad ? (
+          ) : !mostrarPrecio && !mostrarDisponibilidad && !cargando ? (
             <span className="tarjeta-funcion-sin-datos">Sin datos</span>
           ) : (
             <>
-              {mostrarPrecio && (
-                <span className="tarjeta-funcion-precio">{precioCLP(precio!)}</span>
-              )}
-              {mostrarPrecio && mostrarDisponibilidad && (
-                <span className="tarjeta-funcion-separador" aria-hidden="true">
-                  ·
-                </span>
-              )}
-              {mostrarDisponibilidad && (
+              {mostrarDisponibilidad ? (
                 <span className="tarjeta-funcion-butacas">
                   <SeatIcon
                     size={14}
@@ -128,10 +133,22 @@ export function TarjetaFuncion({
                     {resumenDisponibilidad}
                   </span>
                 </span>
+              ) : (
+                cargando && <DatoPendiente ancho={62} />
+              )}
+              {(mostrarDisponibilidad || cargando) && (mostrarPrecio || cargando) && (
+                <span className="tarjeta-funcion-separador" aria-hidden="true">
+                  ·
+                </span>
+              )}
+              {mostrarPrecio ? (
+                <span className="tarjeta-funcion-precio">{precioCLP(precio!)}</span>
+              ) : (
+                cargando && <DatoPendiente ancho={54} />
               )}
             </>
           )}
-        </span>
+        </div>
       )}
     </>
   );

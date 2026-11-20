@@ -5,6 +5,7 @@ import {
   COOLDOWN_DETALLE_MS,
   EXPIRACION_DETALLE_MS,
   claveDetalle,
+  extraerDetalleParcial,
   obtenerCacheMenorACincoMinutos,
   parsearTimestamp,
   prepararHorarioParaTarjeta,
@@ -14,6 +15,7 @@ import {
   type DetalleHorario,
   type EstadoDetalleGrupo,
   type RegistroConsulta,
+  type TipoDetalle,
 } from "../utils/detalleFunciones";
 
 const DELAY_CACHE_VISUAL_MS = 200;
@@ -143,9 +145,21 @@ export function useDetalleFunciones() {
           return;
         }
 
+        // Cada endpoint se previsualiza al llegar; la fusion final de abajo valida y consolida ambos.
+        const previsualizar = (tipo: TipoDetalle) => (lista: Horario[]) => {
+          if (!controller.signal.aborted) {
+            const parcial = extraerDetalleParcial(lista, tipo);
+            setPorHorario((prev) => ({ ...prev, ...parcial }));
+          }
+          return lista;
+        };
         const [resPrecios, resButacas] = await Promise.allSettled([
-          funcionesService.getPrecios(peliculaId, cineId, fecha, controller.signal),
-          funcionesService.getButacas(peliculaId, cineId, fecha, controller.signal),
+          funcionesService
+            .getPrecios(peliculaId, cineId, fecha, controller.signal)
+            .then(previsualizar("precios")),
+          funcionesService
+            .getButacas(peliculaId, cineId, fecha, controller.signal)
+            .then(previsualizar("butacas")),
         ]);
         if (controller.signal.aborted) return;
 
@@ -261,8 +275,8 @@ export function useDetalleFunciones() {
 
   const horarioParaTarjeta = useCallback(
     (horario: Horario, clave: string): Horario => {
-      const { revelado } = resolverEstadoGrupo(consultas[clave], Boolean(cargando[clave]), ahora);
-      return prepararHorarioParaTarjeta(horario, porHorario[horario.id], revelado, ahora);
+      const { mostrarDetalle } = resolverEstadoGrupo(consultas[clave], Boolean(cargando[clave]), ahora);
+      return prepararHorarioParaTarjeta(horario, porHorario[horario.id], mostrarDetalle, ahora);
     },
     [cargando, consultas, porHorario, ahora],
   );

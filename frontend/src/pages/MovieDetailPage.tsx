@@ -724,6 +724,7 @@ function MovieDetailPage() {
                                                     consultadoEn={estadoDetalle.consultadoEn}
                                                     avisoError={estadoDetalle.avisoError}
                                                     contexto={cine.nombre}
+                                                    totalFunciones={horariosGrupo.length}
                                                     onConsultar={() =>
                                                         detalle.consultar(
                                                             pelicula.id,
@@ -741,7 +742,8 @@ function MovieDetailPage() {
                                                         horario={detalle.horarioParaTarjeta(h, clave)}
                                                         pelicula={pelicula}
                                                         cine={cine}
-                                                        mostrarDetalle={estadoDetalle.revelado}
+                                                        mostrarDetalle={estadoDetalle.mostrarDetalle}
+                                                        cargando={estadoDetalle.cargando}
                                                     />
                                                 ))}
                                             </div>

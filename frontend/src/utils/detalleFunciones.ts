@@ -27,9 +27,43 @@ export interface RegistroConsulta {
 export interface EstadoDetalleGrupo {
   cargando: boolean;
   revelado: boolean;
+  /** Revela las tarjetas tambien durante la consulta, para mostrar resultados parciales. */
+  mostrarDetalle: boolean;
   enCooldown: boolean;
   consultadoEn: number | null;
   avisoError: string | null;
+}
+
+export type TipoDetalle = "precios" | "butacas";
+
+const CAMPOS_DETALLE = {
+  precios: ["tarifas", "estadoPrecio", "preciosConsultadosEn", "reintentarEn", "urlCompra"],
+  butacas: ["butacas", "estadoButacas", "butacasReintentarEn"],
+} as const satisfies Record<TipoDetalle, readonly (keyof DetalleHorario)[]>;
+
+/** Extrae solo los campos de un endpoint para previsualizarlos antes de que termine el otro. */
+export function extraerDetalleParcial(
+  horarios: Horario[],
+  tipo: TipoDetalle,
+): Record<string, DetalleHorario> {
+  return Object.fromEntries(
+    horarios.map((h) => [
+      h.id,
+      Object.fromEntries(CAMPOS_DETALLE[tipo].map((campo) => [campo, h[campo]])),
+    ]),
+  );
+}
+
+/** Mensaje de espera segun el tiempo transcurrido; null mientras la espera aun es breve. */
+export function mensajeEsperaDetalle(segundos: number, totalFunciones: number): string | null {
+  if (segundos < 4) return null;
+  if (segundos < 15) {
+    return totalFunciones === 1
+      ? "Consultando 1 función…"
+      : `Consultando ${totalFunciones} funciones…`;
+  }
+  if (segundos < 40) return "Algunos cines tardan más en responder…";
+  return "Está tardando más de lo normal…";
 }
 
 export const claveDetalle = (peliculaId: string, cineId: string, fecha: string) =>
@@ -187,6 +221,7 @@ export function resolverEstadoGrupo(
   return {
     cargando,
     revelado,
+    mostrarDetalle: revelado || cargando,
     enCooldown,
     consultadoEn: revelado && consulta ? consulta.consultadoEn : null,
     avisoError,

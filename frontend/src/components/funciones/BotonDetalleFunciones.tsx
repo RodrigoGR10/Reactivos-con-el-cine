@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Loader, Tooltip } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { formatearTiempoRelativo } from "../../utils/detalleFunciones";
+import { useSegundosTranscurridos } from "../../hooks/useSegundosTranscurridos";
+import { formatearTiempoRelativo, mensajeEsperaDetalle } from "../../utils/detalleFunciones";
 import "./BotonDetalleFunciones.css";
 
 const TOOLTIP_EVENTS_DESKTOP = { hover: true, focus: true, touch: false } as const;
@@ -12,7 +13,18 @@ interface BotonDetalleFuncionesProps {
   consultadoEn: number | null;
   avisoError: string | null;
   contexto: string;
+  totalFunciones: number;
   onConsultar: () => void;
+}
+
+/** Mensaje progresivo aislado: solo este nodo se re-renderiza cada segundo durante la consulta. */
+function MensajeEspera({ totalFunciones }: { totalFunciones: number }) {
+  const mensaje = mensajeEsperaDetalle(useSegundosTranscurridos(true), totalFunciones);
+  return (
+    <p className="detalle-estado-meta" role="status">
+      {mensaje}
+    </p>
+  );
 }
 
 /** Reloj local aislado para evitar re-renderizar toda la vista detalle cada minuto. */
@@ -60,6 +72,7 @@ export function BotonDetalleFunciones({
   consultadoEn,
   avisoError,
   contexto,
+  totalFunciones,
   onConsultar,
 }: BotonDetalleFuncionesProps) {
   const desactivarTooltip =
@@ -72,7 +85,9 @@ export function BotonDetalleFunciones({
 
   return (
     <div className="funciones-acciones">
-      {(avisoError || consultadoEn !== null) && (
+      {cargando ? (
+        <MensajeEspera totalFunciones={totalFunciones} />
+      ) : (avisoError || consultadoEn !== null) && (
         <p className="detalle-estado-meta">
           {avisoError && (
             <>
