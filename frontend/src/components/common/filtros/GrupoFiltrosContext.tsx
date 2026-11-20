@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef } from "react";
 import type { GrupoFiltrosCtx, RegistroFiltroGrupo } from "./types";
 
-const GrupoFiltrosContext = createContext<GrupoFiltrosCtx | null>(null);
+export const GrupoFiltrosContext = createContext<GrupoFiltrosCtx | null>(null);
 
 export function useGrupoFiltros(): GrupoFiltrosCtx | null {
   return useContext(GrupoFiltrosContext);
