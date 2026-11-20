@@ -36,12 +36,9 @@ app.use("/api/perfil", perfilRouter);
 app.use("/api", middleware.unknownEndpoint);
 
 app.use(express.static("dist"));
-app.get(
-  ["/", "/login", "/perfil", "/cines", "/cines/:id", "/peliculas/:id"],
-  (request, response) => {
-    response.sendFile(path.resolve("dist/index.html"));
-  },
-);
+app.get("/{*splat}", (_request, response) => {
+  response.sendFile(path.resolve("dist/index.html"));
+});
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
