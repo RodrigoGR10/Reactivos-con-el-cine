@@ -133,7 +133,7 @@ const ProfilePage = () => {
                 <button
                   type="button"
                   className="btn-guest-login"
-                  onClick={openAuthModal}
+                  onClick={() => openAuthModal()}
                 >
                   iniciar sesión
                 </button>

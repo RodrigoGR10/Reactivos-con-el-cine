@@ -53,10 +53,12 @@ interface TooltipSharedProps {
 function SidebarNavLink({
   item,
   tooltipProps,
+  state,
   onClick,
 }: {
   item: SidebarNavItem;
   tooltipProps: TooltipSharedProps;
+  state?: unknown;
   onClick: (evento: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   const isActive = Boolean(useMatch({ path: item.to, end: Boolean(item.end) }));
@@ -66,6 +68,7 @@ function SidebarNavLink({
       <NavLink
         to={item.to}
         end={item.end}
+        state={state}
         className="sidebar-btn"
         aria-label={item.label}
         onClick={onClick}
@@ -77,7 +80,7 @@ function SidebarNavLink({
 }
 
 function Sidebar() {
-  const { user, logout, openAuthModal } = useAuth();
+  const { user, isLoadingSession, logout, openAuthModal } = useAuth();
   const location = useLocation();
   const esMovil = useMediaQuery("(max-width: 560px)") ?? false;
   const [confirmarSalida, { open: abrirConfirmacion, close: cerrarConfirmacion }] =
@@ -110,6 +113,20 @@ function Sidebar() {
 
   const manejarClicVista =
     (ruta: string) => (evento: MouseEvent<HTMLAnchorElement>) => {
+      if (
+        ruta === "/perfil" &&
+        !isLoadingSession &&
+        !user &&
+        !evento.metaKey &&
+        !evento.ctrlKey &&
+        !evento.shiftKey &&
+        !evento.altKey &&
+        evento.button === 0
+      ) {
+        evento.preventDefault();
+        openAuthModal("/perfil");
+        return;
+      }
       if (location.pathname === ruta) {
         evento.preventDefault();
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -144,6 +161,13 @@ function Sidebar() {
                 key={item.to}
                 item={item}
                 tooltipProps={tooltipProps}
+                state={
+                  item.to === "/perfil"
+                    ? {
+                        returnTo: `${location.pathname}${location.search}${location.hash}`,
+                      }
+                    : undefined
+                }
                 onClick={manejarClicVista(item.to)}
               />
             ))}
@@ -170,7 +194,7 @@ function Sidebar() {
                   type="button"
                   className="sidebar-btn"
                   aria-label="Iniciar sesión"
-                  onClick={openAuthModal}
+                  onClick={() => openAuthModal()}
                 >
                   <LogInIcon size={26} />
                 </button>
