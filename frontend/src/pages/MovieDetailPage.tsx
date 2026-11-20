@@ -725,6 +725,7 @@ function MovieDetailPage() {
                                                     avisoError={estadoDetalle.avisoError}
                                                     contexto={cine.nombre}
                                                     totalFunciones={horariosGrupo.length}
+                                                    progreso={estadoDetalle.progreso}
                                                     onConsultar={() =>
                                                         detalle.consultar(
                                                             pelicula.id,

@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { Loader, Tooltip } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useSegundosTranscurridos } from "../../hooks/useSegundosTranscurridos";
-import { formatearTiempoRelativo, mensajeEsperaDetalle } from "../../utils/detalleFunciones";
+import {
+  formatearTiempoRelativo,
+  mensajeEsperaDetalle,
+  type ProgresoDetalle,
+} from "../../utils/detalleFunciones";
 import "./BotonDetalleFunciones.css";
 
 const TOOLTIP_EVENTS_DESKTOP = { hover: true, focus: true, touch: false } as const;
@@ -14,12 +18,19 @@ interface BotonDetalleFuncionesProps {
   avisoError: string | null;
   contexto: string;
   totalFunciones: number;
+  progreso?: ProgresoDetalle | null;
   onConsultar: () => void;
 }
 
 /** Mensaje progresivo aislado: solo este nodo se re-renderiza cada segundo durante la consulta. */
-function MensajeEspera({ totalFunciones }: { totalFunciones: number }) {
-  const mensaje = mensajeEsperaDetalle(useSegundosTranscurridos(true), totalFunciones);
+function MensajeEspera({
+  totalFunciones,
+  progreso,
+}: {
+  totalFunciones: number;
+  progreso?: ProgresoDetalle | null;
+}) {
+  const mensaje = mensajeEsperaDetalle(useSegundosTranscurridos(true), totalFunciones, progreso);
   return (
     <p className="detalle-estado-meta" role="status">
       {mensaje}
@@ -73,6 +84,7 @@ export function BotonDetalleFunciones({
   avisoError,
   contexto,
   totalFunciones,
+  progreso,
   onConsultar,
 }: BotonDetalleFuncionesProps) {
   const desactivarTooltip =
@@ -86,7 +98,7 @@ export function BotonDetalleFunciones({
   return (
     <div className="funciones-acciones">
       {cargando ? (
-        <MensajeEspera totalFunciones={totalFunciones} />
+        <MensajeEspera totalFunciones={totalFunciones} progreso={progreso} />
       ) : (avisoError || consultadoEn !== null) && (
         <p className="detalle-estado-meta">
           {avisoError && (

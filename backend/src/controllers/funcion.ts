@@ -145,6 +145,55 @@ router.get("/butacas", async (req, res) => {
     });
 });
 
+router.get("/detalle-stream", async (req, res) => {
+    const { peliculaId, cineId, fecha } = req.query;
+
+    if (
+        typeof peliculaId !== "string" ||
+        !isNumericId(peliculaId) ||
+        typeof cineId !== "string" ||
+        !isCineId(cineId) ||
+        typeof fecha !== "string" ||
+        !isDate(fecha)
+    ) {
+        return res.status(400).json({
+            error: "Indica peliculaId, cineId y una fecha válida.",
+        });
+    }
+
+    res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+
+    let cerrado = false;
+    req.on("close", () => {
+        cerrado = true;
+    });
+
+    const enviar = (evento: Record<string, unknown>) => {
+        if (cerrado || res.writableEnded) return;
+        res.write(`${JSON.stringify(evento)}\n`);
+    };
+
+    const [resPrecios, resButacas] = await Promise.allSettled([
+        preciosPorCine(peliculaId, cineId, fecha, (horario) => {
+            enviar({ tipo: "precio", horario });
+        }),
+        butacasPorCine(peliculaId, cineId, fecha, (horario) => {
+            enviar({ tipo: "butaca", horario: horarioPublico(horario) });
+        }),
+    ]);
+
+    enviar({
+        tipo: "fin",
+        falloPrecios: resPrecios.status === "rejected",
+        falloButacas: resButacas.status === "rejected",
+    });
+
+    if (!res.writableEnded) res.end();
+});
+
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
 

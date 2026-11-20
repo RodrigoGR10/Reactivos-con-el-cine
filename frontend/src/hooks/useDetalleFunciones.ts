@@ -14,13 +14,13 @@ import {
   tieneAlgunaVigenciaMenorASesentaMin,
   type DetalleHorario,
   type EstadoDetalleGrupo,
+  type ProgresoDetalle,
   type RegistroConsulta,
-  type TipoDetalle,
 } from "../utils/detalleFunciones";
 
 const DELAY_CACHE_VISUAL_MS = 200;
 
-export { claveDetalle, type DetalleHorario, type EstadoDetalleGrupo };
+export { claveDetalle, type DetalleHorario, type EstadoDetalleGrupo, type ProgresoDetalle };
 
 function esperaAbortable(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
@@ -47,6 +47,7 @@ function esperaAbortable(ms: number, signal: AbortSignal): Promise<void> {
 export function useDetalleFunciones() {
   const [porHorario, setPorHorario] = useState<Record<string, DetalleHorario>>({});
   const [cargando, setCargando] = useState<Record<string, boolean>>({});
+  const [progreso, setProgreso] = useState<Record<string, ProgresoDetalle>>({});
   const [consultas, setConsultas] = useState<Record<string, RegistroConsulta>>({});
   const [ahora, setAhora] = useState(() => Date.now());
   const pendientes = useRef(new Map<string, AbortController>());
@@ -145,37 +146,88 @@ export function useDetalleFunciones() {
           return;
         }
 
-        // Cada endpoint se previsualiza al llegar; la fusion final de abajo valida y consolida ambos.
-        const previsualizar = (tipo: TipoDetalle) => (lista: Horario[]) => {
-          if (!controller.signal.aborted) {
-            const parcial = extraerDetalleParcial(lista, tipo);
-            setPorHorario((prev) => ({ ...prev, ...parcial }));
-          }
-          return lista;
+        const preciosPorId = new Map<string, Horario>();
+        const butacasPorId = new Map<string, Horario>();
+        let falloEndpointPrecios = false;
+        let falloEndpointButacas = false;
+        const totalInicial = horariosGrupo.length;
+        // Limpia valores previos en memoria de este grupo para mostrar solo datos frescos del stream.
+        if (horariosGrupo.length > 0) {
+          const idsGrupo = new Set(horariosGrupo.map((h) => h.id));
+          setPorHorario((prev) => {
+            let cambio = false;
+            const siguiente: Record<string, DetalleHorario> = {};
+            for (const [id, valor] of Object.entries(prev)) {
+              if (idsGrupo.has(id)) {
+                cambio = true;
+              } else {
+                siguiente[id] = valor;
+              }
+            }
+            return cambio ? siguiente : prev;
+          });
+        }
+        setProgreso((prev) => ({ ...prev, [clave]: { porcentaje: 0 } }));
+
+        const actualizarProgreso = () => {
+          const totalFunciones = Math.max(totalInicial, preciosPorId.size, butacasPorId.size);
+          const totalPasos = totalFunciones * 2;
+          const porcentaje =
+            totalPasos > 0
+              ? Math.min(100, Math.round(((preciosPorId.size + butacasPorId.size) / totalPasos) * 100))
+              : 0;
+          setProgreso((prev) => {
+            if (prev[clave]?.porcentaje === porcentaje) return prev;
+            return { ...prev, [clave]: { porcentaje } };
+          });
         };
-        const [resPrecios, resButacas] = await Promise.allSettled([
-          funcionesService
-            .getPrecios(peliculaId, cineId, fecha, controller.signal)
-            .then(previsualizar("precios")),
-          funcionesService
-            .getButacas(peliculaId, cineId, fecha, controller.signal)
-            .then(previsualizar("butacas")),
-        ]);
+
+        try {
+          await funcionesService.streamDetalle(
+            peliculaId,
+            cineId,
+            fecha,
+            (evento) => {
+              if (controller.signal.aborted) return;
+              if (evento.tipo === "precio") {
+                preciosPorId.set(evento.horario.id, evento.horario);
+                const parcial = extraerDetalleParcial([evento.horario], "precios")[evento.horario.id];
+                setPorHorario((prev) => ({
+                  ...prev,
+                  [evento.horario.id]: { ...prev[evento.horario.id], ...parcial },
+                }));
+                actualizarProgreso();
+              } else if (evento.tipo === "butaca") {
+                butacasPorId.set(evento.horario.id, evento.horario);
+                const parcial = extraerDetalleParcial([evento.horario], "butacas")[evento.horario.id];
+                setPorHorario((prev) => ({
+                  ...prev,
+                  [evento.horario.id]: { ...prev[evento.horario.id], ...parcial },
+                }));
+                actualizarProgreso();
+              } else if (evento.tipo === "fin") {
+                falloEndpointPrecios = evento.falloPrecios;
+                falloEndpointButacas = evento.falloButacas;
+              }
+            },
+            controller.signal,
+          );
+        } catch {
+          if (controller.signal.aborted) return;
+          falloEndpointPrecios = falloEndpointPrecios || preciosPorId.size === 0;
+          falloEndpointButacas = falloEndpointButacas || butacasPorId.size === 0;
+        }
         if (controller.signal.aborted) return;
 
         const actual = Date.now();
-        const falloEndpointPrecios = resPrecios.status === "rejected";
-        const falloEndpointButacas = resButacas.status === "rejected";
-        const listaPrecios = resPrecios.status === "fulfilled" ? resPrecios.value : [];
-        const listaButacas = resButacas.status === "fulfilled" ? resButacas.value : [];
+        const listaPrecios = Array.from(preciosPorId.values());
+        const listaButacas = Array.from(butacasPorId.values());
 
         const falloPrecios =
           falloEndpointPrecios || listaPrecios.some((h) => h.estadoPrecio === "error");
         const falloButacas =
           falloEndpointButacas || listaButacas.some((h) => h.estadoButacas === "error");
 
-        const preciosPorId = new Map(listaPrecios.map((h) => [h.id, h]));
-        const butacasPorId = new Map(listaButacas.map((h) => [h.id, h]));
         const idsAfectados = new Set<string>([
           ...horariosGrupo.map((h) => h.id),
           ...preciosPorId.keys(),
@@ -261,6 +313,12 @@ export function useDetalleFunciones() {
         if (pendientes.current.get(clave) === controller) pendientes.current.delete(clave);
         if (!controller.signal.aborted) {
           setCargando((prev) => ({ ...prev, [clave]: false }));
+          setProgreso((prev) => {
+            if (!(clave in prev)) return prev;
+            const copy = { ...prev };
+            delete copy[clave];
+            return copy;
+          });
         }
       }
     },
@@ -269,14 +327,21 @@ export function useDetalleFunciones() {
 
   const estadoGrupo = useCallback(
     (clave: string): EstadoDetalleGrupo =>
-      resolverEstadoGrupo(consultas[clave], Boolean(cargando[clave]), ahora),
-    [cargando, consultas, ahora],
+      resolverEstadoGrupo(consultas[clave], Boolean(cargando[clave]), ahora, progreso[clave] ?? null),
+    [cargando, consultas, ahora, progreso],
   );
 
   const horarioParaTarjeta = useCallback(
     (horario: Horario, clave: string): Horario => {
-      const { mostrarDetalle } = resolverEstadoGrupo(consultas[clave], Boolean(cargando[clave]), ahora);
-      return prepararHorarioParaTarjeta(horario, porHorario[horario.id], mostrarDetalle, ahora);
+      const estaCargando = Boolean(cargando[clave]);
+      const { mostrarDetalle } = resolverEstadoGrupo(consultas[clave], estaCargando, ahora);
+      return prepararHorarioParaTarjeta(
+        horario,
+        porHorario[horario.id],
+        mostrarDetalle,
+        ahora,
+        estaCargando,
+      );
     },
     [cargando, consultas, porHorario, ahora],
   );

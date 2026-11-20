@@ -24,6 +24,10 @@ export interface RegistroConsulta {
   falloButacas: boolean;
 }
 
+export interface ProgresoDetalle {
+  porcentaje: number;
+}
+
 export interface EstadoDetalleGrupo {
   cargando: boolean;
   revelado: boolean;
@@ -32,6 +36,7 @@ export interface EstadoDetalleGrupo {
   enCooldown: boolean;
   consultadoEn: number | null;
   avisoError: string | null;
+  progreso: ProgresoDetalle | null;
 }
 
 export type TipoDetalle = "precios" | "butacas";
@@ -54,8 +59,17 @@ export function extraerDetalleParcial(
   );
 }
 
-/** Mensaje de espera segun el tiempo transcurrido; null mientras la espera aun es breve. */
-export function mensajeEsperaDetalle(segundos: number, totalFunciones: number): string | null {
+/** Mensaje de espera segun progreso real o tiempo transcurrido; null mientras la espera aun es breve. */
+export function mensajeEsperaDetalle(
+  segundos: number,
+  totalFunciones: number,
+  progreso?: ProgresoDetalle | null,
+): string | null {
+  if (progreso && progreso.porcentaje > 0) {
+    return segundos >= 40
+      ? `${progreso.porcentaje}% · tardando más de lo normal…`
+      : `${progreso.porcentaje}%`;
+  }
   if (segundos < 4) return null;
   if (segundos < 15) {
     return totalFunciones === 1
@@ -196,11 +210,12 @@ export function tieneAlgunaVigenciaMenorASesentaMin(horarios: Horario[], ahora: 
   });
 }
 
-/** Calcula los flags de UI (cooldown, expiracion >= 60 min, texto relativo y fallo) para una cabecera. */
+/** Calcula los flags de UI (cooldown, expiracion >= 60 min, texto relativo, progreso y fallo) para una cabecera. */
 export function resolverEstadoGrupo(
   consulta: RegistroConsulta | undefined,
   cargando: boolean,
   ahora: number,
+  progreso: ProgresoDetalle | null = null,
 ): EstadoDetalleGrupo {
   const revelado =
     Boolean(consulta) && ahora - (consulta?.consultadoEn ?? 0) < EXPIRACION_DETALLE_MS;
@@ -225,15 +240,17 @@ export function resolverEstadoGrupo(
     enCooldown,
     consultadoEn: revelado && consulta ? consulta.consultadoEn : null,
     avisoError,
+    progreso: cargando ? progreso : null,
   };
 }
 
-/** Devuelve el horario oculto (solo 2 lineas) si no esta revelado o si ya expiro (>= 60 min). */
+/** Devuelve el horario oculto (solo 2 lineas) si no esta revelado, o solo datos frescos del stream mientras carga. */
 export function prepararHorarioParaTarjeta(
   horario: Horario,
   detalle: DetalleHorario | undefined,
   revelado: boolean,
   ahora: number,
+  cargando = false,
 ): Horario {
   if (!revelado) {
     return {
@@ -243,6 +260,25 @@ export function prepararHorarioParaTarjeta(
       agotada: false,
       estadoPrecio: "pendiente",
       estadoButacas: "pendiente",
+    };
+  }
+
+  if (cargando) {
+    const parcial: Horario = {
+      ...horario,
+      tarifas: detalle?.tarifas ?? [],
+      estadoPrecio: detalle?.estadoPrecio ?? "pendiente",
+      preciosConsultadosEn: detalle?.preciosConsultadosEn,
+      reintentarEn: detalle?.reintentarEn,
+      urlCompra: detalle?.urlCompra ?? horario.urlCompra,
+      butacas: detalle?.butacas,
+      estadoButacas: detalle?.estadoButacas ?? "pendiente",
+      butacasReintentarEn: detalle?.butacasReintentarEn,
+      agotada: Boolean(detalle?.agotada),
+    };
+    return {
+      ...parcial,
+      ...sanitizarDetalleHorario(parcial, ahora),
     };
   }
 

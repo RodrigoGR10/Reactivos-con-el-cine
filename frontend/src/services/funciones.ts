@@ -1,6 +1,12 @@
 import axios from "axios";
 import type { Funcion, Horario } from "../types/types";
+import { leerNdjsonStream } from "../utils/ndjsonStream";
 import { API_BASE_URL } from "./apiConfig";
+
+export type EventoDetalleStream =
+  | { tipo: "precio"; horario: Horario }
+  | { tipo: "butaca"; horario: Horario }
+  | { tipo: "fin"; falloPrecios: boolean; falloButacas: boolean };
 
 const baseUrl = `${API_BASE_URL}/funciones`;
 
@@ -45,9 +51,31 @@ const getButacas = async (peliculaId: string, cineId: string, fecha: string, sig
   return data.horarios.map(normalizarHorario);
 };
 
+const streamDetalle = async (
+  peliculaId: string,
+  cineId: string,
+  fecha: string,
+  onEvento: (evento: EventoDetalleStream) => void,
+  signal?: AbortSignal,
+): Promise<void> => {
+  const params = new URLSearchParams({ peliculaId, cineId, fecha });
+  await leerNdjsonStream<EventoDetalleStream>(`${baseUrl}/detalle-stream?${params}`, {
+    signal,
+    timeoutMs: 90_000,
+    onItem: (evento) => {
+      if (evento.tipo === "precio" || evento.tipo === "butaca") {
+        onEvento({ tipo: evento.tipo, horario: normalizarHorario(evento.horario) });
+      } else {
+        onEvento(evento);
+      }
+    },
+  });
+};
+
 export default {
   getHorarios,
   getHorariosByCine,
   getPrecios,
   getButacas,
+  streamDetalle,
 };
