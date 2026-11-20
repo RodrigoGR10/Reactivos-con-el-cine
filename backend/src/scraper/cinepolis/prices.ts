@@ -82,7 +82,7 @@ export function normalizePrices(response: Prices, schedule: ScrapedSchedule): Sc
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
             .toUpperCase();
-          if (!/\bLENTES\s*3D\b/.test(etiqueta) && !/^\s*CARGO\s+POR\s+SERVICIO\s*$/.test(etiqueta)) {
+          if (!/\bLENTES\s*3D\b/.test(etiqueta) && !/^\s*(?:CARGO|COSTO)\s+POR\s+SERVICIO\s*$/.test(etiqueta)) {
             esComboConfiteria = true;
             break;
           }
