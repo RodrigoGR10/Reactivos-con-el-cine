@@ -96,7 +96,9 @@ export const ProfileSavedMovies = ({
                                     <button
                                         type="button"
                                         className="btn-poster-remove"
-                                        onClick={() => onQuitarFavorito(peli.id)}
+                                        onClick={() =>
+                                            onQuitarFavorito(peli.id)
+                                        }
                                         aria-label={`Eliminar ${peli.titulo} de mis películas`}
                                         title={`Eliminar ${peli.titulo} de mis películas`}
                                     >

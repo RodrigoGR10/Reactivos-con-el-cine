@@ -151,7 +151,9 @@ export function splitTitleBySeparator(title: string): {
     };
 }
 
-export function titleFromOrigenSlug(origenId?: string | null): string | undefined {
+export function titleFromOrigenSlug(
+    origenId?: string | null,
+): string | undefined {
     if (!origenId || !/^[a-z]+(?:-[a-z]+)+$/i.test(origenId)) {
         return undefined;
     }
@@ -241,7 +243,9 @@ export function parseMovieTitleForSearch(
     const yearMatch = rawTitle.match(/[\(\[](\d{4})[\)\]]/);
     const explicitYear = yearMatch ? Number(yearMatch[1]) : undefined;
 
-    const annivMatch = rawTitle.match(/\b(\d{1,3})\s*°?\s*(?:AÑOS|ANIVERSARIO)\b/i);
+    const annivMatch = rawTitle.match(
+        /\b(\d{1,3})\s*°?\s*(?:AÑOS|ANIVERSARIO)\b/i,
+    );
     const annivYears = annivMatch ? Number(annivMatch[1]) : undefined;
     const approxYear =
         !explicitYear && annivYears && annivYears >= 5 && annivYears <= 120
@@ -297,7 +301,11 @@ export function parseMovieTitleForSearch(
     }
 
     if (hasPrefix) {
-        if (left.length >= 3 && !isFestivalPrefix(left) && !isAcronymPrefix(left)) {
+        if (
+            left.length >= 3 &&
+            !isFestivalPrefix(left) &&
+            !isAcronymPrefix(left)
+        ) {
             addQuery(left);
         }
         if (right.length >= 4 && extractContentTokens(right).length >= 2) {
@@ -333,7 +341,11 @@ export function buildTargetTitles(
     const targets = [parsed.canonicalTitle];
 
     const { hasPrefix, right } = splitTitleBySeparator(parsed.canonicalTitle);
-    if (hasPrefix && right.length >= 4 && extractContentTokens(right).length >= 3) {
+    if (
+        hasPrefix &&
+        right.length >= 4 &&
+        extractContentTokens(right).length >= 3
+    ) {
         targets.push(right);
     }
 

@@ -195,7 +195,9 @@ function esPosterVerticalLimpio(poster: TmdbImageItem): boolean {
     if (poster.height > 0 && poster.width > 0) {
         return poster.width / poster.height <= 0.85;
     }
-    return typeof poster.aspect_ratio === "number" && poster.aspect_ratio <= 0.85;
+    return (
+        typeof poster.aspect_ratio === "number" && poster.aspect_ratio <= 0.85
+    );
 }
 
 function compararPostersLimpios(a: TmdbImageItem, b: TmdbImageItem): number {
@@ -239,7 +241,9 @@ export async function obtenerPosterLimpio(
     if (response.status === 404) return undefined;
 
     if (!response.ok) {
-        throw new Error(`TMDB HTTP ${response.status} al obtener imágenes para ID ${tmdbId}`);
+        throw new Error(
+            `TMDB HTTP ${response.status} al obtener imágenes para ID ${tmdbId}`,
+        );
     }
 
     const data = (await response.json()) as TmdbImagesResponse;

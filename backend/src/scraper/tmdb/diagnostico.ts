@@ -157,8 +157,8 @@ export async function diagnosticarPeliculaTmdb(
         )[0];
         return Boolean(
             top &&
-                top.score >= STRONG_CANDIDATE_SCORE &&
-                top.bestTitleScore >= STRONG_TITLE_SCORE,
+            top.score >= STRONG_CANDIDATE_SCORE &&
+            top.bestTitleScore >= STRONG_TITLE_SCORE,
         );
     };
 
@@ -208,11 +208,7 @@ export async function diagnosticarPeliculaTmdb(
 
     for (let i = 0; i < parsed.queries.length; i++) {
         const query = parsed.queries[i]!;
-        considerResults(
-            await buscarPeliculas(query, clave, "es-MX"),
-            query,
-            i,
-        );
+        considerResults(await buscarPeliculas(query, clave, "es-MX"), query, i);
         if (hasStrongCandidate()) break;
     }
 
@@ -284,7 +280,9 @@ export async function diagnosticarPeliculaTmdb(
     const second = ranked.find(
         (candidate) => candidate.item.id !== winner.candidate.item.id,
     );
-    const secondDetail = second ? detailCache.get(second.item.id) ?? null : null;
+    const secondDetail = second
+        ? (detailCache.get(second.item.id) ?? null)
+        : null;
 
     const tipoDetectado = detectarTipoContenido(titulo);
     const seguro = coincideTituloFuerte(

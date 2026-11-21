@@ -22,11 +22,14 @@ interface ConsultaYoutube {
 async function pedirJson<T>(url: URL): Promise<T | undefined> {
     const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (response.status === 404) return undefined;
-    if (!response.ok) throw new Error(`Consulta de video: HTTP ${response.status}`);
-    return await response.json() as T;
+    if (!response.ok)
+        throw new Error(`Consulta de video: HTTP ${response.status}`);
+    return (await response.json()) as T;
 }
 
-export async function sincronizarTrailersEnEspanol(options: { apply?: boolean } = {}) {
+export async function sincronizarTrailersEnEspanol(
+    options: { apply?: boolean } = {},
+) {
     const apply = options.apply === true;
     const { rows } = await pool.query<PeliculaPendiente>(`
         SELECT id, titulo, tmdb_id, trailer_url, trailer_idioma,
@@ -42,9 +45,18 @@ export async function sincronizarTrailersEnEspanol(options: { apply?: boolean } 
           )
         ORDER BY id;
     `);
-    const resumen = { revisadas: rows.length, confirmadas: 0, actualizadas: 0, sinVersionEspanol: 0, errores: 0 };
+    const resumen = {
+        revisadas: rows.length,
+        confirmadas: 0,
+        actualizadas: 0,
+        sinVersionEspanol: 0,
+        errores: 0,
+    };
     const youtubeCache = new Map<string, ConsultaYoutube>();
-    const peliculaCache = new Map<number, Promise<PeliculaConVideos | undefined>>();
+    const peliculaCache = new Map<
+        number,
+        Promise<PeliculaConVideos | undefined>
+    >();
     let urlsYoutubeActuales = new Set<string>();
     const consultarYoutube = (url: string) => {
         urlsYoutubeActuales.add(url);
@@ -54,10 +66,12 @@ export async function sincronizarTrailersEnEspanol(options: { apply?: boolean } 
             endpoint.searchParams.set("url", url);
             endpoint.searchParams.set("format", "json");
             pendiente = { error: false, promise: Promise.resolve(undefined) };
-            pendiente.promise = pedirJson<MetadatosYoutube>(endpoint).catch(() => {
-                if (pendiente) pendiente.error = true;
-                return undefined;
-            });
+            pendiente.promise = pedirJson<MetadatosYoutube>(endpoint).catch(
+                () => {
+                    if (pendiente) pendiente.error = true;
+                    return undefined;
+                },
+            );
             youtubeCache.set(url, pendiente);
         }
         return pendiente.promise;
@@ -66,11 +80,19 @@ export async function sincronizarTrailersEnEspanol(options: { apply?: boolean } 
         let pendiente = peliculaCache.get(id);
         if (!pendiente) {
             const key = process.env.TMDB_API_KEY?.trim();
-            if (!key) throw new Error("Falta TMDB_API_KEY para verificar el idioma de los trailers.");
-            const endpoint = new URL(`https://api.themoviedb.org/3/movie/${id}`);
+            if (!key)
+                throw new Error(
+                    "Falta TMDB_API_KEY para verificar el idioma de los trailers.",
+                );
+            const endpoint = new URL(
+                `https://api.themoviedb.org/3/movie/${id}`,
+            );
             endpoint.searchParams.set("api_key", key);
             endpoint.searchParams.set("language", "es-MX");
-            endpoint.searchParams.set("include_video_language", "es,en,ja,ko,fr,de,it,pt,null");
+            endpoint.searchParams.set(
+                "include_video_language",
+                "es,en,ja,ko,fr,de,it,pt,null",
+            );
             endpoint.searchParams.set("append_to_response", "videos");
             pendiente = pedirJson<PeliculaConVideos>(endpoint);
             peliculaCache.set(id, pendiente);
@@ -82,34 +104,55 @@ export async function sincronizarTrailersEnEspanol(options: { apply?: boolean } 
     for (const [index, pelicula] of rows.entries()) {
         urlsYoutubeActuales = new Set<string>();
         try {
-            const datos = pelicula.tmdb_id ? await consultarPelicula(pelicula.tmdb_id) : {};
-            if (pelicula.tmdb_id && !datos) throw new Error("No se pudo verificar la ficha de TMDB.");
+            const datos = pelicula.tmdb_id
+                ? await consultarPelicula(pelicula.tmdb_id)
+                : {};
+            if (pelicula.tmdb_id && !datos)
+                throw new Error("No se pudo verificar la ficha de TMDB.");
             // Solo considerar actual como avance del cine si aún no fue etiquetado como fallback TMDB.
             const trailerDelCine =
-                pelicula.trailer_idioma === null || pelicula.trailer_idioma === "es-419"
+                pelicula.trailer_idioma === null ||
+                pelicula.trailer_idioma === "es-419"
                     ? pelicula.trailer_url
                     : null;
-            const trailer = await buscarTrailerEspanol(pelicula.titulo, trailerDelCine, datos ?? {}, consultarYoutube);
+            const trailer = await buscarTrailerEspanol(
+                pelicula.titulo,
+                trailerDelCine,
+                datos ?? {},
+                consultarYoutube,
+            );
             if (!trailer) {
-                if ([...urlsYoutubeActuales].some(url => youtubeCache.get(url)?.error)) {
-                    throw new Error("No se pudo verificar uno o más videos de YouTube; se volverán a intentar en la próxima ejecución.");
+                if (
+                    [...urlsYoutubeActuales].some(
+                        (url) => youtubeCache.get(url)?.error,
+                    )
+                ) {
+                    throw new Error(
+                        "No se pudo verificar uno o más videos de YouTube; se volverán a intentar en la próxima ejecución.",
+                    );
                 }
                 resumen.sinVersionEspanol++;
                 if (apply) {
-                    await pool.query(`
+                    await pool.query(
+                        `
                         UPDATE peliculas
                         SET trailer_sin_resultado_firma = $1,
                             trailer_sin_resultado_en = NOW()
                         WHERE id = $2
                           AND md5(jsonb_build_array('v2', titulo, tmdb_id, trailer_url)::text) = $1;
-                    `, [pelicula.firma_revision, pelicula.id]);
+                    `,
+                        [pelicula.firma_revision, pelicula.id],
+                    );
                 }
-                console.log(`[${index + 1}/${rows.length}] ${pelicula.titulo}: sin tráiler confirmado.`);
+                console.log(
+                    `[${index + 1}/${rows.length}] ${pelicula.titulo}: sin tráiler confirmado.`,
+                );
                 continue;
             }
             resumen.confirmadas++;
             if (apply) {
-                const result = await pool.query(`
+                const result = await pool.query(
+                    `
                     UPDATE peliculas
                     SET trailer_url = $1, trailer_idioma = $5, trailer_version = $2,
                         trailer_sin_resultado_firma = NULL, trailer_sin_resultado_en = NULL,
@@ -150,15 +193,27 @@ export async function sincronizarTrailersEnEspanol(options: { apply?: boolean } 
                             )
                         )
                       );
-                `, [trailer.url, trailer.version, pelicula.id, pelicula.trailer_url, trailer.idioma]);
+                `,
+                    [
+                        trailer.url,
+                        trailer.version,
+                        pelicula.id,
+                        pelicula.trailer_url,
+                        trailer.idioma,
+                    ],
+                );
                 resumen.actualizadas += result.rowCount ?? 0;
             }
-            console.log(`[${index + 1}/${rows.length}] ${pelicula.titulo}: ${trailer.version}, ${trailer.idioma}.`);
+            console.log(
+                `[${index + 1}/${rows.length}] ${pelicula.titulo}: ${trailer.version}, ${trailer.idioma}.`,
+            );
         } catch (error) {
             resumen.errores++;
-            console.error(`Trailer #${pelicula.id}: ${error instanceof Error ? error.message : String(error)}`);
+            console.error(
+                `Trailer #${pelicula.id}: ${error instanceof Error ? error.message : String(error)}`,
+            );
         } finally {
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise((resolve) => setTimeout(resolve, 200));
         }
     }
     console.table(resumen);

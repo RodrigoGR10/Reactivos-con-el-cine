@@ -369,7 +369,9 @@
     border-color: var(--color-acento);
 }
 
-.cines-comunas-panel .selector-unico-opcion.activo .selector-unico-radio::after {
+.cines-comunas-panel
+    .selector-unico-opcion.activo
+    .selector-unico-radio::after {
     content: "";
     position: absolute;
     inset: 3px;

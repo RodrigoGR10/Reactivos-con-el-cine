@@ -84,7 +84,8 @@ button:disabled {
     cursor: not-allowed;
 }
 
-[data-mantine-color-scheme="dark"] .mantine-Skeleton-root[data-visible]::before {
+[data-mantine-color-scheme="dark"]
+    .mantine-Skeleton-root[data-visible]::before {
     background-color: #18181d;
 }
 

@@ -179,7 +179,8 @@ export function scoreCandidate(
 
     if (candidate.backdrop_path) score += 25;
     if (candidate.poster_path) score += 15;
-    if (candidate.overview && candidate.overview.trim().length > 20) score += 10;
+    if (candidate.overview && candidate.overview.trim().length > 20)
+        score += 10;
     score += Math.min(candidate.popularity ?? 0, 20);
 
     return { score, bestTitleScore };

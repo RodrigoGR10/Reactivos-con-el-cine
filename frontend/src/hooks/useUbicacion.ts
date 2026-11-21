@@ -5,7 +5,8 @@ export interface Ubicacion {
     longitud: number;
 }
 
-export type EstadoUbicacion = "inactivo" | "cargando" | "listo" | "denegado" | "error";
+export type EstadoUbicacion =
+    "inactivo" | "cargando" | "listo" | "denegado" | "error";
 
 export function useUbicacion() {
     const [ubicacion, setUbicacion] = useState<Ubicacion | null>(null);

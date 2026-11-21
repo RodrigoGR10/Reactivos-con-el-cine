@@ -3,8 +3,8 @@ import { isNumericId, isCineId } from "../db.ts";
 import { isDate } from "../scraper/normalize.ts";
 import { butacasPorCine } from "../services/butacasFunciones.ts";
 import {
-  obtenerFuncion,
-  listarFunciones,
+    obtenerFuncion,
+    listarFunciones,
 } from "../services/funciones/consulta.ts";
 import { preciosPorCine } from "../services/preciosFunciones.ts";
 import { cargarHorarios } from "../services/preciosFunciones/horarios.ts";
@@ -13,114 +13,114 @@ import { horarioPublico } from "../services/preciosFunciones/estado.ts";
 const router = express.Router();
 
 router.use((req, res, next) => {
-  res.setHeader("Cache-Control", "no-store");
-  next();
+    res.setHeader("Cache-Control", "no-store");
+    next();
 });
 
 router.get("/", async (req, res) => {
-  const { peliculaId, cineId } = req.query;
+    const { peliculaId, cineId } = req.query;
 
-  let parsedPeliculaId: number | undefined;
+    let parsedPeliculaId: number | undefined;
 
-  if (peliculaId !== undefined) {
-    if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
-      return res.status(400).json({ error: "peliculaId inválido" });
+    if (peliculaId !== undefined) {
+        if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
+            return res.status(400).json({ error: "peliculaId inválido" });
+        }
+        parsedPeliculaId = parseInt(peliculaId, 10);
     }
-    parsedPeliculaId = parseInt(peliculaId, 10);
-  }
 
-  if (
-    cineId !== undefined &&
-    (typeof cineId !== "string" || !isCineId(cineId))
-  ) {
-    return res.status(400).json({ error: "cineId inválido" });
-  }
+    if (
+        cineId !== undefined &&
+        (typeof cineId !== "string" || !isCineId(cineId))
+    ) {
+        return res.status(400).json({ error: "cineId inválido" });
+    }
 
-  const funciones = await listarFunciones({
-    peliculaId: parsedPeliculaId,
-    cineId: typeof cineId === "string" ? cineId : undefined,
-  });
+    const funciones = await listarFunciones({
+        peliculaId: parsedPeliculaId,
+        cineId: typeof cineId === "string" ? cineId : undefined,
+    });
 
-  return res.json(funciones);
+    return res.json(funciones);
 });
 
 router.get("/horarios", async (req, res) => {
-  const { peliculaId, cineId } = req.query;
+    const { peliculaId, cineId } = req.query;
 
-  let parsedPeliculaId: number | undefined;
+    let parsedPeliculaId: number | undefined;
 
-  if (peliculaId !== undefined) {
-    if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
-      return res.status(400).json({ error: "peliculaId inválido" });
+    if (peliculaId !== undefined) {
+        if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
+            return res.status(400).json({ error: "peliculaId inválido" });
+        }
+
+        parsedPeliculaId = parseInt(peliculaId, 10);
     }
 
-    parsedPeliculaId = parseInt(peliculaId, 10);
-  }
-
-  if (cineId !== undefined) {
-    if (typeof cineId !== "string" || !isCineId(cineId)) {
-      return res.status(400).json({ error: "cineId inválido" });
+    if (cineId !== undefined) {
+        if (typeof cineId !== "string" || !isCineId(cineId)) {
+            return res.status(400).json({ error: "cineId inválido" });
+        }
     }
-  }
 
-  if (parsedPeliculaId === undefined && cineId === undefined) {
-    return res.status(400).json({ error: "Indica peliculaId o cineId" });
-  }
+    if (parsedPeliculaId === undefined && cineId === undefined) {
+        return res.status(400).json({ error: "Indica peliculaId o cineId" });
+    }
 
-  const horarios = await cargarHorarios(
-    parsedPeliculaId,
-    typeof cineId === "string" ? cineId : undefined,
-  );
+    const horarios = await cargarHorarios(
+        parsedPeliculaId,
+        typeof cineId === "string" ? cineId : undefined,
+    );
 
-  return res.json(horarios.map(horarioPublico));
+    return res.json(horarios.map(horarioPublico));
 });
 
 router.get("/precios", async (req, res) => {
-  const { peliculaId, cineId, fecha } = req.query;
+    const { peliculaId, cineId, fecha } = req.query;
 
-  if (
-    typeof peliculaId !== "string" ||
-    !isNumericId(peliculaId) ||
-    typeof cineId !== "string" ||
-    !isCineId(cineId) ||
-    typeof fecha !== "string" ||
-    !isDate(fecha)
-  ) {
-    return res.status(400).json({
-      error: "Indica peliculaId, cineId y una fecha válida.",
+    if (
+        typeof peliculaId !== "string" ||
+        !isNumericId(peliculaId) ||
+        typeof cineId !== "string" ||
+        !isCineId(cineId) ||
+        typeof fecha !== "string" ||
+        !isDate(fecha)
+    ) {
+        return res.status(400).json({
+            error: "Indica peliculaId, cineId y una fecha válida.",
+        });
+    }
+
+    const horarios = await preciosPorCine(peliculaId, cineId, fecha);
+
+    return res.json({
+        horarios,
+        cacheMinutos: 15,
     });
-  }
-
-  const horarios = await preciosPorCine(peliculaId, cineId, fecha);
-
-  return res.json({
-    horarios,
-    cacheMinutos: 15,
-  });
 });
 
 router.get("/butacas", async (req, res) => {
-  const { peliculaId, cineId, fecha } = req.query;
+    const { peliculaId, cineId, fecha } = req.query;
 
-  if (
-    typeof peliculaId !== "string" ||
-    !isNumericId(peliculaId) ||
-    typeof cineId !== "string" ||
-    !isCineId(cineId) ||
-    typeof fecha !== "string" ||
-    !isDate(fecha)
-  ) {
-    return res.status(400).json({
-      error: "Indica peliculaId, cineId y una fecha válida.",
+    if (
+        typeof peliculaId !== "string" ||
+        !isNumericId(peliculaId) ||
+        typeof cineId !== "string" ||
+        !isCineId(cineId) ||
+        typeof fecha !== "string" ||
+        !isDate(fecha)
+    ) {
+        return res.status(400).json({
+            error: "Indica peliculaId, cineId y una fecha válida.",
+        });
+    }
+
+    const horarios = await butacasPorCine(peliculaId, cineId, fecha);
+
+    return res.json({
+        horarios: horarios.map(horarioPublico),
+        cacheSegundos: 120,
     });
-  }
-
-  const horarios = await butacasPorCine(peliculaId, cineId, fecha);
-
-  return res.json({
-    horarios: horarios.map(horarioPublico),
-    cacheSegundos: 120,
-  });
 });
 
 router.get("/detalle-stream", async (req, res) => {
@@ -173,19 +173,19 @@ router.get("/detalle-stream", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
+    const { id } = req.params;
 
-  if (!isNumericId(id)) {
-    return res.status(400).json({ error: "ID de funcion invalido" });
-  }
+    if (!isNumericId(id)) {
+        return res.status(400).json({ error: "ID de funcion invalido" });
+    }
 
-  const funcion = await obtenerFuncion(parseInt(id, 10));
+    const funcion = await obtenerFuncion(parseInt(id, 10));
 
-  if (funcion === null) {
-    return res.status(404).json({ error: "Funcion no encontrada" });
-  }
+    if (funcion === null) {
+        return res.status(404).json({ error: "Funcion no encontrada" });
+    }
 
-  return res.json(funcion);
+    return res.json(funcion);
 });
 
 export default router;

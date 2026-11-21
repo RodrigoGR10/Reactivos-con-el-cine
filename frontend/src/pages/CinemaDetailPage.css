@@ -374,8 +374,10 @@
     scroll-padding-inline: var(--fade-size);
     mask:
         linear-gradient(black, black) no-clip subtract,
-        linear-gradient(to var(--fade-dir), black, transparent) var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
-        linear-gradient(to var(--fade-dir), transparent, black) var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
+        linear-gradient(to var(--fade-dir), black, transparent)
+            var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
+        linear-gradient(to var(--fade-dir), transparent, black)
+            var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
     animation:
         reveal-fade-start linear both,
         hide-fade-end linear both;

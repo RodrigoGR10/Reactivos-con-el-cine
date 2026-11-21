@@ -12,47 +12,47 @@ import { useEffect, type DependencyList } from "react";
  */
 
 export function useScrollIndicadores(
-  selector: string,
-  dependencias: DependencyList = [],
+    selector: string,
+    dependencias: DependencyList = [],
 ): void {
-  useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      typeof CSS === "undefined" ||
-      CSS.supports("animation-timeline", "scroll()") ||
-      typeof IntersectionObserver === "undefined"
-    ) {
-      return;
-    }
+    useEffect(() => {
+        if (
+            typeof window === "undefined" ||
+            typeof CSS === "undefined" ||
+            CSS.supports("animation-timeline", "scroll()") ||
+            typeof IntersectionObserver === "undefined"
+        ) {
+            return;
+        }
 
-    const observers: IntersectionObserver[] = [];
-    const scrollers = document.querySelectorAll<HTMLElement>(selector);
-    for (const scroller of scrollers) {
-      const first = scroller.firstElementChild;
-      const last = scroller.lastElementChild;
-      if (!first || !last) continue;
+        const observers: IntersectionObserver[] = [];
+        const scrollers = document.querySelectorAll<HTMLElement>(selector);
+        for (const scroller of scrollers) {
+            const first = scroller.firstElementChild;
+            const last = scroller.lastElementChild;
+            if (!first || !last) continue;
 
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const { target, intersectionRatio } of entries) {
-            scroller.classList.toggle(
-              target === first ? "more-start" : "more-end",
-              intersectionRatio < 1,
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    for (const { target, intersectionRatio } of entries) {
+                        scroller.classList.toggle(
+                            target === first ? "more-start" : "more-end",
+                            intersectionRatio < 1,
+                        );
+                    }
+                },
+                { root: scroller, threshold: 1, rootMargin: "1px" },
             );
-          }
-        },
-        { root: scroller, threshold: 1, rootMargin: "1px" },
-      );
 
-      observer.observe(first);
-      observer.observe(last);
-      observers.push(observer);
-    }
+            observer.observe(first);
+            observer.observe(last);
+            observers.push(observer);
+        }
 
-    return () => {
-      for (const observer of observers) observer.disconnect();
-    };
-    //ignora esto, es para evitar un warning del IDE
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selector, ...dependencias]);
+        return () => {
+            for (const observer of observers) observer.disconnect();
+        };
+        //ignora esto, es para evitar un warning del IDE
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selector, ...dependencias]);
 }

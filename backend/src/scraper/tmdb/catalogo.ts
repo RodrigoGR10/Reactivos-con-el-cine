@@ -40,8 +40,16 @@ export function areSameCatalogMovie(
     }
 
     // Coincidencia entre título y tituloOriginal entre cadenas si ambos son específicos.
-    const origA = a.tituloOriginal ? normalizeTitleKey(parseMovieTitleForSearch(a.tituloOriginal).canonicalTitle) : "";
-    const origB = b.tituloOriginal ? normalizeTitleKey(parseMovieTitleForSearch(b.tituloOriginal).canonicalTitle) : "";
+    const origA = a.tituloOriginal
+        ? normalizeTitleKey(
+              parseMovieTitleForSearch(a.tituloOriginal).canonicalTitle,
+          )
+        : "";
+    const origB = b.tituloOriginal
+        ? normalizeTitleKey(
+              parseMovieTitleForSearch(b.tituloOriginal).canonicalTitle,
+          )
+        : "";
     if (
         (origA.length >= 6 && (origA === keyB || origA === origB)) ||
         (origB.length >= 6 && origB === keyA)
@@ -49,8 +57,7 @@ export function areSameCatalogMovie(
         return true;
     }
 
-    const duracionConocida =
-        a.duracion > 5 && b.duracion > 5;
+    const duracionConocida = a.duracion > 5 && b.duracion > 5;
     if (duracionConocida && Math.abs(a.duracion - b.duracion) > 10) {
         return false;
     }

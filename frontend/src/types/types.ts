@@ -1,79 +1,87 @@
 export interface Pelicula {
-  id: string;
-  titulo: string;
-  duracion: number | null;
-  genero: string;
-  clasificacion: string;
-  sinopsis: string;
-  poster: string;
-  posterLimpio?: string;
-  banner?: string;
-  trailerUrl?: string;
-  trailerVersion?: "doblado" | "original" | "subtitulado" | "espanol";
-  estadoEstreno?: "cartelera" | "preventa" | "proximamente";
-  fechaEstreno?: string;
-  totalFavoritos?: number;
-  totalCines?: number;
-  totalFunciones?: number;
-  calificacionTmdb?: number;
-  votosTmdb?: number;
-  popularidadTmdb?: number;
-  fechaEstrenoTmdb?: string;
+    id: string;
+    titulo: string;
+    duracion: number | null;
+    genero: string;
+    clasificacion: string;
+    sinopsis: string;
+    poster: string;
+    posterLimpio?: string;
+    banner?: string;
+    trailerUrl?: string;
+    trailerVersion?: "doblado" | "original" | "subtitulado" | "espanol";
+    estadoEstreno?: "cartelera" | "preventa" | "proximamente";
+    fechaEstreno?: string;
+    totalFavoritos?: number;
+    totalCines?: number;
+    totalFunciones?: number;
+    calificacionTmdb?: number;
+    votosTmdb?: number;
+    popularidadTmdb?: number;
+    fechaEstrenoTmdb?: string;
 }
 
 export interface Cine {
-  id: string;
-  nombre: string;
-  comuna: string;
-  logo?: string;
-  direccion?: string;
-  ciudad?: string;
-  latitud?: number;
-  longitud?: number;
-  url?: string;
-  origen?: string;
+    id: string;
+    nombre: string;
+    comuna: string;
+    logo?: string;
+    direccion?: string;
+    ciudad?: string;
+    latitud?: number;
+    longitud?: number;
+    url?: string;
+    origen?: string;
 }
 
 export interface Funcion {
-  id: string;
-  peliculaId: string;
-  cineId: string;
-  horario: string;
-  formato: string;
-  idioma: string;
-  precio?: number;
-  fecha?: string;
-  fechaCartelera?: string;
-  sala?: string;
-  cargoServicio?: number;
-  precioOnline?: number;
-  tipoEntrada?: string;
-  urlCompra?: string;
-  agotada?: boolean;
+    id: string;
+    peliculaId: string;
+    cineId: string;
+    horario: string;
+    formato: string;
+    idioma: string;
+    precio?: number;
+    fecha?: string;
+    fechaCartelera?: string;
+    sala?: string;
+    cargoServicio?: number;
+    precioOnline?: number;
+    tipoEntrada?: string;
+    urlCompra?: string;
+    agotada?: boolean;
 }
 
 export interface Horario {
-  id: string;
-  peliculaId: string;
-  cineId: string;
-  fecha: string;
-  fechaCartelera: string;
-  horario: string;
-  formatoResumen?: string;
-  idioma: string;
-  sala: string;
-  agotada: boolean;
-  estadoPrecio: "pendiente" | "consultando" | "disponible" | "desactualizado" | "error" | "sin_tarifa" | "agotada";
-  preciosConsultadosEn?: string;
-  reintentarEn?: string;
-  urlCompra?: string;
-  tarifas: Funcion[];
-  estadoButacas?: "pendiente" | "disponible" | "desactualizado" | "error" | "sin_datos";
-  butacas?: {
-    disponibles: number;
-    total?: number;
-    porcentajeNoDisponible?: number;
-    consultadasEn: string;
-  };
-  butacasReintentarEn?: string;
+    id: string;
+    peliculaId: string;
+    cineId: string;
+    fecha: string;
+    fechaCartelera: string;
+    horario: string;
+    formatoResumen?: string;
+    idioma: string;
+    sala: string;
+    agotada: boolean;
+    estadoPrecio:
+        | "pendiente"
+        | "consultando"
+        | "disponible"
+        | "desactualizado"
+        | "error"
+        | "sin_tarifa"
+        | "agotada";
+    preciosConsultadosEn?: string;
+    reintentarEn?: string;
+    urlCompra?: string;
+    tarifas: Funcion[];
+    estadoButacas?:
+        "pendiente" | "disponible" | "desactualizado" | "error" | "sin_datos";
+    butacas?: {
+        disponibles: number;
+        total?: number;
+        porcentajeNoDisponible?: number;
+        consultadasEn: string;
+    };
+    butacasReintentarEn?: string;
 }

@@ -52,7 +52,10 @@ export const ProfileFavoritesHeader = ({
             <div className="actions-group">
                 {mostrarBuscador && (
                     <div className="search-box-minimal">
-                        <label htmlFor={searchInputId} className="visualmente-oculto">
+                        <label
+                            htmlFor={searchInputId}
+                            className="visualmente-oculto"
+                        >
                             {esTabCines ? "Buscar cines" : "Buscar guardados"}
                         </label>
                         <SearchIcon size={16} />
@@ -60,7 +63,9 @@ export const ProfileFavoritesHeader = ({
                             id={searchInputId}
                             type="search"
                             placeholder={
-                                esTabCines ? "Buscar cines..." : "Buscar guardados..."
+                                esTabCines
+                                    ? "Buscar cines..."
+                                    : "Buscar guardados..."
                             }
                             value={busqueda}
                             onChange={(e) => onBuscar(e.target.value)}
@@ -72,9 +77,13 @@ export const ProfileFavoritesHeader = ({
                         type="button"
                         className={`btn-edit-minimal ${editando ? "active" : ""}`}
                         onClick={onToggleEdicion}
-                        aria-label={editando ? "Finalizar edición" : "Editar guardados"}
+                        aria-label={
+                            editando ? "Finalizar edición" : "Editar guardados"
+                        }
                         aria-pressed={editando}
-                        title={editando ? "Finalizar edición" : "Editar guardados"}
+                        title={
+                            editando ? "Finalizar edición" : "Editar guardados"
+                        }
                     >
                         <span className="btn-edit-text">
                             {editando ? "listo" : "editar"}

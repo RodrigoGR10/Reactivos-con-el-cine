@@ -37,7 +37,8 @@ function BuscadorPeliculas({
                     value={busqueda}
                     onChange={(evento) => onBusquedaChange(evento.target.value)}
                     onKeyDown={(evento) => {
-                        if (evento.key === "Escape" && busqueda) onBusquedaChange("");
+                        if (evento.key === "Escape" && busqueda)
+                            onBusquedaChange("");
                     }}
                     placeholder={placeholder}
                     autoComplete="off"

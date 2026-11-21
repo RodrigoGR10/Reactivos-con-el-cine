@@ -3,11 +3,7 @@ import { parseMovieTitleForSearch } from "./consulta.ts";
 import { claveBasica, sinAcentosEnMayusculas } from "../../utils/titulos.ts";
 
 export type VersionTrailerEspanol =
-    | "doblado"
-    | "original"
-    | "subtitulado"
-    | "espanol"
-    | "otro";
+    "doblado" | "original" | "subtitulado" | "espanol" | "otro";
 
 export interface VideoTrailer {
     key: string;
@@ -42,18 +38,40 @@ export interface MetadatosYoutube {
 }
 
 const PAISES_LATINOS = new Set([
-    "MX", "AR", "CL", "CO", "PE", "VE", "EC", "BO", "PY", "UY",
-    "CR", "PA", "SV", "GT", "HN", "NI", "DO", "CU", "PR",
+    "MX",
+    "AR",
+    "CL",
+    "CO",
+    "PE",
+    "VE",
+    "EC",
+    "BO",
+    "PY",
+    "UY",
+    "CR",
+    "PA",
+    "SV",
+    "GT",
+    "HN",
+    "NI",
+    "DO",
+    "CU",
+    "PR",
 ]);
-const SUBTITULADO_ES = /\b(SUBTITULAD[OA]S?|SUBTITULOS(?:\s+EN\s+ESPANOL)?)\b|(?:\(\s*SUB\s*\)|\|\s*SUB\b|\bSUB\s*$)/;
+const SUBTITULADO_ES =
+    /\b(SUBTITULAD[OA]S?|SUBTITULOS(?:\s+EN\s+ESPANOL)?)\b|(?:\(\s*SUB\s*\)|\|\s*SUB\b|\bSUB\s*$)/;
 const SUBTITULADO_CON_IDIOMA = /\b(SUBBED|SUBTITLED|SUBTITLES?)\b/;
-const SUBTITULADO_EXPLICITO_ES = /\b(?:SUBTITULAD[OA]S?\s+(?:AL|EN)\s+ESPANOL|SUBTITULOS?\s+EN\s+ESPANOL|SPANISH\s+SUBTITLES?|SUBTITLED\s+IN\s+SPANISH|SUBBED\s+IN\s+SPANISH)\b/;
+const SUBTITULADO_EXPLICITO_ES =
+    /\b(?:SUBTITULAD[OA]S?\s+(?:AL|EN)\s+ESPANOL|SUBTITULOS?\s+EN\s+ESPANOL|SPANISH\s+SUBTITLES?|SUBTITLED\s+IN\s+SPANISH|SUBBED\s+IN\s+SPANISH)\b/;
 const NO_LATINO = /\b(CASTELLANO|ESPANA|IBERICO)\b/;
-const NO_TRAILER = /\b(CONCEPT|CONCEPTO|FANMADE|FAN MADE|REACCION|REACTION|ANALISIS|RESUMEN|ESCENA|ESCENAS|CLIP|CLIPS)\b/;
+const NO_TRAILER =
+    /\b(CONCEPT|CONCEPTO|FANMADE|FAN MADE|REACCION|REACTION|ANALISIS|RESUMEN|ESCENA|ESCENAS|CLIP|CLIPS)\b/;
 const LATINO = /\b(LATINO|LATINA|LATINOAMERICANO|LATINOAMERICA|LATAM)\b/;
 const DOBLADO = /\b(DOBLAD[OA]|DUBBED|DOBLAJE)\b/;
 
-export function esVersionEspanol(version: unknown): version is VersionTrailerEspanol {
+export function esVersionEspanol(
+    version: unknown,
+): version is VersionTrailerEspanol {
     return (
         version === "doblado" ||
         version === "original" ||
@@ -101,30 +119,61 @@ export function versionEspanolConfirmada(
 
     const paisLatino = PAISES_LATINOS.has(pais ?? "");
     const origenes = pelicula.origin_country?.length
-        ? pelicula.origin_country : pelicula.production_countries?.map(p => p.iso_3166_1) ?? [];
-    if (pelicula.original_language === "es" && !origenes.includes("ES") && origenes.some(p => PAISES_LATINOS.has(p))) {
+        ? pelicula.origin_country
+        : (pelicula.production_countries?.map((p) => p.iso_3166_1) ?? []);
+    if (
+        pelicula.original_language === "es" &&
+        !origenes.includes("ES") &&
+        origenes.some((p) => PAISES_LATINOS.has(p))
+    ) {
         return "original";
     }
     if (
         LATINO.test(texto) ||
-        (paisLatino && (
-            DOBLADO.test(texto) ||
-            (pelicula.original_language !== undefined && pelicula.original_language !== "es")
-        ))
-    ) return "doblado";
+        (paisLatino &&
+            (DOBLADO.test(texto) ||
+                (pelicula.original_language !== undefined &&
+                    pelicula.original_language !== "es")))
+    )
+        return "doblado";
     return undefined;
 }
 
 export function candidatosEspanol(pelicula: PeliculaConVideos): VideoTrailer[] {
-    return (pelicula.videos?.results ?? []).filter(video =>
-        esVideoYoutubeValido(video) &&
-        (video.iso_639_1 === "es" || SUBTITULADO_EXPLICITO_ES.test(sinAcentosEnMayusculas(video.name))) &&
-        versionEspanolConfirmada(video.name, pelicula, video.iso_3166_1, video.iso_639_1),
-    ).sort((a, b) =>
-        prioridadVersion(versionEspanolConfirmada(b.name, pelicula, b.iso_3166_1, b.iso_639_1)) -
-        prioridadVersion(versionEspanolConfirmada(a.name, pelicula, a.iso_3166_1, a.iso_639_1)) ||
-        ordenarVideosBase(a, b),
-    );
+    return (pelicula.videos?.results ?? [])
+        .filter(
+            (video) =>
+                esVideoYoutubeValido(video) &&
+                (video.iso_639_1 === "es" ||
+                    SUBTITULADO_EXPLICITO_ES.test(
+                        sinAcentosEnMayusculas(video.name),
+                    )) &&
+                versionEspanolConfirmada(
+                    video.name,
+                    pelicula,
+                    video.iso_3166_1,
+                    video.iso_639_1,
+                ),
+        )
+        .sort(
+            (a, b) =>
+                prioridadVersion(
+                    versionEspanolConfirmada(
+                        b.name,
+                        pelicula,
+                        b.iso_3166_1,
+                        b.iso_639_1,
+                    ),
+                ) -
+                    prioridadVersion(
+                        versionEspanolConfirmada(
+                            a.name,
+                            pelicula,
+                            a.iso_3166_1,
+                            a.iso_639_1,
+                        ),
+                    ) || ordenarVideosBase(a, b),
+        );
 }
 
 function prioridadVersion(version: VersionTrailerEspanol | undefined): number {
@@ -141,12 +190,17 @@ function prioridadVersion(version: VersionTrailerEspanol | undefined): number {
     }
 }
 
-export function coincideTituloTrailer(nombre: string, titulos: string[]): boolean {
+export function coincideTituloTrailer(
+    nombre: string,
+    titulos: string[],
+): boolean {
     const key = claveBasica(nombre);
-    return titulos.some(titulo => parseMovieTitleForSearch(titulo).queries.some(query => {
-        const clave = claveBasica(query);
-        return clave.length >= 4 && key.includes(clave);
-    }));
+    return titulos.some((titulo) =>
+        parseMovieTitleForSearch(titulo).queries.some((query) => {
+            const clave = claveBasica(query);
+            return clave.length >= 4 && key.includes(clave);
+        }),
+    );
 }
 
 export function validarTrailerDelCine(
@@ -158,11 +212,23 @@ export function validarTrailerDelCine(
     const normalizada = normalizarTrailerUrl(url);
     const nombre = youtube.title ?? "";
     const texto = sinAcentosEnMayusculas(nombre);
-    if (!normalizada || !/\b(TRAILER|TEASER|AVANCE)\b/.test(texto)) return undefined;
-    if (!coincideTituloTrailer(nombre, [titulo, pelicula.title ?? "", pelicula.original_title ?? ""])) return undefined;
+    if (!normalizada || !/\b(TRAILER|TEASER|AVANCE)\b/.test(texto))
+        return undefined;
+    if (
+        !coincideTituloTrailer(nombre, [
+            titulo,
+            pelicula.title ?? "",
+            pelicula.original_title ?? "",
+        ])
+    )
+        return undefined;
     if (NO_TRAILER.test(texto)) return undefined;
 
-    if (pelicula.original_language === "es" && !DOBLADO.test(texto) && !SUBTITULADO_ES.test(texto)) {
+    if (
+        pelicula.original_language === "es" &&
+        !DOBLADO.test(texto) &&
+        !SUBTITULADO_ES.test(texto)
+    ) {
         return { url: normalizada, version: "original", idioma: "es-419" };
     }
     if (SUBTITULADO_ES.test(texto) || SUBTITULADO_CON_IDIOMA.test(texto)) {
@@ -176,7 +242,9 @@ export function validarTrailerDelCine(
     return { url: normalizada, version: "espanol", idioma: "es-419" };
 }
 
-function candidatosOriginalEnEspanolSinEtiquetar(pelicula: PeliculaConVideos): VideoTrailer[] {
+function candidatosOriginalEnEspanolSinEtiquetar(
+    pelicula: PeliculaConVideos,
+): VideoTrailer[] {
     if (pelicula.original_language !== "es") return [];
     return (pelicula.videos?.results ?? [])
         .filter((video) => {
@@ -205,7 +273,8 @@ function candidatosFallbackTmdb(pelicula: PeliculaConVideos): VideoTrailer[] {
     return (pelicula.videos?.results ?? [])
         .filter(esVideoYoutubeValido)
         .sort((a, b) => {
-            const officialDiff = Number(b.official === true) - Number(a.official === true);
+            const officialDiff =
+                Number(b.official === true) - Number(a.official === true);
             if (officialDiff !== 0) return officialDiff;
 
             const orig = pelicula.original_language;
@@ -217,8 +286,12 @@ function candidatosFallbackTmdb(pelicula: PeliculaConVideos): VideoTrailer[] {
             const bIngles = Number(b.iso_639_1 === "en");
             if (bIngles !== aIngles) return bIngles - aIngles;
 
-            const aSinDoblar = Number(!DOBLADO.test(sinAcentosEnMayusculas(a.name)));
-            const bSinDoblar = Number(!DOBLADO.test(sinAcentosEnMayusculas(b.name)));
+            const aSinDoblar = Number(
+                !DOBLADO.test(sinAcentosEnMayusculas(a.name)),
+            );
+            const bSinDoblar = Number(
+                !DOBLADO.test(sinAcentosEnMayusculas(b.name)),
+            );
             if (bSinDoblar !== aSinDoblar) return bSinDoblar - aSinDoblar;
 
             return ordenarVideosBase(a, b);
@@ -228,7 +301,10 @@ function candidatosFallbackTmdb(pelicula: PeliculaConVideos): VideoTrailer[] {
 async function elegirYoutubeValido(
     videos: VideoTrailer[],
     consultarYoutube: (url: string) => Promise<MetadatosYoutube | undefined>,
-    resolver: (video: VideoTrailer, youtube: MetadatosYoutube) => TrailerEspanol | undefined,
+    resolver: (
+        video: VideoTrailer,
+        youtube: MetadatosYoutube,
+    ) => TrailerEspanol | undefined,
 ): Promise<TrailerEspanol | undefined> {
     for (const video of videos) {
         const candidata = normalizarTrailerUrl(video.key);
@@ -260,7 +336,11 @@ export async function buscarTrailerEspanol(
                 video.iso_639_1,
             );
             return version
-                ? { url: normalizarTrailerUrl(video.key)!, version, idioma: "es-419" }
+                ? {
+                      url: normalizarTrailerUrl(video.key)!,
+                      version,
+                      idioma: "es-419",
+                  }
                 : undefined;
         },
     );
@@ -280,12 +360,16 @@ export async function buscarTrailerEspanol(
 
     // 2. Tráiler propio entregado por las cadenas de cine chilenas.
     const url = normalizarTrailerUrl(actual);
-    if (url?.startsWith("https://pimcore-content.cinepolis.com/") && /\/Es\//i.test(url)) {
+    if (
+        url?.startsWith("https://pimcore-content.cinepolis.com/") &&
+        /\/Es\//i.test(url)
+    ) {
         return { url, version: "espanol", idioma: "es-419" };
     }
     if (url?.startsWith("https://www.youtube.com/")) {
         const youtube = await consultarYoutube(url);
-        const validado = youtube && validarTrailerDelCine(url, youtube, titulo, pelicula);
+        const validado =
+            youtube && validarTrailerDelCine(url, youtube, titulo, pelicula);
         if (validado) return validado;
     }
 
@@ -294,13 +378,20 @@ export async function buscarTrailerEspanol(
         candidatosEspana(pelicula),
         consultarYoutube,
         (video, youtube) => {
-            const texto = sinAcentosEnMayusculas(`${video.name} ${youtube.title}`);
-            const version: VersionTrailerEspanol = SUBTITULADO_ES.test(texto) || SUBTITULADO_CON_IDIOMA.test(texto)
-                ? "subtitulado"
-                : pelicula.original_language === "es"
-                  ? "original"
-                  : "doblado";
-            return { url: normalizarTrailerUrl(video.key)!, version, idioma: "es-ES" };
+            const texto = sinAcentosEnMayusculas(
+                `${video.name} ${youtube.title}`,
+            );
+            const version: VersionTrailerEspanol =
+                SUBTITULADO_ES.test(texto) || SUBTITULADO_CON_IDIOMA.test(texto)
+                    ? "subtitulado"
+                    : pelicula.original_language === "es"
+                      ? "original"
+                      : "doblado";
+            return {
+                url: normalizarTrailerUrl(video.key)!,
+                version,
+                idioma: "es-ES",
+            };
         },
     );
     if (espana) return espana;
@@ -310,8 +401,14 @@ export async function buscarTrailerEspanol(
         candidatosFallbackTmdb(pelicula),
         consultarYoutube,
         (video, youtube) => {
-            const texto = sinAcentosEnMayusculas(`${video.name} ${youtube.title}`);
-            const idioma = (video.iso_639_1 || pelicula.original_language || "und").slice(0, 20);
+            const texto = sinAcentosEnMayusculas(
+                `${video.name} ${youtube.title}`,
+            );
+            const idioma = (
+                video.iso_639_1 ||
+                pelicula.original_language ||
+                "und"
+            ).slice(0, 20);
             const esIdiomaOriginal = Boolean(
                 pelicula.original_language &&
                 video.iso_639_1 === pelicula.original_language &&

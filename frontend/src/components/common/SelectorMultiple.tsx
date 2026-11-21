@@ -11,11 +11,11 @@ export { BuscadorOpciones } from "./filtros/BuscadorOpciones";
 
 // Tipos
 export type {
-  OpcionFiltro,
-  ChipFiltroActivo,
-  SelectorMultipleProps,
-  SelectorUnicoProps,
-  GrupoFiltrosProps,
-  BotonCercaniaProps,
-  ChipsFiltrosActivosProps,
+    OpcionFiltro,
+    ChipFiltroActivo,
+    SelectorMultipleProps,
+    SelectorUnicoProps,
+    GrupoFiltrosProps,
+    BotonCercaniaProps,
+    ChipsFiltrosActivosProps,
 } from "./filtros/types";

@@ -32,7 +32,9 @@ export function CinemaMoviesList({
     if (totalHorarios === 0) {
         return (
             <div className="cartelera-cine-empty">
-                <p>No hay funciones programadas para este cine en este momento.</p>
+                <p>
+                    No hay funciones programadas para este cine en este momento.
+                </p>
             </div>
         );
     }
@@ -40,7 +42,9 @@ export function CinemaMoviesList({
     if (gruposFiltrados.length === 0) {
         return (
             <div className="cartelera-cine-empty">
-                <p>No se encontraron películas con los filtros seleccionados.</p>
+                <p>
+                    No se encontraron películas con los filtros seleccionados.
+                </p>
                 <button
                     type="button"
                     className="btn-reset-filtros"

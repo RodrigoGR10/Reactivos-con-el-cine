@@ -34,9 +34,7 @@ export const ProfileSavedCinemas = ({
                         </p>
                     </>
                 ) : (
-                    <p>
-                        inicia sesión para guardar tus complejos frecuentes.
-                    </p>
+                    <p>inicia sesión para guardar tus complejos frecuentes.</p>
                 )}
             </div>
         ) : cinesFiltrados.length === 0 ? (
@@ -46,8 +44,7 @@ export const ProfileSavedCinemas = ({
                 </div>
                 <h2>sin resultados para "{busqueda}"</h2>
                 <p>
-                    no tienes ningún cine habitual que coincida con tu
-                    búsqueda.
+                    no tienes ningún cine habitual que coincida con tu búsqueda.
                 </p>
             </div>
         ) : (

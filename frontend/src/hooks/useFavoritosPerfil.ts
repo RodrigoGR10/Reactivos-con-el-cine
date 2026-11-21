@@ -33,7 +33,8 @@ export const useFavoritosPerfil = (tabActiva: TabFavoritos) => {
                 setCines(cinesData);
             })
             .catch(() => {
-                if (activo) setError("No se pudieron cargar los datos del catálogo.");
+                if (activo)
+                    setError("No se pudieron cargar los datos del catálogo.");
             })
             .finally(() => {
                 if (activo) setCargando(false);
@@ -46,7 +47,9 @@ export const useFavoritosPerfil = (tabActiva: TabFavoritos) => {
     const peliculasFavoritas = peliculas.filter((p) =>
         favoriteMovieIds.includes(p.id),
     );
-    const cinesFavoritos = cines.filter((c) => favoriteCinemaIds.includes(c.id));
+    const cinesFavoritos = cines.filter((c) =>
+        favoriteCinemaIds.includes(c.id),
+    );
 
     const hayGuardadosEnTab =
         tabActiva === "peliculas"

@@ -1,28 +1,28 @@
 export interface Usuario {
-  id: string;
-  nombre: string;
-  email: string;
-  fechaRegistro?: string;
-  peliculasFavoritas?: string[];
-  cinesFavoritos?: string[];
+    id: string;
+    nombre: string;
+    email: string;
+    fechaRegistro?: string;
+    peliculasFavoritas?: string[];
+    cinesFavoritos?: string[];
 }
 
 export interface LoginInput {
-  email: string;
-  contrasena: string;
+    email: string;
+    contrasena: string;
 }
 
 export interface RegisterInput {
-  nombre: string;
-  email: string;
-  contrasena: string;
-  confirmarContrasena: string;
+    nombre: string;
+    email: string;
+    contrasena: string;
+    confirmarContrasena: string;
 }
 
 export interface FormularioErrores {
-  nombre?: string;
-  email?: string;
-  contrasena?: string;
-  confirmarContrasena?: string;
-  general?: string;
+    nombre?: string;
+    email?: string;
+    contrasena?: string;
+    confirmarContrasena?: string;
+    general?: string;
 }

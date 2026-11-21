@@ -1,63 +1,126 @@
 .seccion-preventas {
-  margin-top: 56px;
+    margin-top: 56px;
 }
 
-.panel-filtros + .seccion-preventas { margin-top: 0; }
+.panel-filtros + .seccion-preventas {
+    margin-top: 0;
+}
 
 .navegacion-preventas {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 16px;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 16px;
 }
 
 .seccion-preventas .estado-preventas {
-  flex-shrink: 0;
-  margin: 0;
-  color: #f5f5f6;
-  font-size: 13px;
-  line-height: 1.4;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+    flex-shrink: 0;
+    margin: 0;
+    color: #f5f5f6;
+    font-size: 13px;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
-.estado-preventas > span { margin-left: 3px; color: #92929e; }
-.carrusel-preventas { position: relative; }
-.ventana-preventas { overflow: hidden; padding: 4px 0; touch-action: pan-y pinch-zoom; }
+.estado-preventas > span {
+    margin-left: 3px;
+    color: #92929e;
+}
+.carrusel-preventas {
+    position: relative;
+}
+.ventana-preventas {
+    overflow: hidden;
+    padding: 4px 0;
+    touch-action: pan-y pinch-zoom;
+}
 
 .fila-preventas {
-  --separacion: clamp(24px, 1.7vw, 36px);
-  display: flex;
-  align-items: stretch;
-  gap: var(--separacion);
-  transform: translateX(calc(-1 * var(--posicion) * (100% + var(--separacion)) / var(--visibles)));
-  transition: transform 360ms ease;
+    --separacion: clamp(24px, 1.7vw, 36px);
+    display: flex;
+    align-items: stretch;
+    gap: var(--separacion);
+    transform: translateX(
+        calc(
+            -1 * var(--posicion) * (100% + var(--separacion)) / var(--visibles)
+        )
+    );
+    transition: transform 360ms ease;
 }
 
 .elemento-preventa {
-  flex: 0 0 calc((100% - (var(--visibles) - 1) * var(--separacion)) / var(--visibles));
-  min-width: 0;
+    flex: 0 0
+        calc(
+            (100% - (var(--visibles) - 1) * var(--separacion)) / var(--visibles)
+        );
+    min-width: 0;
 }
 
-.controles-preventas { display: flex; align-items: center; gap: 8px; }
-.controles-preventas button { display: grid; flex-shrink: 0; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid #41414a; border-radius: 4px; background: #17171c; color: #fff; cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease; }
-.controles-preventas button svg { width: 20px; height: 20px; }
-.controles-preventas button:hover:not(:disabled) { border-color: var(--color-acento); background: var(--color-acento); }
-.controles-preventas button:disabled { border-color: #29292e; background: #111113; color: #72727e; cursor: default; }
+.controles-preventas {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.controles-preventas button {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #41414a;
+    border-radius: 4px;
+    background: #17171c;
+    color: #fff;
+    cursor: pointer;
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease;
+}
+.controles-preventas button svg {
+    width: 20px;
+    height: 20px;
+}
+.controles-preventas button:hover:not(:disabled) {
+    border-color: var(--color-acento);
+    background: var(--color-acento);
+}
+.controles-preventas button:disabled {
+    border-color: #29292e;
+    background: #111113;
+    color: #72727e;
+    cursor: default;
+}
 .seccion-preventas a:focus-visible,
-.seccion-preventas button:focus-visible { outline: 2px solid var(--color-acento); outline-offset: 3px; }
+.seccion-preventas button:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 3px;
+}
 
 @media (max-width: 759px) {
-  .seccion-preventas { margin-top: 36px; }
-  .navegacion-preventas { flex-direction: column; align-items: flex-end; gap: 8px; }
-  .seccion-preventas .estado-preventas { font-size: 12px; }
+    .seccion-preventas {
+        margin-top: 36px;
+    }
+    .navegacion-preventas {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+    .seccion-preventas .estado-preventas {
+        font-size: 12px;
+    }
 }
 
 @media (max-width: 560px) {
-  .fila-preventas { --separacion: 16px; }
+    .fila-preventas {
+        --separacion: 16px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fila-preventas,
-  .controles-preventas button { transition: none; }
+    .fila-preventas,
+    .controles-preventas button {
+        transition: none;
+    }
 }

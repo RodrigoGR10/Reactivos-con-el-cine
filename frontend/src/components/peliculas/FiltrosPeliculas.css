@@ -283,7 +283,8 @@
         min-width: 0;
     }
 
-    .herramientas-cartelera.herramientas-cartelera--movil .filtros-cartelera-selectores {
+    .herramientas-cartelera.herramientas-cartelera--movil
+        .filtros-cartelera-selectores {
         flex-wrap: nowrap;
         gap: 8px;
     }

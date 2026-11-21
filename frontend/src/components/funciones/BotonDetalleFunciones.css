@@ -1,107 +1,107 @@
 .funciones-acciones {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  margin-left: auto;
-  max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-left: auto;
+    max-width: 100%;
 }
 
 .detalle-estado-meta {
-  margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.25;
-  text-align: right;
-  color: #a1a1aa;
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.25;
+    text-align: right;
+    color: #a1a1aa;
 }
 
 .detalle-estado-meta:empty {
-  display: none;
+    display: none;
 }
 
 .detalle-estado-alerta {
-  color: var(--color-acento);
-  font-weight: 500;
+    color: var(--color-acento);
+    font-weight: 500;
 }
 
 .detalle-estado-separador {
-  color: #71717a;
+    color: #71717a;
 }
 
 .detalle-estado-tiempo {
-  color: #a1a1aa;
+    color: #a1a1aa;
 }
 
 .btn-consultar-tooltip-wrap {
-  display: inline-flex;
+    display: inline-flex;
 }
 
 .btn-consultar-detalle {
-  background: transparent;
-  color: #d4d4d8;
-  border: 1px solid #383838;
-  border-radius: 8px;
-  min-height: 36px;
-  padding: 6px 14px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    opacity 0.2s ease;
+    background: transparent;
+    color: #d4d4d8;
+    border: 1px solid #383838;
+    border-radius: 8px;
+    min-height: 36px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        opacity 0.2s ease;
 }
 
 .btn-consultar-detalle:hover:not(:disabled) {
-  background: #252525;
-  border-color: #555555;
-  color: #ffffff;
+    background: #252525;
+    border-color: #555555;
+    color: #ffffff;
 }
 
 .btn-consultar-detalle:focus-visible {
-  outline: 2px solid var(--color-acento, #e50914);
-  outline-offset: 2px;
+    outline: 2px solid var(--color-acento, #e50914);
+    outline-offset: 2px;
 }
 
 .btn-consultar-detalle:disabled {
-  opacity: 0.45;
-  color: #a1a1aa;
-  border-color: #2e2e32;
-  background: transparent;
-  cursor: not-allowed;
+    opacity: 0.45;
+    color: #a1a1aa;
+    border-color: #2e2e32;
+    background: transparent;
+    cursor: not-allowed;
 }
 
 .btn-consultar-detalle:disabled[aria-busy="true"] {
-  opacity: 0.65;
-  cursor: wait;
+    opacity: 0.65;
+    cursor: wait;
 }
 
 @media (max-width: 600px) {
-  .funciones-acciones {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
+    .funciones-acciones {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
 
-  .detalle-estado-meta {
-    text-align: left;
-  }
+    .detalle-estado-meta {
+        text-align: left;
+    }
 
-  .btn-consultar-tooltip-wrap,
-  .btn-consultar-detalle {
-    width: 100%;
-  }
+    .btn-consultar-tooltip-wrap,
+    .btn-consultar-detalle {
+        width: 100%;
+    }
 
-  .btn-consultar-detalle {
-    min-height: 44px;
-  }
+    .btn-consultar-detalle {
+        min-height: 44px;
+    }
 }

@@ -6,5 +6,5 @@ const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || "localhost";
 
 app.listen(Number(PORT), HOST, () => {
-  console.log(`Server running on http://${HOST}:${PORT}`);
+    console.log(`Server running on http://${HOST}:${PORT}`);
 });

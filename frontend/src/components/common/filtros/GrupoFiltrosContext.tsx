@@ -4,7 +4,7 @@ import type { GrupoFiltrosCtx, RegistroFiltroGrupo } from "./types";
 export const GrupoFiltrosContext = createContext<GrupoFiltrosCtx | null>(null);
 
 export function useGrupoFiltros(): GrupoFiltrosCtx | null {
-  return useContext(GrupoFiltrosContext);
+    return useContext(GrupoFiltrosContext);
 }
 
 /**
@@ -13,29 +13,29 @@ export function useGrupoFiltros(): GrupoFiltrosCtx | null {
  */
 
 export function useRegistroFiltroGrupo(
-  filtroId: string,
-  cantidadActiva: number,
-  handlers: RegistroFiltroGrupo,
+    filtroId: string,
+    cantidadActiva: number,
+    handlers: RegistroFiltroGrupo,
 ) {
-  const grupo = useGrupoFiltros();
-  const handlersRef = useRef(handlers);
+    const grupo = useGrupoFiltros();
+    const handlersRef = useRef(handlers);
 
-  //Mantiene los handlers frescos sin tener que
-  // re-ejecutar el effect
-  useEffect(() => {
-    handlersRef.current = handlers;
-  }, [handlers]);
+    //Mantiene los handlers frescos sin tener que
+    // re-ejecutar el effect
+    useEffect(() => {
+        handlersRef.current = handlers;
+    }, [handlers]);
 
-  useEffect(() => {
-    if (!grupo) return;
+    useEffect(() => {
+        if (!grupo) return;
 
-    grupo.actualizarConteo(filtroId, cantidadActiva);
+        grupo.actualizarConteo(filtroId, cantidadActiva);
 
-    return grupo.registrar(filtroId, {
-      commit: () => handlersRef.current.commit(),
-      clear: () => handlersRef.current.clear(),
-    });
-  }, [grupo, filtroId, cantidadActiva]);
+        return grupo.registrar(filtroId, {
+            commit: () => handlersRef.current.commit(),
+            clear: () => handlersRef.current.clear(),
+        });
+    }, [grupo, filtroId, cantidadActiva]);
 
-  return grupo;
+    return grupo;
 }

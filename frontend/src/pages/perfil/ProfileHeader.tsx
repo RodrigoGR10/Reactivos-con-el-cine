@@ -31,8 +31,13 @@ export const ProfileHeader = () => {
                     </h1>
                     {user ? (
                         <p className="profile-user-joined">
-                            <CalendarIcon size={14} className="calendar-icon-inline" />
-                            <span>{formatearFechaRegistro(user.fechaRegistro)}</span>
+                            <CalendarIcon
+                                size={14}
+                                className="calendar-icon-inline"
+                            />
+                            <span>
+                                {formatearFechaRegistro(user.fechaRegistro)}
+                            </span>
                         </p>
                     ) : (
                         <button

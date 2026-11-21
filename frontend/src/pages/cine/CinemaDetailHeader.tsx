@@ -17,7 +17,10 @@ function obtenerUbicacion(cine: Cine): string | undefined {
     const direccion = cine.direccion?.trim();
     const comuna = cine.comuna?.trim();
     if (!direccion) return comuna;
-    if (comuna && !normalizarTexto(direccion).includes(normalizarTexto(comuna))) {
+    if (
+        comuna &&
+        !normalizarTexto(direccion).includes(normalizarTexto(comuna))
+    ) {
         return `${direccion}, ${comuna}`;
     }
     return direccion;

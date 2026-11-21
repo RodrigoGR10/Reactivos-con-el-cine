@@ -35,14 +35,18 @@ export function configureRequests(delayMs = 500) {
 
 async function waitForTurn(state: HostState) {
     const turn = state.requestQueue.then(async () => {
-        let wait = Math.max(state.lastRequest + interval, state.cooldownUntil) - Date.now();
+        let wait =
+            Math.max(state.lastRequest + interval, state.cooldownUntil) -
+            Date.now();
         while (wait > 0) {
             if (wait > 60_000)
                 throw new Error(
                     "El cine solicita esperar. Intenta nuevamente mas tarde.",
                 );
             await delay(wait);
-            wait = Math.max(state.lastRequest + interval, state.cooldownUntil) - Date.now();
+            wait =
+                Math.max(state.lastRequest + interval, state.cooldownUntil) -
+                Date.now();
         }
         state.lastRequest = Date.now();
     });

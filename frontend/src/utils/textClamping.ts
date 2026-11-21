@@ -43,8 +43,10 @@ export function calcularLineasDisponibles(
         (parseFloat(estiloParrafo.marginBottom) || 0);
 
     const maxLineasCss =
-        parseInt(estiloContenido.getPropertyValue("--sinopsis-lineas-max"), 10) ||
-        SINOPSIS_LINEAS_POR_DEFECTO;
+        parseInt(
+            estiloContenido.getPropertyValue("--sinopsis-lineas-max"),
+            10,
+        ) || SINOPSIS_LINEAS_POR_DEFECTO;
 
     const espacioDisponible =
         contenedorEl.clientHeight -

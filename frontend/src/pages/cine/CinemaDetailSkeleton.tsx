@@ -9,9 +9,7 @@ interface CinemaDetailSkeletonProps {
     volverA: RutaRetorno;
 }
 
-export function CinemaDetailSkeleton({
-    volverA,
-}: CinemaDetailSkeletonProps) {
+export function CinemaDetailSkeleton({ volverA }: CinemaDetailSkeletonProps) {
     return (
         <div className="detalle-cine-page" role="status" aria-busy="true">
             <span className="visualmente-oculto">
@@ -58,7 +56,12 @@ export function CinemaDetailSkeleton({
                 <div className="cartelera-sec-header">
                     <div>
                         <Skeleton width={140} height={13} radius="sm" mb={6} />
-                        <Skeleton width={115} height={26} radius="sm" maw="100%" />
+                        <Skeleton
+                            width={115}
+                            height={26}
+                            radius="sm"
+                            maw="100%"
+                        />
                     </div>
                     <Skeleton width={88} height={30} radius={20} />
                 </div>
@@ -95,7 +98,11 @@ export function CinemaDetailSkeleton({
                                             maw="100%"
                                         />
                                     </div>
-                                    <Skeleton width={136} height={36} radius={8} />
+                                    <Skeleton
+                                        width={136}
+                                        height={36}
+                                        radius={8}
+                                    />
                                 </div>
                                 <div className="horarios-grid-cine">
                                     {HORARIOS_CINE_ESQUELETO.map((hIdx) => (

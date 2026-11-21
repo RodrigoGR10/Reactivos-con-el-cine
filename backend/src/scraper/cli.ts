@@ -70,7 +70,10 @@ async function main() {
         desde: localNow().slice(0, 10),
         dias: null,
         cines: args
-            .filter((arg) => arg.startsWith("--cine=") || arg.startsWith("--cinema="))
+            .filter(
+                (arg) =>
+                    arg.startsWith("--cine=") || arg.startsWith("--cinema="),
+            )
             .map((arg) => arg.split("=")[1] ?? "")
             .flatMap((value) => value.split(","))
             .map((value) => value.trim())
@@ -81,7 +84,9 @@ async function main() {
     const desdeArg = args.find((arg) => arg.startsWith("--desde="));
     if (desdeArg) options.desde = desdeArg.split("=")[1];
 
-    const diasArg = args.find((arg) => arg.startsWith("--dias=") || arg.startsWith("--days="));
+    const diasArg = args.find(
+        (arg) => arg.startsWith("--dias=") || arg.startsWith("--days="),
+    );
     if (diasArg) {
         const value = diasArg.split("=")[1];
         options.dias = value === "todos" ? null : Number(value);

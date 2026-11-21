@@ -70,7 +70,8 @@ export async function consultarHorario(
         if (!claimed.rowCount) return cargarHorario(schedule.id);
 
         try {
-            const tarifas = tarifasPrecargadas ?? (await extraerTarifas(schedule));
+            const tarifas =
+                tarifasPrecargadas ?? (await extraerTarifas(schedule));
 
             const client = await pool.connect();
             try {

@@ -16,11 +16,11 @@ import recomendacionRouter from "./controllers/recomendaciones.ts";
 const app = express();
 
 app.use(
-  cors({
-    origin: config.FRONTEND_URL,
-    credentials: true,
-    exposedHeaders: ["X-CSRF-Token"],
-  }),
+    cors({
+        origin: config.FRONTEND_URL,
+        credentials: true,
+        exposedHeaders: ["X-CSRF-Token"],
+    }),
 );
 app.use(express.json());
 app.use(cookieParser());
@@ -37,7 +37,7 @@ app.use("/api", middleware.unknownEndpoint);
 
 app.use(express.static("dist"));
 app.get("/{*splat}", (_request, response) => {
-  response.sendFile(path.resolve("dist/index.html"));
+    response.sendFile(path.resolve("dist/index.html"));
 });
 
 app.use(middleware.unknownEndpoint);

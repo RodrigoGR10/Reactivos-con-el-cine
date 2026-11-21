@@ -61,8 +61,10 @@ const FILTROS_INICIALES: Filtros = {
 export function useFiltrosPeliculas(peliculas: Pelicula[]) {
     const [filtros, setFiltros] = useState<Filtros>(FILTROS_INICIALES);
 
-    const cambiarFiltro = <K extends keyof Filtros>(campo: K, valor: Filtros[K]) =>
-        setFiltros((anterior) => ({ ...anterior, [campo]: valor }));
+    const cambiarFiltro = <K extends keyof Filtros>(
+        campo: K,
+        valor: Filtros[K],
+    ) => setFiltros((anterior) => ({ ...anterior, [campo]: valor }));
 
     const limpiarFiltros = () => setFiltros(FILTROS_INICIALES);
 
@@ -96,8 +98,9 @@ export function useFiltrosPeliculas(peliculas: Pelicula[]) {
         peliculas,
         (pelicula) => (pelicula.clasificacion ? [pelicula.clasificacion] : []),
         (a, b) =>
-            (ORDEN_CLASIFICACION[a.valor] ?? 99) - (ORDEN_CLASIFICACION[b.valor] ?? 99)
-            || a.nombre.localeCompare(b.nombre, "es"),
+            (ORDEN_CLASIFICACION[a.valor] ?? 99) -
+                (ORDEN_CLASIFICACION[b.valor] ?? 99) ||
+            a.nombre.localeCompare(b.nombre, "es"),
     );
 
     const duracionesDisponibles: OpcionFiltro[] = RANGOS_DURACION.map(

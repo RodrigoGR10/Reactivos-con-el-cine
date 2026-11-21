@@ -49,11 +49,17 @@ router.get("/", async (req, res) => {
     const { cadena, comuna } = req.query;
     if (
         (cadena !== undefined &&
-            (typeof cadena !== "string" || !cadena.trim() || cadena.length > 50)) ||
+            (typeof cadena !== "string" ||
+                !cadena.trim() ||
+                cadena.length > 50)) ||
         (comuna !== undefined &&
-            (typeof comuna !== "string" || !comuna.trim() || comuna.length > 100))
+            (typeof comuna !== "string" ||
+                !comuna.trim() ||
+                comuna.length > 100))
     ) {
-        return res.status(400).json({ error: "Los filtros de cadena o comuna son inválidos" });
+        return res
+            .status(400)
+            .json({ error: "Los filtros de cadena o comuna son inválidos" });
     }
 
     const conditions: string[] = [];
@@ -79,12 +85,13 @@ router.get("/", async (req, res) => {
         ...serializarCine(row),
         comuna: normalizarComuna(row.comuna),
     }));
-    const comunaNormalizada = typeof comuna === "string"
-        ? normalizarComuna(comuna)
-        : undefined;
-    return res.json(comunaNormalizada
-        ? cines.filter((cine) => cine.comuna === comunaNormalizada)
-        : cines);
+    const comunaNormalizada =
+        typeof comuna === "string" ? normalizarComuna(comuna) : undefined;
+    return res.json(
+        comunaNormalizada
+            ? cines.filter((cine) => cine.comuna === comunaNormalizada)
+            : cines,
+    );
 });
 
 router.get("/:id", async (req, res) => {

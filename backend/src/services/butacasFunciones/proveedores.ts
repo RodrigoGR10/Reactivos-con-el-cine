@@ -29,7 +29,10 @@ export async function carteleraCinemark(
             fecha: sesion.sessionDateTime.slice(0, 10),
             horario: sesion.sessionDateTime.slice(11, 16),
             peliculaId: sesion.corporateId,
-            butacas: normalizarOcupacionCinemark(sesion.occupation, consultadasEn),
+            butacas: normalizarOcupacionCinemark(
+                sesion.occupation,
+                consultadasEn,
+            ),
         });
     }
     return resultado;

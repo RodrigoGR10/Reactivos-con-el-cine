@@ -103,10 +103,15 @@ async function listarEnCartelera() {
 
     const disponibles = peliculas
         .map((row) =>
-            serializarPelicula(row, fuentesAEstreno(fuentesPorId.get(row.id) ?? []), hoy, {
-                totalCines: row.total_cines ?? 0,
-                totalFunciones: row.total_funciones ?? 0,
-            }),
+            serializarPelicula(
+                row,
+                fuentesAEstreno(fuentesPorId.get(row.id) ?? []),
+                hoy,
+                {
+                    totalCines: row.total_cines ?? 0,
+                    totalFunciones: row.total_funciones ?? 0,
+                },
+            ),
         )
         .filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
 

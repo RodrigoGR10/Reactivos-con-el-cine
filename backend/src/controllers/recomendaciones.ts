@@ -14,12 +14,16 @@ router.get("/", async (req, res, next) => {
         !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(hora) ||
         typeof cineIds !== "string"
     ) {
-        return res.status(400).json({ error: "Indica una fecha, hora y ubicación válidas." });
+        return res
+            .status(400)
+            .json({ error: "Indica una fecha, hora y ubicación válidas." });
     }
 
     const ids = [...new Set(cineIds.split(",").filter(Boolean))];
     if (!ids.length || ids.length > 200 || ids.some((id) => !isCineId(id))) {
-        return res.status(400).json({ error: "Indica al menos un cine válido." });
+        return res
+            .status(400)
+            .json({ error: "Indica al menos un cine válido." });
     }
 
     try {

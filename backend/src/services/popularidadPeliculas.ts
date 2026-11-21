@@ -14,7 +14,10 @@ export async function incluirPopularidad<T extends { id: string }>(
     ];
 
     if (!ids.length) {
-        return peliculas.map((pelicula) => ({ ...pelicula, totalFavoritos: 0 }));
+        return peliculas.map((pelicula) => ({
+            ...pelicula,
+            totalFavoritos: 0,
+        }));
     }
 
     const { rows } = await query<{ pelicula_id: number; total: number }>(
@@ -27,7 +30,9 @@ export async function incluirPopularidad<T extends { id: string }>(
         [ids],
     );
 
-    const totales = new Map(rows.map((row) => [String(row.pelicula_id), row.total]));
+    const totales = new Map(
+        rows.map((row) => [String(row.pelicula_id), row.total]),
+    );
     return peliculas.map((pelicula) => ({
         ...pelicula,
         totalFavoritos: totales.get(String(pelicula.id)) ?? 0,

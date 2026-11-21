@@ -1,15 +1,37 @@
-type Trailer = { tipo: "youtube"; id: string; url: string } | { tipo: "video"; url: string };
+type Trailer =
+    | { tipo: "youtube"; id: string; url: string }
+    | { tipo: "video"; url: string };
 
 export function obtenerTrailer(value?: string): Trailer | null {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "https:" || url.username || url.password || url.port) return null;
-    if (["www.youtube.com", "youtube.com"].includes(url.hostname) && url.pathname === "/watch") {
-      const id = url.searchParams.get("v");
-      if (id && /^[A-Za-z0-9_-]{11}$/.test(id)) return { tipo: "youtube", id, url: `https://www.youtube.com/watch?v=${id}` };
+    if (!value) return null;
+    try {
+        const url = new URL(value);
+        if (
+            url.protocol !== "https:" ||
+            url.username ||
+            url.password ||
+            url.port
+        )
+            return null;
+        if (
+            ["www.youtube.com", "youtube.com"].includes(url.hostname) &&
+            url.pathname === "/watch"
+        ) {
+            const id = url.searchParams.get("v");
+            if (id && /^[A-Za-z0-9_-]{11}$/.test(id))
+                return {
+                    tipo: "youtube",
+                    id,
+                    url: `https://www.youtube.com/watch?v=${id}`,
+                };
+        }
+        if (
+            url.hostname === "pimcore-content.cinepolis.com" &&
+            /\.mp4$/i.test(url.pathname)
+        )
+            return { tipo: "video", url: url.href };
+    } catch {
+        /* No se incrustan direcciones desconocidas o invalidas. */
     }
-    if (url.hostname === "pimcore-content.cinepolis.com" && /\.mp4$/i.test(url.pathname)) return { tipo: "video", url: url.href };
-  } catch { /* No se incrustan direcciones desconocidas o invalidas. */ }
-  return null;
+    return null;
 }

@@ -46,7 +46,10 @@ export async function upsertMovie(
     if (existing.rows.length > 0) {
         const id = existing.rows[0].pelicula_id;
 
-        await client.query(`SELECT id FROM peliculas WHERE id = $1 FOR UPDATE;`, [id]);
+        await client.query(
+            `SELECT id FROM peliculas WHERE id = $1 FOR UPDATE;`,
+            [id],
+        );
 
         const metadataOwner = await client.query<{
             origen: string;

@@ -3,32 +3,32 @@ import { AuthModal } from "../components/auth/AuthModal";
 import { Mensaje } from "../components/common/Mensaje";
 import { useAuth } from "../context/AuthContext";
 import {
-  obtenerDestinoLogin,
-  obtenerRutaCierreLogin,
+    obtenerDestinoLogin,
+    obtenerRutaCierreLogin,
 } from "../utils/navegacion";
 
 function LoginPage() {
-  const { isAuthenticated, isLoadingSession } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const destinoPostLogin = obtenerDestinoLogin(location.state) ?? "/perfil";
-  const destinoAlCerrar = obtenerRutaCierreLogin(location.state);
+    const { isAuthenticated, isLoadingSession } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const destinoPostLogin = obtenerDestinoLogin(location.state) ?? "/perfil";
+    const destinoAlCerrar = obtenerRutaCierreLogin(location.state);
 
-  if (isLoadingSession) {
-    return <Mensaje tipo="cargando" texto="Comprobando sesión..." />;
-  }
+    if (isLoadingSession) {
+        return <Mensaje tipo="cargando" texto="Comprobando sesión..." />;
+    }
 
-  if (isAuthenticated) {
-    return <Navigate to={destinoPostLogin} replace />;
-  }
+    if (isAuthenticated) {
+        return <Navigate to={destinoPostLogin} replace />;
+    }
 
-  return (
-    <AuthModal
-      isOpen={true}
-      onClose={() => navigate(destinoAlCerrar, { replace: true })}
-      onSuccess={() => navigate(destinoPostLogin, { replace: true })}
-    />
-  );
+    return (
+        <AuthModal
+            isOpen={true}
+            onClose={() => navigate(destinoAlCerrar, { replace: true })}
+            onSuccess={() => navigate(destinoPostLogin, { replace: true })}
+        />
+    );
 }
 
 export default LoginPage;
