@@ -1,6 +1,6 @@
 import type { Pelicula } from "../types/types.ts";
 import { CONFIG_CUPOS_DESTACADAS } from "./destacadas/config.ts";
-import { fechaHoySantiago } from "./destacadas/dates.ts";
+import { fechaHoySantiago } from "./fechaSantiago.ts";
 import { complementoPara, generarEtiqueta } from "./destacadas/labels.ts";
 import { obtenerPoolCategoria, poolFavoritas } from "./destacadas/pools.ts";
 import {
@@ -33,7 +33,7 @@ export type {
     ReglaCupoCategoria,
 } from "./destacadas/types.ts";
 export { CONFIG_CUPOS_DESTACADAS } from "./destacadas/config.ts";
-export { fechaHoySantiago } from "./destacadas/dates.ts";
+export { fechaHoySantiago } from "./fechaSantiago.ts";
 export {
     esConcierto,
     tieneBannerHero,
