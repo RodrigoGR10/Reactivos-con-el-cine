@@ -268,6 +268,70 @@ npm run build
 
 El frontend genera su compilación de producción mediante Vite. El backend compila TypeScript a `backend/out/`.
 
+### 5.4. Pruebas automatizadas
+
+El backend utiliza Vitest. La suite combina pruebas unitarias con pruebas de integración que recorren el camino completo `ruta Express -> controlador -> servicio -> PostgreSQL`, sin mocks de base de datos y sin llamadas a los scrapers.
+
+**Preparación (una sola vez)**
+
+Con el entorno de Nix activo (`direnv allow`), crea la base de pruebas separada de la base de desarrollo:
+
+```bash
+createdb -h localhost -p 5433 -U postgres cine_test
+```
+
+El puerto `5433` lo define el `shellHook` de `flake.nix` mediante `PGPORT`. No es necesario crearlo ni cargar `schema.sql` a mano: el setup global de Vitest aplica el esquema antes de la primera prueba.
+
+**Ejecución**
+
+Desde `backend/`:
+
+```bash
+npm test              # ejecuta la suite una vez
+npm run test:watch    # modo interactivo
+npm run test:coverage # suite + reporte de cobertura
+```
+
+El reporte HTML queda en `backend/coverage/`, que está ignorado por Git.
+
+**Qué hacen las pruebas de integración**
+
+- Levantan Express en un puerto efímero y lo consultan con `fetch`, sin `supertest` ni dependencias adicionales.
+- Siembran solo los datos que necesita cada caso y limpian las tablas en `beforeEach` con `TRUNCATE ... RESTART IDENTITY CASCADE`.
+- Ejecutan un archivo a la vez (`fileParallelism: false`) porque todos comparten la misma base.
+- Evitan llamadas externas: los horarios se siembran con precios y butacas vigentes, de modo que `/precios`, `/butacas` y `/detalle-stream` se resuelven contra PostgreSQL.
+- Fijan `NODE_ENV=test` y un `JWT_SECRET` exclusivo para pruebas en `vitest.config.ts`.
+
+**Protecciones del entorno de pruebas**
+
+- El setup global **se niega a ejecutarse** si el nombre de la base no termina en `_test`. Esto impide aplicar `schema.sql` o truncar tablas de la base de desarrollo `cine`.
+- La base por defecto es `postgresql://postgres@localhost:5433/cine_test`. Para usar otra instancia (por ejemplo, un contenedor en CI), define `TEST_DATABASE_URL`. El setup global y las pruebas usan la misma URL de la configuración de Vitest, aunque tengas exportada una `DATABASE_URL` de desarrollo.
+- `schema.sql` debe estar actualizado: el setup no recrea tablas ni modifica columnas existentes, igual que ocurre al inicializar la base de desarrollo.
+- Nunca apuntes `TEST_DATABASE_URL` a una base con datos que quieras conservar: los tests truncan sus tablas.
+
+**Cobertura actual**
+
+La cobertura global es baja porque el scraper concentra la mayor parte de las líneas y no se prueba de extremo a extremo. Para evaluar la API conviene mirar la capa sin `scraper/` ni `scripts/`:
+
+| Ámbito | Líneas | Statements | Funciones | Ramas |
+| --- | --- | --- | --- | --- |
+| Global (`src/**`) | 27,6 % | 26,9 % | 32,7 % | 29,9 % |
+| API sin `scraper/` ni `scripts/` | **78,4 %** | 77,0 % | 84,6 % | 74,6 % |
+| `controllers` | 97,2 % | 96,8 % | 100 % | 93,0 % |
+| `utils` | 98,3 % | 96,1 % | 100 % | 92,4 % |
+| `app`, `db` y `models` | 82,1 % | 81,3 % | 85,2 % | 84,2 % |
+| `services` | 52,5 % | 51,5 % | 66,7 % | 50,5 % |
+| `scraper` | 12,4 % | 12,2 % | 14,1 % | 14,8 % |
+
+Los 18 endpoints de la API tienen al menos una prueba de integración, incluido `GET /api/funciones/detalle-stream` (NDJSON con eventos de precio, butaca y cierre, y fallos parciales).
+
+**Brechas conocidas**
+
+- La ruta de caché vencida de precios y butacas no se ejercita: `services/preciosFunciones/consulta.ts`, `actualizacion.ts`, `carteleras.ts`, `proveedores.ts` y `extraer-tarifas.ts` dependen de scrapers externos. Para cubrirla sin red, conviene probar a nivel de servicio `consultarHorario(horario, tarifasPrecargadas)` y `actualizarHorario(horario, butacas)`, incluyendo el candado y el backoff de error.
+- No hay pruebas de concurrencia sobre el candado de precios ni de las ramas de `errorHandler` para JSON malformado o errores 500.
+- Los scrapers no se prueban de extremo a extremo: su HTML y sus APIs cambian sin aviso. La lógica de parseo ya tiene pruebas unitarias (`normalize`, `validate`, deduplicación y TMDB); si una cadena se rompe, lo recomendable es agregar un fixture HTML y probar solo el parser, no la descarga. Un smoke test programado contra los sitios reales puede servir como alerta operacional, pero no debe bloquear una PR.
+- `isCineId` solo exige un string no vacío de hasta 100 caracteres. Por eso ids como `abc` se consideran válidos y producen `200`/`404` en lugar de `400`, y un `cineId` compuesto solo por espacios también se acepta. Es el comportamiento actual, no una decisión de los tests.
+
 ## 6. Arquitectura de datos y sincronización
 
 La base PostgreSQL es la fuente de datos que consume el backend. Los scrapers obtienen información desde las cadenas de cine y la preparan para incorporarla al catálogo.
@@ -627,6 +691,9 @@ Todos los comandos de esta sección se ejecutan desde `backend/`, salvo que se i
 | ---------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
 | `npm run dev`                                        | Inicia el backend en modo desarrollo. | Lectura y escritura según las solicitudes.                   |
 | `npm run build`                                      | Compila TypeScript.                   | Ninguno.                                                     |
+| `npm test`                                           | Ejecuta la suite de pruebas.          | Ninguno sobre `cine`; usa la base `cine_test`.               |
+| `npm run test:watch`                                 | Ejecuta Vitest en modo interactivo.   | Ninguno sobre `cine`; usa la base `cine_test`.               |
+| `npm run test:coverage`                              | Ejecuta la suite y mide cobertura.    | Ninguno sobre `cine`; usa la base `cine_test`.               |
 | `npm run scrape:cinemark`                            | Extrae Cinemark y guarda JSON.        | Ninguno.                                                     |
 | `npm run scrape:cineplanet`                          | Extrae Cineplanet y guarda JSON.      | Ninguno.                                                     |
 | `npm run scrape:muvix`                               | Extrae Muvix y guarda JSON.           | Ninguno.                                                     |

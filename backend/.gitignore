@@ -7,3 +7,4 @@ debug/
 reports/
 .DS_Store/
 .data/scrapes/*.json
+coverage
