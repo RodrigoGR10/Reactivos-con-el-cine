@@ -44,3 +44,47 @@ test("consulta precios y butacas para una fecha desde el detalle del cine", asyn
     await expect(page.getByText(/\$\s*4[.\s]?500/)).toBeVisible();
     await expect(page.getByText("80 libres")).toBeVisible();
 });
+
+const fallosParciales = [
+    {
+        cine: "Cine Alameda",
+        pelicula: "Órbita Austral",
+        aviso: "Precio no disponible",
+        datoDisponible: "80 libres",
+        datoAusente: /\$\s*4[.\s]?500/,
+    },
+    {
+        cine: "Cine Plaza",
+        pelicula: "El viaje del sur",
+        aviso: "Butacas no disponibles",
+        datoDisponible: /\$\s*4[.\s]?500/,
+        datoAusente: "80 libres",
+    },
+];
+
+for (const {
+    cine,
+    pelicula,
+    aviso,
+    datoDisponible,
+    datoAusente,
+} of fallosParciales) {
+    test(`conserva el detalle disponible cuando aparece el aviso «${aviso}»`, async ({
+        page,
+    }) => {
+        await page.clock.setFixedTime(new Date(Date.now() + 6 * 60_000));
+        await page.goto("/cines");
+        await page.getByRole("link", { name: cine, exact: true }).click();
+
+        await page
+            .getByRole("button", { name: `Consultar detalle para ${pelicula}` })
+            .click();
+        await expect(page.getByRole("alert")).toHaveText(aviso);
+        await expect(
+            page.getByText(datoDisponible, { exact: true }),
+        ).toBeVisible();
+        await expect(page.getByText(datoAusente, { exact: true })).toHaveCount(
+            0,
+        );
+    });
+}

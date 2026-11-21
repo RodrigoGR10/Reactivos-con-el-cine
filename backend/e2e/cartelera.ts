@@ -6,6 +6,7 @@ import {
     crearTarifa,
     limpiarBaseDeDatos,
 } from "../src/__tests__/helpers/database.ts";
+import { query } from "../src/db.ts";
 import { localNow } from "../src/utils/localNow.ts";
 
 export async function sembrarCartelera() {
@@ -46,6 +47,7 @@ export async function sembrarCartelera() {
         peliculaId: orbita.id,
         cineId: alameda.id,
         horario: "16:00",
+        peliculaOrigenId: "fuente-ausente",
     });
     const horario = await crearHorario({
         peliculaId: orbita.id,
@@ -58,5 +60,29 @@ export async function sembrarCartelera() {
         precio: 4500,
         precioOnline: 4500,
     });
-    await crearHorario({ peliculaId: viaje.id, cineId: plaza.id });
+    const sinButacas = await crearHorario({
+        peliculaId: viaje.id,
+        cineId: plaza.id,
+        butacasFrescas: false,
+    });
+    await crearTarifa({
+        horarioId: sinButacas.id,
+        precio: 4500,
+        precioOnline: 4500,
+    });
+    // Un error vigente del proveedor evita reintentar con un sitio externo.
+    await query(
+        `UPDATE horarios
+         SET butacas_error_revision = revision,
+             butacas_error_hasta = NOW() + INTERVAL '1 hour'
+         WHERE id = $1`,
+        [sinButacas.id],
+    );
+
+    await crearHorario({
+        peliculaId: viaje.id,
+        cineId: plaza.id,
+        fecha: pasadoManana,
+        horario: "00:15",
+    });
 }
