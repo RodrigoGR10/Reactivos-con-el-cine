@@ -305,7 +305,7 @@ El reporte HTML queda en `backend/coverage/`, que está ignorado por Git.
 **Protecciones del entorno de pruebas**
 
 - El setup global **se niega a ejecutarse** si el nombre de la base no termina en `_test`. Esto impide aplicar `schema.sql` o truncar tablas de la base de desarrollo `cine`.
-- La base por defecto es `postgresql://postgres@localhost:5433/cine_test`. Para usar otra instancia (por ejemplo, un contenedor en CI) define `TEST_DATABASE_URL`; tanto `vitest.config.ts` como el setup global leen esa variable.
+- La base por defecto es `postgresql://postgres@localhost:5433/cine_test`. Para usar otra instancia (por ejemplo, un contenedor en CI), define `TEST_DATABASE_URL`. El setup global y las pruebas usan la misma URL de la configuración de Vitest, aunque tengas exportada una `DATABASE_URL` de desarrollo.
 - `schema.sql` debe estar actualizado: el setup no recrea tablas ni modifica columnas existentes, igual que ocurre al inicializar la base de desarrollo.
 - Nunca apuntes `TEST_DATABASE_URL` a una base con datos que quieras conservar: los tests truncan sus tablas.
 
