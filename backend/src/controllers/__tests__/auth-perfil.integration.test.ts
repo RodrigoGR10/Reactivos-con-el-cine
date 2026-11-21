@@ -331,5 +331,46 @@ describe("Autenticacion y perfil (integracion con PostgreSQL)", () => {
             { method: "POST" },
         );
         expect(cineInexistente.status).toBe(404);
+
+        // isCineId solo exige un string no vacio de hasta 100 caracteres;
+        // "abc" es valido y termina en 404 por no existir. El 400 se produce
+        // cuando el id excede el largo permitido.
+        const cineInvalido = await peticionAutenticada(
+            sesion,
+            `/api/perfil/favoritos/cines/${"a".repeat(101)}`,
+            { method: "POST" },
+        );
+        expect(cineInvalido.status).toBe(400);
+    });
+
+    it("responde 401 en favoritos cuando el usuario de la sesion ya no existe", async () => {
+        const { respuesta, sesion } = await registrarUsuario({
+            nombre: "Ana",
+            email: "ana@test.cl",
+            contrasena: "secreto123",
+        });
+        const usuario = await respuesta.json();
+
+        await query("DELETE FROM users WHERE id = $1;", [usuario.id]);
+
+        const listado = await peticionAutenticada(
+            sesion,
+            "/api/perfil/favoritos",
+        );
+        expect(listado.status).toBe(401);
+
+        const agregarPelicula = await peticionAutenticada(
+            sesion,
+            "/api/perfil/favoritos/peliculas/1",
+            { method: "POST" },
+        );
+        expect(agregarPelicula.status).toBe(401);
+
+        const agregarCine = await peticionAutenticada(
+            sesion,
+            "/api/perfil/favoritos/cines/cinemark:1",
+            { method: "POST" },
+        );
+        expect(agregarCine.status).toBe(401);
     });
 });
