@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { LogoCine } from "../../components/cines/LogoCine";
 import { BotonFavorito } from "../../components/common/BotonFavorito";
 import { AvisoUbicacion } from "../../components/common/Mensaje";
@@ -25,6 +25,7 @@ export function MovieCinemaList({
   filtros,
   detalle,
 }: MovieCinemaListProps) {
+  const location = useLocation();
   const { user, openAuthModal } = useAuth();
   const { toggleFavoriteCinema, isFavoriteCinema } = useFavorites();
 
@@ -82,12 +83,20 @@ export function MovieCinemaList({
             ? `Quitar ${cine.nombre} de cines favoritos`
             : `Guardar ${cine.nombre} en cines favoritos`;
 
+          const destinoVolverPelicula = {
+            volverA: {
+              to: `/peliculas/${pelicula.id}${location.search}`,
+              label: `Volver a ${pelicula.titulo}`,
+            },
+          };
+
           return (
             <article key={cine.id} className="tarjeta-cine">
               <div className="cabecera-cine">
                 <div className="cabecera-cine-left">
                   <Link
                     to={`/cines/${cine.id}`}
+                    state={destinoVolverPelicula}
                     className="logo-cine-link"
                     tabIndex={-1}
                     aria-hidden="true"
@@ -105,16 +114,17 @@ export function MovieCinemaList({
                       <strong>
                         <Link
                           to={`/cines/${cine.id}`}
+                          state={destinoVolverPelicula}
                           className="enlace-cine-detalle"
                         >
                           {cine.nombre}
                         </Link>
-                        {Number.isFinite(distancia) && (
-                          <span className="distancia-cine">
-                            {formatearDistancia(distancia)}
-                          </span>
-                        )}
                       </strong>
+                      {Number.isFinite(distancia) && (
+                        <span className="distancia-cine">
+                          {formatearDistancia(distancia)}
+                        </span>
+                      )}
                       <BotonFavorito
                         className="boton-fav-inline"
                         activo={esCineFavorito}
@@ -142,6 +152,8 @@ export function MovieCinemaList({
                   consultadoEn={estadoDetalle.consultadoEn}
                   avisoError={estadoDetalle.avisoError}
                   contexto={cine.nombre}
+                  totalFunciones={horariosGrupo.length}
+                  progreso={estadoDetalle.progreso}
                   onConsultar={() =>
                     detalle.consultar(
                       pelicula.id,
@@ -159,7 +171,8 @@ export function MovieCinemaList({
                     horario={detalle.horarioParaTarjeta(h, clave)}
                     pelicula={pelicula}
                     cine={cine}
-                    mostrarDetalle={estadoDetalle.revelado}
+                    mostrarDetalle={estadoDetalle.mostrarDetalle}
+                    cargando={estadoDetalle.cargando}
                   />
                 ))}
               </div>

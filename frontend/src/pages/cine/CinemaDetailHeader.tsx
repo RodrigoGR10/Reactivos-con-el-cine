@@ -2,10 +2,12 @@ import { Link } from "react-router-dom";
 import { LogoCine } from "../../components/cines/LogoCine";
 import { HeartIcon, MapPinIcon } from "../../components/common/Icons";
 import { normalizarTexto } from "../../utils/normalizarTexto";
+import type { RutaRetorno } from "../../utils/navegacion";
 import type { Cine } from "../../types/types";
 
 interface CinemaDetailHeaderProps {
     cine: Cine;
+    volverA: RutaRetorno;
     esFavorito: boolean;
     onToggleFavorito: () => void;
 }
@@ -23,6 +25,7 @@ function obtenerUbicacion(cine: Cine): string | undefined {
 
 export function CinemaDetailHeader({
     cine,
+    volverA,
     esFavorito,
     onToggleFavorito,
 }: CinemaDetailHeaderProps) {
@@ -31,8 +34,8 @@ export function CinemaDetailHeader({
     return (
         <>
             <nav className="detalle-cine-nav">
-                <Link to="/cines" className="btn-volver-cines">
-                    ← Volver a cines
+                <Link to={volverA.to} className="btn-volver-cines">
+                    ← {volverA.label}
                 </Link>
             </nav>
 

@@ -67,11 +67,19 @@ export function CinemaMoviesList({
                     ? `Quitar ${pelicula.titulo} de películas favoritas`
                     : `Guardar ${pelicula.titulo} en películas favoritas`;
 
+                const destinoVolverCine = {
+                    volverA: {
+                        to: `/cines/${cine.id}`,
+                        label: `Volver a ${cine.nombre}`,
+                    },
+                };
+
                 return (
                     <article key={pelicula.id} className="pelicula-cine-card">
                         {/* Póster de la película */}
                         <Link
                             to={`/peliculas/${pelicula.id}`}
+                            state={destinoVolverCine}
                             className="pelicula-cine-poster-link"
                         >
                             <img
@@ -89,6 +97,7 @@ export function CinemaMoviesList({
                                         <h3>
                                             <Link
                                                 to={`/peliculas/${pelicula.id}`}
+                                                state={destinoVolverCine}
                                                 className="pelicula-cine-titulo-link"
                                             >
                                                 {pelicula.titulo}
@@ -143,6 +152,8 @@ export function CinemaMoviesList({
                                     consultadoEn={estadoDetalle.consultadoEn}
                                     avisoError={estadoDetalle.avisoError}
                                     contexto={pelicula.titulo}
+                                    totalFunciones={horariosGrupo.length}
+                                    progreso={estadoDetalle.progreso}
                                     onConsultar={() =>
                                         detalle.consultar(
                                             pelicula.id,
@@ -164,7 +175,10 @@ export function CinemaMoviesList({
                                         )}
                                         pelicula={pelicula}
                                         cine={cine}
-                                        mostrarDetalle={estadoDetalle.revelado}
+                                        mostrarDetalle={
+                                            estadoDetalle.mostrarDetalle
+                                        }
+                                        cargando={estadoDetalle.cargando}
                                     />
                                 ))}
                             </div>

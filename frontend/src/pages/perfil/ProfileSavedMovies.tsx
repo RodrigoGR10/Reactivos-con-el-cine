@@ -79,6 +79,12 @@ export const ProfileSavedMovies = ({
                             ) : (
                                 <Link
                                     to={`/peliculas/${peli.id}`}
+                                    state={{
+                                        volverA: {
+                                            to: "/perfil",
+                                            label: "Volver a mi perfil",
+                                        },
+                                    }}
                                     aria-label={peli.titulo}
                                 >
                                     {contenidoPoster}

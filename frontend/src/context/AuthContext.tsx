@@ -19,7 +19,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   invalidateSession: () => void;
   isAuthModalOpen: boolean;
-  openAuthModal: () => void;
+  authModalRedirectTo: string | null;
+  openAuthModal: (redirectTo?: string) => void;
   closeAuthModal: () => void;
 }
 
@@ -29,6 +30,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Usuario | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalRedirectTo, setAuthModalRedirectTo] = useState<string | null>(
+    null,
+  );
   // Evita que una restauración pendiente sobrescriba un login o logout posterior.
   const restoreController = useRef<AbortController | null>(null);
 
@@ -46,8 +50,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => controller.abort();
   }, []);
 
-  const openAuthModal = (): void => setIsAuthModalOpen(true);
-  const closeAuthModal = (): void => setIsAuthModalOpen(false);
+  const openAuthModal = (redirectTo?: string): void => {
+    setAuthModalRedirectTo(redirectTo ?? null);
+    setIsAuthModalOpen(true);
+  };
+  const closeAuthModal = (): void => {
+    setIsAuthModalOpen(false);
+    setAuthModalRedirectTo(null);
+  };
 
   const invalidateSession = useCallback((): void => {
     restoreController.current?.abort();
@@ -55,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setIsLoadingSession(false);
     setIsAuthModalOpen(false);
+    setAuthModalRedirectTo(null);
   }, []);
 
   const login = async (credenciales: LoginInput): Promise<void> => {
@@ -96,6 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     invalidateSession,
     isAuthModalOpen,
+    authModalRedirectTo,
     openAuthModal,
     closeAuthModal,
   };

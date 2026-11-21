@@ -56,13 +56,19 @@ async function registrarError(row: ScheduleRow) {
     );
 }
 
-async function resolverButacas(row: ScheduleRow): Promise<Butacas | undefined> {
+async function resolverButacas(
+    row: ScheduleRow,
+    precargadas?: Map<string, Butacas | undefined>,
+): Promise<Butacas | undefined> {
     const cineOrigenId = row.cine_origen_id;
-    let butacas = await consultarButacasSesion(
-        row.origen,
-        cineOrigenId,
-        row.sesion_id,
-    );
+    const butacas =
+        row.origen === "cinepolis" && precargadas?.has(row.sesion_id)
+            ? precargadas.get(row.sesion_id)
+            : await consultarButacasSesion(
+                  row.origen,
+                  cineOrigenId,
+                  row.sesion_id,
+              );
 
     if (butacas || !esOrigenCartelera(row.origen)) return butacas;
 
@@ -85,14 +91,11 @@ async function resolverButacas(row: ScheduleRow): Promise<Butacas | undefined> {
     return sesion.butacas;
 }
 
-/**
- * Consulta las butacas de una funcion si su estado guardado ya no es vigente,
- * deduplicando consultas simultaneas y registrando el error para reintentar.
- */
-export async function actualizarHorario(
+/** Indica si el estado guardado de butacas de la funcion ya no es vigente. */
+export function necesitaConsultarButacas(
     row: ScheduleRow,
-): Promise<ScheduleWithPrices | null> {
-    const ahora = Date.now();
+    ahora: number,
+): boolean {
     const actualizadasMs = row.butacas_actualizadas_en
         ? new Date(row.butacas_actualizadas_en).getTime()
         : 0;
@@ -104,9 +107,23 @@ export async function actualizarHorario(
         row.butacas_revision === row.revision &&
         actualizadasMs > ahora - CACHE_BUTACAS_MS
     ) {
-        return cargarHorario(row.id);
+        return false;
     }
     if (row.butacas_error_revision === row.revision && errorHastaMs > ahora) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Consulta las butacas de una funcion si su estado guardado ya no es vigente,
+ * deduplicando consultas simultaneas y registrando el error para reintentar.
+ */
+export async function actualizarHorario(
+    row: ScheduleRow,
+    precargadas?: Map<string, Butacas | undefined>,
+): Promise<ScheduleWithPrices | null> {
+    if (!necesitaConsultarButacas(row, Date.now())) {
         return cargarHorario(row.id);
     }
 
@@ -116,7 +133,7 @@ export async function actualizarHorario(
 
     const consulta = (async () => {
         try {
-            const butacas = await resolverButacas(row);
+            const butacas = await resolverButacas(row, precargadas);
             await guardarButacas(row, butacas);
         } catch (error) {
             console.warn(

@@ -13,6 +13,7 @@ interface TarjetaCineProps {
   accion?: ReactNode;
   navegable?: boolean;
   nivelTitulo?: "h2" | "h3";
+  estadoEnlace?: unknown;
 }
 
 export function TarjetaCine({
@@ -21,6 +22,7 @@ export function TarjetaCine({
   accion,
   navegable = true,
   nivelTitulo = "h3",
+  estadoEnlace,
 }: TarjetaCineProps) {
   const Heading = nivelTitulo;
 
@@ -33,7 +35,11 @@ export function TarjetaCine({
       <div className="cine-card-body">
         <Heading className="cine-card-nombre">
           {navegable ? (
-            <Link to={`/cines/${cine.id}`} className="cine-card-link">
+            <Link
+              to={`/cines/${cine.id}`}
+              state={estadoEnlace}
+              className="cine-card-link"
+            >
               {cine.nombre}
             </Link>
           ) : (

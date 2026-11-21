@@ -58,6 +58,12 @@ export const ProfileSavedCinemas = ({
                         cine={cine}
                         nivelTitulo="h2"
                         navegable={!editando}
+                        estadoEnlace={{
+                            volverA: {
+                                to: "/perfil",
+                                label: "Volver a mi perfil",
+                            },
+                        }}
                         accion={
                             editando ? (
                                 <button

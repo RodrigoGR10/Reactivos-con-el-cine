@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useDetallePelicula } from "../hooks/useDetallePelicula";
@@ -6,6 +6,7 @@ import { useDetalleFunciones } from "../hooks/useDetalleFunciones";
 import { useMovieScheduleFilters } from "../hooks/useMovieScheduleFilters";
 import { useScrollIndicadores } from "../hooks/useScrollIndicadores";
 import { Mensaje } from "../components/common/Mensaje";
+import { obtenerVolverA } from "../utils/navegacion";
 import { MovieDetailSkeleton } from "./pelicula/MovieDetailSkeleton";
 import { MovieDetailHero } from "./pelicula/MovieDetailHero";
 import { MovieDetailFilters } from "./pelicula/MovieDetailFilters";
@@ -14,6 +15,11 @@ import "./MovieDetailPage.css";
 
 function MovieDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
+  const volverA = obtenerVolverA(location.state, {
+    to: "/",
+    label: "Volver a cartelera",
+  });
   const { user, openAuthModal } = useAuth();
   const { toggleFavoriteMovie, isFavoriteMovie } = useFavorites();
   const { pelicula, horarios, cines, error, noEncontrada } =
@@ -43,14 +49,14 @@ function MovieDetailPage() {
   }
 
   if (!pelicula) {
-    return <MovieDetailSkeleton />;
+    return <MovieDetailSkeleton volverA={volverA} />;
   }
 
   return (
     <div className="detalle-pelicula">
       <nav className="detalle-pelicula-nav">
-        <Link to="/" className="btn-volver-cartelera">
-          ← Volver a cartelera
+        <Link to={volverA.to} className="btn-volver-cartelera">
+          ← {volverA.label}
         </Link>
       </nav>
 

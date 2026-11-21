@@ -1,18 +1,25 @@
 import { Skeleton } from "@mantine/core";
 import { Link } from "react-router-dom";
+import type { RutaRetorno } from "../../utils/navegacion";
 
 const PELICULAS_CINE_ESQUELETO = [0, 1];
 const HORARIOS_CINE_ESQUELETO = [0, 1, 2];
 
-export function CinemaDetailSkeleton() {
+interface CinemaDetailSkeletonProps {
+    volverA: RutaRetorno;
+}
+
+export function CinemaDetailSkeleton({
+    volverA,
+}: CinemaDetailSkeletonProps) {
     return (
         <div className="detalle-cine-page" role="status" aria-busy="true">
             <span className="visualmente-oculto">
                 Cargando información del cine y su cartelera...
             </span>
             <nav className="detalle-cine-nav">
-                <Link to="/cines" className="btn-volver-cines">
-                    ← Volver a cines
+                <Link to={volverA.to} className="btn-volver-cines">
+                    ← {volverA.label}
                 </Link>
             </nav>
 

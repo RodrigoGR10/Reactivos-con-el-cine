@@ -1,6 +1,8 @@
 import { query } from "../db.ts";
+import { pricesForSchedules as cinepolisPricesBatch } from "../scraper/cinepolis/prices.ts";
 import { consultarHorario } from "./preciosFunciones/consulta.ts";
-import { horarioPublico } from "./preciosFunciones/estado.ts";
+import { horarioPublico, isFresh } from "./preciosFunciones/estado.ts";
+import { buildSchedule } from "./preciosFunciones/horarios.ts";
 import type {
     ScheduleRow,
     ScheduleWithPrices,
@@ -8,10 +10,27 @@ import type {
 
 export { CACHE_PRECIOS_MS } from "./preciosFunciones/estado.ts";
 
+export type HorarioPublico = ReturnType<typeof horarioPublico>;
+
+const TAMANO_LOTE_CINEPOLIS = 3;
+
+function necesitaConsultarPrecio(s: ScheduleRow, ahora: number): boolean {
+    return (
+        !s.agotada &&
+        !isFresh(s, ahora) &&
+        !(
+            s.precios_error_revision === s.revision &&
+            s.precios_error_hasta &&
+            new Date(s.precios_error_hasta).getTime() > ahora
+        )
+    );
+}
+
 export async function preciosPorCine(
     peliculaId: string,
     cineId: string,
     fecha: string,
+    onHorario?: (horario: HorarioPublico) => void,
 ) {
     const result = await query<ScheduleRow>(
         `
@@ -59,15 +78,41 @@ export async function preciosPorCine(
     }
 
     const updated: (ScheduleWithPrices | null)[] = [];
+    const emitir = (resultado: ScheduleWithPrices | null) => {
+        if (resultado && onHorario) onHorario(horarioPublico(resultado));
+        return resultado;
+    };
+
     if (schedules[0]?.origen === "cinepolis") {
-        // Cinepolis comparte una cola de navegador: evita encolar el día completo.
-        for (const schedule of schedules) {
-            updated.push(await consultarHorario(schedule));
+        // Procesa en lotes de 3 para emitir progreso al cliente apenas termina cada lote.
+        const ahora = Date.now();
+        for (let i = 0; i < schedules.length; i += TAMANO_LOTE_CINEPOLIS) {
+            const bloque = schedules.slice(i, i + TAMANO_LOTE_CINEPOLIS);
+            const pendientes = bloque.filter((s) =>
+                necesitaConsultarPrecio(s, ahora),
+            );
+            const precargadas =
+                pendientes.length > 1
+                    ? await cinepolisPricesBatch(pendientes.map(buildSchedule))
+                    : undefined;
+
+            for (const schedule of bloque) {
+                updated.push(
+                    emitir(
+                        await consultarHorario(
+                            schedule,
+                            precargadas?.get(schedule.sesion_id),
+                        ),
+                    ),
+                );
+            }
         }
     } else {
         updated.push(
             ...(await Promise.all(
-                schedules.map((schedule) => consultarHorario(schedule)),
+                schedules.map((schedule) =>
+                    consultarHorario(schedule).then(emitir),
+                ),
             )),
         );
     }

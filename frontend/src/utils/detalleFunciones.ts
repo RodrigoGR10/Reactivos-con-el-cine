@@ -24,12 +24,60 @@ export interface RegistroConsulta {
   falloButacas: boolean;
 }
 
+export interface ProgresoDetalle {
+  porcentaje: number;
+}
+
 export interface EstadoDetalleGrupo {
   cargando: boolean;
   revelado: boolean;
+  /** Revela las tarjetas tambien durante la consulta, para mostrar resultados parciales. */
+  mostrarDetalle: boolean;
   enCooldown: boolean;
   consultadoEn: number | null;
   avisoError: string | null;
+  progreso: ProgresoDetalle | null;
+}
+
+export type TipoDetalle = "precios" | "butacas";
+
+const CAMPOS_DETALLE = {
+  precios: ["tarifas", "estadoPrecio", "preciosConsultadosEn", "reintentarEn", "urlCompra"],
+  butacas: ["butacas", "estadoButacas", "butacasReintentarEn"],
+} as const satisfies Record<TipoDetalle, readonly (keyof DetalleHorario)[]>;
+
+/** Extrae solo los campos de un endpoint para previsualizarlos antes de que termine el otro. */
+export function extraerDetalleParcial(
+  horarios: Horario[],
+  tipo: TipoDetalle,
+): Record<string, DetalleHorario> {
+  return Object.fromEntries(
+    horarios.map((h) => [
+      h.id,
+      Object.fromEntries(CAMPOS_DETALLE[tipo].map((campo) => [campo, h[campo]])),
+    ]),
+  );
+}
+
+/** Mensaje de espera segun progreso real o tiempo transcurrido; null mientras la espera aun es breve. */
+export function mensajeEsperaDetalle(
+  segundos: number,
+  totalFunciones: number,
+  progreso?: ProgresoDetalle | null,
+): string | null {
+  if (progreso && progreso.porcentaje > 0) {
+    return segundos >= 40
+      ? `${progreso.porcentaje}% · tardando más de lo normal…`
+      : `${progreso.porcentaje}%`;
+  }
+  if (segundos < 4) return null;
+  if (segundos < 15) {
+    return totalFunciones === 1
+      ? "Consultando 1 función…"
+      : `Consultando ${totalFunciones} funciones…`;
+  }
+  if (segundos < 40) return "Algunos cines tardan más en responder…";
+  return "Está tardando más de lo normal…";
 }
 
 export const claveDetalle = (peliculaId: string, cineId: string, fecha: string) =>
@@ -162,11 +210,12 @@ export function tieneAlgunaVigenciaMenorASesentaMin(horarios: Horario[], ahora: 
   });
 }
 
-/** Calcula los flags de UI (cooldown, expiracion >= 60 min, texto relativo y fallo) para una cabecera. */
+/** Calcula los flags de UI (cooldown, expiracion >= 60 min, texto relativo, progreso y fallo) para una cabecera. */
 export function resolverEstadoGrupo(
   consulta: RegistroConsulta | undefined,
   cargando: boolean,
   ahora: number,
+  progreso: ProgresoDetalle | null = null,
 ): EstadoDetalleGrupo {
   const revelado =
     Boolean(consulta) && ahora - (consulta?.consultadoEn ?? 0) < EXPIRACION_DETALLE_MS;
@@ -187,18 +236,21 @@ export function resolverEstadoGrupo(
   return {
     cargando,
     revelado,
+    mostrarDetalle: revelado || cargando,
     enCooldown,
     consultadoEn: revelado && consulta ? consulta.consultadoEn : null,
     avisoError,
+    progreso: cargando ? progreso : null,
   };
 }
 
-/** Devuelve el horario oculto (solo 2 lineas) si no esta revelado o si ya expiro (>= 60 min). */
+/** Devuelve el horario oculto (solo 2 lineas) si no esta revelado, o solo datos frescos del stream mientras carga. */
 export function prepararHorarioParaTarjeta(
   horario: Horario,
   detalle: DetalleHorario | undefined,
   revelado: boolean,
   ahora: number,
+  cargando = false,
 ): Horario {
   if (!revelado) {
     return {
@@ -208,6 +260,25 @@ export function prepararHorarioParaTarjeta(
       agotada: false,
       estadoPrecio: "pendiente",
       estadoButacas: "pendiente",
+    };
+  }
+
+  if (cargando) {
+    const parcial: Horario = {
+      ...horario,
+      tarifas: detalle?.tarifas ?? [],
+      estadoPrecio: detalle?.estadoPrecio ?? "pendiente",
+      preciosConsultadosEn: detalle?.preciosConsultadosEn,
+      reintentarEn: detalle?.reintentarEn,
+      urlCompra: detalle?.urlCompra ?? horario.urlCompra,
+      butacas: detalle?.butacas,
+      estadoButacas: detalle?.estadoButacas ?? "pendiente",
+      butacasReintentarEn: detalle?.butacasReintentarEn,
+      agotada: Boolean(detalle?.agotada),
+    };
+    return {
+      ...parcial,
+      ...sanitizarDetalleHorario(parcial, ahora),
     };
   }
 

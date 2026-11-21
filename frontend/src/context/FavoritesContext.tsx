@@ -2,12 +2,13 @@ import {
   createContext,
   useCallback,
   useContext,
+  useRef,
   useState,
   useEffect,
   type ReactNode,
 } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import profileService from "../services/profileService";
 
@@ -28,7 +29,13 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   const { user, invalidateSession } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationRef = useRef(location);
   const [prevUserId, setPrevUserId] = useState<string | undefined>(user?.id);
+
+  useEffect(() => {
+    locationRef.current = location;
+  }, [location]);
 
   const [favoriteMovieIds, setFavoriteMovieIds] = useState<string[]>(
     () => user?.peliculasFavoritas ?? [],
@@ -46,7 +53,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
       }
 
       invalidateSession();
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true, state: { from: locationRef.current } });
       return true;
     },
     [invalidateSession, navigate],

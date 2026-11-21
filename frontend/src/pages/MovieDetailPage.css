@@ -348,7 +348,8 @@
 
 .nombre-cine-titulo {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
     width: fit-content;
     max-width: 100%;
@@ -362,15 +363,19 @@
     line-height: 1.35;
 }
 
-.distancia-cine {
-    display: inline-block;
-    margin-left: 8px;
+.nombre-cine-titulo .distancia-cine {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0;
     color: var(--color-texto-secundario);
     font-size: 0.85rem;
     font-weight: 500;
     font-style: normal;
-    opacity: 0.75;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .nombre-cine > span {
@@ -579,11 +584,11 @@
 
     .nombre-cine-titulo {
         width: 100%;
-        justify-content: space-between;
     }
 
     .nombre-cine-titulo .boton-fav-inline {
-        margin-top: -3px;
+        margin-left: auto;
+        margin-top: 0;
     }
 }
 

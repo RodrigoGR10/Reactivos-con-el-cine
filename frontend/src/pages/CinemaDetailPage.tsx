@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { Mensaje } from "../components/common/Mensaje";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
@@ -10,10 +10,16 @@ import { CinemaDetailSkeleton } from "./cine/CinemaDetailSkeleton";
 import { CinemaDetailHeader } from "./cine/CinemaDetailHeader";
 import { CinemaDetailFilters } from "./cine/CinemaDetailFilters";
 import { CinemaMoviesList } from "./cine/CinemaMoviesList";
+import { obtenerVolverA } from "../utils/navegacion";
 import "./CinemaDetailPage.css";
 
 function CinemaDetailPage() {
     const { id } = useParams<{ id: string }>();
+    const location = useLocation();
+    const volverA = obtenerVolverA(location.state, {
+        to: "/cines",
+        label: "Volver a cines",
+    });
     const { user, openAuthModal } = useAuth();
     const { isFavoriteCinema, toggleFavoriteCinema } = useFavorites();
     const { cine, horarios, peliculas, cargando, noEncontrado, error } =
@@ -30,7 +36,7 @@ function CinemaDetailPage() {
     ]);
 
     if (cargando) {
-        return <CinemaDetailSkeleton />;
+        return <CinemaDetailSkeleton volverA={volverA} />;
     }
 
     if (error || !cine) {
@@ -69,6 +75,7 @@ function CinemaDetailPage() {
         <div className="detalle-cine-page">
             <CinemaDetailHeader
                 cine={cine}
+                volverA={volverA}
                 esFavorito={esFavorito}
                 onToggleFavorito={handleToggleFavorito}
             />

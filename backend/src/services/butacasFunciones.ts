@@ -1,6 +1,10 @@
 import { query } from "../db.ts";
+import { consultarButacasLoteCinepolis } from "../scraper/cinepolis/butacas.ts";
 import { localNow } from "../utils/localNow.ts";
-import { actualizarHorario } from "./butacasFunciones/actualizacion.ts";
+import {
+    actualizarHorario,
+    necesitaConsultarButacas,
+} from "./butacasFunciones/actualizacion.ts";
 import type {
     ScheduleRow,
     ScheduleWithPrices,
@@ -8,11 +12,13 @@ import type {
 
 /** Consultas de butacas simultaneas por funcion; nunca se reservan butacas. */
 const CONSULTAS_SIMULTANEAS = 2;
+const TAMANO_LOTE_CINEPOLIS = 3;
 
 export async function butacasPorCine(
     peliculaId: string,
     cineId: string,
     fecha: string,
+    onHorario?: (horario: ScheduleWithPrices) => void,
 ): Promise<ScheduleWithPrices[]> {
     const result = await query<ScheduleRow>(
         `
@@ -54,26 +60,56 @@ export async function butacasPorCine(
     }
 
     const actualizados: Array<ScheduleWithPrices | null> = [];
-    let indice = 0;
-    await Promise.all(
-        Array.from(
-            { length: Math.min(CONSULTAS_SIMULTANEAS, schedules.length) },
-            async () => {
-                while (indice < schedules.length) {
-                    const posicion = indice++;
-                    actualizados[posicion] = await actualizarHorario(
-                        schedules[posicion]!,
-                    );
-                }
-            },
-        ),
-    );
-
     const ahora = localNow().slice(0, 16);
-    return actualizados.filter(
-        (horario): horario is ScheduleWithPrices =>
-            horario !== null &&
-            `${String(horario.fecha).slice(0, 10)}T${String(horario.horario).slice(0, 5)}` >=
-                ahora,
-    );
+    const esVigente = (
+        horario: ScheduleWithPrices | null,
+    ): horario is ScheduleWithPrices =>
+        horario !== null &&
+        `${String(horario.fecha).slice(0, 10)}T${String(horario.horario).slice(0, 5)}` >=
+            ahora;
+
+    if (schedules[0]?.origen === "cinepolis") {
+        // Procesa en lotes de 3 para emitir progreso al cliente apenas termina cada lote.
+        const ahoraMs = Date.now();
+        for (let i = 0; i < schedules.length; i += TAMANO_LOTE_CINEPOLIS) {
+            const bloque = schedules.slice(i, i + TAMANO_LOTE_CINEPOLIS);
+            const pendientes = bloque.filter((row) =>
+                necesitaConsultarButacas(row, ahoraMs),
+            );
+            const precargadas =
+                pendientes.length > 1
+                    ? await consultarButacasLoteCinepolis(
+                          schedules[0].cine_origen_id,
+                          pendientes.map((row) => row.sesion_id),
+                      )
+                    : undefined;
+
+            for (const row of bloque) {
+                const resultado = await actualizarHorario(row, precargadas);
+                actualizados.push(resultado);
+                if (esVigente(resultado) && onHorario) onHorario(resultado);
+            }
+        }
+    } else {
+        let indice = 0;
+        await Promise.all(
+            Array.from(
+                { length: Math.min(CONSULTAS_SIMULTANEAS, schedules.length) },
+                async () => {
+                    while (indice < schedules.length) {
+                        const posicion = indice++;
+                        const resultado = await actualizarHorario(
+                            schedules[posicion]!,
+                        );
+                        actualizados[posicion] = resultado;
+                        if (esVigente(resultado) && onHorario) {
+                            onHorario(resultado);
+                        }
+                    }
+                },
+            ),
+        );
+    }
+
+    return actualizados.filter(esVigente);
 }
