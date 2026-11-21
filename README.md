@@ -270,6 +270,8 @@ El frontend genera su compilación de producción mediante Vite. El backend comp
 
 ### 5.4. Pruebas automatizadas
 
+#### 5.4.1. Backend
+
 El backend utiliza Vitest. La suite combina pruebas unitarias con pruebas de integración que recorren el camino completo `ruta Express -> controlador -> servicio -> PostgreSQL`, sin mocks de base de datos y sin llamadas a los scrapers.
 
 **Preparación (una sola vez)**
@@ -313,15 +315,15 @@ El reporte HTML queda en `backend/coverage/`, que está ignorado por Git.
 
 La cobertura global es baja porque el scraper concentra la mayor parte de las líneas y no se prueba de extremo a extremo. Para evaluar la API conviene mirar la capa sin `scraper/` ni `scripts/`:
 
-| Ámbito | Líneas | Statements | Funciones | Ramas |
-| --- | --- | --- | --- | --- |
-| Global (`src/**`) | 27,6 % | 26,9 % | 32,7 % | 29,9 % |
-| API sin `scraper/` ni `scripts/` | **78,4 %** | 77,0 % | 84,6 % | 74,6 % |
-| `controllers` | 97,2 % | 96,8 % | 100 % | 93,0 % |
-| `utils` | 98,3 % | 96,1 % | 100 % | 92,4 % |
-| `app`, `db` y `models` | 82,1 % | 81,3 % | 85,2 % | 84,2 % |
-| `services` | 52,5 % | 51,5 % | 66,7 % | 50,5 % |
-| `scraper` | 12,4 % | 12,2 % | 14,1 % | 14,8 % |
+| Ámbito                           | Líneas     | Statements | Funciones | Ramas  |
+| -------------------------------- | ---------- | ---------- | --------- | ------ |
+| Global (`src/**`)                | 27,6 %     | 26,9 %     | 32,7 %    | 29,9 % |
+| API sin `scraper/` ni `scripts/` | **78,4 %** | 77,0 %     | 84,6 %    | 74,6 % |
+| `controllers`                    | 97,2 %     | 96,8 %     | 100 %     | 93,0 % |
+| `utils`                          | 98,3 %     | 96,1 %     | 100 %     | 92,4 % |
+| `app`, `db` y `models`           | 82,1 %     | 81,3 %     | 85,2 %    | 84,2 % |
+| `services`                       | 52,5 %     | 51,5 %     | 66,7 %    | 50,5 % |
+| `scraper`                        | 12,4 %     | 12,2 %     | 14,1 %    | 14,8 % |
 
 Los 18 endpoints de la API tienen al menos una prueba de integración, incluido `GET /api/funciones/detalle-stream` (NDJSON con eventos de precio, butaca y cierre, y fallos parciales).
 
@@ -331,6 +333,33 @@ Los 18 endpoints de la API tienen al menos una prueba de integración, incluido 
 - No hay pruebas de concurrencia sobre el candado de precios ni de las ramas de `errorHandler` para JSON malformado o errores 500.
 - Los scrapers no se prueban de extremo a extremo: su HTML y sus APIs cambian sin aviso. La lógica de parseo ya tiene pruebas unitarias (`normalize`, `validate`, deduplicación y TMDB); si una cadena se rompe, lo recomendable es agregar un fixture HTML y probar solo el parser, no la descarga. Un smoke test programado contra los sitios reales puede servir como alerta operacional, pero no debe bloquear una PR.
 - `isCineId` solo exige un string no vacío de hasta 100 caracteres. Por eso ids como `abc` se consideran válidos y producen `200`/`404` en lugar de `400`, y un `cineId` compuesto solo por espacios también se acepta. Es el comportamiento actual, no una decisión de los tests.
+
+#### 5.4.2. Frontend
+
+Con Node.js 24 y pnpm, ejecuta desde la raíz del repositorio:
+
+```bash
+cd frontend
+pnpm install --frozen-lockfile
+pnpm test
+pnpm test:watch
+```
+
+Vitest reutiliza la configuración de Vite. Las pruebas de componentes usan
+jsdom, Testing Library y `user-event`. Cada prueba busca controles por su rol o
+etiqueta y verifica el resultado visible de la interacción. Las pruebas
+unitarias de lógica pura pueden correr en Node. [Apunte de testing del curso CC5003](https://users.dcc.uchile.cl/~mtoro/cursos/CC5003/apunte/09-testing-frontend.html)
+
+La suite reúne pruebas unitarias y de componentes. Se puede ejecutar sin
+levantar Express ni PostgreSQL.
+
+| Segmento                        | Comportamientos cubiertos                                                                                                                                 |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inicio de sesión                | Correo inválido, inicio exitoso y reintento tras un rechazo.                                                                                              |
+| Cuenta y favoritos              | Registro, restauración de sesión, redirección desde rutas protegidas, guardado y eliminación de películas, eliminación y recuperación de cines guardados. |
+| Cartelera y cines               | Búsqueda, combinación y limpieza de filtros, resultados vacíos y estados de carga y error del directorio.                                                 |
+| Detalle de película y funciones | Selección de fecha, agrupación de horarios, ausencia de funciones y respuestas parciales de precios y butacas.                                            |
+| Destacadas y recomendaciones    | Cupos, exclusiones y desempate de destacadas. Consulta por comuna, agrupación de recomendaciones, resultados vacíos y errores del recomendador.           |
 
 ## 6. Arquitectura de datos y sincronización
 
