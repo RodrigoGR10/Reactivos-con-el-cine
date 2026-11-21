@@ -4,6 +4,10 @@ import type { Pelicula } from "../../types/types.ts";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { useFavorites } from "../../context/FavoritesContext.tsx";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
+import {
+  ajustarTextoPorPalabras,
+  calcularLineasDisponibles,
+} from "../../utils/textClamping.ts";
 import { CalendarIcon, HeartIcon, StarIcon } from "../common/Icons.tsx";
 import {
   type CategoriaDestacada,
@@ -14,102 +18,6 @@ import {
   resumirSinopsisDestacada,
   separarTituloDestacado,
 } from "../../utils/formatearPeliculaDestacada.ts";
-
-const SINOPSIS_LINEAS_POR_DEFECTO = 5;
-const FACTOR_INTERLINEADO_SINOPSIS = 1.65;
-
-function altoExterior(elemento: Element): number {
-  const estilo = window.getComputedStyle(elemento);
-  if (estilo.display === "none") return 0;
-  const margenTop = parseFloat(estilo.marginTop) || 0;
-  const margenBottom = parseFloat(estilo.marginBottom) || 0;
-  return elemento.getBoundingClientRect().height + margenTop + margenBottom;
-}
-
-function calcularLineasSinopsis(
-  peliculaEl: HTMLElement,
-  contenidoEl: HTMLElement,
-  sinopsisEl: HTMLElement,
-): { lineas: number; alturaLinea: number } {
-  const estiloContenido = window.getComputedStyle(contenidoEl);
-  const paddingVertical =
-    (parseFloat(estiloContenido.paddingTop) || 0) +
-    (parseFloat(estiloContenido.paddingBottom) || 0);
-
-  let alturaOtrosElementos = 0;
-  for (const hijo of contenidoEl.children) {
-    if (hijo !== sinopsisEl) {
-      alturaOtrosElementos += altoExterior(hijo);
-    }
-  }
-
-  const estiloSinopsis = window.getComputedStyle(sinopsisEl);
-  const fontSize = parseFloat(estiloSinopsis.fontSize) || 16;
-  const rawLineHeight = parseFloat(estiloSinopsis.lineHeight);
-  const alturaLinea =
-    Number.isFinite(rawLineHeight) && rawLineHeight > 0
-      ? rawLineHeight
-      : fontSize * FACTOR_INTERLINEADO_SINOPSIS;
-  const margenSinopsis =
-    (parseFloat(estiloSinopsis.marginTop) || 0) +
-    (parseFloat(estiloSinopsis.marginBottom) || 0);
-
-  const maxLineasCss =
-    parseInt(estiloContenido.getPropertyValue("--sinopsis-lineas-max"), 10) ||
-    SINOPSIS_LINEAS_POR_DEFECTO;
-
-  const espacioDisponible =
-    peliculaEl.clientHeight - paddingVertical - alturaOtrosElementos - margenSinopsis;
-  const lineasDisponibles = Math.floor((espacioDisponible + 1) / alturaLinea);
-  return {
-    lineas: Math.max(0, Math.min(maxLineasCss, lineasDisponibles)),
-    alturaLinea,
-  };
-}
-
-function formatearPrefijoPalabras(palabras: readonly string[], cantidad: number): string {
-  const base = palabras
-    .slice(0, cantidad)
-    .join(" ")
-    .replace(/[.,;:!?¿¡—–-]+$/, "");
-  return `${base}...`;
-}
-
-function ajustarTextoSinopsisPorPalabras(
-  sinopsisEl: HTMLElement,
-  textoCompleto: string,
-  lineas: number,
-  alturaLinea: number,
-): void {
-  sinopsisEl.dataset.sinopsisMidiendo = "true";
-  sinopsisEl.textContent = textoCompleto;
-
-  const alturaMax = lineas * alturaLinea + Math.max(2, alturaLinea * 0.25);
-  if (sinopsisEl.getBoundingClientRect().height <= alturaMax) {
-    delete sinopsisEl.dataset.sinopsisMidiendo;
-    return;
-  }
-
-  const palabras = textoCompleto.trim().split(/\s+/).filter(Boolean);
-  let lo = 1;
-  let hi = palabras.length - 1;
-  let mejor = 0;
-
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    sinopsisEl.textContent = formatearPrefijoPalabras(palabras, mid);
-    if (sinopsisEl.getBoundingClientRect().height <= alturaMax) {
-      mejor = mid;
-      lo = mid + 1;
-    } else {
-      hi = mid - 1;
-    }
-  }
-
-  sinopsisEl.textContent =
-    mejor > 0 ? formatearPrefijoPalabras(palabras, mejor) : textoCompleto;
-  delete sinopsisEl.dataset.sinopsisMidiendo;
-}
 
 interface PeliculaDestacadaProps {
   pelicula: Pelicula;
@@ -128,7 +36,6 @@ function PeliculaDestacada({
   const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();
   const tituloId = useId();
   const esDesktop = useMediaQuery("(min-width: 769px)");
-  const esAlturaCorta = useMediaQuery("(max-height: 700px)");
   const peliculaRef = useRef<HTMLElement>(null);
   const contenidoRef = useRef<HTMLDivElement>(null);
   const sinopsisRef = useRef<HTMLParagraphElement>(null);
@@ -154,6 +61,17 @@ function PeliculaDestacada({
     void toggleFavoriteMovie(pelicula.id);
   };
 
+  // Cambia cuando cambia el contenido que rodea la sinopsis.
+  const claveRecorte = [
+    pelicula.id,
+    pelicula.titulo,
+    subtitulo,
+    metadatos.length,
+    etiquetaMostrada,
+    complemento?.tipo,
+    complemento?.valor,
+  ].join("|");
+
   useLayoutEffect(() => {
     const peliculaEl = peliculaRef.current;
     const contenidoEl = contenidoRef.current;
@@ -169,7 +87,7 @@ function PeliculaDestacada({
     }
 
     const actualizarRecorte = () => {
-      const { lineas, alturaLinea } = calcularLineasSinopsis(
+      const { lineas, alturaLinea } = calcularLineasDisponibles(
         peliculaEl,
         contenidoEl,
         sinopsisEl,
@@ -182,7 +100,7 @@ function PeliculaDestacada({
         return;
       }
       delete sinopsisEl.dataset.sinopsisOculta;
-      ajustarTextoSinopsisPorPalabras(sinopsisEl, sinopsis, lineas, alturaLinea);
+      ajustarTextoPorPalabras(sinopsisEl, sinopsis, lineas, alturaLinea);
     };
 
     actualizarRecorte();
@@ -202,7 +120,7 @@ function PeliculaDestacada({
       desmontado = true;
       observador.disconnect();
     };
-  }, [esDesktop, esAlturaCorta, pelicula.id, pelicula.titulo, sinopsis, subtitulo, metadatos.length, etiquetaMostrada, complemento?.tipo, complemento?.valor]);
+  }, [esDesktop, claveRecorte, sinopsis]);
 
   return (
     <section
