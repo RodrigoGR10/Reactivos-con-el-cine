@@ -361,6 +361,55 @@ levantar Express ni PostgreSQL.
 | Detalle de película y funciones | Selección de fecha, agrupación de horarios, ausencia de funciones y respuestas parciales de precios y butacas.                                            |
 | Destacadas y recomendaciones    | Cupos, exclusiones y desempate de destacadas. Consulta por comuna, agrupación de recomendaciones, resultados vacíos y errores del recomendador.           |
 
+#### 5.4.3. Pruebas de extremo a extremo
+
+Playwright ejecuta los recorridos en Chromium, Firefox y WebKit sin ventana. WebKit permite comprobar compatibilidad con el motor de Safari. La prueba del panel móvil usa un viewport de 390 × 844 en los tres motores, con toques en Chromium y WebKit y clics en Firefox. Con **Node.js 24**, instala las dependencias y prepara los navegadores una vez desde la raíz del repositorio:
+
+```bash
+npm ci --prefix backend
+npm ci --prefix frontend
+cd frontend
+npx playwright install chromium firefox webkit
+```
+
+En Linux, si faltan bibliotecas del sistema compatibles con Playwright, usa `npx playwright install --with-deps chromium firefox webkit`.
+
+Con PostgreSQL en ejecución, crea una base exclusiva para e2e. Por ejemplo, para PostgreSQL local en el puerto 5433:
+
+```bash
+createdb -h localhost -p 5433 -U postgres cine_e2e_test
+```
+
+La URL predeterminada es `postgresql://postgres@localhost:5433/cine_e2e_test`. Si tu servidor usa otro puerto, usuario o contraseña, define `E2E_DATABASE_URL` con la URL correspondiente antes de lanzar la suite. En PowerShell, por ejemplo, puedes definirla con `$env:E2E_DATABASE_URL = "postgresql://postgres@localhost:5432/cine_e2e_test"`.
+
+La suite aplica `backend/schema.sql` y reinicia los datos al arrancar. La base debe terminar en `_e2e_test` y el usuario de PostgreSQL debe poder aplicar el esquema, incluida la extensión `uuid-ossp`. Playwright inicia Vite y Express en los puertos 4173 y 4301 y los apaga al terminar.
+
+Ejecuta los comandos desde `frontend/`:
+
+```bash
+npm run test:e2e                     # resultados en la terminal
+npm run test:e2e:html                # genera playwright-report/
+npm run test:e2e -- --headed         # muestra la ventana del navegador
+npm run test:e2e -- --project=webkit  # ejecuta solo WebKit
+```
+
+Con pnpm puedes usar `pnpm test:e2e` y `pnpm test:e2e:html`. La ejecución normal informa en la terminal. El comando explícito de HTML genera `frontend/playwright-report/`, ignorado por Git.
+
+**Cobertura actual**
+
+Los diez casos se ejecutan en cada motor, para un total de **30 ejecuciones**. El navegador usa la API real y PostgreSQL con datos de prueba. Los datos de precios, butacas y fallos de proveedor se preparan en PostgreSQL para que las pruebas funcionen sin consultar los sitios de las cadenas.
+
+| Recorrido         | Comportamiento verificado                                                                                                                                                                                                                                       |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cartelera         | Busca por título sin tilde, aplica un filtro por género y abre el detalle de la película.                                                                                                                                                                       |
+| Cines y funciones | Busca un cine, cambia la fecha y muestra precios y butacas recibidos por el stream de la API. En dos pruebas adicionales, conserva el dato disponible y muestra el aviso cuando fallan los precios o las butacas.                                               |
+| Cuenta y sesión   | Redirige desde el perfil protegido, registra una cuenta, restaura la sesión al recargar y verifica el cierre de sesión.                                                                                                                                         |
+| Favoritos         | Guarda y elimina una película y un cine, y verifica la persistencia al recargar. Si la cookie de sesión caduca antes de guardar, la API devuelve 401, el usuario vuelve al login y la película queda sin guardar al retomar el detalle.                         |
+| Recomendador      | Elige comuna, fecha y hora, obtiene una opción elegible y abre su detalle. Una búsqueda nocturna en horario de Santiago encuentra una función de las 00:15 del día siguiente desde un navegador en UTC y verifica el cambio de la etiqueta «Hoy» en el detalle. |
+| Filtros móviles   | Abre el panel en un viewport de 390 × 844, aplica un género y navega al resultado.                                                                                                                                                                              |
+
+Las validaciones de formularios, los resultados vacíos y las combinaciones adicionales de filtros se ejercitan en Vitest. Los scrapers y las páginas externas de compra quedan fuera de la suite habitual.
+
 ## 6. Arquitectura de datos y sincronización
 
 La base PostgreSQL es la fuente de datos que consume el backend. Los scrapers obtienen información desde las cadenas de cine y la preparan para incorporarla al catálogo.
