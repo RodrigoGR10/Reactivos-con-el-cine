@@ -3,27 +3,6 @@ import { DIAS_MIN_REESTRENO } from "./config.ts";
 
 export const MS_POR_DIA = 86_400_000;
 
-export function fechaHoySantiago(): string {
-    try {
-        const formatted = new Intl.DateTimeFormat("en-CA", {
-            timeZone: "America/Santiago",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        }).format(new Date());
-        if (/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
-            return formatted;
-        }
-    } catch {
-        // Fallback al reloj local si Intl no soporta la zona horaria
-    }
-    const ahora = new Date();
-    const y = ahora.getFullYear();
-    const m = String(ahora.getMonth() + 1).padStart(2, "0");
-    const d = String(ahora.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-}
-
 export function parsearFechaUtcMs(fecha?: string): number | null {
     if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return null;
     const [y, m, d] = fecha.split("-").map(Number);
