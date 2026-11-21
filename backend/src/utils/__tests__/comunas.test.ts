@@ -39,10 +39,9 @@ describe("normalizarComuna", () => {
     });
 
     it("retorna valor capitalizado si no es comuna conocida", () => {
-        // No es una comuna de Chile, pero no explota — capitaliza
-        const resultado = normalizarComuna("CIUDAD INVENTADA");
-        expect(typeof resultado).toBe("string");
-        expect(resultado.charAt(0)).toBe("C");
+        // No es una comuna de Chile, pero no explota — capitaliza respetando conectores
+        const resultado = normalizarComuna("CIUDAD DE PRUEBA");
+        expect(resultado).toBe("Ciudad de Prueba");
     });
 
     it("retorna string vacío si entra string vacío", () => {
