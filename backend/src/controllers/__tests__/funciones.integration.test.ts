@@ -192,6 +192,20 @@ describe("API de funciones (integracion con PostgreSQL)", () => {
         const sinFiltros = await api("/api/funciones/horarios");
         expect(sinFiltros.status).toBe(400);
 
+        const peliculaInvalida = await api(
+            "/api/funciones/horarios?peliculaId=abc",
+        );
+        expect(peliculaInvalida.status).toBe(400);
+
+        // isCineId acepta cualquier string no vacio de hasta 100 caracteres:
+        // "abc" es un id valido y simplemente no tiene horarios.
+        const cineInexistente = await api("/api/funciones/horarios?cineId=abc");
+        expect(cineInexistente.status).toBe(200);
+        expect(await cineInexistente.json()).toEqual([]);
+
+        const cineVacio = await api("/api/funciones/horarios?cineId=");
+        expect(cineVacio.status).toBe(400);
+
         const respuesta = await api(
             `/api/funciones/horarios?peliculaId=${pelicula.id}&cineId=${cineA.id}`,
         );
@@ -293,5 +307,100 @@ describe("API de funciones (integracion con PostgreSQL)", () => {
                 porcentajeNoDisponible: 20,
             },
         });
+    });
+
+    it("detalle-stream emite precios y butacas en NDJSON y cierra con un evento fin", async () => {
+        const { pelicula, cineB, enCineB } = await sembrarFunciones();
+
+        const faltanParametros = await api("/api/funciones/detalle-stream");
+        expect(faltanParametros.status).toBe(400);
+
+        const respuesta = await api(
+            `/api/funciones/detalle-stream?peliculaId=${pelicula.id}&cineId=${cineB.id}&fecha=${DIA(1)}`,
+        );
+
+        expect(respuesta.status).toBe(200);
+        expect(respuesta.headers.get("content-type")).toContain(
+            "application/x-ndjson",
+        );
+
+        const eventos = (await respuesta.text())
+            .trim()
+            .split("\n")
+            .map((linea) => JSON.parse(linea));
+
+        expect(eventos.at(-1)).toEqual({
+            tipo: "fin",
+            falloPrecios: false,
+            falloButacas: false,
+        });
+
+        const precios = eventos.filter(
+            (evento: { tipo: string }) => evento.tipo === "precio",
+        );
+        const butacas = eventos.filter(
+            (evento: { tipo: string }) => evento.tipo === "butaca",
+        );
+
+        expect(precios).toHaveLength(1);
+        expect(precios[0].horario).toMatchObject({
+            id: String(enCineB.id),
+            estadoPrecio: "disponible",
+        });
+        expect(precios[0].horario.tarifas[0]).toMatchObject({ precio: 6000 });
+
+        expect(butacas).toHaveLength(1);
+        expect(butacas[0].horario).toMatchObject({
+            id: String(enCineB.id),
+            estadoButacas: "disponible",
+            butacas: { disponibles: 80, total: 100 },
+        });
+    });
+
+    it("detalle-stream informa fallos parciales sin cortar el stream", async () => {
+        const cine = await crearCine({
+            id: "cinemark:9",
+            origenId: "9",
+            nombre: "Cinemark Nueve",
+        });
+        const pelicula = await crearPelicula({
+            titulo: "Pelicula sin fuente",
+        });
+        const horario = await crearHorario({
+            peliculaId: pelicula.id,
+            cineId: cine.id,
+            peliculaOrigenId: `m${pelicula.id}`,
+            fecha: DIA(1),
+            horario: "19:00",
+        });
+
+        // Sin pelicula_fuentes, los precios no pueden resolver la identidad
+        // externa; las butacas si, porque dependen solo del cine.
+        const respuesta = await api(
+            `/api/funciones/detalle-stream?peliculaId=${pelicula.id}&cineId=${cine.id}&fecha=${DIA(1)}`,
+        );
+        const eventos = (await respuesta.text())
+            .trim()
+            .split("\n")
+            .map((linea) => JSON.parse(linea));
+
+        expect(respuesta.status).toBe(200);
+        expect(eventos.at(-1)).toEqual({
+            tipo: "fin",
+            falloPrecios: true,
+            falloButacas: false,
+        });
+        expect(
+            eventos.some(
+                (evento: { tipo: string }) => evento.tipo === "precio",
+            ),
+        ).toBe(false);
+        expect(
+            eventos.some(
+                (evento: { tipo: string; horario?: { id: string } }) =>
+                    evento.tipo === "butaca" &&
+                    evento.horario?.id === String(horario.id),
+            ),
+        ).toBe(true);
     });
 });
