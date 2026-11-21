@@ -10,11 +10,15 @@ export default defineConfig({
     reporter: "list",
     use: {
         baseURL: frontendUrl,
-        browserName: "chromium",
         headless: true,
         locale: "es-CL",
         timezoneId: "America/Santiago",
     },
+    projects: [
+        { name: "chromium", use: { browserName: "chromium" } },
+        { name: "firefox", use: { browserName: "firefox" } },
+        { name: "webkit", use: { browserName: "webkit" } },
+    ],
     webServer: [
         {
             command: "node e2e/server.ts",
