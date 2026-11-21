@@ -4,7 +4,12 @@ import type { Pelicula } from "../../types/types";
 import { obtenerTrailer } from "../../utils/trailer";
 import "./TrailerPelicula.css";
 
-export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
+type PeliculaTrailer = Pick<
+    Pelicula,
+    "titulo" | "trailerUrl" | "banner" | "poster"
+>;
+
+export function TrailerPelicula({ pelicula }: { pelicula: PeliculaTrailer }) {
     const tituloId = useId();
     const reproductorRef = useRef<HTMLDivElement>(null);
     const [valorAcordeon, setValorAcordeon] = useState<string | null>(null);
@@ -21,10 +26,6 @@ export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
 
     if (!trailer) return null;
 
-    const embedUrl =
-        trailer.tipo === "youtube"
-            ? `https://www.youtube-nocookie.com/embed/${trailer.id}?${new URLSearchParams({ playsinline: "1", rel: "0", origin: window.location.origin })}`
-            : undefined;
     const cambiarAcordeon = (siguiente: string | null) => {
         if (siguiente === "trailer") {
             setCargando(true);
@@ -88,7 +89,7 @@ export function TrailerPelicula({ pelicula }: { pelicula: Pelicula }) {
                                         />
                                     )}
                                     <iframe
-                                        src={embedUrl}
+                                        src={trailer.embedUrl}
                                         title={`Tráiler de ${pelicula.titulo}`}
                                         className={
                                             cargando

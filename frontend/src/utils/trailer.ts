@@ -1,6 +1,14 @@
-type Trailer =
-    | { tipo: "youtube"; id: string; url: string }
+export type Trailer =
+    | { tipo: "youtube"; id: string; url: string; embedUrl: string }
     | { tipo: "video"; url: string };
+
+function construirEmbedUrlYoutube(id: string): string {
+    const params = new URLSearchParams({ playsinline: "1", rel: "0" });
+    if (typeof window !== "undefined" && window.location?.origin) {
+        params.set("origin", window.location.origin);
+    }
+    return `https://www.youtube-nocookie.com/embed/${id}?${params}`;
+}
 
 export function obtenerTrailer(value?: string): Trailer | null {
     if (!value) return null;
@@ -23,6 +31,7 @@ export function obtenerTrailer(value?: string): Trailer | null {
                     tipo: "youtube",
                     id,
                     url: `https://www.youtube.com/watch?v=${id}`,
+                    embedUrl: construirEmbedUrlYoutube(id),
                 };
         }
         if (
