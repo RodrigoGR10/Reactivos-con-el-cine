@@ -18,17 +18,18 @@ unitarias de lógica pura pueden correr en Node. [Apunte de testing del curso CC
 | Etapa | Segmento                     | Comportamientos prioritarios                                                                        |
 | ----- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
 | 1     | Inicio de sesión             | Formulario con correo inválido, inicio exitoso y reintento tras un rechazo. Implementado.           |
-| 2     | Cuenta y favoritos           | Registro, restauración de sesión, rutas protegidas y guardado de películas y cines.                 |
+| 2     | Cuenta y favoritos           | Registro cubierto. Pendientes restauración de sesión, rutas protegidas y guardado de películas y cines. |
 | 3     | Cartelera y cines            | Búsqueda, combinación y limpieza de filtros, resultados vacíos y estados de carga o error.          |
 | 4     | Detalle y funciones          | Selección de fecha, agrupación de horarios, precios y butacas con respuestas parciales.             |
 | 5     | Destacadas y recomendaciones | Selección de películas con datos controlados y estados del recomendador.                            |
-| 6     | Flujos en navegador          | Pruebas Playwright de recorridos críticos, con datos reproducibles en una base de pruebas separada. |
+
+El alcance de `test-frontend` son las pruebas unitarias y de componentes.
 
 Mantén cada suite junto al componente o utilidad que prueba. Separa las
 reglas de negocio que necesitan casos de borde de las interacciones del
 usuario. En las pruebas de componentes, sustituye la dependencia externa
-en el límite más cercano al comportamiento observado. El formulario de
-inicio de sesión sustituye `useAuth` y conserva los controles reales.
+en el límite más cercano al comportamiento observado. Los formularios de
+inicio de sesión y registro sustituyen `useAuth` y conservan los controles reales.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
