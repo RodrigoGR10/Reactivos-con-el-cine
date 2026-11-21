@@ -5,6 +5,7 @@ import { extraerTarifas } from "./extraer-tarifas.ts";
 import { cargarHorario } from "./horarios.ts";
 import { isFresh, CACHE_PRECIOS_MS } from "./estado.ts";
 
+import type { ScrapedSession } from "../../scraper/types.ts";
 import type { ScheduleRow, ScheduleWithPrices } from "./types.ts";
 
 const RETRY_MS = 60_000;
@@ -14,6 +15,7 @@ const consultas = new Map<string, Promise<ScheduleWithPrices | null>>();
 
 export async function consultarHorario(
     schedule: ScheduleRow,
+    tarifasPrecargadas?: ScrapedSession[],
 ): Promise<ScheduleWithPrices | null> {
     if (schedule.agotada || isFresh(schedule)) {
         return cargarHorario(schedule.id);
@@ -68,7 +70,7 @@ export async function consultarHorario(
         if (!claimed.rowCount) return cargarHorario(schedule.id);
 
         try {
-            const tarifas = await extraerTarifas(schedule);
+            const tarifas = tarifasPrecargadas ?? (await extraerTarifas(schedule));
 
             const client = await pool.connect();
             try {

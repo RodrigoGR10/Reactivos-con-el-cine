@@ -110,6 +110,10 @@
   font-weight: 500;
 }
 
+.tarjeta-funcion-pendiente {
+  flex-shrink: 0;
+}
+
 @keyframes fadeInPrecio {
   from {
     opacity: 0;

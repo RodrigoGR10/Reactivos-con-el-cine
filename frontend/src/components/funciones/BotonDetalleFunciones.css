@@ -17,6 +17,10 @@
   color: #a1a1aa;
 }
 
+.detalle-estado-meta:empty {
+  display: none;
+}
+
 .detalle-estado-alerta {
   color: var(--color-acento);
   font-weight: 500;
