@@ -2,6 +2,7 @@ import {
     formatearDiaSemanaCorto,
     formatearFechaEstrenoCompacta,
 } from "../../utils/formatearPeliculaDestacada";
+import { fechaHoySantiago } from "../../utils/fechaSantiago";
 import "./SelectorFechas.css";
 
 export interface SelectorFechasProps {
@@ -17,14 +18,7 @@ export function SelectorFechas({
 }: SelectorFechasProps) {
     if (fechas.length === 0) return null;
 
-    const ahora = new Date();
-    const hoyLocal = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-${String(ahora.getDate()).padStart(2, "0")}`;
-    const hoyChile = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Santiago",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    }).format(ahora);
+    const hoyChile = fechaHoySantiago();
 
     return (
         <div
@@ -33,7 +27,7 @@ export function SelectorFechas({
             aria-label="Seleccionar fecha de funciones"
         >
             {fechas.map((fecha) => {
-                const esHoy = fecha === hoyLocal || fecha === hoyChile;
+                const esHoy = fecha === hoyChile;
                 const diaSemana = formatearDiaSemanaCorto(fecha);
                 const fechaCorta = formatearFechaEstrenoCompacta(fecha, "/");
                 const esActivo = fechaSeleccionada === fecha;
