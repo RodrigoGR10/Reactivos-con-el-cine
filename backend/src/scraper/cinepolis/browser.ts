@@ -145,14 +145,29 @@ export async function startChromeSession(
             () => "Timeout conectando al WebSocket de Chrome.",
         );
 
+        interface ResultadoCDP {
+            errorText?: string;
+            result?: { value?: unknown };
+            exceptionDetails?: {
+                exception?: { description?: string };
+                text: string;
+            };
+        }
+
+        interface RespuestaCDP {
+            id?: number;
+            error?: { message: string };
+            result?: ResultadoCDP;
+        }
+
         let nextId = 1;
         const pendientes = new Map<
             number,
-            { resolve: (v: any) => void; reject: (e: Error) => void }
+            { resolve: (v: ResultadoCDP | undefined) => void; reject: (e: Error) => void }
         >();
 
         ws.onmessage = (evt) => {
-            const msg = JSON.parse(String(evt.data));
+            const msg: RespuestaCDP = JSON.parse(String(evt.data));
             const p =
                 typeof msg.id === "number" ? pendientes.get(msg.id) : undefined;
             if (!p) return;
@@ -170,9 +185,9 @@ export async function startChromeSession(
             method: string,
             params: Record<string, unknown> = {},
             timeoutMs = 30000,
-        ): Promise<any> => {
+        ): Promise<ResultadoCDP | undefined> => {
             const id = nextId++;
-            const promesa = new Promise<any>((resolve, reject) => {
+            const promesa = new Promise<ResultadoCDP | undefined>((resolve, reject) => {
                 pendientes.set(id, { resolve, reject });
                 ws.send(JSON.stringify({ id, method, params }));
             });
@@ -188,7 +203,7 @@ export async function startChromeSession(
         const nav = await send("Page.navigate", {
             url: opts.url ?? "https://cinepolis.com/cl",
         });
-        if (nav.errorText)
+        if (nav?.errorText)
             throw new Error(`Navegación fallida: ${nav.errorText}`);
 
         // Esperar a que la página del sitio cargue, en vez de un sleep fijo.
@@ -198,7 +213,7 @@ export async function startChromeSession(
                 expression: `document.readyState === "complete" && location.hostname.endsWith("cinepolis.com") && !document.title.includes("Attention Required")`,
                 returnByValue: true,
             });
-            if (r.result?.value === true) break;
+            if (r?.result?.value === true) break;
             await sleep(250);
         }
         await sleep(3000); // margen para hidratación y cookies
@@ -210,13 +225,14 @@ export async function startChromeSession(
                     { expression, awaitPromise: true, returnByValue: true },
                     300000,
                 );
-                if (response.exceptionDetails) {
+                if (response?.exceptionDetails) {
                     const desc =
                         response.exceptionDetails.exception?.description ||
                         response.exceptionDetails.text;
                     throw new Error(`Error en browser evaluate: ${desc}`);
                 }
-                return response.result?.value as T;
+                // El valor depende de la expresión y del tipo esperado por su llamador.
+                return response?.result?.value as T;
             },
             close: cerrar,
         };

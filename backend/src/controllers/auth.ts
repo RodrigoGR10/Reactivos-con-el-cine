@@ -8,12 +8,14 @@ import middleware from "../utils/middleware.ts";
 
 const router = express.Router();
 
-const usuarioPublico = (u: {
+interface UsuarioPublicoRow {
     id: string;
     email: string;
     nombre: string | null;
     fechaRegistro?: Date;
-}) => ({
+}
+
+const usuarioPublico = (u: UsuarioPublicoRow) => ({
     id: u.id,
     nombre: u.nombre,
     email: u.email,
@@ -124,7 +126,7 @@ router.post("/register", async (req, res) => {
         RETURNING id, email, nombre, creado_en AS "fechaRegistro";
     `;
 
-    const { rows } = await query(insertSql, [
+    const { rows } = await query<UsuarioPublicoRow>(insertSql, [
         emailNormalizado,
         passwordHash,
         nombreNormalizado,
@@ -159,7 +161,10 @@ router.post("/login", async (req, res) => {
         WHERE email = $1;
     `;
 
-    const { rows } = await query(sql, [emailNormalizado]);
+    const { rows } = await query<UsuarioPublicoRow & { password_hash: string }>(
+        sql,
+        [emailNormalizado],
+    );
     const user = rows[0];
 
     const passwordCorrecta = user
@@ -192,7 +197,7 @@ router.get("/me", middleware.withUser, async (req, res) => {
         WHERE id = $1;
     `;
 
-    const { rows } = await query(sql, [userId]);
+    const { rows } = await query<UsuarioPublicoRow>(sql, [userId]);
 
     if (rows.length === 0) {
         return res

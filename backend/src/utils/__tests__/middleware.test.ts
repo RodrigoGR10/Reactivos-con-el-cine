@@ -94,7 +94,7 @@ describe("middleware", () => {
             const res = { headersSent: true } as Response;
             const next = vi.fn();
 
-            middleware.errorHandler(error as any, req, res, next);
+            middleware.errorHandler(error, req, res, next);
 
             expect(next).toHaveBeenCalledWith(error);
         });
@@ -111,7 +111,7 @@ describe("middleware", () => {
             } as unknown as Response;
             const next = vi.fn();
 
-            middleware.errorHandler(error as any, req, res, next);
+            middleware.errorHandler(error, req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(401);
             expect(res.json).toHaveBeenCalledWith({ error: "Sesión inválida" });
@@ -126,7 +126,7 @@ describe("middleware", () => {
             } as unknown as Response;
             const next = vi.fn();
 
-            middleware.errorHandler(error as any, req, res, next);
+            middleware.errorHandler(error, req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(401);
             expect(res.json).toHaveBeenCalledWith({
@@ -148,7 +148,7 @@ describe("middleware", () => {
             } as unknown as Response;
             const next = vi.fn();
 
-            middleware.errorHandler(error as any, req, res, next);
+            middleware.errorHandler(error, req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(409);
             expect(res.json).toHaveBeenCalledWith({
@@ -169,7 +169,7 @@ describe("middleware", () => {
             } as unknown as Response;
             const next = vi.fn();
 
-            middleware.errorHandler(error as any, req, res, next);
+            middleware.errorHandler(error, req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
@@ -186,7 +186,7 @@ describe("middleware", () => {
             } as unknown as Response;
             const next = vi.fn();
 
-            middleware.errorHandler(error as any, req, res, next);
+            middleware.errorHandler(error, req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(500);
             expect(res.json).toHaveBeenCalledWith({

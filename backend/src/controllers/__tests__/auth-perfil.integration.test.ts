@@ -52,7 +52,11 @@ describe("Autenticacion y perfil (integracion con PostgreSQL)", () => {
         expect(cuerpo.fechaRegistro).toBeDefined();
         expect(cuerpo.password_hash).toBeUndefined();
 
-        const { rows } = await query(
+        const { rows } = await query<{
+            email: string;
+            password_hash: string;
+            nombre: string;
+        }>(
             "SELECT email, password_hash, nombre FROM users WHERE id = $1;",
             [cuerpo.id],
         );

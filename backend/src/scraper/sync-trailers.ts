@@ -67,7 +67,7 @@ export async function sincronizarTrailersEnEspanol(
             endpoint.searchParams.set("format", "json");
             pendiente = { error: false, promise: Promise.resolve(undefined) };
             pendiente.promise = pedirJson<MetadatosYoutube>(endpoint).catch(
-                () => {
+                (): undefined => {
                     if (pendiente) pendiente.error = true;
                     return undefined;
                 },

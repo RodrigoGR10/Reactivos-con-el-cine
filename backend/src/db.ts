@@ -29,11 +29,11 @@ pool.on("error", (err: Error) => {
     logger.error("Error inesperado en cliente inactivo de Postgre:", err);
 });
 
-export const query = async <T extends QueryResultRow = any>(
+export const query = async <T extends QueryResultRow = Record<string, unknown>>(
     text: string,
-    params?: any[],
+    params?: unknown[],
 ): Promise<QueryResult<T>> => {
-    return pool.query<T>(text, params);
+    return pool.query<T, unknown[]>(text, params);
 };
 
 //Ahora validamos el formato estandar de expresiones regulares para querys

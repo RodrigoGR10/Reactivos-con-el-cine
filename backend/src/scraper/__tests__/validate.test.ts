@@ -85,8 +85,8 @@ describe("validarScrapeResult", () => {
     });
 
     it("falla si los metadatos tienen un origen desconocido o números inconsistentes", () => {
-        const datos = buildValido();
-        (datos.meta as any).origen = "desconocido";
+        const valido = buildValido();
+        const datos = { ...valido, meta: { ...valido.meta, origen: "desconocido" } };
         expect(() => validarScrapeResult(datos)).toThrow(
             "Los metadatos del scraping son inválidos o inconsistentes.",
         );
@@ -100,8 +100,8 @@ describe("validarScrapeResult", () => {
     });
 
     it("falla si un cine no contiene campos obligatorios", () => {
-        const datos = buildValido();
-        (datos.cines[0] as any).nombre = 12345; // tipo incorrecto
+        const valido = buildValido();
+        const datos = { ...valido, cines: [{ ...valido.cines[0], nombre: 12345 }] };
         expect(() => validarScrapeResult(datos)).toThrow(
             "Cine cinemark:10: datos obligatorios inválidos.",
         );

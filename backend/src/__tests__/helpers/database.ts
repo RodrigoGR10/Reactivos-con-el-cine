@@ -55,7 +55,7 @@ export async function crearCine(seed: CineSeed = {}) {
     const origenId = seed.origenId ?? String(siguiente());
     const id = seed.id ?? `${cadena}:${origenId}`;
 
-    const { rows } = await query(
+    const { rows } = await query<{ id: string }>(
         `
         INSERT INTO cines (
             id, nombre, direccion, comuna, ciudad, cadena, origen_id,
@@ -103,7 +103,7 @@ export interface PeliculaSeed {
 }
 
 export async function crearPelicula(seed: PeliculaSeed = {}) {
-    const { rows } = await query(
+    const { rows } = await query<{ id: number }>(
         `
         INSERT INTO peliculas (
             titulo, titulo_original, sinopsis, duracion, genero, clasificacion,
@@ -151,7 +151,7 @@ export async function crearFuente(seed: FuenteSeed) {
     const origen = seed.origen ?? "cinemark";
     const origenId = seed.origenId ?? `p${seed.peliculaId}-${siguiente()}`;
 
-    const { rows } = await query(
+    const { rows } = await query<{ id: number }>(
         `
         INSERT INTO pelicula_fuentes (
             origen, origen_id, pelicula_id, url, estado_estreno, fecha_estreno
@@ -215,7 +215,7 @@ export async function crearHorario(seed: HorarioSeed) {
     const preciosFrescos = seed.preciosFrescos ?? true;
     const butacasFrescas = seed.butacasFrescas ?? true;
 
-    const { rows } = await query(
+    const { rows } = await query<{ id: number }>(
         `
         INSERT INTO horarios (
             origen_id, pelicula_id, cine_id, origen, pelicula_origen_id,
@@ -278,7 +278,7 @@ export interface TarifaSeed {
 }
 
 export async function crearTarifa(seed: TarifaSeed) {
-    const { rows } = await query(
+    const { rows } = await query<{ id: number }>(
         `
         INSERT INTO tarifas (
             origen_id, horario_id, tipo_entrada, formato, precio,
@@ -314,7 +314,12 @@ export async function crearUsuario(seed: UsuarioSeed = {}) {
     const contrasena = seed.contrasena ?? "secreto123";
     const passwordHash = await bcrypt.hash(contrasena, 4);
 
-    const { rows } = await query(
+    const { rows } = await query<{
+        id: string;
+        email: string;
+        nombre: string;
+        creado_en: Date;
+    }>(
         `
         INSERT INTO users (email, password_hash, nombre)
         VALUES ($1, $2, $3)
