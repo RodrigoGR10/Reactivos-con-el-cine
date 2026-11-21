@@ -1,5 +1,5 @@
 import { Fragment, useState, useEffect } from "react";
-import { useParams, Link, useSearchParams } from "react-router-dom";
+import { useParams, Link, useLocation, useSearchParams } from "react-router-dom";
 import { Skeleton } from "@mantine/core";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
@@ -30,6 +30,7 @@ import {
     formatearFechaEstrenoCorta,
 } from "../utils/formatearPeliculaDestacada";
 import { obtenerFormatosDisponibles } from "../utils/agruparFunciones";
+import { obtenerVolverA } from "../utils/navegacion";
 import { distanciaKM, formatearDistancia } from "../utils/distancia";
 import {
     filtrarCines,
@@ -62,7 +63,12 @@ const ETIQUETAS_ESTRENO: Record<
 
 function MovieDetailPage() {
     const { id } = useParams();
+    const location = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
+    const volverA = obtenerVolverA(location.state, {
+        to: "/",
+        label: "Volver a cartelera",
+    });
     const fechaSeleccionada = searchParams.get("fecha") ?? "";
     const cineSeleccionadoId = searchParams.get("cineId") ?? "";
     const {
@@ -287,8 +293,8 @@ function MovieDetailPage() {
             <div className="detalle-pelicula" role="status" aria-busy="true">
                 <span className="visualmente-oculto">Cargando película...</span>
                 <nav className="detalle-pelicula-nav">
-                    <Link to="/" className="btn-volver-cartelera">
-                        ← Volver a cartelera
+                    <Link to={volverA.to} className="btn-volver-cartelera">
+                        ← {volverA.label}
                     </Link>
                 </nav>
                 <section className="hero-detalle" aria-hidden="true">
@@ -385,8 +391,8 @@ function MovieDetailPage() {
     return (
         <div className="detalle-pelicula">
             <nav className="detalle-pelicula-nav">
-                <Link to="/" className="btn-volver-cartelera">
-                    ← Volver a cartelera
+                <Link to={volverA.to} className="btn-volver-cartelera">
+                    ← {volverA.label}
                 </Link>
             </nav>
 
@@ -652,6 +658,13 @@ function MovieDetailPage() {
                                         ? `Quitar ${cine.nombre} de cines favoritos`
                                         : `Guardar ${cine.nombre} en cines favoritos`;
 
+                                    const destinoVolverPelicula = {
+                                        volverA: {
+                                            to: `/peliculas/${pelicula.id}${location.search}`,
+                                            label: `Volver a ${pelicula.titulo}`,
+                                        },
+                                    };
+
                                     return (
                                         <article
                                             key={cine.id}
@@ -661,6 +674,7 @@ function MovieDetailPage() {
                                                 <div className="cabecera-cine-left">
                                                     <Link
                                                         to={`/cines/${cine.id}`}
+                                                        state={destinoVolverPelicula}
                                                         className="logo-cine-link"
                                                         tabIndex={-1}
                                                         aria-hidden="true"
@@ -678,20 +692,21 @@ function MovieDetailPage() {
                                                             <strong>
                                                                 <Link
                                                                     to={`/cines/${cine.id}`}
+                                                                    state={destinoVolverPelicula}
                                                                     className="enlace-cine-detalle"
                                                                 >
                                                                     {cine.nombre}
                                                                 </Link>
-                                                                {Number.isFinite(
-                                                                    distancia,
-                                                                ) && (
-                                                                    <span className="distancia-cine">
-                                                                        {formatearDistancia(
-                                                                            distancia,
-                                                                        )}
-                                                                    </span>
-                                                                )}
                                                             </strong>
+                                                            {Number.isFinite(
+                                                                distancia,
+                                                            ) && (
+                                                                <span className="distancia-cine">
+                                                                    {formatearDistancia(
+                                                                        distancia,
+                                                                    )}
+                                                                </span>
+                                                            )}
                                                             <BotonFavorito
                                                                 className="boton-fav-inline"
                                                                 activo={esCineFavorito}

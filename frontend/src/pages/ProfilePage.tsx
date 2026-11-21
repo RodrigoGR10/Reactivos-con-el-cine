@@ -133,7 +133,7 @@ const ProfilePage = () => {
                 <button
                   type="button"
                   className="btn-guest-login"
-                  onClick={openAuthModal}
+                  onClick={() => openAuthModal()}
                 >
                   iniciar sesión
                 </button>
@@ -301,6 +301,12 @@ const ProfilePage = () => {
                           ) : (
                             <Link
                               to={`/peliculas/${peli.id}`}
+                              state={{
+                                volverA: {
+                                  to: "/perfil",
+                                  label: "Volver a mi perfil",
+                                },
+                              }}
                               aria-label={peli.titulo}
                             >
                               {contenidoPoster}
@@ -368,6 +374,12 @@ const ProfilePage = () => {
                         cine={cine}
                         nivelTitulo="h2"
                         navegable={!editando}
+                        estadoEnlace={{
+                          volverA: {
+                            to: "/perfil",
+                            label: "Volver a mi perfil",
+                          },
+                        }}
                         accion={
                           editando ? (
                             <button
