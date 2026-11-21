@@ -96,3 +96,80 @@ export interface RawCinepolisMovie {
   Distributor?: string;
   Formats?: RawCinepolisFormat[];
 }
+
+/** Tipos de la respuesta GraphQL del sitio, previos a cualquier normalización. */
+export interface RawGqlMovie {
+  id: string;
+  name: string;
+  originalName?: string;
+  genre?: string[] | string;
+  rating?: string;
+  ratingDescription?: string;
+  length?: string | number;
+  releaseDate?: string;
+  synopsis?: string;
+  media?: Array<{
+    resource?: string;
+    type?: string;
+    code?: string;
+    sizes?: { large?: string; medium?: string; small?: string };
+  }>;
+}
+
+export interface RawGqlShowtime {
+  format?: { name?: string } | null;
+  experience?: { name?: string } | null;
+  sessionId: string | number;
+  datetime?: string;
+  screen?: string | number | null;
+  movieVistaId?: string | number | null;
+  cinemaVistaId?: string | number | null;
+  availability?: string | number | null;
+}
+
+export interface RawGqlLanguage {
+  language?: string;
+  displayLanguage?: string;
+  showtimes?: RawGqlShowtime[];
+}
+
+export interface RawGqlDate {
+  date: string;
+  languages?: RawGqlLanguage[];
+}
+
+export interface RawGqlSchedule {
+  movieId: string;
+  dates?: RawGqlDate[];
+}
+
+/** Resultado completo devuelto por el script que corre dentro del navegador. */
+export interface PageResult {
+  movies: RawGqlMovie[];
+  errores: Array<{ tipo: string; status?: number; errores?: unknown; texto?: string | null }>;
+  billboards: Record<
+    string,
+    {
+      estado: "ok" | "vacio" | "error";
+      idUsado: string | null;
+      schedules: RawGqlSchedule[];
+      intentos: unknown[];
+      raw?: unknown;
+    }
+  >;
+}
+
+export interface FormatoSala {
+  proyeccion: Proyeccion;
+  experiencia: string | null;
+  resumen: string;
+  fuente: FormatoFuente;
+}
+
+export interface FormatoInput {
+  formatName?: string | null;
+  experienceName?: string | null;
+  screen?: string | number | null;
+  cinemaId?: string;
+  movieSlugOrTitle?: string;
+}
