@@ -48,7 +48,7 @@ async function elegirComuna(user: ReturnType<typeof userEvent.setup>) {
 
 describe("RecomendadorPeliculas", () => {
     beforeEach(() => {
-        vi.setSystemTime(new Date(2030, 6, 17, 17, 0));
+        vi.setSystemTime(new Date("2030-07-17T21:00:00Z"));
         vi.mocked(cinesService.getAll).mockResolvedValue([
             { id: "alameda", nombre: "Cine Alameda", comuna: "Santiago" },
             { id: "centro", nombre: "Cine Centro", comuna: "Santiago" },

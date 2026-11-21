@@ -9,6 +9,7 @@ import recomendacionesService, {
 import { AlertCircleIcon } from "../common/Icons";
 import { SelectorUnico, type OpcionFiltro } from "../common/SelectorMultiple";
 import { obtenerComunas } from "../../utils/agruparCines";
+import { fechaHoySantiago } from "../../utils/fechaSantiago";
 import { normalizarTexto } from "../../utils/normalizarTexto";
 import "./RecomendadorPeliculas.css";
 
@@ -22,18 +23,22 @@ type GrupoRecomendacion = { clave: string; opciones: Resultado[] };
 
 const CANTIDAD_RECOMENDACIONES = 3;
 
-function fechaYHoraInicial() {
-    const ahora = new Date();
-    const sugerida = new Date(ahora);
-    sugerida.setMinutes(Math.ceil((ahora.getMinutes() + 1) / 15) * 15, 0, 0);
+const formatoHora = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Santiago",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+});
 
-    const fecha = [
-        sugerida.getFullYear(),
-        String(sugerida.getMonth() + 1).padStart(2, "0"),
-        String(sugerida.getDate()).padStart(2, "0"),
-    ].join("-");
-    const hora = `${String(sugerida.getHours()).padStart(2, "0")}:${String(sugerida.getMinutes()).padStart(2, "0")}`;
-    return { fecha, hora };
+function fechaYHoraInicial() {
+    const cuartoDeHora = 15 * 60_000;
+    const siguienteCuarto =
+        (Math.floor(Date.now() / cuartoDeHora) + 1) * cuartoDeHora;
+    const sugerida = new Date(siguienteCuarto);
+    return {
+        fecha: fechaHoySantiago(sugerida),
+        hora: formatoHora.format(sugerida),
+    };
 }
 
 function mezclar<T>(elementos: T[]): T[] {
