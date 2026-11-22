@@ -2,6 +2,12 @@ import type { PoolClient } from "pg";
 import type { ScrapedSchedule } from "../types.ts";
 import { sourceId } from "./identificadores.ts";
 
+/**
+ * Resuelve el identificador interno de una película a partir de su fuente.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param schedule Datos del horario o función que se procesa.
+ * @param movieIds Película o datos de película que se procesan.
+ */
 export async function resolveMovieId(
     client: PoolClient,
     schedule: ScrapedSchedule,
@@ -37,6 +43,12 @@ export async function resolveMovieId(
     return peliculaId;
 }
 
+/**
+ * Resuelve el identificador interno de un cine a partir de su fuente.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param schedule Datos del horario o función que se procesa.
+ * @param cinemaIds Cine o datos del cine que se procesan.
+ */
 export async function resolveCinemaId(
     client: PoolClient,
     schedule: ScrapedSchedule,

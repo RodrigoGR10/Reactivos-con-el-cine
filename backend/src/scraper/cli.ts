@@ -17,6 +17,7 @@ import { pool } from "../db.ts";
 
 type Mode = "scrape" | "sync";
 
+/** Valida el rango de fechas y los límites recibidos por la línea de comandos. */
 function validarOpciones(options: ScrapeOptions) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(options.desde)) {
         throw new Error("--desde debe tener formato YYYY-MM-DD");
@@ -45,6 +46,10 @@ function validarOpciones(options: ScrapeOptions) {
     }
 }
 
+/**
+ * Ejecuta el scraper indicado, guarda su resultado y opcionalmente lo importa.
+ * También permite fusionar duplicados mediante `--deduplicar`.
+ */
 async function main() {
     const args = process.argv.slice(2);
 

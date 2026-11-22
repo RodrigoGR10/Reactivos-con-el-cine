@@ -1,5 +1,9 @@
 import { query } from "../db.ts";
 
+/**
+ * Añade a las películas sus datos de popularidad calculados por interacciones recientes.
+ * @param peliculas Películas que se comparan, agrupan o actualizan.
+ */
 export async function incluirPopularidad<T extends { id: string }>(
     peliculas: readonly T[],
 ): Promise<Array<T & { totalFavoritos: number }>> {

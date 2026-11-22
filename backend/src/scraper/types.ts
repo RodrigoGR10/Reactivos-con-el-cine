@@ -8,8 +8,14 @@ export const ORIGENES = [
     "cinestar",
     "cinepolis",
 ] as const;
+/**
+ * Identificador de la cadena o servicio desde el que se extrajeron los datos.
+ */
 export type Origen = (typeof ORIGENES)[number];
 
+/**
+ * Fechas, cines y límites que controlan una ejecución del scraper.
+ */
 export interface ScrapeOptions {
     desde: string;
     dias: number | null;
@@ -17,6 +23,9 @@ export interface ScrapeOptions {
     limitePorCine: number | null;
 }
 
+/**
+ * Campos comunes de origen e instante de extracción compartidos por los registros scraped.
+ */
 export interface SourceRecord {
     id: string;
     origen: Origen;
@@ -24,6 +33,9 @@ export interface SourceRecord {
     extraidoEn: string;
 }
 
+/**
+ * Datos de un cine convertidos al formato compartido por todos los scrapers.
+ */
 export interface ScrapedCinema extends SourceRecord {
     nombre: string;
     comuna: string;
@@ -35,6 +47,9 @@ export interface ScrapedCinema extends SourceRecord {
     longitud?: number;
 }
 
+/**
+ * Datos normalizados de una película en el modelo común de la aplicación.
+ */
 export interface ScrapedMovie extends SourceRecord, DatosEstreno {
     titulo: string;
     tituloOriginal?: string;
@@ -47,6 +62,9 @@ export interface ScrapedMovie extends SourceRecord, DatosEstreno {
     url?: string;
 }
 
+/**
+ * Datos normalizados de una función para la cartelera común.
+ */
 export interface ScrapedSession extends SourceRecord {
     peliculaId: string;
     cineId: string;
@@ -64,6 +82,9 @@ export interface ScrapedSession extends SourceRecord {
     agotada: boolean;
 }
 
+/**
+ * Datos normalizados de una función para la cartelera común.
+ */
 export interface ScrapedSchedule extends SourceRecord {
     peliculaId: string;
     cineId: string;
@@ -80,6 +101,9 @@ export interface ScrapedSchedule extends SourceRecord {
     butacas?: Butacas;
 }
 
+/**
+ * Error o advertencia producido durante una extracción de datos.
+ */
 export interface Incident {
     cineId?: string;
     peliculaId?: string;
@@ -88,6 +112,9 @@ export interface Incident {
     mensaje: string;
 }
 
+/**
+ * Cines, películas, horarios y estado de completitud de una extracción.
+ */
 export interface ScrapeResult {
     peliculas: ScrapedMovie[];
     cines: ScrapedCinema[];

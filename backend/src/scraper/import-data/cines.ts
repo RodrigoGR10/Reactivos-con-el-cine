@@ -2,6 +2,11 @@ import type { PoolClient } from "pg";
 import type { ScrapedCinema } from "../types.ts";
 import { normalizarComuna } from "../../utils/comunas.ts";
 
+/**
+ * Crea o actualiza un cine extraído, usando su identificador de origen.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param cine Datos del cine que se procesa.
+ */
 export async function upsertCinema(
     client: PoolClient,
     cine: ScrapedCinema,

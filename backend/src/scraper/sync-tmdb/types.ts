@@ -1,5 +1,8 @@
 import type { MetricasTmdb } from "../tmdb/types.ts";
 
+/**
+ * Forma de una fila de base de datos utilizada por la sincronización con TMDB.
+ */
 export interface MovieRow {
     id: number;
     titulo: string;
@@ -9,6 +12,9 @@ export interface MovieRow {
     origen_id?: string | null;
 }
 
+/**
+ * Contadores y resultados acumulados de un diagnóstico TMDB.
+ */
 export interface DiagnosticSummary {
     revisadas: number;
     seguras: number;
@@ -25,6 +31,9 @@ export interface DiagnosticSummary {
     erroresManuales: number;
 }
 
+/**
+ * Candidato de TMDB que supera los criterios mínimos de coincidencia.
+ */
 export interface CandidatoSeguro extends MetricasTmdb {
     peliculaId: number;
     tmdbId: number;
@@ -35,6 +44,9 @@ export interface CandidatoSeguro extends MetricasTmdb {
     sinopsis?: string;
 }
 
+/**
+ * Estados posibles al evaluar la coincidencia de una película con TMDB.
+ */
 export type EstadoDiagnostico =
     | "SEGURO"
     | "DUDOSO"
@@ -46,6 +58,9 @@ export type EstadoDiagnostico =
     | "CONFLICTO_MANUAL"
     | "ERROR_MANUAL";
 
+/**
+ * Decisión adoptada al comparar una película con resultados de TMDB.
+ */
 export type DecisionDiagnostico =
     | "APLICAR"
     | "REVISAR"
@@ -53,6 +68,9 @@ export type DecisionDiagnostico =
     | "OMITIR_CONFLICTO"
     | "REVISAR_RESOLUCION";
 
+/**
+ * Candidato de TMDB, métricas y decisión obtenidos al diagnosticar una película.
+ */
 export interface ResultadoDiagnostico {
     peliculaId: number;
     titulo: string;

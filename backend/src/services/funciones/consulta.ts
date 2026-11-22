@@ -1,11 +1,17 @@
 import { query } from "../../db.ts";
 
+/**
+ * Criterios y opciones disponibles para la consulta de funciones.
+ */
 export interface FiltrosFunciones {
     peliculaId?: number;
     cineId?: string;
 }
 
-/** Funciones vigentes y no agotadas, con filtros opcionales por película y cine. */
+/** Funciones vigentes y no agotadas, con filtros opcionales por película y cine.
+ * @param filtros Filtros opcionales que limitan los registros procesados.
+ * @returns Lista de resultados encontrados o transformados.
+ */
 export async function listarFunciones({
     peliculaId,
     cineId,
@@ -56,7 +62,10 @@ export async function listarFunciones({
     return rows;
 }
 
-/** Función con los datos de su película y cine, o null si no existe. */
+/** Función con los datos de su película y cine, o null si no existe.
+ * @param id Identificador del registro que se consulta o modifica.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function obtenerFuncion(id: number) {
     const { rows } = await query(
         `

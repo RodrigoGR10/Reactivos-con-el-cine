@@ -117,6 +117,11 @@ function validarRegistros(
     }
 }
 
+/**
+ * Valida la estructura y los datos del resultado producido por un scraper.
+ * @param data Datos recibidos desde el servicio externo o la base de datos.
+ * @returns Valor booleano que indica si se cumple la condición evaluada.
+ */
 export function validarScrapeResult(
     data: unknown,
 ): asserts data is ScrapeResult {

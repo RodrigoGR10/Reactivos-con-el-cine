@@ -34,6 +34,12 @@ const comunaBySlug: Record<string, string> = {
     "cinemark-la-dehesa": "Lo Barnechea",
 };
 
+/**
+ * Convierte los datos de un cine al modelo común usado por el backend.
+ * @param cinema Datos del cine que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeCinema(
     cinema: RawCinema,
     extractedAt: string,
@@ -65,6 +71,12 @@ export function normalizeCinema(
     };
 }
 
+/**
+ * Convierte los datos de una película al modelo común usado por el backend.
+ * @param movie Datos de la película que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeMovie(
     movie: RawMovie,
     extractedAt: string,
@@ -92,6 +104,11 @@ export function normalizeMovie(
     };
 }
 
+/**
+ * Separa la fecha y la hora local de una función de Cinemark.
+ * @param session Datos de la función extraída desde la fuente.
+ * @returns Objeto con la fecha y la hora local de la función.
+ */
 export function sessionDateTime(session: RawSession): {
     fecha: string;
     horario: string;
@@ -104,7 +121,11 @@ export function sessionDateTime(session: RawSession): {
     return { fecha: match[1], horario: `${match[2]}:${match[3]}` };
 }
 
-/** Normaliza butacas de Cinemark tolerando salas cuya API informa capacity ligeramente menor a availableSeats. */
+/** Normaliza butacas de Cinemark tolerando salas cuya API informa capacity ligeramente menor a availableSeats.
+ * @param occupation Datos de ocupación y capacidad de la sala.
+ * @param consultadasEn Instante en que se consultó el estado de butacas.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizarOcupacionCinemark(
     occupation: RawSession["occupation"],
     consultadasEn: string,
@@ -117,6 +138,12 @@ export function normalizarOcupacionCinemark(
     );
 }
 
+/**
+ * Convierte una función extraída al modelo común de horarios.
+ * @param session Datos de la función extraída desde la fuente.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeSchedule(
     session: RawSession,
     extractedAt: string,
@@ -150,6 +177,12 @@ export function normalizeSchedule(
     return { ...schedule, revision: scheduleRevision(schedule) };
 }
 
+/**
+ * Interpreta el formato de sala asociado a un tipo de entrada.
+ * @param sessionFormat Formato de proyección reportado para la función.
+ * @param ticketTitle Título que se analiza o compara.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function ticketFormat(
     sessionFormat: string,
     ticketTitle: string,
@@ -191,6 +224,12 @@ export function ticketFormat(
         .join(" ");
 }
 
+/**
+ * Normaliza las tarifas extraídas para asociarlas a una función.
+ * @param groups Grupos de precios recibidos desde la fuente.
+ * @param session Datos de la función extraída desde la fuente.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizePrices(
     groups: RawPriceGroup[],
     session: RawSession,
@@ -298,6 +337,15 @@ export function normalizePrices(
     });
 }
 
+/**
+ * Construye el enlace de compra asociado a la función de la cadena indicada.
+ * @param movieUrl Película o datos de película que se procesan.
+ * @param cinema Datos del cine que se procesa.
+ * @param date Fecha usada en la consulta o transformación.
+ * @param language Idioma recibido para la función.
+ * @param format Formato de proyección informado por la fuente.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function purchaseUrl(
     movieUrl: string | undefined,
     cinema: Pick<RawCinema, "name" | "slug">,
@@ -347,6 +395,15 @@ export function purchaseUrl(
     return url.href;
 }
 
+/**
+ * Convierte las funciones de la cartelera al formato que usa la aplicación.
+ * @param session Datos de la función extraída desde la fuente.
+ * @param groups Grupos de precios recibidos desde la fuente.
+ * @param cinema Datos del cine que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @param movieUrl Película o datos de película que se procesan.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeSessions(
     session: RawSession,
     groups: RawPriceGroup[],

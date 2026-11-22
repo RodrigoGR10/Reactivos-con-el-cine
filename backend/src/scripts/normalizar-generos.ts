@@ -4,6 +4,7 @@ import { normalizarGeneros } from "../utils/generos.ts";
 // Uso: node src/scripts/normalizar-generos.ts [--write]
 // Sin --write solo muestra qué cambiaría.
 
+/** Revisa los géneros y solo guarda los cambios cuando se usa `--write`. */
 async function main() {
     const escribir = process.argv.includes("--write");
 

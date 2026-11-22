@@ -12,11 +12,14 @@ import { horarioPublico } from "../services/preciosFunciones/estado.ts";
 
 const router = express.Router();
 
+/** Rutas de horarios, tarifas, butacas y detalle de funciones. */
+
 router.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
     next();
 });
 
+/** GET /api/funciones?peliculaId=.&cineId=. lista funciones filtradas. */
 router.get("/", async (req, res) => {
     const { peliculaId, cineId } = req.query;
 
@@ -44,6 +47,7 @@ router.get("/", async (req, res) => {
     return res.json(funciones);
 });
 
+/** GET /api/funciones/horarios acepta `peliculaId` o `cineId`. */
 router.get("/horarios", async (req, res) => {
     const { peliculaId, cineId } = req.query;
 
@@ -75,6 +79,7 @@ router.get("/horarios", async (req, res) => {
     return res.json(horarios.map(horarioPublico));
 });
 
+/** GET /api/funciones/precios requiere `peliculaId`, `cineId` y `fecha`. */
 router.get("/precios", async (req, res) => {
     const { peliculaId, cineId, fecha } = req.query;
 
@@ -99,6 +104,7 @@ router.get("/precios", async (req, res) => {
     });
 });
 
+/** GET /api/funciones/butacas requiere `peliculaId`, `cineId` y `fecha`. */
 router.get("/butacas", async (req, res) => {
     const { peliculaId, cineId, fecha } = req.query;
 
@@ -123,6 +129,10 @@ router.get("/butacas", async (req, res) => {
     });
 });
 
+/**
+ * GET /api/funciones/detalle-stream transmite eventos NDJSON de precio, butacas y cierre.
+ * Los mismos tres query params identifican película, cine y fecha.
+ */
 router.get("/detalle-stream", async (req, res) => {
     const { peliculaId, cineId, fecha } = req.query;
 
@@ -172,6 +182,7 @@ router.get("/detalle-stream", async (req, res) => {
     if (!res.writableEnded) res.end();
 });
 
+/** GET /api/funciones/:id. `id` debe ser numérico y corresponder a una tarifa. */
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
 

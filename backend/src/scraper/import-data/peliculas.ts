@@ -10,6 +10,11 @@ interface UpsertMovieResult {
     inserted: boolean;
 }
 
+/**
+ * Crea o actualiza una película extraída y mantiene sus metadatos de origen.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param pelicula Datos de la película que se procesa.
+ */
 export async function upsertMovie(
     client: PoolClient,
     pelicula: ScrapedMovie,

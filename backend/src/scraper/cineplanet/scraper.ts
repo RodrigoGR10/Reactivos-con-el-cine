@@ -9,6 +9,10 @@ import { localNow } from "../../utils/localNow.ts";
 import type { Cinema, Movie, Session } from "./types.ts";
 import type { ScrapeOptions, ScrapeResult } from "../types.ts";
 
+/**
+ * Lista los cines disponibles en la cadena correspondiente.
+ * @returns Lista de resultados encontrados o transformados.
+ */
 export async function listCinemas(): Promise<Cinema[]> {
     const result = await cineplanetData<{ cinemas: Cinema[] }>(
         "/api/cache/cinemascache",
@@ -23,6 +27,11 @@ export async function listCinemas(): Promise<Cinema[]> {
     return result.cinemas;
 }
 
+/**
+ * Extrae desde Cineplanet cines, películas, funciones y tarifas.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Resultado de la operación, incluidos los registros procesados.
+ */
 export async function scrapeCineplanet(
     options: ScrapeOptions,
 ): Promise<ScrapeResult> {

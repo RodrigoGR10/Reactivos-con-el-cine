@@ -27,6 +27,11 @@ async function pedirJson<T>(url: URL): Promise<T | undefined> {
     return (await response.json()) as T;
 }
 
+/**
+ * Busca tráilers en español latino o subtitulados y actualiza las películas.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Resultado de la operación, incluidos los registros procesados.
+ */
 export async function sincronizarTrailersEnEspanol(
     options: { apply?: boolean } = {},
 ) {

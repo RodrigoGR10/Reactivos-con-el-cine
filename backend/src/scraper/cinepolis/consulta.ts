@@ -23,6 +23,13 @@ let idle: ReturnType<typeof setTimeout> | undefined;
 let lastRequest = 0;
 let cooldownUntil = 0;
 
+/**
+ * Ejecuta una consulta al servicio de Cinépolis con reintentos y control de respuesta.
+ * @param operationName Nombre de la operación GraphQL que se enviará a Cinépolis.
+ * @param query Sentencia SQL parametrizada que se ejecutará.
+ * @param variables Variables que acompañan a la operación GraphQL.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function consultaCinepolis<T>(
     operationName: string,
     query: string,

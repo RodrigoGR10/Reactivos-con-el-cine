@@ -30,6 +30,9 @@ interface Ticket {
     } | null;
 }
 
+/**
+ * Datos normalizados de una tarifa o entrada asociada a una función.
+ */
 export interface Prices {
     data?: { tickets?: Array<{ areaCategoryCode: string; tickets: Ticket[] }> };
     errors?: unknown[];
@@ -58,6 +61,12 @@ function pesos(cents: number, field: string): number {
     return cents / 100;
 }
 
+/**
+ * Normaliza las tarifas extraídas para asociarlas a una función.
+ * @param response Respuesta HTTP que se enviará al cliente.
+ * @param schedule Datos del horario o función que se procesa.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizePrices(
     response: Prices,
     schedule: ScrapedSchedule,
@@ -218,6 +227,10 @@ export function normalizePrices(
         .map(({ tarifa }) => tarifa);
 }
 
+/**
+ * Obtiene y normaliza las tarifas de una función.
+ * @param schedule Datos del horario o función que se procesa.
+ */
 export async function pricesForSchedule(
     schedule: ScrapedSchedule,
 ): Promise<ScrapedSession[]> {
@@ -248,6 +261,8 @@ export async function pricesForSchedule(
 /**
  * Consulta tarifas de multiples sesiones del mismo cine usando alias GraphQL.
  * Las sesiones cuyo lote falle quedan fuera del mapa para permitir fallback individual.
+ * @param schedules Horario o datos de función que se procesan.
+ * @param tamanoLote Cantidad máxima de funciones que se consultan en cada lote.
  */
 export async function pricesForSchedules(
     schedules: ScrapedSchedule[],

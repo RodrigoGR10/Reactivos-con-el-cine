@@ -52,6 +52,12 @@ function normalizarCoordenadas(
     return { latitud: lat, longitud: lng };
 }
 
+/**
+ * Convierte los datos de un cine al modelo común usado por el backend.
+ * @param cinema Datos del cine que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeCinema(
     cinema: Cinema,
     extractedAt: string,
@@ -80,6 +86,12 @@ export function normalizeCinema(
     };
 }
 
+/**
+ * Convierte los datos de una película al modelo común usado por el backend.
+ * @param movie Datos de la película que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeMovie(
     movie: Movie,
     extractedAt: string,
@@ -109,6 +121,15 @@ export function normalizeMovie(
     };
 }
 
+/**
+ * Convierte una función extraída al modelo común de horarios.
+ * @param session Datos de la función extraída desde la fuente.
+ * @param movie Datos de la película que se procesa.
+ * @param cinemaId Identificador del cine.
+ * @param date Fecha usada en la consulta o transformación.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeSchedule(
     session: Session,
     movie: Movie,
@@ -164,6 +185,12 @@ export function normalizeSchedule(
     return { ...schedule, revision: scheduleRevision(schedule) };
 }
 
+/**
+ * Normaliza las tarifas extraídas para asociarlas a una función.
+ * @param response Respuesta HTTP que se enviará al cliente.
+ * @param schedule Datos del horario o función que se procesa.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizePrices(
     response: Prices,
     schedule: ScrapedSchedule,
@@ -268,6 +295,10 @@ export function normalizePrices(
     return tarifas;
 }
 
+/**
+ * Obtiene y normaliza las tarifas de una función.
+ * @param schedule Datos del horario o función que se procesa.
+ */
 export async function pricesForSchedule(schedule: ScrapedSchedule) {
     const cinemaId = schedule.cineId.slice("cineplanet:".length);
     const response = await cineplanetData<Prices>(

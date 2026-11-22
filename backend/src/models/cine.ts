@@ -1,3 +1,6 @@
+/**
+ * Representa un cine guardado en PostgreSQL, junto con su ubicación y datos de origen.
+ */
 export interface Cine {
     id: string;
     nombre: string;
@@ -13,4 +16,7 @@ export interface Cine {
     creadoEn?: Date;
 }
 
+/**
+ * Datos que se pueden enviar para registrar o actualizar un cine.
+ */
 export type CrearCineDTO = Omit<Cine, "creadoEn">;

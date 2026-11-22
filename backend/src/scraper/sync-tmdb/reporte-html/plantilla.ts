@@ -10,6 +10,13 @@ import {
     tarjetasResumen,
 } from "./components.ts";
 
+/**
+ * Arma el documento HTML del informe con su contenido y estilos.
+ * @param resultados Resultados obtenidos que se incluirán en el informe.
+ * @param summary Resumen de conteos y decisiones del diagnóstico.
+ * @param apply Indica si se escriben los cambios en la base de datos.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function construirDocumento(
     resultados: ResultadoDiagnostico[],
     summary: DiagnosticSummary,

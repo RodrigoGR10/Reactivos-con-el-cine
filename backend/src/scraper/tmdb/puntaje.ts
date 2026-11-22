@@ -47,6 +47,12 @@ function tokenContainmentScore(
     return 0;
 }
 
+/**
+ * Indica si el candidato corresponde a una coincidencia exacta del título.
+ * @param candidate Fecha usada en la consulta o transformación.
+ * @param consulta Título normalizado que se compara con el candidato.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export function esCoincidenciaExacta(
     candidate: TmdbMovieResult,
     consulta: string,
@@ -58,6 +64,12 @@ export function esCoincidenciaExacta(
     return qNorm.length > 0 && (titleNorm === qNorm || origNorm === qNorm);
 }
 
+/**
+ * Calcula el puntaje de coincidencia entre una película y un candidato TMDB.
+ * @param candidate Fecha usada en la consulta o transformación.
+ * @param targetTitles Título que se analiza o compara.
+ * @param parsed Título y variantes preparados para la búsqueda.
+ */
 export function scoreCandidate(
     candidate: TmdbMovieResult,
     targetTitles: string[],

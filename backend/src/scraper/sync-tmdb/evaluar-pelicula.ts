@@ -181,6 +181,12 @@ async function evaluarAutomatico(
 
 // ---------- Punto de entrada ----------
 
+/**
+ * Compara una película local con resultados de TMDB y determina la coincidencia más segura.
+ * @param movie Datos de la película que se procesa.
+ * @param resolucion Resolución manual asociada a la película.
+ * @param motivoInvalido Razón por la que una coincidencia se considera inválida.
+ */
 export async function evaluarPelicula(
     movie: MovieRow,
     resolucion: ResolucionManual | undefined,

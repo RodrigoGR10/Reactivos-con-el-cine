@@ -15,6 +15,12 @@ interface PeliculaCatalogo {
     tmdbId?: number;
 }
 
+/**
+ * Compara dos registros para determinar si pertenecen a la misma película.
+ * @param a Primer texto que se compara.
+ * @param b Segundo texto que se compara.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export function areSameCatalogMovie(
     a: PeliculaCatalogo,
     b: PeliculaCatalogo,

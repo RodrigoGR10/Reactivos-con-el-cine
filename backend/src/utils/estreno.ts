@@ -3,13 +3,24 @@ export const ESTADOS_ESTRENO = [
     "preventa",
     "proximamente",
 ] as const;
+/**
+ * Estados posibles de estreno de una película dentro de la cartelera.
+ */
 export type EstadoEstreno = (typeof ESTADOS_ESTRENO)[number];
 
+/**
+ * Estado y fechas que determinan si una película está en preventa, cartelera o reestreno.
+ */
 export interface DatosEstreno {
     estadoEstreno?: EstadoEstreno;
     fechaEstreno?: string;
 }
 
+/**
+ * Determina el estado de estreno a partir de las fechas y datos disponibles.
+ * @param fuentes Fuentes de estreno asociadas a la película.
+ * @param hoy Fecha local de referencia para clasificar el estado de estreno.
+ */
 export function clasificarEstreno(
     fuentes: (DatosEstreno | { toObject?: () => DatosEstreno })[],
     hoy: string,

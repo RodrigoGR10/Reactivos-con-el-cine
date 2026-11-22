@@ -2,6 +2,13 @@ import { normalizarButacas } from "../butacas.ts";
 import { vistaSeatPlan } from "./client.ts";
 import type { CadenaVista } from "./types.ts";
 
+/**
+ * Consulta la disponibilidad de butacas en las cadenas de Vista.
+ * @param cadena Cadena de cines que se consultará.
+ * @param cineId Identificador del cine.
+ * @param sesionId Identificador del registro relacionado.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function consultarButacasVista(
     cadena: CadenaVista,
     cineId: string,

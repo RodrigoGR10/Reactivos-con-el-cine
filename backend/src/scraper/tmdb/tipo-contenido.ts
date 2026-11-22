@@ -21,6 +21,10 @@ function coincideAlguno(patrones: RegExp[], texto: string): boolean {
     return patrones.some((patron) => patron.test(texto));
 }
 
+/**
+ * Clasifica un título para distinguir películas de otros tipos de contenido.
+ * @param titulo Título que se normaliza, compara o busca.
+ */
 export function detectarTipoContenido(titulo: string): TipoContenido {
     const value = sinAcentosEnMayusculas(titulo);
 

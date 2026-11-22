@@ -23,6 +23,13 @@ function canCleanStaleSchedules(data: ScrapeResult): boolean {
     );
 }
 
+/**
+ * Retira horarios vencidos o ausentes de la cartelera recién importada.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param data Datos recibidos desde el servicio externo o la base de datos.
+ * @param cinemaIds Cine o datos del cine que se procesan.
+ * @param keptScheduleIds Horario o datos de función que se procesan.
+ */
 export async function limpiarHorariosObsoletos(
     client: PoolClient,
     data: ScrapeResult,

@@ -21,6 +21,11 @@ const configuraciones = new Map<
 >();
 const inicializando = new Map<CadenaVista, Promise<void>>();
 
+/**
+ * Inicializa las consultas para la cadena seleccionada de Vista.
+ * @param chain Cadena de cines que se consultará.
+ * @param delayMs Tiempo de espera entre solicitudes, en milisegundos.
+ */
 export async function initializeVista(chain: CadenaVista, delayMs?: number) {
     if (delayMs !== undefined) configureRequests(delayMs);
     if ((configuraciones.get(chain)?.hasta ?? 0) > Date.now()) return;
@@ -61,6 +66,12 @@ export async function initializeVista(chain: CadenaVista, delayMs?: number) {
     return task;
 }
 
+/**
+ * Consulta un recurso del proveedor Vista y devuelve su respuesta tipada.
+ * @param chain Cadena de cines que se consultará.
+ * @param collection Nombre de la colección de datos que se solicita al proveedor.
+ * @returns Respuesta tipada entregada por el proveedor.
+ */
 export async function vistaData<T>(
     chain: CadenaVista,
     collection:
@@ -120,6 +131,12 @@ export async function vistaData<T>(
     return records;
 }
 
+/**
+ * Obtiene el mapa de butacas disponible para una función de Vista.
+ * @param chain Cadena de cines que se consultará.
+ * @param cinemaId Identificador del cine.
+ * @param sessionId Identificador del registro relacionado.
+ */
 export async function vistaSeatPlan(
     chain: CadenaVista,
     cinemaId: string,
@@ -156,6 +173,12 @@ export async function vistaSeatPlan(
     throw new Error(`No se pudieron leer butacas de ${chain}.`);
 }
 
+/**
+ * Construye el enlace de compra asociado a la función de la cadena indicada.
+ * @param chain Cadena de cines que se consultará.
+ * @param cinemaId Identificador del cine.
+ * @param sessionId Identificador del registro relacionado.
+ */
 export function purchaseUrl(
     chain: CadenaVista,
     cinemaId: string,
@@ -175,6 +198,12 @@ export function purchaseUrl(
     return url.href;
 }
 
+/**
+ * Consulta la página de entradas asociada a una función de Vista.
+ * @param chain Cadena de cines que se consultará.
+ * @param cinemaId Identificador del cine.
+ * @param sessionId Identificador del registro relacionado.
+ */
 export async function ticketPage(
     chain: CadenaVista,
     cinemaId: string,

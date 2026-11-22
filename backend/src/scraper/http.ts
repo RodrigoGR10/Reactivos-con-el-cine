@@ -27,6 +27,10 @@ function getHostState(url: string): HostState {
     return state;
 }
 
+/**
+ * Configura el intervalo común entre solicitudes hechas por los scrapers.
+ * @param delayMs Tiempo de espera entre solicitudes, en milisegundos.
+ */
 export function configureRequests(delayMs = 500) {
     if (!Number.isSafeInteger(delayMs) || delayMs < 250)
         throw new Error("La pausa debe ser un entero >= 250 ms.");
@@ -54,6 +58,12 @@ async function waitForTurn(state: HostState) {
     await turn;
 }
 
+/**
+ * Realiza una solicitud HTTP con el control de tiempo y errores usado por los scrapers.
+ * @param url Dirección del recurso que se consulta.
+ * @param headers Encabezados que acompañan la respuesta HTTP.
+ * @param redirect Indica si la respuesta debe redirigir a otra dirección.
+ */
 export async function request(
     url: string,
     headers: Record<string, string> = {},

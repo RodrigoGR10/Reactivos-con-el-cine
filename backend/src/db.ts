@@ -29,6 +29,12 @@ pool.on("error", (err: Error) => {
     logger.error("Error inesperado en cliente inactivo de Postgre:", err);
 });
 
+/**
+ * Ejecuta una consulta parametrizada en PostgreSQL y devuelve sus filas.
+ * @param text Texto que se analiza o transforma.
+ * @param params Valores para los parámetros posicionales de la consulta SQL.
+ * @returns Filas y metadatos devueltos por PostgreSQL.
+ */
 export const query = async <T extends QueryResultRow = Record<string, unknown>>(
     text: string,
     params?: unknown[],
@@ -50,13 +56,29 @@ export const query = async <T extends QueryResultRow = Record<string, unknown>>(
 
 const UUID_REGEX = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 
+/**
+ * Comprueba si una cadena tiene el formato de un UUID.
+ * @param val Texto que se valida como identificador.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export const isUuid = (val: string): boolean => UUID_REGEX.test(val);
 
 //Validacion exclusiva para cines.id ("cadena:idOrigen")
+/**
+ * Valida un identificador de cine y limita su longitud.
+ * @param val Texto que se valida como identificador.
+ * @param maxLength Longitud máxima permitida para el identificador.
+ * @returns Valor booleano que indica si se cumple la condición.
+ */
 export const isCineId = (val: unknown, maxLength = 100): val is string =>
     typeof val === "string" && val.length > 0 && val.length <= maxLength;
 
 //Validación para peliculas.id, horarios.id y tarifas.id (SERIAL)
+/**
+ * Comprueba si el identificador contiene un número válido.
+ * @param val Texto que se valida como identificador.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export const isNumericId = (val: string | number): boolean => {
     if (typeof val === "string" && !/^\d+$/.test(val)) return false;
 
