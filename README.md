@@ -8,7 +8,7 @@ Aplicación web para explorar la cartelera de cine en Chile, comparar horarios y
 
 ## 1. Tecnologías
 
-- **Frontend:** React 19, TypeScript, Vite, React Router, Axios y CSS adaptable.
+- **Frontend:** React 19, TypeScript, Vite, React Router, Mantine, Zustand y Axios.
 - **Backend:** Node.js, TypeScript, Express 5 y PostgreSQL.
 - **Acceso a datos:** `pg`, mediante un pool de conexiones.
 - **Autenticación:** JWT en cookie `httpOnly`, protección CSRF y contraseñas con hash bcrypt.
@@ -27,6 +27,7 @@ El repositorio separa el frontend y el backend en sus respectivas carpetas.
 - Nix con soporte para flakes.
 - direnv y nix-direnv.
 - Conexión a Internet para ejecutar los scrapers y consultar recursos externos.
+- Chrome o Chromium para extraer la cartelera de Cinépolis.
 
 Sistemas contemplados por el entorno Nix: macOS (Intel y Apple Silicon) y Linux (x86_64 y ARM64). En Windows se recomienda utilizar WSL2 con Debian o Ubuntu.
 
@@ -152,7 +153,7 @@ No es necesario ejecutarlo cada vez que se inicia el proyecto. Tampoco debe asum
 
 ## 4. Variables de entorno
 
-El backend lee sus variables desde `backend/.env`.
+En desarrollo, el backend carga `backend/.env` al ejecutarse desde esa carpeta. En despliegue también puede recibir las variables del entorno del servicio.
 
 Crea el archivo a partir de la plantilla:
 
@@ -194,6 +195,8 @@ Copia el resultado en `JWT_SECRET`.
 | `DATABASE_SCHEMA` | Esquema PostgreSQL utilizado. Por defecto, `public`.          |
 | `JWT_SECRET`      | Secreto obligatorio para firmar los tokens de sesión.         |
 | `TMDB_API_KEY`    | Opcional. Clave API v3 para consultar metadatos de TMDB.      |
+| `MANTENIMIENTO_API_URL` | Opcional. URL base HTTP del backend que consulta el mantenimiento. Por defecto, `http://localhost:<PORT>`. |
+| `CHROME_BIN` | Opcional. Ruta al ejecutable de Chrome o Chromium para Cinépolis. |
 
 No subas `backend/.env` ni credenciales al repositorio.
 
@@ -206,14 +209,13 @@ El frontend y el backend tienen sus propias dependencias y archivos de configura
 Desde la raíz:
 
 ```bash
+cd backend
 
 # Opción A: npm
-cd backend
 npm install
 npm run dev
 
 # Opción B: pnpm
-cd backend
 pnpm install
 pnpm run dev
 
@@ -238,7 +240,7 @@ cd frontend
 npm install
 npm run dev
 
-# Opción B: npm
+# Opción B: pnpm
 pnpm install
 pnpm run dev
 
@@ -266,7 +268,17 @@ cd backend
 npm run build
 ```
 
-El frontend genera su compilación de producción mediante Vite. El backend compila TypeScript a `backend/out/`.
+Vite genera el sitio en `frontend/dist/`. El backend compila TypeScript a `backend/out/`.
+
+Para servir la aplicación y la API desde Express, instala las dependencias de ambos proyectos y ejecuta desde `backend/`:
+
+```bash
+npm run build
+npm run build:ui
+npm start
+```
+
+`build:ui` coloca el sitio en `backend/dist/`. `npm start` sirve ese directorio y la API bajo `/api`. Si usas `NODE_ENV=production`, sirve la aplicación por HTTPS para que el navegador envíe la cookie de sesión segura.
 
 ### 5.4. Pruebas automatizadas
 
@@ -423,13 +435,26 @@ npm run mantenimiento -- --dry-run --tmdb
 npm run mantenimiento -- --apply --tmdb
 ```
 
-El diagnóstico es el modo predeterminado. Consulta las fuentes en vivo y muestra el resumen en consola sin escribir en PostgreSQL ni generar archivos de resultados. Cinépolis usa un perfil temporal de Chrome durante el diagnóstico.
+El diagnóstico es el modo predeterminado. Consulta las fuentes en vivo sin escribir en PostgreSQL ni generar archivos de resultados. Cinépolis usa un perfil temporal de Chrome durante el diagnóstico. Con pnpm también puedes usar `pnpm run mantenimiento -- --dry-run`.
 
 Con `--apply`, ambas comprobaciones iniciales deben pasar antes de importar. Cada cadena se procesa de forma independiente. Una extracción parcial conserva los horarios anteriores y el comando termina con código distinto de cero si hubo extracciones parciales o fallos, incluso si importó otras cadenas. Al final se vuelve a consultar la cobertura.
 
-La comprobación de la API usa `http://localhost` y el puerto de `PORT` (3001 por defecto). Si el servidor está en otra dirección, configura `MANTENIMIENTO_API_URL` con su URL base.
+La tabla final muestra el estado de la API y PostgreSQL, el resultado de cada cadena y los totales de cines, películas y horarios extraídos. Una película presente en varias cadenas puede contarse varias veces. Con `--apply`, la tabla también muestra los horarios insertados, actualizados y eliminados.
+
+La comprobación de la API consulta `/api/cines` en `http://localhost` y el puerto de `PORT` (3001 por defecto). Si necesitas indicar otra dirección, usa en `MANTENIMIENTO_API_URL` la URL base del backend accesible desde el lugar donde ejecutes el comando. Usa el mismo valor que `FRONTEND_URL` solo si ese origen también sirve `/api/cines`.
 
 `--tmdb` requiere `TMDB_API_KEY`. En diagnóstico, evalúa metadatos sobre el catálogo guardado. En aplicación, lo hace después de las importaciones. La fusión de duplicados y la sincronización de pósters y tráileres se ejecutan con sus comandos específicos.
+
+#### Ejecutar el mantenimiento en el servidor
+
+Con la API desplegada en ejecución, usa la misma configuración de PostgreSQL que el servicio. Si tus variables de producción están en `backend/.env.prod`, cárgalas explícitamente. Desde `backend/` y después de compilar:
+
+```bash
+node --env-file=.env.prod out/scripts/mantenimiento.js --dry-run
+node --env-file=.env.prod out/scripts/mantenimiento.js --apply
+```
+
+Si el servicio ya proporciona las variables en la terminal, omite `--env-file`. Agrega `--tmdb` cuando quieras incluir metadatos y tengas la clave configurada.
 
 ### 6.2. Arquitectura de datos
 
@@ -440,8 +465,8 @@ El flujo general es:
 1. Consultar una cadena de cine.
 2. Extraer cines, películas, horarios e incidencias.
 3. Validar la estructura de los datos obtenidos.
-4. Guardar el resultado de extracción como JSON.
-5. Cuando se ejecuta una sincronización, importar los registros a PostgreSQL.
+4. Guardar el resultado como JSON si se ejecuta `scrape:*` o `sync:*`.
+5. Importar los registros a PostgreSQL mediante `sync:*`, `import:scrape` o `mantenimiento --apply`.
 6. Actualizar los registros existentes, insertar los nuevos y limpiar selectivamente horarios obsoletos cuando la extracción es completa.
 7. Consultar el catálogo y los horarios desde la API.
 
@@ -452,7 +477,7 @@ La importación utiliza transacciones para mantener la consistencia de los cambi
 | Operación       | Qué hace                                                  | ¿Modifica PostgreSQL? |
 | --------------- | --------------------------------------------------------- | --------------------- |
 | `scrape:*`      | Extrae datos y guarda un JSON en `backend/data/scrapes/`. | No.                   |
-| `sync:*`        | Extrae datos y los importa a PostgreSQL.                  | Sí.                   |
+| `sync:*`        | Extrae datos, guarda un JSON y los importa a PostgreSQL.  | Sí.                   |
 | `import:scrape` | Importa un JSON generado previamente.                     | Sí.                   |
 
 Una extracción parcial se puede importar, pero no se considera completa y no ejecuta la limpieza de horarios anteriores. Esto evita borrar horarios válidos por una extracción incompleta.
@@ -567,7 +592,7 @@ Después de revisar el reporte, si las coincidencias son correctas, se pueden ap
 npm run sync:tmdb -- --apply
 ```
 
-El modo `--apply` actualiza únicamente las coincidencias consideradas seguras y no resuelve automáticamente los conflictos manuales.
+El modo `--apply` actualiza las coincidencias consideradas seguras, deja los conflictos para revisión manual y después ejecuta la sincronización de tráileres y pósters.
 
 Las resoluciones manuales se mantienen en:
 
@@ -811,8 +836,8 @@ La auditoría compara el título que publica YouTube con los títulos conocidos 
 
 | Ruta             | Vista                                                               |
 | ---------------- | ------------------------------------------------------------------- |
-| `/`              | Cartelera, búsqueda y filtros por género, clasificación y duración. |
-| `/peliculas/:id` | Detalle de película, funciones, cines, fechas, formatos y precios.  |
+| `/`              | Cartelera, preventas, búsqueda, filtros y recomendador por comuna, fecha y hora. |
+| `/peliculas/:id` | Detalle de película, funciones, formatos, precios y disponibilidad de butacas. |
 | `/cines`         | Directorio de cines, búsqueda y filtros.                            |
 | `/cines/:id`     | Detalle de cine y horarios disponibles.                             |
 | `/login`         | Inicio de sesión y registro.                                        |
@@ -833,7 +858,9 @@ Las rutas privadas requieren la cookie de sesión JWT y la cabecera `X-CSRF-Toke
 | `GET`  | `/api/cines/:id`                           | Pública    | Obtiene un cine.                                         |
 | `GET`  | `/api/funciones/horarios`                  | Pública    | Lista horarios; requiere `peliculaId`, `cineId` o ambos. |
 | `GET`  | `/api/funciones/precios`                   | Pública    | Consulta precios por película, cine y fecha.             |
-| `GET`  | `/api/funciones/butacas`                   | Pública    | Consulta disponibilidad de butacas por cine y fecha.     |
+| `GET`  | `/api/funciones/butacas`                   | Pública    | Consulta disponibilidad por película, cine y fecha.     |
+| `GET`  | `/api/funciones/detalle-stream`            | Pública    | Transmite precios y butacas en NDJSON por película, cine y fecha. |
+| `GET`  | `/api/recomendaciones`                    | Pública    | Busca funciones en una ventana de tres horas para la fecha, hora y cines indicados. |
 | `POST` | `/api/auth/register`                       | Pública    | Registra un usuario.                                     |
 | `POST` | `/api/auth/login`                          | Pública    | Inicia sesión.                                           |
 | `POST` | `/api/auth/logout`                         | JWT + CSRF | Cierra la sesión.                                        |
@@ -852,6 +879,7 @@ Las rutas privadas requieren la cookie de sesión JWT y la cabecera `X-CSRF-Toke
 | No se puede conectar desde el backend          | Comprueba que PostgreSQL esté activo y que `DATABASE_URL` apunte al puerto y base correctos.                             |
 | Error de autenticación JWT                     | Comprueba que `JWT_SECRET` esté configurado en `backend/.env`.                                                           |
 | Error de CORS                                  | Comprueba que `FRONTEND_URL` coincida con el origen del frontend.                                                        |
+| El mantenimiento no puede consultar la API    | Comprueba que el backend esté en ejecución y que `/api/cines` responda en la dirección indicada por el diagnóstico.     |
 | No aparecen horarios                           | Comprueba que la sincronización de la cadena haya terminado correctamente y que existan horarios vigentes en PostgreSQL. |
 | No aparecen precios                            | Comprueba que existan horarios para la fecha y que la consulta de precios haya terminado.                                |
 | Hay variantes de un mismo género               | Revisa los alias en `backend/src/utils/generos.ts` y vuelve a sincronizar la fuente que actualiza la película.           |
@@ -865,6 +893,7 @@ Los siguientes archivos y directorios son locales y no deben subirse al reposito
 
 ```text
 backend/.env
+backend/.env.prod
 .direnv/
 .pgdata/
 ```
