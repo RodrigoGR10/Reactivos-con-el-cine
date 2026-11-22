@@ -1,4 +1,5 @@
 import { query } from "../../db.ts";
+import { PELICULA_VISIBLE_SQL } from "../peliculas/visibilidad.ts";
 import type { ScheduleRow, ScheduleWithPrices, TarifaRow } from "./types.ts";
 import type { ScrapedSchedule } from "../../scraper/types.ts";
 
@@ -23,12 +24,13 @@ export async function cargarHorario(
                pf.url AS pelicula_url_fuente,
                pf.origen_id AS pelicula_origen_id_fuente
         FROM horarios h
+        INNER JOIN peliculas p ON p.id = h.pelicula_id
         INNER JOIN cines c ON c.id = h.cine_id
         LEFT JOIN pelicula_fuentes pf
           ON pf.pelicula_id = h.pelicula_id
          AND pf.origen = h.origen
          AND pf.origen_id = h.pelicula_origen_id
-        WHERE h.id = $1;
+        WHERE h.id = $1 AND ${PELICULA_VISIBLE_SQL};
         `,
         [id],
     );
@@ -89,6 +91,7 @@ export async function cargarHorarios(
     const conditions: string[] = [
         "(h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')",
         "h.agotada = FALSE",
+        PELICULA_VISIBLE_SQL,
     ];
 
     const params: unknown[] = [];
@@ -116,6 +119,7 @@ export async function cargarHorarios(
                pf.url AS pelicula_url_fuente,
                pf.origen_id AS pelicula_origen_id_fuente
         FROM horarios h
+        INNER JOIN peliculas p ON p.id = h.pelicula_id
         INNER JOIN cines c ON c.id = h.cine_id
         LEFT JOIN pelicula_fuentes pf
           ON pf.pelicula_id = h.pelicula_id

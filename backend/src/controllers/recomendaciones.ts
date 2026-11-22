@@ -1,6 +1,7 @@
 import express from "express";
 import { isCineId, query } from "../db.ts";
 import { isDate } from "../scraper/normalize.ts";
+import { PELICULA_VISIBLE_SQL } from "../services/peliculas/visibilidad.ts";
 
 const router = express.Router();
 
@@ -46,6 +47,7 @@ router.get("/", async (req, res, next) => {
             INNER JOIN peliculas p ON h.pelicula_id = p.id
             INNER JOIN cines c ON h.cine_id = c.id
             WHERE h.agotada = FALSE
+              AND ${PELICULA_VISIBLE_SQL}
               AND h.cine_id = ANY($3::text[])
               AND h.fecha + h.horario >= $1::date + $2::time
               AND h.fecha + h.horario < ($1::date + $2::time + INTERVAL '3 hours')

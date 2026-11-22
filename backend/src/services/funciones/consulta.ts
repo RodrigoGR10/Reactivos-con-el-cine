@@ -1,4 +1,5 @@
 import { query } from "../../db.ts";
+import { PELICULA_VISIBLE_SQL } from "../peliculas/visibilidad.ts";
 
 /**
  * Criterios y opciones disponibles para la consulta de funciones.
@@ -19,6 +20,7 @@ export async function listarFunciones({
     const conditions: string[] = [
         "(h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')",
         "h.agotada = FALSE",
+        PELICULA_VISIBLE_SQL,
     ];
 
     const params: unknown[] = [];
@@ -87,7 +89,7 @@ export async function obtenerFuncion(id: number) {
         FROM horarios h
         INNER JOIN peliculas p ON h.pelicula_id = p.id
         INNER JOIN cines c ON h.cine_id = c.id
-        WHERE h.id = $1;
+        WHERE h.id = $1 AND ${PELICULA_VISIBLE_SQL};
     `,
         [id],
     );

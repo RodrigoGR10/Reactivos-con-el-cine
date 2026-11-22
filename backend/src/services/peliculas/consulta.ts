@@ -3,6 +3,7 @@ import { localNow } from "../../utils/localNow.ts";
 import { incluirPopularidad } from "../popularidadPeliculas.ts";
 import { fuentesAEstreno, serializarPelicula } from "./serializar.ts";
 import type { FuenteRow, PeliculaRow } from "./tipos.ts";
+import { PELICULA_VISIBLE_SQL } from "./visibilidad.ts";
 
 const PELICULA_COLUMNS = `
     p.id,
@@ -72,7 +73,7 @@ async function listarEnCartelera() {
                 COUNT(h.id)::int AS total_funciones
             FROM peliculas p
             INNER JOIN horarios_vigentes h ON h.pelicula_id = p.id
-            WHERE h.agotada = FALSE
+            WHERE h.agotada = FALSE AND ${PELICULA_VISIBLE_SQL}
             GROUP BY p.id
             ORDER BY p.titulo ASC;
         `),
@@ -122,6 +123,7 @@ async function listarTodas() {
     const { rows } = await query<PeliculaRow>(`
         SELECT ${PELICULA_COLUMNS}
         FROM peliculas p
+        WHERE ${PELICULA_VISIBLE_SQL}
         ORDER BY p.titulo ASC;
     `);
 
@@ -156,7 +158,7 @@ export async function obtenerPelicula(id: number) {
         `
         SELECT ${PELICULA_COLUMNS}
         FROM peliculas p
-        WHERE p.id = $1;
+        WHERE p.id = $1 AND ${PELICULA_VISIBLE_SQL};
         `,
         [id],
     );

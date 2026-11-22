@@ -1,4 +1,5 @@
 import { query } from "../db.ts";
+import { PELICULA_VISIBLE_SQL } from "./peliculas/visibilidad.ts";
 import { pricesForSchedules as cinepolisPricesBatch } from "../scraper/cinepolis/prices.ts";
 import { consultarHorario } from "./preciosFunciones/consulta.ts";
 import { horarioPublico, isFresh } from "./preciosFunciones/estado.ts";
@@ -54,12 +55,14 @@ export async function preciosPorCine(
                pf.url AS pelicula_url_fuente,
                pf.origen_id AS pelicula_origen_id_fuente
         FROM horarios h
+        INNER JOIN peliculas p ON p.id = h.pelicula_id
         INNER JOIN cines c ON c.id = h.cine_id
         LEFT JOIN pelicula_fuentes pf
           ON pf.pelicula_id = h.pelicula_id
          AND pf.origen = h.origen
          AND pf.origen_id = h.pelicula_origen_id
         WHERE h.pelicula_id = $1
+          AND ${PELICULA_VISIBLE_SQL}
           AND h.cine_id = $2
           AND h.fecha = $3
           AND (h.fecha + h.horario) >= (NOW() AT TIME ZONE 'America/Santiago')
