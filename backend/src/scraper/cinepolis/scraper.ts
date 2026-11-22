@@ -98,14 +98,17 @@ function guardarDebug(raw: PageResult): void {
 }
 
 /** Ejecuta el script de extracción dentro de una sesión de Chrome y cierra la sesión siempre. */
-async function obtenerDatos(config: unknown): Promise<PageResult> {
-    const session = await startChromeSession();
+async function obtenerDatos(
+    config: unknown,
+    perfilTemporal: boolean,
+): Promise<PageResult> {
+    const session = await startChromeSession({ perfilTemporal });
     try {
         return await session.evaluate<PageResult>(
             `(${PAGE_SCRIPT})(${JSON.stringify(config)})`,
         );
     } finally {
-        session.close();
+        await session.close();
     }
 }
 
@@ -124,7 +127,9 @@ export async function listCinemas(): Promise<CinepolisCinema[]> {
  */
 export async function scrapeCinepolis(
     options: ScrapeOptions,
+    { diagnostico = false }: { diagnostico?: boolean } = {},
 ): Promise<ScrapeResult> {
+    const debug = DEBUG && !diagnostico;
     if (!FECHA_RE.test(options.desde)) {
         throw new Error(
             `Fecha "desde" inválida: ${options.desde}. Usa YYYY-MM-DD.`,
@@ -149,12 +154,12 @@ export async function scrapeCinepolis(
         if (severidad === "error") {
             errores++;
             incidencias.push(incidencia(tipo, severidad, mensaje, extra));
-        } else if (DEBUG) {
+        } else if (debug) {
             console.error(`[cinepolis][${severidad}] ${tipo}: ${mensaje}`);
         }
     };
 
-    const raw = await obtenerDatos({
+    const config = {
         apiUrl: API_URL,
         apiKey: API_KEY,
         countryId: COUNTRY_ID,
@@ -162,14 +167,15 @@ export async function scrapeCinepolis(
         movieLimit: 120,
         concurrency: 4,
         pausaMs: 200,
-        debug: DEBUG,
+        debug,
         cinemas: selected.map((c) => ({
             id: c.id,
             candidatos: [c.id, c.vistaId],
         })),
-    });
+    };
+    const raw = await obtenerDatos(config, diagnostico);
 
-    if (DEBUG) guardarDebug(raw);
+    if (debug) guardarDebug(raw);
 
     for (const e of raw.errores) {
         registrar(e.tipo, "error", `Error consultando ${e.tipo}.`, {
@@ -340,7 +346,7 @@ export async function scrapeCinepolis(
         }
     }
 
-    if (DEBUG) {
+    if (debug) {
         console.error(
             `[cinepolis] cines con respuesta: ${cinesConRespuesta}/${selected.length} · ` +
                 `funciones: ${horarios.length} · películas: ${peliculas.length} · incidencias: ${incidencias.length}`,

@@ -48,7 +48,7 @@ export function findChromePath(): string {
  */
 export interface ChromeSession {
     evaluate: <T>(expression: string) => Promise<T>;
-    close: () => void;
+    close: () => Promise<void>;
 }
 
 const sleep = (ms: number) =>
@@ -71,7 +71,12 @@ function conTimeout<T>(
  * @param opts Opciones para iniciar la sesión automatizada del navegador.
  */
 export async function startChromeSession(
-    opts: { url?: string; esperaMs?: number; profileDir?: string } = {},
+    opts: {
+        url?: string;
+        esperaMs?: number;
+        profileDir?: string;
+        perfilTemporal?: boolean;
+    } = {},
 ): Promise<ChromeSession> {
     if (typeof WebSocket === "undefined") {
         throw new Error(
@@ -81,10 +86,11 @@ export async function startChromeSession(
 
     // Perfil dedicado para el scraper: evita conflictos con un Chrome abierto del usuario
     // y a la vez conserva cookies y clearance de Cloudflare entre ejecuciones para evitar bloqueos.
-    const perfil =
-        opts.profileDir ||
-        process.env.CHROME_USER_DATA_DIR ||
-        path.join(os.tmpdir(), "cinepolis-chrome-scraper-profile");
+    const perfil = opts.perfilTemporal
+        ? fs.mkdtempSync(path.join(os.tmpdir(), "cinepolis-mantenimiento-"))
+        : opts.profileDir ||
+          process.env.CHROME_USER_DATA_DIR ||
+          path.join(os.tmpdir(), "cinepolis-chrome-scraper-profile");
     fs.mkdirSync(perfil, { recursive: true });
     const args = [
         "--headless=new",
@@ -103,14 +109,25 @@ export async function startChromeSession(
         stdio: ["ignore", "ignore", "pipe"],
     });
     let socket: WebSocket | undefined;
+    const cerrado = new Promise<void>((resolve) => {
+        chrome.once("close", () => resolve());
+    });
 
-    const cerrar = () => {
+    const cerrar = async () => {
         try {
             socket?.close();
         } catch {}
         try {
             chrome.kill();
         } catch {}
+        if (opts.perfilTemporal) {
+            await cerrado;
+            await fs.promises.rm(perfil, {
+                recursive: true,
+                force: true,
+                maxRetries: 3,
+            });
+        }
     };
 
     try {
@@ -248,7 +265,7 @@ export async function startChromeSession(
             close: cerrar,
         };
     } catch (err) {
-        cerrar();
+        await cerrar();
         throw err;
     }
 }

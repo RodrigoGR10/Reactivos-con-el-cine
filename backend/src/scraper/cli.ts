@@ -1,14 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { scrapeCinemark } from "./cinemark/scraper.ts";
-import { scrapeCineplanet } from "./cineplanet/scraper.ts";
-import { initializeCinepolis } from "./cinepolis/client.ts";
-import { scrapeCinepolis } from "./cinepolis/scraper.ts";
-import { scrapeVista } from "./vista/scraper.ts";
-
+import { extraerCartelera } from "./extraer-cartelera.ts";
 import { importarDatosScraped } from "./import-data.ts";
-import { validarScrapeResult } from "./validate.ts";
 import { deduplicarCatalogoPeliculas } from "./deduplicar-peliculas.ts";
 
 import { ORIGENES, type Origen, type ScrapeOptions } from "./types.ts";
@@ -110,20 +104,7 @@ async function main() {
 
     console.log(`Iniciando extracción: ${origen}`);
 
-    const scrapers: Record<Origen, () => ReturnType<typeof scrapeCinemark>> = {
-        cinemark: () => scrapeCinemark(options),
-        cineplanet: () => scrapeCineplanet(options),
-        muvix: () => scrapeVista("muvix", options),
-        cinestar: () => scrapeVista("cinestar", options),
-        cinepolis: async () => {
-            await initializeCinepolis();
-            return scrapeCinepolis(options);
-        },
-    };
-
-    const data = await scrapers[origen]();
-
-    validarScrapeResult(data);
+    const data = await extraerCartelera(origen, options);
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const outputArg = args.find((arg) => arg.startsWith("--output="));
