@@ -1,3 +1,4 @@
+
 import {
     createContext,
     useCallback,
@@ -191,6 +192,7 @@ export const FavoritesProvider = ({
 
         sesion[tipo].add(id);
 
+        // Actualización optimista de la interfaz.
         setIds((actuales) =>
             actualizarFavorito(
                 actuales,
@@ -202,6 +204,7 @@ export const FavoritesProvider = ({
         try {
             const confirmados = await solicitar(id);
 
+            // Evita modificar el estado de una sesión anterior.
             if (sesionActiva.current !== sesion) {
                 return false;
             }
@@ -220,6 +223,7 @@ export const FavoritesProvider = ({
                 return false;
             }
 
+            // Revierte el cambio optimista si falla la API.
             setIds((actuales) =>
                 actualizarFavorito(
                     actuales,

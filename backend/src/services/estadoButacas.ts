@@ -3,6 +3,10 @@ import type { ScheduleRow } from "./preciosFunciones/types.ts";
 
 export const CACHE_BUTACAS_MS = 2 * 60_000;
 
+/**
+ * Convierte el registro interno de butacas al estado que puede recibir el cliente.
+ * @param row Fila de base de datos que se transforma o evalúa.
+ */
 export function butacasPublicas(row: ScheduleRow) {
     const compatible = row.butacas_revision === row.revision;
     const consultadasEn =

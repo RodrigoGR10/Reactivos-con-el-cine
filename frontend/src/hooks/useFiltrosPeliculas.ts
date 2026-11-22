@@ -41,6 +41,9 @@ const contarOpciones = (
         .sort(comparar);
 };
 
+/**
+ * Criterios y opciones disponibles para la aplicación.
+ */
 export interface Filtros {
     busqueda: string;
     generos: string[];
@@ -56,7 +59,9 @@ const FILTROS_INICIALES: Filtros = {
 };
 
 /**
- * Administra búsqueda textual y filtros activos de cartelera y preventas.
+ * Administra búsqueda y filtros de género, clasificación y duración.
+ * @param peliculas Catálogo sobre el que se calculan las opciones y resultados.
+ * @returns Filtros actuales, acciones para cambiarlos y películas filtradas.
  */
 export function useFiltrosPeliculas(peliculas: Pelicula[]) {
     const [filtros, setFiltros] = useState<Filtros>(FILTROS_INICIALES);

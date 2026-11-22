@@ -13,6 +13,10 @@ import authRouter from "./controllers/auth.ts";
 import perfilRouter from "./controllers/perfil.ts";
 import recomendacionRouter from "./controllers/recomendaciones.ts";
 
+/**
+ * Configura Express: políticas de acceso, cookies, rutas de la API y entrega de la SPA.
+ * Los errores y las rutas desconocidas se resuelven al final de la cadena de middleware.
+ */
 const app = express();
 
 app.use(

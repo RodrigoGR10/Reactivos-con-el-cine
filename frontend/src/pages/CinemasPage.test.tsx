@@ -3,7 +3,7 @@ import { HeadlessMantineProvider } from "@mantine/core";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../context/AuthContext";
 import { FavoritesProvider } from "../context/FavoritesContext";
 import cinesService from "../services/cines";
@@ -17,7 +17,14 @@ vi.mock("../services/authService", () => ({
 
 const consultarCines = vi.mocked(cinesService.getAll);
 const cines: Cine[] = [
-    { id: "1", nombre: "Cine Alameda", comuna: "Santiago", origen: "cinemark" },
+    {
+        id: "1",
+        nombre: "Cine Alameda",
+        comuna: "Santiago",
+        origen: "cinemark",
+        latitud: -33.45,
+        longitud: -70.65,
+    },
     {
         id: "2",
         nombre: "Cine Plaza",
@@ -127,3 +134,49 @@ describe("Directorio de cines", () => {
         ).not.toBeInTheDocument();
     });
 });
+
+afterEach(() => Reflect.deleteProperty(navigator, "geolocation"));
+
+it.each([
+    [1, /habilita el permiso/i],
+    [2, /no está disponible en este momento/i],
+    [3, /tardó demasiado/i],
+] as const)(
+    "explica el error de geolocalización %i y conserva los cines",
+    async (code, aviso) => {
+        const getCurrentPosition = vi.fn(
+            (_exito: PositionCallback, error: PositionErrorCallback) =>
+                error({ code } as GeolocationPositionError),
+        );
+        Object.defineProperty(navigator, "geolocation", {
+            configurable: true,
+            value: { getCurrentPosition },
+        });
+        const user = renderCines();
+        const cercania = await screen.findByRole("button", {
+            name: "Cerca de mí",
+        });
+        expect(getCurrentPosition).not.toHaveBeenCalled();
+        await user.click(cercania);
+
+        expect(screen.getByText(aviso)).toBeVisible();
+        expect(
+            await screen.findByRole("link", { name: "Cine Alameda" }),
+        ).toBeVisible();
+        await user.click(
+            screen.getByRole("button", { name: "Cerrar aviso de ubicación" }),
+        );
+        expect(screen.queryByText(aviso)).not.toBeInTheDocument();
+        expect(cercania).toBeEnabled();
+
+        getCurrentPosition.mockImplementationOnce((exito) =>
+            exito({
+                coords: { latitude: -33.45, longitude: -70.65 },
+            } as GeolocationPosition),
+        );
+        await user.click(cercania);
+
+        expect(cercania).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByText("0 m")).toBeVisible();
+    },
+);

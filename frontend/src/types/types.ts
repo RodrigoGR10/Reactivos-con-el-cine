@@ -1,3 +1,4 @@
+/** Datos normalizados de una película utilizados en las vistas del frontend. */
 export interface Pelicula {
     id: string;
     titulo: string;
@@ -21,6 +22,7 @@ export interface Pelicula {
     fechaEstrenoTmdb?: string;
 }
 
+/** Datos de identificación, cadena y ubicación de un cine. */
 export interface Cine {
     id: string;
     nombre: string;
@@ -34,6 +36,7 @@ export interface Cine {
     origen?: string;
 }
 
+/** Tarifa concreta ofrecida para una función. */
 export interface Funcion {
     id: string;
     peliculaId: string;
@@ -52,6 +55,7 @@ export interface Funcion {
     agotada?: boolean;
 }
 
+/** Proyección de una película en un cine, con estados de precio y butacas. */
 export interface Horario {
     id: string;
     peliculaId: string;

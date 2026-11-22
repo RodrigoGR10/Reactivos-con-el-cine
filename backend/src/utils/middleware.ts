@@ -11,6 +11,9 @@ declare global {
     }
 }
 
+/**
+ * Solicitud Express extendida con los datos opcionales de la persona autenticada.
+ */
 export interface AuthenticatedRequest extends Request {
     user?: { id: string; email: string };
 }

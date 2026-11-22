@@ -5,6 +5,11 @@ import peliculaService from "../services/peliculas";
 import cineService from "../services/cines";
 import funcionService from "../services/funciones";
 
+/**
+ * Carga los datos necesarios para la vista de detalle de una película.
+ * @param id Identificador de película leído desde `/peliculas/:id`.
+ * @returns Película, horarios, cines y estado de error o película inexistente.
+ */
 export function useDetallePelicula(id?: string) {
     const [pelicula, setPelicula] = useState<Pelicula | null>(null);
     const [horarios, setHorarios] = useState<Horario[]>([]);

@@ -7,6 +7,11 @@ const YOUTUBE_HOSTS = new Set([
     "www.youtube-nocookie.com",
 ]);
 
+/**
+ * Normaliza los datos recibidos para mantener el formato esperado por las utilidades compartidas del backend.
+ * @param value Valor que se valida o normaliza.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizarTrailerUrl(value: unknown): string | undefined {
     if (typeof value !== "string" || !value.trim()) return undefined;
     const input = value.trim();

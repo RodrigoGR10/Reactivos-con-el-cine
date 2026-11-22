@@ -1,3 +1,4 @@
+
 import {
     createContext,
     useContext,
@@ -29,12 +30,17 @@ const AuthContext = createContext<AuthContextType | undefined>(
     undefined,
 );
 
+/**
+ * Comparte la sesión y los controles del modal de autenticación
+ * utilizando el estado global de Zustand.
+ */
 export const AuthProvider = ({
     children,
 }: {
     children: ReactNode;
 }) => {
     const user = useAuthStore((state) => state.user);
+
     const isLoadingSession = useAuthStore(
         (state) => state.isLoadingSession,
     );
@@ -42,6 +48,7 @@ export const AuthProvider = ({
     const login = useAuthStore((state) => state.login);
     const register = useAuthStore((state) => state.register);
     const logout = useAuthStore((state) => state.logout);
+
     const invalidateSession = useAuthStore(
         (state) => state.invalidateSession,
     );
@@ -49,6 +56,7 @@ export const AuthProvider = ({
     const isAuthModalOpen = useAuthStore(
         (state) => state.isAuthModalOpen,
     );
+
     const authModalRedirectTo = useAuthStore(
         (state) => state.authModalRedirectTo,
     );
@@ -56,6 +64,7 @@ export const AuthProvider = ({
     const openAuthModal = useAuthStore(
         (state) => state.openAuthModal,
     );
+
     const closeAuthModal = useAuthStore(
         (state) => state.closeAuthModal,
     );

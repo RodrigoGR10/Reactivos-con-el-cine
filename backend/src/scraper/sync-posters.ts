@@ -10,6 +10,8 @@ interface PeliculaSinPosterLimpio {
 /**
  * Busca pósters verticales sin texto (iso_639_1 = null) en TMDB
  * para películas que ya tienen tmdb_id asociado.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Resultado de la operación, incluidos los registros procesados.
  */
 export async function sincronizarPostersLimpios(
     options: { apply?: boolean; force?: boolean } = {},

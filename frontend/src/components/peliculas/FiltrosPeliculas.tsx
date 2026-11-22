@@ -24,6 +24,10 @@ interface FiltrosPeliculasProps {
     onDuracionChange: (duracion: string) => void;
 }
 
+/**
+ * Dibuja búsqueda y filtros controlados de la cartelera.
+ * @param props Valores, opciones y callbacks que mantiene la página principal.
+ */
 function FiltrosPeliculas({
     busqueda,
     onBusquedaChange,

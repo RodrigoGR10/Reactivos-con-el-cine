@@ -9,6 +9,11 @@ type PeliculaTrailer = Pick<
     "titulo" | "trailerUrl" | "banner" | "poster"
 >;
 
+/**
+ * Incrusta el tráiler verificado asociado a la película, si existe.
+ * @param pelicula Título y URL de tráiler listos para mostrar.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function TrailerPelicula({ pelicula }: { pelicula: PeliculaTrailer }) {
     const tituloId = useId();
     const reproductorRef = useRef<HTMLDivElement>(null);

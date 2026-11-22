@@ -1,5 +1,8 @@
 import type { EstadoEstreno } from "../../utils/estreno.ts";
 
+/**
+ * Fila de película recuperada desde PostgreSQL para fusionar duplicados.
+ */
 export interface PeliculaRow {
     id: number;
     titulo: string;
@@ -22,6 +25,9 @@ export interface PeliculaRow {
     total_funciones?: number;
 }
 
+/**
+ * Forma de una fila de base de datos utilizada por la consulta y serialización de películas.
+ */
 export interface FuenteRow {
     pelicula_id: number;
     origen: string;

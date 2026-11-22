@@ -1,7 +1,11 @@
 const SINOPSIS_LINEAS_POR_DEFECTO = 5;
 const FACTOR_INTERLINEADO_SINOPSIS = 1.65;
 
-/** Alto de un elemento incluyendo sus márgenes verticales. */
+/**
+ * Calcula la altura visible de un elemento e incluye sus márgenes verticales.
+ * @param elemento Elemento DOM cuyo tamaño se medirá.
+ * @returns Altura total en píxeles, o cero si está oculto.
+ */
 export function altoExterior(elemento: Element): number {
     const estilo = window.getComputedStyle(elemento);
     if (estilo.display === "none") return 0;
@@ -11,8 +15,11 @@ export function altoExterior(elemento: Element): number {
 }
 
 /**
- * Calcula cuántas líneas de texto caben en el espacio que deja el contenedor
- * después de descontar padding, márgenes del párrafo y el resto de sus hijos.
+ * Calcula las líneas de sinopsis que caben en el contenido disponible.
+ * @param contenedorEl Caja exterior que limita el alto.
+ * @param contenidoEl Elemento que contiene sinopsis y metadatos.
+ * @param parrafoEl Párrafo cuya cantidad de líneas se va a calcular.
+ * @returns Número de líneas disponible y altura de cada línea, en píxeles.
  */
 export function calcularLineasDisponibles(
     contenedorEl: HTMLElement,
@@ -60,7 +67,12 @@ export function calcularLineasDisponibles(
     };
 }
 
-/** Une las primeras palabras y cierra con puntos suspensivos. */
+/**
+ * Une un prefijo de palabras y agrega puntos suspensivos.
+ * @param palabras Palabras originales del texto.
+ * @param cantidad Cantidad máxima de palabras que se conservarán.
+ * @returns Texto abreviado con puntos suspensivos.
+ */
 export function formatearPrefijoPalabras(
     palabras: readonly string[],
     cantidad: number,
@@ -73,8 +85,11 @@ export function formatearPrefijoPalabras(
 }
 
 /**
- * Ajusta el texto del párrafo al alto de las líneas disponibles, buscando por
- * bisección la mayor cantidad de palabras que quepa sin desbordar.
+ * Recorta el párrafo al mayor prefijo de palabras que cabe en el espacio asignado.
+ * @param parrafoEl Párrafo que se actualiza en el DOM.
+ * @param textoCompleto Texto original antes de aplicar el recorte.
+ * @param lineas Número máximo de líneas disponibles.
+ * @param alturaLinea Altura de una línea, en píxeles.
  */
 export function ajustarTextoPorPalabras(
     parrafoEl: HTMLElement,

@@ -109,10 +109,19 @@ async function obtenerDatos(config: unknown): Promise<PageResult> {
     }
 }
 
+/**
+ * Lista los cines disponibles en la cadena correspondiente.
+ * @returns Lista de resultados encontrados o transformados.
+ */
 export async function listCinemas(): Promise<CinepolisCinema[]> {
     return CINES_CINEPOLIS;
 }
 
+/**
+ * Extrae desde Cinépolis los datos necesarios para construir la cartelera.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Resultado de la operación, incluidos los registros procesados.
+ */
 export async function scrapeCinepolis(
     options: ScrapeOptions,
 ): Promise<ScrapeResult> {

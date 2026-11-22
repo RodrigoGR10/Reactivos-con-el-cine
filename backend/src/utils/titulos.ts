@@ -1,6 +1,11 @@
 // Normalizaciones de títulos de películas.
 // Cada "clave" responde a una pregunta distinta, por eso no son intercambiables.
 
+/**
+ * Pasa un título a mayúsculas y elimina tildes para compararlo.
+ * @param titulo Título que se normaliza, compara o busca.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function sinAcentosEnMayusculas(titulo: string): string {
     return titulo
         .normalize("NFD")
@@ -13,11 +18,21 @@ function soloAlfanumericos(texto: string): string {
 }
 
 // Comparación exacta de títulos ya limpios (matching contra TMDB).
+/**
+ * Crea una clave simple y normalizada para comparar títulos.
+ * @param titulo Título que se normaliza, compara o busca.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function claveBasica(titulo: string): string {
     return soloAlfanumericos(sinAcentosEnMayusculas(titulo));
 }
 
 // ¿Dos películas locales proponen el mismo TMDB ID con títulos compatibles?
+/**
+ * Crea una clave de título que ayuda a detectar conflictos de coincidencia.
+ * @param titulo Título que se normaliza, compara o busca.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function claveParaConflictos(titulo: string): string {
     const limpio = sinAcentosEnMayusculas(titulo)
         .replace(/[\[(]\d{4}[\])]/g, "")
@@ -27,6 +42,11 @@ export function claveParaConflictos(titulo: string): string {
 }
 
 // ¿Dos películas locales sin TMDB parecen ser la misma? (deduplicación)
+/**
+ * Crea una clave de título para agrupar posibles duplicados.
+ * @param titulo Título que se normaliza, compara o busca.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function claveParaDuplicados(titulo: string): string {
     const limpio = sinAcentosEnMayusculas(titulo)
         .replace(/\b(?:LIVE\s+VIEWING|LIVE)\s*$/g, " ")

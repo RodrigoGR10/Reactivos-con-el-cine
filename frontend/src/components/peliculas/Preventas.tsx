@@ -9,6 +9,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "../common/Icons";
 import TarjetaPelicula from "./TarjetaPelicula";
 import "./Preventas.css";
 
+/** Muestra las películas con estado de estreno en preventa. */
 function Preventas({ peliculas }: { peliculas: Pelicula[] }) {
     const esMovil = useMediaQuery("(max-width: 560px)");
     const [pagina, setPagina] = useState(0);

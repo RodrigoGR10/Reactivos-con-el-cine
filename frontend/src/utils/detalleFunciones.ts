@@ -3,6 +3,9 @@ import type { Horario } from "../types/types.ts";
 export const COOLDOWN_DETALLE_MS = 5 * 60_000;
 export const EXPIRACION_DETALLE_MS = 60 * 60_000;
 
+/**
+ * Estado agregado de consulta para un horario de función.
+ */
 export type DetalleHorario = Partial<
     Pick<
         Horario,
@@ -18,16 +21,25 @@ export type DetalleHorario = Partial<
     >
 >;
 
+/**
+ * Resultado parcial recibido durante la consulta de una función.
+ */
 export interface RegistroConsulta {
     consultadoEn: number;
     falloPrecios: boolean;
     falloButacas: boolean;
 }
 
+/**
+ * Progreso general de la consulta de precios y disponibilidad.
+ */
 export interface ProgresoDetalle {
     porcentaje: number;
 }
 
+/**
+ * Estado de carga y error de un grupo de resultados de funciones.
+ */
 export interface EstadoDetalleGrupo {
     cargando: boolean;
     revelado: boolean;
@@ -39,6 +51,9 @@ export interface EstadoDetalleGrupo {
     progreso: ProgresoDetalle | null;
 }
 
+/**
+ * Tipo de resultado parcial emitido por el flujo de detalle.
+ */
 export type TipoDetalle = "precios" | "butacas";
 
 const CAMPOS_DETALLE = {
@@ -52,7 +67,12 @@ const CAMPOS_DETALLE = {
     butacas: ["butacas", "estadoButacas", "butacasReintentarEn"],
 } as const satisfies Record<TipoDetalle, readonly (keyof DetalleHorario)[]>;
 
-/** Extrae solo los campos de un endpoint para previsualizarlos antes de que termine el otro. */
+/**
+ * Extrae solo precios o butacas para combinar respuestas que llegan por separado.
+ * @param horarios Horarios devueltos por el endpoint consultado.
+ * @param tipo Indica si el detalle parcial contiene precios o butacas.
+ * @returns Mapa indexado por ID de horario con los campos recibidos.
+ */
 export function extraerDetalleParcial(
     horarios: Horario[],
     tipo: TipoDetalle,
@@ -67,7 +87,13 @@ export function extraerDetalleParcial(
     );
 }
 
-/** Mensaje de espera segun progreso real o tiempo transcurrido; null mientras la espera aun es breve. */
+/**
+ * Genera el aviso de espera según progreso o tiempo transcurrido.
+ * @param segundos Segundos desde que comenzó la consulta.
+ * @param totalFunciones Número de funciones consultadas.
+ * @param progreso Avance porcentual opcional informado por la API.
+ * @returns Texto para mostrar o `null` mientras la espera sea breve.
+ */
 export function mensajeEsperaDetalle(
     segundos: number,
     totalFunciones: number,
@@ -88,19 +114,36 @@ export function mensajeEsperaDetalle(
     return "Está tardando más de lo normal…";
 }
 
+/**
+ * Crea una clave única para asociar datos de una película, cine y fecha.
+ * @param peliculaId Identificador de película.
+ * @param cineId Identificador de cine.
+ * @param fecha Fecha de la función.
+ * @returns Clave compuesta separada por dos puntos.
+ */
 export const claveDetalle = (
     peliculaId: string,
     cineId: string,
     fecha: string,
 ) => `${peliculaId}:${cineId}:${fecha}`;
 
+/**
+ * Convierte una fecha ISO a milisegundos Unix.
+ * @param iso Marca de tiempo opcional recibida desde la API.
+ * @returns Milisegundos o `null` si falta o no es válida.
+ */
 export function parsearTimestamp(iso?: string): number | null {
     if (!iso) return null;
     const ms = Date.parse(iso);
     return Number.isFinite(ms) ? ms : null;
 }
 
-/** Formatea la antiguedad relativa (< 60 min) segun las reglas de la cabecera. */
+/**
+ * Formatea cuánto tiempo ha pasado desde la última consulta.
+ * @param consultadoEn Marca de tiempo de la consulta, en milisegundos.
+ * @param ahora Instante de referencia, en milisegundos.
+ * @returns Etiqueta relativa localizada en español.
+ */
 export function formatearTiempoRelativo(
     consultadoEn: number,
     ahora: number,
@@ -112,8 +155,10 @@ export function formatearTiempoRelativo(
 }
 
 /**
- * Evalua si el grupo ya posee detalle completo con menos de 5 minutos en memoria/backend
- * para evitar re-scraping al pulsar "Consultar detalle".
+ * Comprueba si el grupo tiene datos completos aún dentro del cooldown de 5 minutos.
+ * @param horarios Horarios y marcas de consulta que se evalúan.
+ * @param ahora Instante actual en milisegundos.
+ * @returns Marca más antigua reutilizable o `null` si corresponde consultar de nuevo.
  */
 export function obtenerCacheMenorACincoMinutos(
     horarios: Horario[],
@@ -165,7 +210,13 @@ export function obtenerCacheMenorACincoMinutos(
     return ahora - masAntiguo < COOLDOWN_DETALLE_MS ? masAntiguo : null;
 }
 
-/** Descarta tarifas o butacas con error o con >= 60 minutos de antiguedad. */
+/**
+ * Oculta tarifas o butacas que fallaron o superaron una hora de vigencia.
+ * @param h Horario que contiene el detalle recibido.
+ * @param ahora Instante actual en milisegundos.
+ * @param opciones Fallos de los endpoints parciales, si alguno ocurrió.
+ * @returns Solo datos vigentes que se pueden mostrar al usuario.
+ */
 export function sanitizarDetalleHorario(
     h: Horario,
     ahora: number,
@@ -217,6 +268,12 @@ export function sanitizarDetalleHorario(
     };
 }
 
+/**
+ * Comprueba si algún precio o butaca todavía está dentro de una hora de vigencia.
+ * @param horarios Horarios que contienen las marcas de tiempo.
+ * @param ahora Instante actual en milisegundos.
+ * @returns `true` si al menos un dato puede seguir mostrándose.
+ */
 export function tieneAlgunaVigenciaMenorASesentaMin(
     horarios: Horario[],
     ahora: number,
@@ -234,7 +291,14 @@ export function tieneAlgunaVigenciaMenorASesentaMin(
     });
 }
 
-/** Calcula los flags de UI (cooldown, expiracion >= 60 min, texto relativo, progreso y fallo) para una cabecera. */
+/**
+ * Calcula carga, vigencia, cooldown, progreso y avisos para una cabecera.
+ * @param consulta Resultado registrado para el grupo, si ya se consultó.
+ * @param cargando Si hay una consulta en curso.
+ * @param ahora Instante actual en milisegundos.
+ * @param progreso Progreso parcial opcional de la consulta activa.
+ * @returns Estado visual calculado para el grupo de funciones.
+ */
 export function resolverEstadoGrupo(
     consulta: RegistroConsulta | undefined,
     cargando: boolean,
@@ -271,7 +335,15 @@ export function resolverEstadoGrupo(
     };
 }
 
-/** Devuelve el horario oculto (solo 2 lineas) si no esta revelado, o solo datos frescos del stream mientras carga. */
+/**
+ * Prepara un horario para ocultar o revelar solo los datos de detalle vigentes.
+ * @param horario Horario base recibido al cargar la vista.
+ * @param detalle Datos parciales de precio o butacas disponibles.
+ * @param revelado Si la interfaz debe mostrar el detalle del horario.
+ * @param ahora Instante actual usado para comprobar vigencia.
+ * @param cargando Si hay nuevas respuestas parciales en camino.
+ * @returns Horario listo para entregarse a la tarjeta.
+ */
 export function prepararHorarioParaTarjeta(
     horario: Horario,
     detalle: DetalleHorario | undefined,

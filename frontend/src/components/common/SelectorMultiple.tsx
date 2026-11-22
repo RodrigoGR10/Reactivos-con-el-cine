@@ -1,6 +1,7 @@
 import "../../pages/CinemasPage.css";
 
 // Componentes
+/** Punto de entrada común para selectores, grupos, cercanía y chips de filtros. */
 export { SelectorMultiple } from "./filtros/SelectorMultiple";
 export { SelectorUnico } from "./filtros/SelectorUnico";
 export { GrupoFiltros } from "./filtros/GrupoFiltros";

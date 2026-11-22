@@ -5,6 +5,10 @@ import { fusionarGrupo } from "./deduplicar-peliculas/fusionar-grupo.ts";
 
 import type { PeliculaRow } from "./deduplicar-peliculas/types.ts";
 
+/**
+ * Detecta y fusiona películas duplicadas del catálogo de la base de datos.
+ * @param options Opciones que controlan la consulta o transformación.
+ */
 export async function deduplicarCatalogoPeliculas(
     options: { apply?: boolean } = {},
 ) {

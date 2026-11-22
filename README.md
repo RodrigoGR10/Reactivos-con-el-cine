@@ -785,6 +785,7 @@ Todos los comandos de esta sección se ejecutan desde `backend/`, salvo que se i
 | `npm run import:scrape -- data/scrapes/ARCHIVO.json` | Importa un JSON existente.            | Inserta y actualiza datos.                                   |
 | `npm run sync:tmdb -- --dry-run`                     | Diagnostica coincidencias TMDB.       | Ninguno.                                                     |
 | `npm run sync:tmdb -- --apply`                       | Aplica coincidencias TMDB seguras.    | Actualiza metadatos.                                         |
+| `npm run sync:trailers -- --audit`                  | Revisa los títulos de los tráileres guardados con YouTube y TMDB. | Ninguno. |
 | `node src/scraper/cli.ts --deduplicar`               | Diagnostica duplicados.               | Ninguno.                                                     |
 | `node src/scraper/cli.ts --deduplicar --apply`       | Fusiona duplicados.                   | Modifica películas y relaciones.                             |
 | `node src/scripts/normalizar-generos.ts`             | Diagnostica géneros.                  | Ninguno.                                                     |
@@ -818,6 +819,16 @@ npm run sync:cinemark -- --desde=2026-10-28 --dias=7
 ```
 
 Los parámetros de fecha y cantidad de días permiten acotar la extracción. Antes de realizar sincronizaciones extensas, es preferible comenzar con un período acotado y revisar el resultado.
+
+### 9.2. Auditoría y sincronización de tráileres
+
+Ejecuta estos comandos desde `backend` con la conexión a PostgreSQL y la clave de TMDB configuradas.
+
+- `npm run sync:trailers -- --audit` revisa todos los enlaces guardados. Muestra el progreso por película y, para los casos que requieren atención, el ID, la URL y los títulos disponibles de TMDB y YouTube. Al final muestra los totales por estado. Es de solo lectura.
+- `npm run sync:trailers -- --dry-run` busca candidatos para las películas pendientes y muestra qué versión e idioma elegiría. Es de solo lectura.
+- `npm run sync:trailers -- --apply` ejecuta esa búsqueda y guarda los resultados que cumplen las reglas de actualización.
+
+La auditoría compara el título que publica YouTube con los títulos conocidos de la película. Un video titulado «Tráiler oficial» o un título regional ausente de TMDB puede requerir revisión. Los enlaces directos a archivos MP4 de Cinépolis se marcan para revisión manual porque carecen de los metadatos de YouTube.
 
 ## 10. Vistas de la aplicación
 

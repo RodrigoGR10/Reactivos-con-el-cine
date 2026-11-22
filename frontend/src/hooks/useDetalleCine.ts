@@ -12,6 +12,11 @@ const HORARIOS_VACIOS: Horario[] = [];
  * Centraliza el ciclo de vida de los datos (carga, error y 404) para la vista de detalle.
  */
 
+/**
+ * Carga el cine y los datos necesarios para mostrar su cartelera.
+ * @param id Identificador del cine de la ruta; sin valor, indica cine no encontrado.
+ * @returns Cine, películas, horarios y estados de carga y error.
+ */
 export function useDetalleCine(id?: string) {
     const [cineEstado, setCineEstado] = useState<Cine | null>(null);
     const [horariosEstado, setHorariosEstado] = useState<Horario[]>([]);

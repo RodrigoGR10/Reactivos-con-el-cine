@@ -1,3 +1,4 @@
+/** Props accesibles del botón para alternar un favorito. */
 interface BotonFavoritoProps {
     activo: boolean;
     onClick: () => void;
@@ -6,6 +7,11 @@ interface BotonFavoritoProps {
     className?: string;
 }
 
+/**
+ * Representa el estado favorito y comunica la acción solicitada.
+ * @param props Estado activo, etiqueta accesible y callback del botón.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function BotonFavorito({
     activo,
     onClick,

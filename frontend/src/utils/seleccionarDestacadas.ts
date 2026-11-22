@@ -41,6 +41,13 @@ export {
 } from "./destacadas/predicates.ts";
 export { LIMITE_DESTACADAS } from "./destacadas/types.ts";
 
+/**
+ * Selecciona destacadas usando cupos, categorías y pesos configurables.
+ * Evita repetir títulos y completa los espacios libres con películas de respaldo.
+ * @param peliculas Catálogo elegible para el carrusel.
+ * @param opciones Límite, reglas de cupo, fecha, generador aleatorio y orden.
+ * @returns Películas seleccionadas junto con etiqueta, categoría y posición.
+ */
 export function seleccionarDestacadasConCategoria(
     peliculas: readonly Pelicula[],
     opciones: OpcionesSeleccionDestacadas = {},
@@ -169,6 +176,12 @@ export function seleccionarDestacadasConCategoria(
     return mezclarOrden ? mezclarCarrusel(seleccionadas, rng) : seleccionadas;
 }
 
+/**
+ * Devuelve solo las películas de la selección categorizada.
+ * @param peliculas Catálogo elegible para el carrusel.
+ * @param limite Cantidad máxima de películas; por defecto usa el límite del carrusel.
+ * @returns Películas destacadas sin sus metadatos de categoría.
+ */
 export function seleccionarDestacadas(
     peliculas: readonly Pelicula[],
     limite = LIMITE_DESTACADAS,

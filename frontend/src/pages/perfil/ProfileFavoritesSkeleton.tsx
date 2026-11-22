@@ -9,6 +9,11 @@ interface ProfileFavoritesSkeletonProps {
     tabActiva: TabFavoritos;
 }
 
+/**
+ * Muestra placeholders de carga para la pestaña de películas o cines.
+ * @param tabActiva Tipo de lista cuyos placeholders se dibujan.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const ProfileFavoritesSkeleton = ({
     tabActiva,
 }: ProfileFavoritesSkeletonProps) => (

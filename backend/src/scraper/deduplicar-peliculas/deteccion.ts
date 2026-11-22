@@ -39,6 +39,10 @@ function elegirCanonica(grupo: PeliculaRow[]): PeliculaRow {
     );
 }
 
+/**
+ * Agrupa películas que probablemente representan el mismo título.
+ * @param peliculas Películas que se comparan, agrupan o actualizan.
+ */
 export function detectarGrupos(peliculas: PeliculaRow[]): GrupoDuplicado[] {
     const visitadas = new Set<number>();
     const grupos: GrupoDuplicado[] = [];

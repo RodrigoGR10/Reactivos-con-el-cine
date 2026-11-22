@@ -4,6 +4,10 @@ import {
     type MetadatosYoutube,
     type PeliculaConVideos,
 } from "./tmdb/trailers.ts";
+import {
+    consultarMetadatosYoutube,
+    consultarPeliculaTrailerTmdb,
+} from "./tmdb/trailer-metadatos.ts";
 
 interface PeliculaPendiente {
     id: number;
@@ -27,6 +31,11 @@ async function pedirJson<T>(url: URL): Promise<T | undefined> {
     return (await response.json()) as T;
 }
 
+/**
+ * Busca tráilers en español latino o subtitulados y actualiza las películas.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Resultado de la operación, incluidos los registros procesados.
+ */
 export async function sincronizarTrailersEnEspanol(
     options: { apply?: boolean } = {},
 ) {
@@ -62,11 +71,8 @@ export async function sincronizarTrailersEnEspanol(
         urlsYoutubeActuales.add(url);
         let pendiente = youtubeCache.get(url);
         if (!pendiente) {
-            const endpoint = new URL("https://www.youtube.com/oembed");
-            endpoint.searchParams.set("url", url);
-            endpoint.searchParams.set("format", "json");
             pendiente = { error: false, promise: Promise.resolve(undefined) };
-            pendiente.promise = pedirJson<MetadatosYoutube>(endpoint).catch(
+            pendiente.promise = consultarMetadatosYoutube(url).catch(
                 (): undefined => {
                     if (pendiente) pendiente.error = true;
                     return undefined;
@@ -79,22 +85,7 @@ export async function sincronizarTrailersEnEspanol(
     const consultarPelicula = (id: number) => {
         let pendiente = peliculaCache.get(id);
         if (!pendiente) {
-            const key = process.env.TMDB_API_KEY?.trim();
-            if (!key)
-                throw new Error(
-                    "Falta TMDB_API_KEY para verificar el idioma de los trailers.",
-                );
-            const endpoint = new URL(
-                `https://api.themoviedb.org/3/movie/${id}`,
-            );
-            endpoint.searchParams.set("api_key", key);
-            endpoint.searchParams.set("language", "es-MX");
-            endpoint.searchParams.set(
-                "include_video_language",
-                "es,en,ja,ko,fr,de,it,pt,null",
-            );
-            endpoint.searchParams.set("append_to_response", "videos");
-            pendiente = pedirJson<PeliculaConVideos>(endpoint);
+            pendiente = consultarPeliculaTrailerTmdb(id);
             peliculaCache.set(id, pendiente);
         }
         return pendiente;

@@ -26,6 +26,12 @@ const cadenas: Record<string, { nombre: string; dominios: string[] }> = {
     },
 };
 
+/**
+ * Comprueba protocolo y dominio antes de habilitar un enlace de compra.
+ * @param value URL entregada por la fuente del cine.
+ * @param origen Clave de la cadena que debe ser dueña del dominio.
+ * @returns URL HTTPS normalizada o `undefined` si no es segura o válida.
+ */
 export function obtenerEnlaceCompraSeguro(
     value: string | null | undefined,
     origen: string | undefined,
@@ -43,6 +49,12 @@ export function obtenerEnlaceCompraSeguro(
     }
 }
 
+/**
+ * Resuelve el nombre visible de la cadena de cine.
+ * @param origen Clave de origen de la función.
+ * @param alternativa Texto usado si no se reconoce el origen.
+ * @returns Nombre de la cadena o alternativa indicada.
+ */
 export function nombreCadena(
     origen: string | undefined,
     alternativa = "Cine",

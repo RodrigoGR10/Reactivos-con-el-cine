@@ -1,6 +1,9 @@
 import type { Pelicula, Horario } from "../types/types";
 import type { OpcionFiltro } from "../components/common/SelectorMultiple";
 
+/**
+ * Datos normalizados de una película en el modelo común de la aplicación.
+ */
 export interface GrupoHorariosPorPelicula {
     pelicula: Pelicula;
     horarios: Horario[];
@@ -37,7 +40,9 @@ function contarOpcionesHorario(
 }
 
 /**
- * Extrae los formatos únicos disponibles en una lista de horarios junto con su conteo.
+ * Cuenta los formatos de sala disponibles para crear opciones de filtro.
+ * @param horarios Horarios en los que se buscan formatos.
+ * @returns Opciones con formato y cantidad de funciones.
  */
 export function obtenerFormatosDisponibles(
     horarios: readonly Horario[],
@@ -46,7 +51,9 @@ export function obtenerFormatosDisponibles(
 }
 
 /**
- * Extrae los idiomas únicos disponibles en una lista de horarios junto con su conteo.
+ * Normaliza y cuenta idiomas disponibles para crear opciones de filtro.
+ * @param horarios Horarios en los que se buscan idiomas.
+ * @returns Opciones de idioma ordenadas alfabéticamente y con su cantidad.
  */
 export function obtenerIdiomasDisponibles(
     horarios: readonly Horario[],
@@ -57,7 +64,10 @@ export function obtenerIdiomasDisponibles(
 }
 
 /**
- * Comprueba si un horario coincide con el filtro de idioma seleccionado.
+ * Comprueba si un horario cumple el idioma elegido.
+ * @param horario Función que se evalúa.
+ * @param idioma Idioma seleccionado o `"Todos"` para no filtrar.
+ * @returns `true` si el horario coincide con el filtro.
  */
 export function horarioCoincideIdioma(
     horario: Horario,
@@ -69,6 +79,12 @@ export function horarioCoincideIdioma(
     );
 }
 
+/**
+ * Une cada horario con su película y agrupa los horarios por película.
+ * @param horarios Horarios que se van a organizar.
+ * @param peliculas Catálogo para resolver el identificador del horario.
+ * @returns Grupos de película con sus funciones; omite IDs sin coincidencia.
+ */
 export function agruparHorariosPorPelicula(
     horarios: Horario[],
     peliculas: Pelicula[],

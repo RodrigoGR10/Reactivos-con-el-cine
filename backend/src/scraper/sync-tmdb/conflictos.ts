@@ -155,6 +155,11 @@ function conflictosConExistentes(
 }
 
 // Devuelve los ids de películas locales que NO deben actualizarse.
+/**
+ * Busca conflictos entre coincidencias de películas y datos existentes.
+ * @param candidatos Películas o videos candidatos que se van a comparar o aplicar.
+ * @param moviesById Identificador de la película relacionada.
+ */
 export async function detectarConflictos(
     candidatos: CandidatoSeguro[],
     moviesById: Map<number, MovieRow>,
@@ -171,6 +176,12 @@ export async function detectarConflictos(
 }
 
 // Marca los resultados en conflicto y devuelve cuántos eran asignaciones manuales.
+/**
+ * Marca los resultados que requieren revisión por posibles conflictos.
+ * @param resultados Resultados obtenidos que se incluirán en el informe.
+ * @param conflictos Conflictos detectados entre candidatas o registros existentes.
+ * @returns Valor numérico calculado por la operación.
+ */
 export function marcarConflictos(
     resultados: ResultadoDiagnostico[],
     conflictos: Set<number>,

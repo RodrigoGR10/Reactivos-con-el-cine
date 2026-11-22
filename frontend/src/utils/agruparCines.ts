@@ -11,17 +11,26 @@ const cadenas = [
     { id: "cinestar", nombre: "Cine Star", logo: "/cinestar.png" },
 ];
 
+/**
+ * Comuna disponible y cantidad de cines que contiene.
+ */
 export interface OpcionComuna {
     valor: string;
     nombre: string;
     cantidad: number;
 }
 
+/**
+ * Cine con sus datos de distancia y prioridad para ordenar resultados.
+ */
 export interface CineOrdenado extends Cine {
     distancia: number;
     favorito: boolean;
 }
 
+/**
+ * Cines agrupados por comuna para mostrarlos en la interfaz.
+ */
 export interface GrupoCines {
     id: string;
     nombre: string;
@@ -29,6 +38,11 @@ export interface GrupoCines {
     cines: CineOrdenado[];
 }
 
+/**
+ * Identifica la cadena a la que pertenece un cine por origen o nombre.
+ * @param cine Cine que se desea clasificar.
+ * @returns Identificador, nombre y logo de la cadena, o el grupo Otros.
+ */
 export function obtenerCadena(cine: Cine): Omit<GrupoCines, "cines"> {
     const origen = normalizarTexto(cine.origen ?? "");
     const nombre = normalizarTexto(cine.nombre).replaceAll(" ", "");
@@ -41,11 +55,20 @@ export function obtenerCadena(cine: Cine): Omit<GrupoCines, "cines"> {
     );
 }
 
-/** Prioriza el logo local de cadenas conocidas y deja el remoto como respaldo. */
+/**
+ * Elige el logo local conocido y usa la URL del cine como alternativa.
+ * @param cine Cine cuyo logo se necesita.
+ * @returns URL del logo o `undefined` si no hay imagen configurada.
+ */
 export function obtenerLogoCine(cine: Cine): string | undefined {
     return obtenerCadena(cine).logo || cine.logo || undefined;
 }
 
+/**
+ * Agrupa cines por comuna, unifica tildes y cuenta sus establecimientos.
+ * @param cines Cines disponibles en el catálogo.
+ * @returns Opciones de comuna ordenadas alfabéticamente.
+ */
 export function obtenerComunas(cines: readonly Cine[]): OpcionComuna[] {
     const comunas = new Map<string, OpcionComuna>();
     for (const cine of cines) {
@@ -67,6 +90,11 @@ export function obtenerComunas(cines: readonly Cine[]): OpcionComuna[] {
     );
 }
 
+/**
+ * Cuenta cuántos cines hay por cadena para construir opciones de filtro.
+ * @param cines Cines disponibles en el catálogo.
+ * @returns Opciones de cadena con su conteo.
+ */
 export function obtenerCadenas(cines: readonly Cine[]): OpcionComuna[] {
     const mapa = new Map<string, OpcionComuna>();
     for (const cine of cines) {
@@ -83,6 +111,14 @@ export function obtenerCadenas(cines: readonly Cine[]): OpcionComuna[] {
     );
 }
 
+/**
+ * Filtra cines por nombre/comuna, comunas seleccionadas y cadenas.
+ * @param cines Cines candidatos.
+ * @param busqueda Texto a comparar sin distinguir tildes ni mayúsculas.
+ * @param comunas Comunas seleccionadas; lista vacía no filtra por comuna.
+ * @param cadenasSeleccionadas Cadenas activas; por defecto no filtra por cadena.
+ * @returns Cines que cumplen todos los filtros activos.
+ */
 export function filtrarCines(
     cines: readonly Cine[],
     busqueda: string,
@@ -103,6 +139,13 @@ export function filtrarCines(
     });
 }
 
+/**
+ * Calcula distancias y ordena los cines desde la ubicación indicada.
+ * @param cines Cines que se van a ordenar.
+ * @param favoritos Identificadores que deben marcarse como favoritos.
+ * @param ubicacion Coordenadas de referencia en grados.
+ * @returns Cines con distancia calculada, ordenados de menor a mayor.
+ */
 export function ordenarCinesPorCercania(
     cines: readonly Cine[],
     favoritos: readonly string[],
@@ -131,6 +174,13 @@ export function ordenarCinesPorCercania(
         );
 }
 
+/**
+ * Separa favoritos y cadenas, y ordena los cines dentro de cada grupo.
+ * @param cines Cines que aparecerán en el directorio.
+ * @param favoritos Identificadores de cines favoritos.
+ * @param ubicacion Coordenadas opcionales para calcular cercanía.
+ * @returns Grupos de favoritos y cadenas con sus cines ordenados.
+ */
 export function agruparCines(
     cines: readonly Cine[],
     favoritos: readonly string[],

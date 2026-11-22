@@ -1,3 +1,9 @@
+/**
+ * Estima cuántas tarjetas de preventa caben en el ancho disponible.
+ * @param anchoDisponible Ancho útil del carrusel en píxeles.
+ * @param esMovil Si es `true`, usa el ancho reducido de tarjetas móviles.
+ * @returns Número mínimo de tarjetas que se muestran en la página.
+ */
 export function tarjetasPreventaVisibles(
     anchoDisponible: number,
     esMovil: boolean,
@@ -12,6 +18,13 @@ export function tarjetasPreventaVisibles(
     );
 }
 
+/**
+ * Limita una página solicitada y calcula el rango de tarjetas que muestra.
+ * @param total Número total de elementos.
+ * @param visibles Elementos que caben en una página.
+ * @param solicitada Índice de página pedido, comenzando en cero.
+ * @returns Página válida, posición inicial y extremos visibles (comienzan en uno).
+ */
 export function paginacionCarrusel(
     total: number,
     visibles: number,

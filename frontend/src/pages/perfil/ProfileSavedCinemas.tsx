@@ -11,6 +11,11 @@ interface ProfileSavedCinemasProps {
     onQuitarFavorito: (id: string) => void;
 }
 
+/**
+ * Muestra los cines guardados, resultados y acción para quitarlos del perfil.
+ * @param props Favoritos, lista filtrada, búsqueda y acciones de edición.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const ProfileSavedCinemas = ({
     hayUsuario,
     cinesFavoritos,

@@ -2,6 +2,9 @@ import { resolucionesManuales } from "../resoluciones-tmdb.ts";
 import type { ResolucionManual } from "../resoluciones-tmdb.ts";
 import type { MovieRow } from "./types.ts";
 
+/**
+ * Índice de decisiones manuales para resolver IDs de TMDB.
+ */
 export interface IndiceResoluciones {
     porId: Map<number, ResolucionManual>;
     invalidas: Map<number, string>;
@@ -15,6 +18,10 @@ function esIdValido(valor: number): boolean {
     return Number.isSafeInteger(valor) && valor > 0;
 }
 
+/**
+ * Prepara un índice de resoluciones manuales para encontrarlas por película.
+ * @param movies Película o datos de película que se procesan.
+ */
 export function indexarResoluciones(movies: MovieRow[]): IndiceResoluciones {
     const idsPendientes = new Set(movies.map((movie) => movie.id));
     const porId = new Map<number, ResolucionManual>();

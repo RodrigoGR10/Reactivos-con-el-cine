@@ -49,6 +49,11 @@ const ENCABEZADOS_TABLA = [
     "Diferencia (min)",
 ];
 
+/**
+ * Escapa caracteres especiales para insertar texto de forma segura en HTML.
+ * @param value Valor que se valida o normaliza.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function escaparHtml(value: unknown): string {
     return String(value ?? "—")
         .replace(/&/g, "&amp;")
@@ -74,12 +79,22 @@ function insigniaEstado(estado: string): string {
     return `<span class="badge ${estado.toLowerCase()}">${escaparHtml(estado)}</span>`;
 }
 
+/**
+ * Indica si un resultado de TMDB necesita revisión manual.
+ * @param r Resultado individual de TMDB que se evalúa o muestra en el informe.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export function requiereRevision(r: ResultadoDiagnostico): boolean {
     return r.estado !== "SEGURO" || r.decision !== "APLICAR";
 }
 
 // ---------- Resumen y filtros ----------
 
+/**
+ * Genera las tarjetas de resumen del informe de diagnóstico.
+ * @param summary Resumen de conteos y decisiones del diagnóstico.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function tarjetasResumen(summary: DiagnosticSummary): string {
     return Object.entries(summary)
         .map(([clave, valor]) => {
@@ -90,6 +105,10 @@ export function tarjetasResumen(summary: DiagnosticSummary): string {
         .join("");
 }
 
+/**
+ * Genera las opciones de estado para filtrar el informe.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function opcionesFiltroEstado(): string {
     const opciones = FILTROS_ESTADO.map(
         ([valor, etiqueta]) => `<option value="${valor}">${etiqueta}</option>`,
@@ -100,12 +119,21 @@ export function opcionesFiltroEstado(): string {
     );
 }
 
+/**
+ * Genera los encabezados de la tabla del informe de diagnóstico.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function encabezadosTabla(): string {
     return ENCABEZADOS_TABLA.map((texto) => `<th>${texto}</th>`).join("");
 }
 
 // ---------- Fila de la tabla ----------
 
+/**
+ * Genera la fila HTML que representa un resultado de diagnóstico.
+ * @param r Resultado individual de TMDB que se evalúa o muestra en el informe.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function filaResultado(r: ResultadoDiagnostico): string {
     const anio = r.fechaEstreno?.slice(0, 4);
 
@@ -188,6 +216,11 @@ function bloqueSegundoCandidato(r: ResultadoDiagnostico): string {
         </dl>`;
 }
 
+/**
+ * Genera el detalle expandido de un resultado de diagnóstico.
+ * @param r Resultado individual de TMDB que se evalúa o muestra en el informe.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function detalleResultado(r: ResultadoDiagnostico): string {
     return `
         <details class="detail">

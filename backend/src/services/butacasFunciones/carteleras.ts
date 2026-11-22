@@ -10,6 +10,8 @@ const carteleras = new Map<
 /**
  * Devuelve la cartelera con ocupacion de un cine, reutilizando la consulta en
  * vuelo o la ultima respuesta vigente.
+ * @param origen Fuente de datos a la que pertenece el registro.
+ * @param cineId Identificador del cine.
  */
 export async function carteleraButacas(
     origen: OrigenCartelera,

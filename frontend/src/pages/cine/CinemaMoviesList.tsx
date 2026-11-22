@@ -18,6 +18,14 @@ interface CinemaMoviesListProps {
     totalHorarios: number;
 }
 
+/**
+ * Agrupa películas y horarios de un cine y enlaza favoritos y consulta de detalle.
+ * @param cine Cine cuyas funciones se muestran.
+ * @param filtros Grupos filtrados y acciones del hook de filtros.
+ * @param detalle Estado y acciones para consultar precios y butacas.
+ * @param totalHorarios Cantidad de horarios antes de aplicar filtros.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function CinemaMoviesList({
     cine,
     filtros,

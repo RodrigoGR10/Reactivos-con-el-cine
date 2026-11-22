@@ -5,14 +5,18 @@ import peliculasService from "../services/peliculas";
 import cinesService from "../services/cines";
 import { normalizarTexto } from "../utils/normalizarTexto";
 
+/**
+ * Pestaña activa del perfil de películas o cines favoritos.
+ */
 export type TabFavoritos = "peliculas" | "cines";
 
 /** Cantidad mínima de guardados para que el buscador aporte valor. */
 const MINIMO_PARA_BUSCAR = 14;
 
 /**
- * Carga el catálogo necesario para resolver los favoritos y deriva las listas
- * visibles según la pestaña activa y el texto de búsqueda.
+ * Carga el catálogo y deriva los favoritos visibles según pestaña y búsqueda.
+ * @param tabActiva Indica si el perfil muestra películas o cines guardados.
+ * @returns Listas completas y filtradas, búsqueda, carga y acciones de vista.
  */
 export const useFavoritosPerfil = (tabActiva: TabFavoritos) => {
     const { favoriteMovieIds, favoriteCinemaIds } = useFavorites();

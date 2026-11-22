@@ -5,6 +5,9 @@ import type {
     ResultadoDiagnostico,
 } from "./types.ts";
 
+/**
+ * Estado final que indica si la coincidencia de TMDB se acepta o revisa.
+ */
 export interface Veredicto {
     resultado: ResultadoDiagnostico;
     contador: keyof DiagnosticSummary;
@@ -17,6 +20,10 @@ type CamposResultado = Pick<
 > &
     Partial<ResultadoDiagnostico>;
 
+/**
+ * Crea el acumulador inicial para registrar resultados del diagnóstico.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function crearResumenVacio(): DiagnosticSummary {
     return {
         revisadas: 0,
@@ -36,6 +43,12 @@ export function crearResumenVacio(): DiagnosticSummary {
 }
 
 // Resultado "vacío" de una película; cada caso solo indica lo que cambia.
+/**
+ * Construye un resultado de diagnóstico con la película y su decisión.
+ * @param movie Datos de la película que se procesa.
+ * @param campos Campos del registro que se deben actualizar.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function crearResultado(
     movie: MovieRow,
     campos: CamposResultado,
@@ -69,6 +82,11 @@ export function crearResultado(
     };
 }
 
+/**
+ * Convierte un error desconocido en un mensaje legible.
+ * @param error Error recibido para convertirlo o manejarlo.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function mensajeDeError(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }

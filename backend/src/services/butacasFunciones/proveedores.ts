@@ -9,7 +9,9 @@ import { consultarButacasVista } from "../../scraper/vista/butacas.ts";
 import { normalizarButacas, type Butacas } from "../../scraper/butacas.ts";
 import type { CarteleraButacas } from "./types.ts";
 
-/** Ocupacion por cine que publica Cinemark en su cartelera. */
+/** Ocupacion por cine que publica Cinemark en su cartelera.
+ * @param cineId Identificador del cine.
+ */
 export async function carteleraCinemark(
     cineId: string,
 ): Promise<CarteleraButacas> {
@@ -38,7 +40,9 @@ export async function carteleraCinemark(
     return resultado;
 }
 
-/** Disponibilidad de asientos que Vista publica para toda la cadena. */
+/** Disponibilidad de asientos que Vista publica para toda la cadena.
+ * @param origen Fuente de datos a la que pertenece el registro.
+ */
 export async function carteleraVista(
     origen: "muvix" | "cinestar",
 ): Promise<CarteleraButacas> {
@@ -65,6 +69,10 @@ export async function carteleraVista(
  * Consulta directa de una funcion en las cadenas que la exponen.
  * Cinemark y las que no tienen consulta directa devuelven undefined y se
  * resuelven desde la cartelera del cine.
+ * @param origen Fuente de datos a la que pertenece el registro.
+ * @param cineOrigenId Identificador del cine relacionado.
+ * @param sesionId Identificador del registro relacionado.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
  */
 export async function consultarButacasSesion(
     origen: string,

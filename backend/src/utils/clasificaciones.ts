@@ -12,6 +12,11 @@ const ALIAS: Record<string, string> = {
     TBC: "TBC",
 };
 
+/**
+ * Unifica el formato de una clasificación por edad.
+ * @param valor Texto que se normaliza o valida.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function normalizarClasificacion(
     valor: string | null | undefined,
 ): string {

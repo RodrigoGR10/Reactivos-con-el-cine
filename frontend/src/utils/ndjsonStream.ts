@@ -5,7 +5,10 @@ interface OpcionesNdjsonStream<T> {
 }
 
 /**
- * Consume una respuesta HTTP NDJSON linea por linea respetando AbortSignal y timeout.
+ * Lee una respuesta NDJSON por líneas y entrega cada objeto al callback.
+ * @param url Dirección HTTP del flujo.
+ * @param opciones Señal de cancelación, límite de espera y callback por elemento.
+ * @throws Error si falla la respuesta, el timeout o el análisis de una línea.
  */
 export async function leerNdjsonStream<T>(
     url: string,

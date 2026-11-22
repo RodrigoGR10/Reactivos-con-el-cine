@@ -13,6 +13,12 @@ const LOCK_MS = 5 * 60_000;
 
 const consultas = new Map<string, Promise<ScheduleWithPrices | null>>();
 
+/**
+ * Consulta en los proveedores los precios actualizados de un horario.
+ * @param schedule Datos del horario o función que se procesa.
+ * @param tarifasPrecargadas Tarifas ya disponibles que pueden reutilizarse en la consulta.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function consultarHorario(
     schedule: ScheduleRow,
     tarifasPrecargadas?: ScrapedSession[],

@@ -49,6 +49,10 @@ function esperaAbortable(ms: number, signal: AbortSignal): Promise<void> {
  * Coordina cache (< 5 min), consultas paralelas de precios y butacas,
  * cooldown de 5 min y expiracion automatica a los 60 min.
  */
+/**
+ * Gestiona consultas de precios y butacas, su vigencia, progreso y cancelación.
+ * @returns Detalles por horario y acciones para consultar o preparar tarjetas.
+ */
 export function useDetalleFunciones() {
     const [porHorario, setPorHorario] = useState<
         Record<string, DetalleHorario>
@@ -188,6 +192,7 @@ export function useDetalleFunciones() {
 
                 const preciosPorId = new Map<string, Horario>();
                 const butacasPorId = new Map<string, Horario>();
+                let recibioFin = false;
                 let falloEndpointPrecios = false;
                 let falloEndpointButacas = false;
                 const totalInicial = horariosGrupo.length;
@@ -278,6 +283,7 @@ export function useDetalleFunciones() {
                                 }));
                                 actualizarProgreso();
                             } else if (evento.tipo === "fin") {
+                                recibioFin = true;
                                 falloEndpointPrecios = evento.falloPrecios;
                                 falloEndpointButacas = evento.falloButacas;
                             }
@@ -285,11 +291,7 @@ export function useDetalleFunciones() {
                         controller.signal,
                     );
                 } catch {
-                    if (controller.signal.aborted) return;
-                    falloEndpointPrecios =
-                        falloEndpointPrecios || preciosPorId.size === 0;
-                    falloEndpointButacas =
-                        falloEndpointButacas || butacasPorId.size === 0;
+                    recibioFin = false;
                 }
                 if (controller.signal.aborted) return;
 
@@ -299,9 +301,13 @@ export function useDetalleFunciones() {
 
                 const falloPrecios =
                     falloEndpointPrecios ||
+                    (!recibioFin &&
+                        horariosGrupo.some((h) => !preciosPorId.has(h.id))) ||
                     listaPrecios.some((h) => h.estadoPrecio === "error");
                 const falloButacas =
                     falloEndpointButacas ||
+                    (!recibioFin &&
+                        horariosGrupo.some((h) => !butacasPorId.has(h.id))) ||
                     listaButacas.some((h) => h.estadoButacas === "error");
 
                 const idsAfectados = new Set<string>([
@@ -320,6 +326,10 @@ export function useDetalleFunciones() {
                     const template = hPrecio ?? hButaca ?? hBase;
                     if (!template) continue;
 
+                    const falloPrecioHorario =
+                        falloEndpointPrecios || (!recibioFin && !hPrecio);
+                    const falloButacaHorario =
+                        falloEndpointButacas || (!recibioFin && !hButaca);
                     const combinado: Horario = {
                         ...template,
                         ...(hBase ?? {}),
@@ -333,7 +343,7 @@ export function useDetalleFunciones() {
                                   urlCompra:
                                       hPrecio.urlCompra ?? hBase?.urlCompra,
                               }
-                            : falloEndpointPrecios
+                            : falloPrecioHorario
                               ? {
                                     tarifas: [],
                                     estadoPrecio: "error",
@@ -347,7 +357,7 @@ export function useDetalleFunciones() {
                                   butacasReintentarEn:
                                       hButaca.butacasReintentarEn,
                               }
-                            : falloEndpointButacas
+                            : falloButacaHorario
                               ? {
                                     butacas: undefined,
                                     estadoButacas: "error",
@@ -368,10 +378,10 @@ export function useDetalleFunciones() {
                         actual,
                         {
                             falloPrecios:
-                                falloEndpointPrecios ||
+                                falloPrecioHorario ||
                                 hPrecio?.estadoPrecio === "error",
                             falloButacas:
-                                falloEndpointButacas ||
+                                falloButacaHorario ||
                                 hButaca?.estadoButacas === "error",
                         },
                     );

@@ -8,6 +8,11 @@ interface SinopsisExpandibleProps {
 /**
  * Limita sinopsis largas a tres líneas con desvanecimiento sutil y control inline "Ver más" / "Ver menos".
  */
+/**
+ * Presenta una sinopsis larga y permite expandirla o contraerla.
+ * @param texto Sinopsis que se desea mostrar.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function SinopsisExpandible({ texto }: SinopsisExpandibleProps) {
     const limpio = texto.trim();
     const [expandida, setExpandida] = useState(false);

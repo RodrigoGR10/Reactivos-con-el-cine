@@ -7,6 +7,7 @@ import {
     obtenerRutaCierreLogin,
 } from "../utils/navegacion";
 
+/** Presenta el acceso y devuelve al usuario a la ruta que intentaba abrir. */
 function LoginPage() {
     const { isAuthenticated, isLoadingSession } = useAuth();
     const navigate = useNavigate();

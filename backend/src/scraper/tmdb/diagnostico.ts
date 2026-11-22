@@ -91,6 +91,14 @@ function coincideTituloFuerte(
     );
 }
 
+/**
+ * Genera candidatos y métricas para revisar la coincidencia de una película en TMDB.
+ * @param titulo Título que se normaliza, compara o busca.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @param duracionEsperada Duración de película esperada, expresada en minutos.
+ * @param tituloOriginal Título que se analiza o compara.
+ * @param origenId Identificador del registro relacionado.
+ */
 export async function diagnosticarPeliculaTmdb(
     titulo: string,
     apiKey = process.env.TMDB_API_KEY,

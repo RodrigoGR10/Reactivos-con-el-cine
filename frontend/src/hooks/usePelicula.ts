@@ -3,6 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { usePeliculasStore } from "../stores/peliculasStore";
 import { seleccionarDestacadasConCategoria } from "../utils/seleccionarDestacadas";
 
+/**
+ * Genera números pseudoaleatorios a partir de una semilla.
+ * Permite que la selección de destacadas sea estable durante la sesión.
+ */
 function crearRngConSemilla(semilla: number): () => number {
     let estado = semilla >>> 0;
 
@@ -21,7 +25,7 @@ function crearRngConSemilla(semilla: number): () => number {
 }
 
 /**
- * Obtiene el catálogo desde Zustand y calcula las películas destacadas.
+ * Carga y conserva en memoria la cartelera y calcula sus películas destacadas.
  *
  * @returns Películas disponibles, destacadas y estados de carga o error.
  */

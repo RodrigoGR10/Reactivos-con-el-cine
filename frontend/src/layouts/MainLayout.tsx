@@ -4,6 +4,7 @@ import { AuthModal } from "../components/auth/AuthModal";
 import { useAuth } from "../context/AuthContext";
 import { rutaInternaSegura } from "../utils/navegacion";
 
+/** Renderiza la estructura común de navegación y la página activa. */
 function MainLayout() {
     const { isAuthModalOpen, authModalRedirectTo, closeAuthModal } = useAuth();
     const navigate = useNavigate();

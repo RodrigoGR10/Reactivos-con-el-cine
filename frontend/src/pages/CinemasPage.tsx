@@ -36,6 +36,7 @@ import "./CinemasPage.css";
 const GRUPOS_ESQUELETO = [0, 1];
 const TARJETAS_ESQUELETO = [0, 1, 2, 3];
 
+/** Presenta el directorio de cines con filtros por cadena, comuna y cercanía. */
 function CinemasPage() {
     const { user, openAuthModal } = useAuth();
     const { isFavoriteCinema, toggleFavoriteCinema } = useFavorites();

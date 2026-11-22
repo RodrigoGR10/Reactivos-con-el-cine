@@ -90,6 +90,12 @@ function normalizarMapaButacas(
     return normalizarButacas(disponibles, total, new Date().toISOString());
 }
 
+/**
+ * Consulta la disponibilidad de butacas de una función de Cinépolis.
+ * @param cineId Identificador del cine.
+ * @param sesionId Identificador del registro relacionado.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function consultarButacasCinepolis(
     cineId: string,
     sesionId: string,
@@ -112,6 +118,10 @@ export async function consultarButacasCinepolis(
 /**
  * Consulta butacas de multiples sesiones del mismo cine usando alias GraphQL.
  * Las sesiones cuyo lote falle quedan fuera del mapa para permitir fallback individual.
+ * @param cineId Identificador del cine.
+ * @param sesionIds Identificadores de las funciones cuya disponibilidad se consulta.
+ * @param tamanoLote Cantidad máxima de funciones que se consultan en cada lote.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
  */
 export async function consultarButacasLoteCinepolis(
     cineId: string,

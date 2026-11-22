@@ -2,6 +2,11 @@ import { Checkbox } from "@mantine/core";
 import { BuscadorOpciones } from "./BuscadorOpciones";
 import type { PanelOpcionesMultipleProps } from "./types";
 
+/**
+ * Renderiza búsqueda y casillas para las opciones de un selector múltiple.
+ * @param props Opciones visibles, selección actual y callbacks de interacción.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function PanelOpcionesMultiple({
     conBusqueda,
     buscadorRef,

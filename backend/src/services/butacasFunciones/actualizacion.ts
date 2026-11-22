@@ -91,7 +91,11 @@ async function resolverButacas(
     return sesion.butacas;
 }
 
-/** Indica si el estado guardado de butacas de la funcion ya no es vigente. */
+/** Indica si el estado guardado de butacas de la funcion ya no es vigente.
+ * @param row Fila de base de datos que se transforma o evalúa.
+ * @param ahora Fecha y hora actual usada como referencia.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export function necesitaConsultarButacas(
     row: ScheduleRow,
     ahora: number,
@@ -118,6 +122,8 @@ export function necesitaConsultarButacas(
 /**
  * Consulta las butacas de una funcion si su estado guardado ya no es vigente,
  * deduplicando consultas simultaneas y registrando el error para reintentar.
+ * @param row Fila de base de datos que se transforma o evalúa.
+ * @param precargadas Datos de horarios o tarifas que ya se cargaron previamente.
  */
 export async function actualizarHorario(
     row: ScheduleRow,

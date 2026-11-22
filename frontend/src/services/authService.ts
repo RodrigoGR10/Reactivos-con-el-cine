@@ -1,3 +1,4 @@
+
 import axios, { type AxiosResponse } from "axios";
 import type {
     Usuario,
@@ -80,6 +81,9 @@ const saveSessionData = (
 };
 
 /**
+ * El navegador recibe el JWT en una cookie; en localStorage
+ * solo guardamos el token CSRF.
+ *
  * Inicia sesión y conserva el perfil devuelto por el backend.
  * @param credenciales Correo y contraseña ingresados en el formulario.
  * @returns Usuario autenticado.
@@ -111,6 +115,8 @@ const login = async (
 };
 
 /**
+ * Mantiene el inicio de sesión automático del formulario de registro.
+ *
  * Registra una cuenta y devuelve el perfil con sesión iniciada.
  * @param datos Nombre, correo y contraseñas del formulario de registro.
  * @returns Usuario creado y autenticado.

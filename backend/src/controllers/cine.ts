@@ -30,6 +30,11 @@ const CINE_COLUMNS = `
     cadena AS origen
 `;
 
+/**
+ * Convierte una fila SQL al formato público de cine y omite campos nulos.
+ * @param row Registro obtenido desde la tabla `cines`.
+ * @returns Objeto JSON estable para la API.
+ */
 function serializarCine(row: CineRow) {
     return {
         id: row.id,
@@ -45,6 +50,10 @@ function serializarCine(row: CineRow) {
     };
 }
 
+/**
+ * GET /api/cines. Acepta filtros opcionales `cadena` y `comuna`.
+ * Valida sus límites, normaliza comunas y devuelve los cines coincidentes.
+ */
 router.get("/", async (req, res) => {
     const { cadena, comuna } = req.query;
     if (
@@ -94,6 +103,7 @@ router.get("/", async (req, res) => {
     );
 });
 
+/** GET /api/cines/:id. Busca el cine indicado o responde 400/404. */
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
 

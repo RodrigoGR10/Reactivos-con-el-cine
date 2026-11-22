@@ -18,6 +18,14 @@ function text(value: string, field: string) {
     return value.trim();
 }
 
+/**
+ * Convierte los datos de un cine al modelo común usado por el backend.
+ * @param chain Cadena de cines que se consultará.
+ * @param cinema Datos del cine que se procesa.
+ * @param city Ciudad indicada por la fuente para completar los datos del cine.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeCinema(
     chain: CadenaVista,
     cinema: Cinema,
@@ -49,6 +57,14 @@ export function normalizeCinema(
     };
 }
 
+/**
+ * Convierte los datos de una película al modelo común usado por el backend.
+ * @param chain Cadena de cines que se consultará.
+ * @param movie Datos de la película que se procesa.
+ * @param html Contenido HTML obtenido desde la página del proveedor.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeMovie(
     chain: CadenaVista,
     movie: Movie,
@@ -83,6 +99,14 @@ export function normalizeMovie(
     };
 }
 
+/**
+ * Convierte una función extraída al modelo común de horarios.
+ * @param chain Cadena de cines que se consultará.
+ * @param session Datos de la función extraída desde la fuente.
+ * @param movie Datos de la película que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeSchedule(
     chain: CadenaVista,
     session: Session,
@@ -167,6 +191,13 @@ export function normalizeSchedule(
     return { ...schedule, revision: scheduleRevision(schedule) };
 }
 
+/**
+ * Normaliza las tarifas extraídas para asociarlas a una función.
+ * @param chain Cadena de cines que se consultará.
+ * @param html Contenido HTML obtenido desde la página del proveedor.
+ * @param schedule Datos del horario o función que se procesa.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizePrices(
     chain: CadenaVista,
     html: string,
@@ -262,6 +293,11 @@ export function normalizePrices(
     return result;
 }
 
+/**
+ * Obtiene y normaliza las tarifas de una función.
+ * @param chain Cadena de cines que se consultará.
+ * @param schedule Datos del horario o función que se procesa.
+ */
 export async function pricesForSchedule(
     chain: CadenaVista,
     schedule: ScrapedSchedule,

@@ -21,6 +21,11 @@ import type {
     ScrapedSchedule,
 } from "../types.ts";
 
+/**
+ * Lista los cines disponibles en la cadena correspondiente.
+ * @param chain Cadena de cines que se consultará.
+ * @returns Lista de resultados encontrados o transformados.
+ */
 export async function listCinemas(chain: CadenaVista) {
     const cinemas = (await vistaData<Cinema>(chain, "Cinemas")).filter(
         (cinema) => !cinema.IsGiftStore,
@@ -33,6 +38,12 @@ export async function listCinemas(chain: CadenaVista) {
     return cinemas;
 }
 
+/**
+ * Extrae desde el proveedor Vista los datos necesarios para construir la cartelera.
+ * @param chain Cadena de cines que se consultará.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Resultado de la operación, incluidos los registros procesados.
+ */
 export async function scrapeVista(
     chain: CadenaVista,
     options: ScrapeOptions,

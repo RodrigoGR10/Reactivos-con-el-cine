@@ -18,6 +18,11 @@ interface ImportSummary {
     limpiezaEjecutada: boolean;
 }
 
+/**
+ * Importa a PostgreSQL el resultado normalizado de los scrapers.
+ * @param data Datos recibidos desde el servicio externo o la base de datos.
+ * @returns Resultado de la operación, incluidos los registros procesados.
+ */
 export async function importarDatosScraped(
     data: ScrapeResult,
 ): Promise<ImportSummary> {

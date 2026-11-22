@@ -6,6 +6,10 @@ interface CarteleraProps {
     peliculas: Pelicula[];
 }
 
+/**
+ * Presenta las tarjetas de película en grilla o en formato horizontal móvil.
+ * @param peliculas Películas que deben aparecer en la cartelera.
+ */
 function Cartelera({ peliculas }: CarteleraProps) {
     const esMovil = useMediaQuery("(max-width: 560px)");
 

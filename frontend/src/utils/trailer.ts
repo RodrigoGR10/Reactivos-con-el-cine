@@ -1,7 +1,11 @@
+/**
+ * Datos de idioma, versión y URL del tráiler de una película.
+ */
 export type Trailer =
     | { tipo: "youtube"; id: string; url: string; embedUrl: string }
     | { tipo: "video"; url: string };
 
+/** Construye una URL de inserción de YouTube sin cookies de terceros. */
 function construirEmbedUrlYoutube(id: string): string {
     const params = new URLSearchParams({ playsinline: "1", rel: "0" });
     if (typeof window !== "undefined" && window.location?.origin) {
@@ -10,6 +14,11 @@ function construirEmbedUrlYoutube(id: string): string {
     return `https://www.youtube-nocookie.com/embed/${id}?${params}`;
 }
 
+/**
+ * Valida y clasifica una URL de tráiler que se permite incrustar.
+ * @param value URL original del video.
+ * @returns Datos de inserción para YouTube o MP4, o `null` si no es confiable.
+ */
 export function obtenerTrailer(value?: string): Trailer | null {
     if (!value) return null;
     try {

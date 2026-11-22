@@ -25,6 +25,11 @@ function fechaISO(fecha: Date | string): string {
     return fecha.slice(0, 10);
 }
 
+/**
+ * Obtiene y normaliza las tarifas de los horarios consultados.
+ * @param row Fila de base de datos que se transforma o evalúa.
+ * @returns Lista de resultados encontrados o transformados.
+ */
 export async function extraerTarifas(
     row: ScheduleRow,
 ): Promise<ScrapedSession[]> {

@@ -13,6 +13,10 @@ interface TarjetaPeliculaProps {
     pelicula: Pelicula;
 }
 
+/**
+ * Muestra el resumen de una película con enlaces al detalle y a favoritos.
+ * @param pelicula Datos que se muestran en la tarjeta.
+ */
 function TarjetaPelicula({ pelicula }: TarjetaPeliculaProps) {
     const { user, openAuthModal } = useAuth();
     const { isFavoriteMovie, toggleFavoriteMovie } = useFavorites();

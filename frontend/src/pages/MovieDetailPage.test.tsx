@@ -3,7 +3,7 @@ import { HeadlessMantineProvider } from "@mantine/core";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../context/AuthContext";
 import { FavoritesProvider } from "../context/FavoritesContext";
 import cineService from "../services/cines";
@@ -83,7 +83,13 @@ beforeEach(() => {
         poster: "",
     });
     vi.mocked(cineService.getAll).mockResolvedValue([
-        { id: "alameda", nombre: "Cine Alameda", comuna: "Santiago" },
+        {
+            id: "alameda",
+            nombre: "Cine Alameda",
+            comuna: "Santiago",
+            latitud: -33.45,
+            longitud: -70.65,
+        },
         { id: "plaza", nombre: "Cine Plaza", comuna: "Providencia" },
     ]);
 });
@@ -144,19 +150,28 @@ describe("Respuestas parciales del detalle de una función", () => {
     it.each([
         {
             llega: "precio",
+            eventoFinal: true,
             datoVisible: /\$\s*4[.\s]?500/,
             datoAusente: "12 libres",
             aviso: "Butacas no disponibles",
         },
         {
             llega: "butaca",
+            eventoFinal: true,
             datoVisible: "12 libres",
             datoAusente: /\$\s*4[.\s]?500/,
             aviso: "Precio no disponible",
         },
+        {
+            llega: "precio",
+            eventoFinal: false,
+            datoVisible: /\$\s*4[.\s]?500/,
+            datoAusente: "12 libres",
+            aviso: "Butacas no disponibles",
+        },
     ] as const)(
-        "muestra el dato de $llega antes del cierre y lo conserva ante un fallo parcial",
-        async ({ llega, datoVisible, datoAusente, aviso }) => {
+        "conserva $llega ante un fallo parcial (evento fin: $eventoFinal)",
+        async ({ llega, eventoFinal, datoVisible, datoAusente, aviso }) => {
             const base = horario("1", "alameda", primerDia, "15:30");
             vi.mocked(funcionesService.getHorarios).mockResolvedValue([base]);
 
@@ -218,11 +233,13 @@ describe("Respuestas parciales del detalle de una función", () => {
             expect(consultar).toHaveAttribute("aria-busy", "true");
 
             await act(() => {
-                emitir({
-                    tipo: "fin",
-                    falloPrecios: llega === "butaca",
-                    falloButacas: llega === "precio",
-                });
+                if (eventoFinal) {
+                    emitir({
+                        tipo: "fin",
+                        falloPrecios: llega === "butaca",
+                        falloButacas: llega === "precio",
+                    });
+                }
                 cerrar();
             });
 
@@ -233,3 +250,52 @@ describe("Respuestas parciales del detalle de una función", () => {
         },
     );
 });
+
+afterEach(() => Reflect.deleteProperty(navigator, "geolocation"));
+
+it.each([
+    [1, /habilita el permiso/i],
+    [2, /no está disponible en este momento/i],
+    [3, /tardó demasiado/i],
+] as const)(
+    "explica el error de geolocalización %i y conserva los cines",
+    async (code, aviso) => {
+        const getCurrentPosition = vi.fn(
+            (_exito: PositionCallback, error: PositionErrorCallback) =>
+                error({ code } as GeolocationPositionError),
+        );
+        Object.defineProperty(navigator, "geolocation", {
+            configurable: true,
+            value: { getCurrentPosition },
+        });
+        vi.mocked(funcionesService.getHorarios).mockResolvedValue([
+            horario("1", "alameda", primerDia, "15:30"),
+        ]);
+        const { user } = renderDetalle();
+        const cercania = await screen.findByRole("button", {
+            name: "Cerca de mí",
+        });
+        expect(getCurrentPosition).not.toHaveBeenCalled();
+        await user.click(cercania);
+
+        expect(screen.getByText(aviso)).toBeVisible();
+        expect(
+            await screen.findByRole("link", { name: "Cine Alameda" }),
+        ).toBeVisible();
+        await user.click(
+            screen.getByRole("button", { name: "Cerrar aviso de ubicación" }),
+        );
+        expect(screen.queryByText(aviso)).not.toBeInTheDocument();
+        expect(cercania).toBeEnabled();
+
+        getCurrentPosition.mockImplementationOnce((exito) =>
+            exito({
+                coords: { latitude: -33.45, longitude: -70.65 },
+            } as GeolocationPosition),
+        );
+        await user.click(cercania);
+
+        expect(cercania).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByText("0 m")).toBeVisible();
+    },
+);

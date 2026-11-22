@@ -1,10 +1,16 @@
 const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Tipo compartido por los componentes de la aplicación.
+ */
 export interface CredencialesLogin {
     email: string;
     contrasena: string;
 }
 
+/**
+ * Tipo compartido por los componentes de la aplicación.
+ */
 export interface DatosRegistro {
     usuario: string;
     email: string;
@@ -13,6 +19,11 @@ export interface DatosRegistro {
 }
 
 /** Devuelve el mensaje de error a mostrar, o null si las credenciales son válidas. */
+/**
+ * Valida correo y contraseña antes de llamar al servicio de autenticación.
+ * @param credenciales Valores escritos en el formulario de inicio de sesión.
+ * @returns Mensaje de validación o `null` cuando ambos campos son válidos.
+ */
 export const validarCredenciales = ({
     email,
     contrasena,
@@ -33,6 +44,11 @@ export const validarCredenciales = ({
 };
 
 /** Devuelve el mensaje de error a mostrar, o null si el formulario es válido. */
+/**
+ * Valida nombre, correo y coincidencia de contraseñas del registro.
+ * @param datos Valores escritos en el formulario de creación de cuenta.
+ * @returns Mensaje de validación o `null` cuando los datos son válidos.
+ */
 export const validarRegistro = ({
     usuario,
     email,

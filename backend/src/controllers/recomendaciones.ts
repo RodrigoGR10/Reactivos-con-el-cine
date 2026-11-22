@@ -4,6 +4,10 @@ import { isDate } from "../scraper/normalize.ts";
 
 const router = express.Router();
 
+/**
+ * GET /api/recomendaciones?fecha=.&hora=.&cineIds=.
+ * Devuelve funciones futuras en la ventana de tres horas para los cines indicados.
+ */
 router.get("/", async (req, res, next) => {
     const { fecha, hora, cineIds } = req.query;
 
