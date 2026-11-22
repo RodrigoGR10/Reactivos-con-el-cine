@@ -113,6 +113,37 @@ describe("GET /api/recomendaciones (integracion con PostgreSQL)", () => {
         });
     });
 
+    it("incluye el inicio y excluye el límite de tres horas al cruzar medianoche", async () => {
+        const cine = await crearCine();
+        const pelicula = await crearPelicula();
+        const diaSiguiente = DIA(2);
+
+        const horarios = [
+            { fecha: FECHA, horario: "23:29:59" },
+            { fecha: FECHA, horario: "23:30:00" },
+            { fecha: diaSiguiente, horario: "02:29:59" },
+            { fecha: diaSiguiente, horario: "02:30:00" },
+        ];
+        const ids: number[] = [];
+        for (const horario of horarios) {
+            const funcion = await crearHorario({
+                cineId: cine.id,
+                peliculaId: pelicula.id,
+                ...horario,
+            });
+            ids.push(funcion.id);
+        }
+
+        const respuesta = await api(
+            `/api/recomendaciones?fecha=${FECHA}&hora=23:30&cineIds=${cine.id}`,
+        );
+        expect(respuesta.status).toBe(200);
+        const cuerpo = await respuesta.json();
+        expect(cuerpo.map((funcion: { id: number }) => funcion.id)).toEqual(
+            ids.slice(1, 3),
+        );
+    });
+
     it("deduplica cineIds repetidos", async () => {
         const { cineUno } = await sembrarCartelera();
 
