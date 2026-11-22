@@ -15,6 +15,7 @@ import {
 import { PAGE_SCRIPT } from "./pageScript.ts";
 import { startChromeSession } from "./browser.ts";
 import { localNow } from "../../utils/localNow.ts";
+import { esFuncionSecreta } from "../../utils/funcionesSecretas.ts";
 import type { CinepolisCinema, PageResult } from "./types.ts";
 import type {
     ScrapedCinema,
@@ -252,6 +253,9 @@ export async function scrapeCinepolis(
         }
 
         for (const sched of bb.schedules) {
+            const titulo = movieMap.get(sched.movieId)?.title ?? sched.movieId;
+            if (esFuncionSecreta(titulo)) continue;
+
             const movie = peliculaPara(sched.movieId);
 
             for (const dia of sched.dates ?? []) {
