@@ -5,6 +5,9 @@ import {
     useRef,
     useState,
     useEffect,
+    useLayoutEffect,
+    type Dispatch,
+    type SetStateAction,
     type ReactNode,
 } from "react";
 import axios from "axios";
@@ -31,12 +34,30 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
  * @param children Componentes que podrán consultar o cambiar favoritos.
  * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
+function actualizarFavorito(ids: string[], id: string, activo: boolean) {
+    if (!activo) return ids.filter((otroId) => otroId !== id);
+    return ids.includes(id) ? ids : [...ids, id];
+}
+
 export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     const { user, invalidateSession } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const locationRef = useRef(location);
-    const [prevUserId, setPrevUserId] = useState<string | undefined>(user?.id);
+    const userId = user?.id;
+    const [prevUserId, setPrevUserId] = useState(userId);
+    const sesionActiva = useRef<{
+        peliculas: Set<string>;
+        cines: Set<string>;
+    } | null>(null);
+
+    useLayoutEffect(() => {
+        if (!userId) return;
+        sesionActiva.current = { peliculas: new Set(), cines: new Set() };
+        return () => {
+            sesionActiva.current = null;
+        };
+    }, [userId]);
 
     useEffect(() => {
         locationRef.current = location;
@@ -103,46 +124,57 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
         return () => controller.abort();
     }, [user, handleUnauthorized]);
 
-    const toggleFavoriteMovie = async (movieId: string): Promise<boolean> => {
-        if (!user) return false;
-        const previos = favoriteMovieIds;
-        const yaEstaba = previos.includes(movieId);
-        setFavoriteMovieIds(
-            yaEstaba
-                ? previos.filter((id) => id !== movieId)
-                : [...previos, movieId],
-        );
+    const alternarFavorito = async (
+        tipo: "peliculas" | "cines",
+        id: string,
+        ids: string[],
+        setIds: Dispatch<SetStateAction<string[]>>,
+        solicitar: (id: string) => Promise<string[]>,
+    ): Promise<boolean> => {
+        const sesion = sesionActiva.current;
+        if (!sesion || sesion[tipo].has(id)) return false;
+
+        const estabaActivo = ids.includes(id);
+        sesion[tipo].add(id);
+        setIds((actuales) => actualizarFavorito(actuales, id, !estabaActivo));
+
         try {
-            const updated = await profileService.toggleFavoriteMovie(movieId);
-            setFavoriteMovieIds(updated);
+            const confirmados = await solicitar(id);
+            if (sesionActiva.current !== sesion) return false;
+            setIds((actuales) =>
+                actualizarFavorito(actuales, id, confirmados.includes(id)),
+            );
             return true;
         } catch (error: unknown) {
-            setFavoriteMovieIds(previos);
+            if (sesionActiva.current !== sesion) return false;
+            setIds((actuales) =>
+                actualizarFavorito(actuales, id, estabaActivo),
+            );
             if (!handleUnauthorized(error))
-                console.error("Error al actualizar película favorita:", error);
+                console.error("Error al actualizar favorito:", error);
             return false;
+        } finally {
+            sesion[tipo].delete(id);
         }
     };
 
-    const toggleFavoriteCinema = (cinemaId: string) => {
-        if (!user) return;
-        const previos = favoriteCinemaIds;
-        const yaEstaba = previos.includes(cinemaId);
-        setFavoriteCinemaIds(
-            yaEstaba
-                ? previos.filter((id) => id !== cinemaId)
-                : [...previos, cinemaId],
+    const toggleFavoriteMovie = (movieId: string) =>
+        alternarFavorito(
+            "peliculas",
+            movieId,
+            favoriteMovieIds,
+            setFavoriteMovieIds,
+            profileService.toggleFavoriteMovie,
         );
-        profileService
-            .toggleFavoriteCinema(cinemaId)
-            .then((updated) => {
-                setFavoriteCinemaIds(updated);
-            })
-            .catch((error: unknown) => {
-                setFavoriteCinemaIds(previos);
-                if (handleUnauthorized(error)) return;
-                console.error("Error al actualizar cine favorito:", error);
-            });
+
+    const toggleFavoriteCinema = (cinemaId: string) => {
+        void alternarFavorito(
+            "cines",
+            cinemaId,
+            favoriteCinemaIds,
+            setFavoriteCinemaIds,
+            profileService.toggleFavoriteCinema,
+        );
     };
 
     const isFavoriteMovie = (movieId: string): boolean => {

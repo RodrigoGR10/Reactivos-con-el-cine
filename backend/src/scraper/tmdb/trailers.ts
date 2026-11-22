@@ -1,6 +1,6 @@
 import { normalizarTrailerUrl } from "../../utils/trailer.ts";
-import { parseMovieTitleForSearch } from "./consulta.ts";
-import { claveBasica, sinAcentosEnMayusculas } from "../../utils/titulos.ts";
+import { cleanPromotionalTitle } from "./consulta.ts";
+import { sinAcentosEnMayusculas } from "../../utils/titulos.ts";
 
 /**
  * Categoría usada para indicar si un tráiler es doblado, original o subtitulado.
@@ -32,6 +32,7 @@ export interface PeliculaConVideos {
     origin_country?: string[];
     production_countries?: { iso_3166_1: string }[];
     videos?: { results?: VideoTrailer[] };
+    translations?: { translations?: { data?: { title?: string } }[] };
 }
 
 /**
@@ -223,22 +224,63 @@ function prioridadVersion(version: VersionTrailerEspanol | undefined): number {
 }
 
 /**
- * Comprueba que el tráiler corresponda al título de la película.
- * @param nombre Nombre o título que se analiza.
- * @param titulos Título que se analiza o compara.
- * @returns Resultado que indica si se cumple la condición evaluada.
+ * Normaliza un título para facilitar su comparación.
+ * Elimina acentos y convierte los separadores en espacios.
+ *
+ * @param titulo Título que se desea normalizar.
+ * @returns Título normalizado en palabras.
  */
+function palabrasTitulo(titulo: string): string {
+    return (sinAcentosEnMayusculas(titulo).match(/[\p{L}\p{N}]+/gu) ?? []).join(
+        " ",
+    );
+}
+
 export function coincideTituloTrailer(
     nombre: string,
     titulos: string[],
 ): boolean {
-    const key = claveBasica(nombre);
-    return titulos.some((titulo) =>
-        parseMovieTitleForSearch(titulo).queries.some((query) => {
-            const clave = claveBasica(query);
-            return clave.length >= 4 && key.includes(clave);
-        }),
-    );
+    const nombreNormalizado = palabrasTitulo(nombre);
+    return titulos.some((titulo) => {
+        const completo = palabrasTitulo(cleanPromotionalTitle(titulo));
+        if (!completo) return false;
+        if (completo.length > 3)
+            return ` ${nombreNormalizado} `.includes(` ${completo} `);
+
+        // Un título breve puede ser una palabra incidental o el inicio de una secuela.
+        if (nombreNormalizado === completo) return true;
+        if (!nombreNormalizado.startsWith(`${completo} `)) return false;
+        const resto = nombreNormalizado.slice(completo.length + 1);
+        return /^(?:\d{4} )?(?:OFFICIAL )?(?:TRAILER|TEASER|AVANCE)\b/.test(
+            resto,
+        );
+    });
+}
+
+export function verificarTituloTrailer(
+    nombre: string | undefined,
+    titulos: string[],
+): "coincide" | "sin_coincidencia" | "sin_titulo" | "video_descartado" {
+    if (!nombre?.trim()) return "sin_titulo";
+    if (NO_TRAILER.test(sinAcentosEnMayusculas(nombre)))
+        return "video_descartado";
+    return coincideTituloTrailer(nombre, titulos)
+        ? "coincide"
+        : "sin_coincidencia";
+}
+
+export function titulosDePelicula(
+    titulo: string,
+    pelicula: PeliculaConVideos,
+): string[] {
+    return [
+        titulo,
+        pelicula.title ?? "",
+        pelicula.original_title ?? "",
+        ...(pelicula.translations?.translations ?? []).map(
+            ({ data }) => data?.title ?? "",
+        ),
+    ];
 }
 
 /**
@@ -261,14 +303,10 @@ export function validarTrailerDelCine(
     if (!normalizada || !/\b(TRAILER|TEASER|AVANCE)\b/.test(texto))
         return undefined;
     if (
-        !coincideTituloTrailer(nombre, [
-            titulo,
-            pelicula.title ?? "",
-            pelicula.original_title ?? "",
-        ])
+        verificarTituloTrailer(nombre, titulosDePelicula(titulo, pelicula)) !==
+        "coincide"
     )
         return undefined;
-    if (NO_TRAILER.test(texto)) return undefined;
 
     if (
         pelicula.original_language === "es" &&
@@ -346,6 +384,7 @@ function candidatosFallbackTmdb(pelicula: PeliculaConVideos): VideoTrailer[] {
 
 async function elegirYoutubeValido(
     videos: VideoTrailer[],
+    titulos: string[],
     consultarYoutube: (url: string) => Promise<MetadatosYoutube | undefined>,
     resolver: (
         video: VideoTrailer,
@@ -356,8 +395,11 @@ async function elegirYoutubeValido(
         const candidata = normalizarTrailerUrl(video.key);
         if (!candidata) continue;
         const youtube = await consultarYoutube(candidata);
-        if (!youtube?.title) continue;
-        if (NO_TRAILER.test(sinAcentosEnMayusculas(youtube.title))) continue;
+        if (
+            !youtube ||
+            verificarTituloTrailer(youtube.title, titulos) !== "coincide"
+        )
+            continue;
         const elegido = resolver(video, youtube);
         if (elegido) return elegido;
     }
@@ -378,9 +420,11 @@ export async function buscarTrailerEspanol(
     pelicula: PeliculaConVideos,
     consultarYoutube: (url: string) => Promise<MetadatosYoutube | undefined>,
 ): Promise<TrailerEspanol | undefined> {
+    const titulos = titulosDePelicula(titulo, pelicula);
     // 1. Latam / subtitulado al español confirmado en TMDB (es-419).
     const latam = await elegirYoutubeValido(
         candidatosEspanol(pelicula),
+        titulos,
         consultarYoutube,
         (video, youtube) => {
             const version = versionEspanolConfirmada(
@@ -403,6 +447,7 @@ export async function buscarTrailerEspanol(
     // 1b. Películas originalmente en español con tráiler mal etiquetado en TMDB.
     const originalEspanol = await elegirYoutubeValido(
         candidatosOriginalEnEspanolSinEtiquetar(pelicula),
+        titulos,
         consultarYoutube,
         (video) => ({
             url: normalizarTrailerUrl(video.key)!,
@@ -430,6 +475,7 @@ export async function buscarTrailerEspanol(
     // 3. Fallback a doblaje / español de España (es-ES) en TMDB.
     const espana = await elegirYoutubeValido(
         candidatosEspana(pelicula),
+        titulos,
         consultarYoutube,
         (video, youtube) => {
             const texto = sinAcentosEnMayusculas(
@@ -453,6 +499,7 @@ export async function buscarTrailerEspanol(
     // 4. Último recurso: Audio Original o cualquier tráiler oficial válido de TMDB.
     return await elegirYoutubeValido(
         candidatosFallbackTmdb(pelicula),
+        titulos,
         consultarYoutube,
         (video, youtube) => {
             const texto = sinAcentosEnMayusculas(

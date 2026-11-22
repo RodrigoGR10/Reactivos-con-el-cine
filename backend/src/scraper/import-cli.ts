@@ -5,6 +5,7 @@ import { pool } from "../db.ts";
 import { importarDatosScraped } from "./import-data.ts";
 import { validarScrapeResult } from "./validate.ts";
 import { sincronizarPostersLimpios } from "./sync-posters.ts";
+import { auditarTrailersGuardados } from "./auditar-trailers.ts";
 import { sincronizarTrailersEnEspanol } from "./sync-trailers.ts";
 
 /**
@@ -22,6 +23,13 @@ async function main() {
         const dryRun = args.includes("--dry-run");
         const apply = args.includes("--apply");
 
+        if (args.includes("--trailers") && args.includes("--audit")) {
+            if (apply)
+                throw new Error("--audit no se puede combinar con --apply.");
+            await auditarTrailersGuardados();
+            return;
+        }
+
         if (dryRun === apply) {
             const script = args.includes("--trailers")
                 ? "sync:trailers"
@@ -31,7 +39,10 @@ async function main() {
             throw new Error(
                 "Debes indicar exactamente un modo:\n" +
                     `npm run ${script} -- --dry-run\n` +
-                    `npm run ${script} -- --apply`,
+                    `npm run ${script} -- --apply` +
+                    (script === "sync:trailers"
+                        ? "\nnpm run sync:trailers -- --audit"
+                        : ""),
             );
         }
 

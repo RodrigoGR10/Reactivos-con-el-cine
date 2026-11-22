@@ -144,19 +144,28 @@ describe("Respuestas parciales del detalle de una función", () => {
     it.each([
         {
             llega: "precio",
+            eventoFinal: true,
             datoVisible: /\$\s*4[.\s]?500/,
             datoAusente: "12 libres",
             aviso: "Butacas no disponibles",
         },
         {
             llega: "butaca",
+            eventoFinal: true,
             datoVisible: "12 libres",
             datoAusente: /\$\s*4[.\s]?500/,
             aviso: "Precio no disponible",
         },
+        {
+            llega: "precio",
+            eventoFinal: false,
+            datoVisible: /\$\s*4[.\s]?500/,
+            datoAusente: "12 libres",
+            aviso: "Butacas no disponibles",
+        },
     ] as const)(
-        "muestra el dato de $llega antes del cierre y lo conserva ante un fallo parcial",
-        async ({ llega, datoVisible, datoAusente, aviso }) => {
+        "conserva $llega ante un fallo parcial (evento fin: $eventoFinal)",
+        async ({ llega, eventoFinal, datoVisible, datoAusente, aviso }) => {
             const base = horario("1", "alameda", primerDia, "15:30");
             vi.mocked(funcionesService.getHorarios).mockResolvedValue([base]);
 
@@ -218,11 +227,13 @@ describe("Respuestas parciales del detalle de una función", () => {
             expect(consultar).toHaveAttribute("aria-busy", "true");
 
             await act(() => {
-                emitir({
-                    tipo: "fin",
-                    falloPrecios: llega === "butaca",
-                    falloButacas: llega === "precio",
-                });
+                if (eventoFinal) {
+                    emitir({
+                        tipo: "fin",
+                        falloPrecios: llega === "butaca",
+                        falloButacas: llega === "precio",
+                    });
+                }
                 cerrar();
             });
 
