@@ -9,7 +9,12 @@ interface SelectorComunasProps {
 }
 
 /**
- * Selector múltiple especializado para filtrar por comunas.
+ * Selector múltiple para filtrar cines por comuna.
+ * @param opciones Comunas disponibles y su conteo.
+ * @param seleccionadas Valores de comuna activos.
+ * @param onChange Callback con la lista actualizada.
+ * @param className Clase CSS opcional para personalizar el selector.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
 export function SelectorComunas({
     opciones,

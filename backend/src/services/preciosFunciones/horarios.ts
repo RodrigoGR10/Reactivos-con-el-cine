@@ -2,6 +2,11 @@ import { query } from "../../db.ts";
 import type { ScheduleRow, ScheduleWithPrices, TarifaRow } from "./types.ts";
 import type { ScrapedSchedule } from "../../scraper/types.ts";
 
+/**
+ * Carga desde la base de datos un horario y sus relaciones necesarias.
+ * @param id Identificador del registro que se consulta o modifica.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function cargarHorario(
     id: number,
 ): Promise<ScheduleWithPrices | null> {
@@ -45,6 +50,11 @@ export async function cargarHorario(
     return { ...row, tarifas: prices.rows } as ScheduleWithPrices;
 }
 
+/**
+ * Convierte una fila de horario al formato que consumen los proveedores.
+ * @param row Fila de base de datos que se transforma o evalúa.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function buildSchedule(row: ScheduleRow): ScrapedSchedule {
     return {
         id: `${row.origen}:${row.origen_id}`,
@@ -66,6 +76,12 @@ export function buildSchedule(row: ScheduleRow): ScrapedSchedule {
     };
 }
 
+/**
+ * Carga los horarios que deben consultarse para actualizar precios.
+ * @param peliculaId Identificador de la película.
+ * @param cineId Identificador del cine.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function cargarHorarios(
     peliculaId?: number,
     cineId?: string,

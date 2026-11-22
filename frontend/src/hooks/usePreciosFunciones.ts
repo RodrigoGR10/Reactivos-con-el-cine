@@ -10,6 +10,13 @@ interface EstadoPrecios {
     recibido: boolean;
 }
 
+/**
+ * Consulta precios para una película, cine y día; actualiza mientras la API informa pendientes.
+ * @param peliculaId Identificador de película; si falta, no inicia la consulta.
+ * @param cineId Identificador del cine que ofrece las funciones.
+ * @param fecha Día de cartelera en formato `AAAA-MM-DD`.
+ * @returns Horarios con tarifas y estados de carga, error y respuesta recibida.
+ */
 export function usePreciosFunciones(
     peliculaId: string | undefined,
     cineId: string,

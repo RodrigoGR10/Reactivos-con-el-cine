@@ -5,12 +5,22 @@ import {
 import { fechaHoySantiago } from "../../utils/fechaSantiago";
 import "./SelectorFechas.css";
 
+/**
+ * Propiedades que configuran el componente SelectorFechas.
+ */
 export interface SelectorFechasProps {
+    /** Días con al menos una función disponible, en formato `AAAA-MM-DD`. */
     fechas: string[];
+    /** Día que aparece seleccionado actualmente. */
     fechaSeleccionada: string;
+    /** Callback que recibe el día elegido por la persona. */
     onSeleccionarFecha: (fecha: string) => void;
 }
 
+/** Muestra los días disponibles como pestañas y comunica la fecha elegida.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function SelectorFechas({
     fechas,
     fechaSeleccionada,

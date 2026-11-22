@@ -15,6 +15,7 @@ interface UsuarioPublicoRow {
     fechaRegistro?: Date;
 }
 
+/** Elimina campos internos y forma el perfil que se envía al navegador. */
 const usuarioPublico = (u: UsuarioPublicoRow) => ({
     id: u.id,
     nombre: u.nombre,
@@ -29,6 +30,11 @@ const cookieOptions = {
     path: "/",
 };
 
+/**
+ * Firma el JWT y crea cookie httpOnly junto con el token CSRF de la respuesta.
+ * @param response Respuesta Express donde se escriben cookie y encabezado.
+ * @param user Identidad mínima usada para firmar el token de sesión.
+ */
 const createSession = (
     response: Response,
     user: { id: string; email: string },
@@ -54,6 +60,7 @@ router.use((req, res, next) => {
     next();
 });
 
+/** POST /api/auth/register valida datos, guarda hash y devuelve la nueva sesión. */
 router.post("/register", async (req, res) => {
     const { nombre, email, contrasena } = req.body ?? {};
 
@@ -139,6 +146,7 @@ router.post("/register", async (req, res) => {
     return res.status(201).json(usuarioPublico(user));
 });
 
+/** POST /api/auth/login verifica correo y contraseña y crea una sesión. */
 router.post("/login", async (req, res) => {
     const { email, contrasena } = req.body ?? {};
 
@@ -182,6 +190,7 @@ router.post("/login", async (req, res) => {
     return res.json(usuarioPublico(user));
 });
 
+/** GET /api/auth/me restaura el perfil usando la cookie de sesión vigente. */
 router.get("/me", middleware.withUser, async (req, res) => {
     const userId = req.userId;
 
@@ -209,6 +218,7 @@ router.get("/me", middleware.withUser, async (req, res) => {
     return res.json(usuarioPublico(rows[0]));
 });
 
+/** POST /api/auth/logout revoca la cookie de sesión del navegador. */
 router.post("/logout", middleware.withUser, (req, res) => {
     res.clearCookie("token", cookieOptions);
     return res.json({ message: "Sesión cerrada correctamente" });

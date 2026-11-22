@@ -3,6 +3,9 @@ import { obtenerCadena, obtenerLogoCine } from "../../utils/agruparCines";
 import { FilmIcon } from "../common/Icons";
 import "./LogoCine.css";
 
+/**
+ * Tipo compartido por los componentes de la aplicación.
+ */
 export type TamanoLogoCine = "xs" | "sm" | "md" | "lg";
 
 const ICONO_FALLBACK: Record<TamanoLogoCine, number> = {
@@ -22,7 +25,17 @@ interface LogoCineProps {
     cargaDiferida?: boolean;
 }
 
-/** Contenedor unificado de logo de cine o cadena con caja blanca, padding por origen y fallback. */
+/**
+ * Presenta el logo de un cine o cadena con tamaño, texto alternativo y fallback.
+ * @param cine Datos del cine para resolver logo y origen cuando no se indica `src`.
+ * @param src URL de imagen explícita opcional.
+ * @param origen Identificador de cadena usado para ajustar la presentación.
+ * @param alt Texto alternativo opcional; si falta se genera desde el cine.
+ * @param tamano Tamaño de la caja: `xs`, `sm`, `md` o `lg` (por defecto `sm`).
+ * @param className Clase CSS adicional.
+ * @param cargaDiferida Si es `true`, el navegador carga la imagen de forma diferida.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function LogoCine({
     cine,
     src,

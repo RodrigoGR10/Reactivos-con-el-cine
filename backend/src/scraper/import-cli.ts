@@ -8,6 +8,10 @@ import { sincronizarPostersLimpios } from "./sync-posters.ts";
 import { auditarTrailersGuardados } from "./auditar-trailers.ts";
 import { sincronizarTrailersEnEspanol } from "./sync-trailers.ts";
 
+/**
+ * Importa un JSON de scraper o ejecuta sincronizaciones de TMDB, pósters y tráileres.
+ * Exige seleccionar explícitamente `--dry-run` o `--apply` para estas sincronizaciones.
+ */
 async function main() {
     const args = process.argv.slice(2);
 

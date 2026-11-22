@@ -25,6 +25,12 @@ function marcaDeTiempo(): string {
     return `${fecha}-${hora}`;
 }
 
+/**
+ * Genera un informe HTML navegable con los resultados del diagnóstico TMDB.
+ * @param resultados Resultados obtenidos que se incluirán en el informe.
+ * @param summary Resumen de conteos y decisiones del diagnóstico.
+ * @param apply Indica si se escriben los cambios en la base de datos.
+ */
 export async function exportarDiagnosticoHtml(
     resultados: ResultadoDiagnostico[],
     summary: DiagnosticSummary,

@@ -1,6 +1,9 @@
 import { pool } from "../../db.ts";
 import type { CandidatoSeguro } from "./types.ts";
 
+/**
+ * Resumen de los metadatos de TMDB aplicados al catálogo.
+ */
 export interface ResultadoAplicacion {
     aplicadas: number;
     omitidasPorActualizacionConcurrente: number;
@@ -25,6 +28,10 @@ const SQL_ACTUALIZAR_PELICULA = `
 `;
 
 // Las llamadas a TMDB ya terminaron: aquí comienza la transacción.
+/**
+ * Aplica a las películas los candidatos de TMDB aprobados por el diagnóstico.
+ * @param candidatos Películas o videos candidatos que se van a comparar o aplicar.
+ */
 export async function aplicarCandidatos(
     candidatos: CandidatoSeguro[],
 ): Promise<ResultadoAplicacion> {

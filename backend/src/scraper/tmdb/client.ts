@@ -14,6 +14,11 @@ const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE = "https://image.tmdb.org/t/p";
 const TIMEOUT_MS = 15000;
 
+/**
+ * Valida que exista una clave de acceso de TMDB antes de hacer solicitudes.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function exigirApiKey(apiKey: string | undefined): string {
     if (!apiKey?.trim()) {
         throw new Error("Falta configurar TMDB_API_KEY");
@@ -42,16 +47,28 @@ function pedir(url: URL): Promise<Response> {
     return fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
 }
 
+/**
+ * Comprueba que una duración de película sea un número positivo y utilizable.
+ * @param runtime Duración en minutos esperada para la película.
+ */
 export function duracionValida(
     runtime: number | null | undefined,
 ): number | undefined {
     return typeof runtime === "number" && runtime > 0 ? runtime : undefined;
 }
 
+/**
+ * Construye la URL de un afiche TMDB a partir de su ruta.
+ * @param ruta Ruta de imagen entregada por el servicio externo.
+ */
 export function urlPoster(ruta: string | null | undefined): string | undefined {
     return ruta ? `${IMAGE_BASE}/w780${ruta}` : undefined;
 }
 
+/**
+ * Construye la URL de un banner TMDB a partir de su ruta.
+ * @param ruta Ruta de imagen entregada por el servicio externo.
+ */
 export function urlBanner(ruta: string | null | undefined): string | undefined {
     return ruta ? `${IMAGE_BASE}/original${ruta}` : undefined;
 }
@@ -74,6 +91,11 @@ function fechaIsoValida(valor: unknown): string | undefined {
     return /^\d{4}-\d{2}-\d{2}$/.test(limpia) ? limpia : undefined;
 }
 
+/**
+ * Extrae las métricas de popularidad y evaluación presentes en una respuesta de TMDB.
+ * @param source Registro original del que se obtienen los datos.
+ * @returns Métricas de calificación, votos, popularidad y estreno disponibles.
+ */
 export function extraerMetricasTmdb(
     source: Pick<
         TmdbMovieResult | TmdbMovieDetail,
@@ -97,6 +119,13 @@ export function extraerMetricasTmdb(
     };
 }
 
+/**
+ * Busca películas en TMDB usando el título y los criterios indicados.
+ * @param consulta Título normalizado que se compara con el candidato.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @param idioma Idioma informado para el contenido o la función.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function buscarPeliculas(
     consulta: string,
     apiKey: string,
@@ -119,6 +148,12 @@ export async function buscarPeliculas(
     return Array.isArray(data.results) ? data.results : [];
 }
 
+/**
+ * Consulta en TMDB la duración de una película.
+ * @param movieId Identificador de la película.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function obtenerDuracion(
     movieId: number,
     apiKey: string,
@@ -137,6 +172,12 @@ export async function obtenerDuracion(
 }
 
 // La sinopsis es opcional: cualquier fallo devuelve undefined.
+/**
+ * Obtiene una sinopsis alternativa desde TMDB cuando falta la principal.
+ * @param movieId Identificador de la película.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function obtenerSinopsisRespaldo(
     movieId: number,
     apiKey: string,
@@ -158,6 +199,13 @@ export async function obtenerSinopsisRespaldo(
     }
 }
 
+/**
+ * Obtiene desde TMDB la ficha de una película identificada por su ID.
+ * @param tmdbId Identificador del registro relacionado.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @param idioma Idioma informado para el contenido o la función.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function obtenerPeliculaPorId(
     tmdbId: number,
     apiKey: string,
@@ -178,6 +226,13 @@ export async function obtenerPeliculaPorId(
     return (await response.json()) as TmdbMovieDetail;
 }
 
+/**
+ * Consulta detalles de TMDB y devuelve un resultado vacío si la consulta falla.
+ * @param tmdbId Identificador del registro relacionado.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @param idioma Idioma informado para el contenido o la función.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function obtenerDetalleSilencioso(
     tmdbId: number,
     apiKey: string,
@@ -216,6 +271,10 @@ function compararPostersLimpios(a: TmdbImageItem, b: TmdbImageItem): number {
     return b.width - a.width;
 }
 
+/**
+ * Elige el afiche más adecuado entre las imágenes disponibles.
+ * @param posters Ruta de imagen entregada por el servicio externo.
+ */
 export function seleccionarMejorPosterLimpio(
     posters: TmdbImageItem[] | undefined,
 ): string | undefined {
@@ -227,6 +286,9 @@ export function seleccionarMejorPosterLimpio(
 
 /**
  * Obtiene el mejor poster vertical sin texto (iso_639_1 = null) para la película.
+ * @param tmdbId Identificador del registro relacionado.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
  */
 export async function obtenerPosterLimpio(
     tmdbId: number,
@@ -250,6 +312,12 @@ export async function obtenerPosterLimpio(
     return seleccionarMejorPosterLimpio(data.posters);
 }
 
+/**
+ * Obtiene un afiche adecuado y omite errores de consulta.
+ * @param tmdbId Identificador del registro relacionado.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function obtenerPosterLimpioSilencioso(
     tmdbId: number,
     apiKey: string,

@@ -26,6 +26,14 @@ interface PeliculaDestacadaProps {
     categoria?: CategoriaDestacada;
 }
 
+/**
+ * Renderiza una película destacada con metadatos y acciones de favoritos.
+ * @param props Película y etiquetas opcionales asociadas a su categoría.
+ * @param props.pelicula Película que se presenta.
+ * @param props.etiqueta Texto breve de la categoría, si se entrega.
+ * @param props.complemento Aclaración adicional que acompaña a la etiqueta.
+ * @param props.categoria Clave de categoría para aplicar presentación específica.
+ */
 function PeliculaDestacada({
     pelicula,
     etiqueta,

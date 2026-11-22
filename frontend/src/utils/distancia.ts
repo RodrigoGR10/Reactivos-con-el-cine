@@ -4,8 +4,14 @@
 const RADIO_TIERRA_KM = 6371;
 const aRadianes = (grados: number) => (grados * Math.PI) / 180;
 
-//Funcion que calcula la distancia entre dos coordenadas por medio de
-// sus latitudes, longitudes y semiversenos
+/**
+ * Calcula la distancia geográfica entre dos puntos mediante Haversine.
+ * @param lat1 Latitud del primer punto, en grados.
+ * @param lon1 Longitud del primer punto, en grados.
+ * @param lat2 Latitud del segundo punto, en grados.
+ * @param lon2 Longitud del segundo punto, en grados.
+ * @returns Distancia entre los puntos, en kilómetros.
+ */
 export function distanciaKM(
     lat1: number,
     lon1: number,
@@ -23,7 +29,11 @@ export function distanciaKM(
     return 2 * RADIO_TIERRA_KM * Math.asin(Math.sqrt(a));
 }
 
-//Solo formatea las distancias dependiendo si estan a m's o km's de distancia
+/**
+ * Formatea una distancia corta en metros y el resto en kilómetros.
+ * @param km Distancia en kilómetros.
+ * @returns Distancia legible para mostrar en la interfaz.
+ */
 export function formatearDistancia(km: number): string {
     return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 }

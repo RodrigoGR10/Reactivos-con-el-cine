@@ -12,6 +12,12 @@ interface CinemaDetailFiltersProps {
     totalHorarios: number;
 }
 
+/**
+ * Presenta los filtros disponibles para la cartelera de un cine.
+ * @param filtros Estado y acciones producidos por `useCinemaScheduleFilters`.
+ * @param totalHorarios Cantidad inicial de horarios disponibles.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function CinemaDetailFilters({
     filtros,
     totalHorarios,

@@ -7,15 +7,26 @@ import { MapPinIcon } from "../common/Icons";
 import { LogoCine } from "./LogoCine";
 import "./TarjetaCine.css";
 
+/** Propiedades de presentación, navegación y acción de una tarjeta de cine. */
 interface TarjetaCineProps {
+    /** Información del cine que se muestra. */
     cine: Cine;
+    /** Distancia calculada desde la ubicación de la persona, en kilómetros. */
     distancia?: number;
+    /** Acción secundaria, como el botón para marcar el cine favorito. */
     accion?: ReactNode;
+    /** Si es `false`, el nombre no enlaza al detalle. Por defecto es `true`. */
     navegable?: boolean;
+    /** Nivel HTML del nombre, por defecto `h3`. */
     nivelTitulo?: "h2" | "h3";
+    /** Estado de React Router que se envía al abrir el enlace. */
     estadoEnlace?: unknown;
 }
 
+/** Muestra logo, nombre, comuna y acciones opcionales de un cine.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function TarjetaCine({
     cine,
     distancia,
@@ -60,7 +71,9 @@ export function TarjetaCine({
     );
 }
 
-/** Esqueleto de carga con las proporciones exactas de `TarjetaCine`. */
+/** Muestra el placeholder de carga con las proporciones de `TarjetaCine`.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function TarjetaCineSkeleton() {
     return (
         <div className="cine-card" aria-hidden="true">

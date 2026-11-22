@@ -95,6 +95,11 @@ async function publicarReporte(
     console.log(`Reporte ubicado en: ${reportPath}`);
 }
 
+/**
+ * Diagnostica y sincroniza metadatos de películas desde TMDB.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Resultado de la operación, incluidos los registros procesados.
+ */
 export async function sincronizarMetadatosTmdb(
     options: { apply?: boolean } = {},
 ) {

@@ -1,3 +1,6 @@
+/**
+ * Datos de un cine extraídos desde el proveedor Cineplanet.
+ */
 export interface Cinema {
     ID: string;
     name: string;
@@ -8,6 +11,9 @@ export interface Cinema {
     longitude?: string;
 }
 
+/**
+ * Respuesta de película extraída desde la API de Cineplanet.
+ */
 export interface Movie {
     isPreSale?: boolean;
     isComingSoon?: boolean;
@@ -27,6 +33,9 @@ export interface Movie {
     }[];
 }
 
+/**
+ * Respuesta de función extraída desde la API de Cineplanet.
+ */
 export interface Session {
     id: string;
     sessionId: string;
@@ -35,6 +44,9 @@ export interface Session {
     languages: string[];
 }
 
+/**
+ * Datos normalizados de una tarifa o entrada asociada a una función.
+ */
 export interface Ticket {
     CinemaId: string;
     TicketTypeCode: string;
@@ -55,6 +67,9 @@ export interface Ticket {
     ThirdPartyMembershipName?: string;
 }
 
+/**
+ * Datos normalizados de una tarifa o entrada asociada a una función.
+ */
 export interface Prices {
     ResponseCode: number;
     Tickets: Ticket[];

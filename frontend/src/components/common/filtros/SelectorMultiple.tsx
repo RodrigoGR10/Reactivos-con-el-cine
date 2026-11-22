@@ -8,7 +8,9 @@ import { GrupoFiltrosContext } from "./GrupoFiltrosContext";
 import type { SelectorMultipleProps } from "./types";
 
 /**
- * Selector múltiple desplegable con casillas, conteo por opción y búsqueda opcional.
+ * Selector múltiple con búsqueda opcional y confirmación dentro del grupo.
+ * @param props Opciones, valores seleccionados, etiquetas y callbacks del selector.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
 export function SelectorMultiple({
     opciones,

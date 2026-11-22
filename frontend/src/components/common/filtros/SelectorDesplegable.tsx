@@ -5,8 +5,9 @@ import type { SelectorDesplegableProps } from "./types";
 import { CloseIcon } from "../Icons";
 
 /**
- * Contenedor desplegable compartido para selectores simples y múltiples.
- * Usa Popover (Floating UI + Portal) en desktop y Drawer inferior en móvil.
+ * Contenedor común para selectores: Popover en escritorio y Drawer en móvil.
+ * @param props Estado de apertura, etiquetas, foco, contenido y callbacks.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
 export function SelectorDesplegable({
     abierto,

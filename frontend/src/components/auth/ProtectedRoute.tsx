@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Mensaje } from "../common/Mensaje";
 
+/** Permite mostrar las rutas hijas solo después de confirmar una sesión activa. */
 function ProtectedRoute() {
     const { isAuthenticated, isLoadingSession } = useAuth();
     const location = useLocation();

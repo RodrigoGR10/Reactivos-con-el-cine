@@ -6,6 +6,12 @@ interface DisponibilidadCineplanet {
     seatsTotal?: unknown;
 }
 
+/**
+ * Consulta la disponibilidad de butacas de una función de Cineplanet.
+ * @param cineId Identificador del cine.
+ * @param sesionId Identificador del registro relacionado.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function consultarButacasCineplanet(
     cineId: string,
     sesionId: string,

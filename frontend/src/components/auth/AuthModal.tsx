@@ -21,6 +21,11 @@ const AUTH_MODAL_TRANSITION: MantineTransition = {
 
 const DELAY_CIERRE_EXITOSO_MS = 650;
 
+/**
+ * Contenedor modal que permite alternar entre inicio de sesión y registro.
+ * @param props Visibilidad, cierre, resultado exitoso y vista inicial opcional.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const AuthModal = ({
     isOpen,
     onClose,

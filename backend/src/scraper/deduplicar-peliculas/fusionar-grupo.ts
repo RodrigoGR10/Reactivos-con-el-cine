@@ -96,6 +96,10 @@ async function ejecutarFusion(
     await eliminarPeliculasDuplicadas(client, idsDuplicados);
 }
 
+/**
+ * Combina un grupo de películas duplicadas conservando sus datos y relaciones.
+ * @param grupo Grupo de registros que se fusionará.
+ */
 export async function fusionarGrupo(grupo: GrupoDuplicado): Promise<void> {
     const client = await pool.connect();
 

@@ -89,6 +89,10 @@ function publicConfig(source: string) {
     throw new Error("No se encontro la configuracion publica de Cineplanet.");
 }
 
+/**
+ * Inicializa el cliente de Cineplanet y respeta el intervalo entre solicitudes.
+ * @param delayMs Tiempo de espera entre solicitudes, en milisegundos.
+ */
 export async function initializeCineplanet(delayMs = 500) {
     configureRequests(delayMs);
     if (config && Date.now() - config.loadedAt < 60 * 60_000) return;
@@ -122,6 +126,11 @@ export async function initializeCineplanet(delayMs = 500) {
     await initialization;
 }
 
+/**
+ * Consulta un recurso de Cineplanet y devuelve la respuesta con el tipo indicado.
+ * @param path Ruta relativa del recurso solicitado.
+ * @returns Respuesta tipada entregada por el proveedor.
+ */
 export async function cineplanetData<T>(path: string): Promise<T> {
     if (
         !/^\/api\/(?:cache\/(?:cinemas|movies|session)cache|sessionavailable\/cinema\/\d+\/session\/\d+|gettickets\/cinema\/\d+\/session\/\d+\/usersessionid\/[a-f\d]{32})$/.test(

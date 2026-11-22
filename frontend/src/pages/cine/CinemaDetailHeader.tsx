@@ -12,7 +12,11 @@ interface CinemaDetailHeaderProps {
     onToggleFavorito: () => void;
 }
 
-/** Dirección del cine, agregando la comuna solo si la dirección no la incluye. */
+/**
+ * Forma la ubicación visible evitando repetir la comuna en la dirección.
+ * @param cine Cine cuya dirección se va a presentar.
+ * @returns Dirección con comuna o solo comuna cuando falta la dirección.
+ */
 function obtenerUbicacion(cine: Cine): string | undefined {
     const direccion = cine.direccion?.trim();
     const comuna = cine.comuna?.trim();
@@ -26,6 +30,11 @@ function obtenerUbicacion(cine: Cine): string | undefined {
     return direccion;
 }
 
+/**
+ * Presenta identidad, ubicación y acción de favorito del cine.
+ * @param props Cine, ruta de retorno y estado/callback de favorito.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function CinemaDetailHeader({
     cine,
     volverA,

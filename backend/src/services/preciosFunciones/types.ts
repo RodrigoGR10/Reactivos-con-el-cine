@@ -1,5 +1,8 @@
 import type { Origen } from "../../scraper/types.ts";
 
+/**
+ * Forma de una fila de base de datos utilizada por la consulta y actualización de precios de funciones.
+ */
 export type ScheduleRow = {
     id: number;
     origen_id: string;
@@ -40,6 +43,9 @@ export type ScheduleRow = {
     pelicula_origen_id_fuente: string;
 };
 
+/**
+ * Forma de una fila de base de datos utilizada por la consulta y actualización de precios de funciones.
+ */
 export type TarifaRow = {
     id: number;
     origen_id: string;
@@ -53,6 +59,9 @@ export type TarifaRow = {
     extraido_en: Date;
 };
 
+/**
+ * Datos normalizados de una función para la cartelera común.
+ */
 export type ScheduleWithPrices = ScheduleRow & {
     tarifas: TarifaRow[];
 };

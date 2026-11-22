@@ -8,6 +8,7 @@ import {
 // Uso: node src/scripts/normalizar-comunas.ts [--write]
 // Sin --write solo muestra qué cambiaría.
 
+/** Revisa los nombres de comuna y solo guarda los cambios cuando se usa `--write`. */
 async function main() {
     const escribir = process.argv.includes("--write");
 

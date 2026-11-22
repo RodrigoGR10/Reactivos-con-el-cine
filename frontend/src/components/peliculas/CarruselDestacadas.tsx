@@ -14,6 +14,11 @@ interface TransicionDestacada {
     direccion: 1 | -1;
 }
 
+/**
+ * Muestra el carrusel navegable de películas elegidas como destacadas.
+ * @param peliculas Elementos destacados con película y datos de categoría.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function CarruselDestacadas({
     peliculas,
 }: {

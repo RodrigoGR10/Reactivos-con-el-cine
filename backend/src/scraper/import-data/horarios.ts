@@ -9,6 +9,14 @@ interface UpsertScheduleResult {
     invalidated: number;
 }
 
+/**
+ * Crea o actualiza una función y sincroniza los datos asociados a ella.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param schedule Datos del horario o función que se procesa.
+ * @param peliculaId Identificador de la película.
+ * @param cineId Identificador del cine.
+ * @param peliculaUrl Película o datos de película que se procesan.
+ */
 export async function upsertSchedule(
     client: PoolClient,
     schedule: ScrapedSchedule,

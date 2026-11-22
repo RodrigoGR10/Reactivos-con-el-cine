@@ -14,6 +14,11 @@ interface LoginFormProps {
     onSuccess?: () => void;
 }
 
+/**
+ * Valida y envía las credenciales; informa éxito o error al modal contenedor.
+ * @param props Estado visible, callbacks de navegación y cierre del modal.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const LoginForm = ({
     activo,
     onCloseProgramado,

@@ -11,6 +11,12 @@ import { diagnosticarPeliculaTmdb } from "./diagnostico.ts";
 import type { TmdbSearchOptions } from "./consulta.ts";
 import type { TmdbEnrichment, TmdbMetadataPorId } from "./types.ts";
 
+/**
+ * Obtiene metadatos TMDB usando directamente el ID de la película.
+ * @param tmdbId Identificador del registro relacionado.
+ * @param apiKey Clave de acceso configurada para el servicio externo.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function fetchTmdbMovieMetadataById(
     tmdbId: number,
     apiKey = process.env.TMDB_API_KEY,
@@ -45,6 +51,13 @@ export async function fetchTmdbMovieMetadataById(
     };
 }
 
+/**
+ * Busca y obtiene metadatos TMDB para un título de película.
+ * @param titulo Título que se normaliza, compara o busca.
+ * @param apiKeyOrOptions Clave de acceso al servicio externo.
+ * @param maybeOptions Opciones opcionales para configurar la consulta a TMDB.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function fetchTmdbMovieMetadata(
     titulo: string,
     apiKeyOrOptions?: string | TmdbSearchOptions,

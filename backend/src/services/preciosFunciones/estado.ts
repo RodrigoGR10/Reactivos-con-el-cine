@@ -3,6 +3,12 @@ import type { ScheduleRow, ScheduleWithPrices } from "./types.ts";
 
 export const CACHE_PRECIOS_MS = 15 * 60_000;
 
+/**
+ * Indica si los datos de precios de un horario siguen dentro del período de caché.
+ * @param row Fila de base de datos que se transforma o evalúa.
+ * @param now Instante usado como referencia para la comparación.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export function isFresh(row: ScheduleRow, now = Date.now()): boolean {
     return (
         row.precios_revision === row.revision &&
@@ -11,6 +17,10 @@ export function isFresh(row: ScheduleRow, now = Date.now()): boolean {
     );
 }
 
+/**
+ * Prepara el horario y sus precios para la respuesta de la API.
+ * @param row Fila de base de datos que se transforma o evalúa.
+ */
 export function horarioPublico(row: ScheduleWithPrices) {
     const compatible =
         row.precios_revision === row.revision &&

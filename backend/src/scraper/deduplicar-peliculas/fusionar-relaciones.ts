@@ -1,5 +1,11 @@
 import type { DbClient } from "./types.ts";
 
+/**
+ * Mueve los horarios de las películas duplicadas a la película canónica.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param canonicaId Identificador del registro relacionado.
+ * @param idsDuplicados Identificadores de las películas que se van a fusionar.
+ */
 export async function trasladarHorarios(
     client: DbClient,
     canonicaId: number,
@@ -15,6 +21,12 @@ export async function trasladarHorarios(
     );
 }
 
+/**
+ * Mueve las fuentes de datos de los duplicados a la película canónica.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param canonicaId Identificador del registro relacionado.
+ * @param idsDuplicados Identificadores de las películas que se van a fusionar.
+ */
 export async function trasladarFuentes(
     client: DbClient,
     canonicaId: number,
@@ -30,6 +42,12 @@ export async function trasladarFuentes(
     );
 }
 
+/**
+ * Conserva los favoritos de usuarios al combinar películas duplicadas.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param canonicaId Identificador del registro relacionado.
+ * @param idsDuplicados Identificadores de las películas que se van a fusionar.
+ */
 export async function fusionarFavoritos(
     client: DbClient,
     canonicaId: number,
@@ -61,6 +79,12 @@ export async function fusionarFavoritos(
     );
 }
 
+/**
+ * Conserva el historial de vistas al combinar películas duplicadas.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param canonicaId Identificador del registro relacionado.
+ * @param idsDuplicados Identificadores de las películas que se van a fusionar.
+ */
 export async function fusionarVistas(
     client: DbClient,
     canonicaId: number,
@@ -92,6 +116,11 @@ export async function fusionarVistas(
     );
 }
 
+/**
+ * Elimina los registros duplicados después de trasladar sus relaciones.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param idsDuplicados Identificadores de las películas que se van a fusionar.
+ */
 export async function eliminarPeliculasDuplicadas(
     client: DbClient,
     idsDuplicados: number[],

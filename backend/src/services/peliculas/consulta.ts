@@ -139,12 +139,18 @@ async function listarTodas() {
     return incluirPopularidad(todas);
 }
 
-/** Catálogo público de películas, opcionalmente limitado a la cartelera vigente. */
+/** Catálogo público de películas, opcionalmente limitado a la cartelera vigente.
+ * @param cartelera Si es `true`, limita la búsqueda a películas con funciones vigentes.
+ * @returns Lista de resultados encontrados o transformados.
+ */
 export async function listarPeliculas(cartelera: boolean) {
     return cartelera ? listarEnCartelera() : listarTodas();
 }
 
-/** Película pública por id, o null si no existe. */
+/** Película pública por id, o null si no existe.
+ * @param id Identificador del registro que se consulta o modifica.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function obtenerPelicula(id: number) {
     const { rows } = await query<PeliculaRow>(
         `

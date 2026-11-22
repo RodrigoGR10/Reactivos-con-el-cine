@@ -94,6 +94,11 @@ function TiempoActualizado({ consultadoEn }: { consultadoEn: number }) {
 }
 
 /** Cabecera derecha para consultar detalle, mostrar timestamp relativo o avisos y respetar cooldown. */
+/**
+ * Activa la consulta de precios y butacas y presenta su progreso o cooldown.
+ * @param props Estado del grupo de funciones y callback para solicitar detalle.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function BotonDetalleFunciones({
     cargando,
     enCooldown,

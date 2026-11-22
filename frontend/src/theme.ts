@@ -34,6 +34,7 @@ const cineDark: MantineColorsTuple = [
     "#080808",
 ];
 
+/** Tema Mantine compartido por botones, modales, selectores y alertas. */
 export const cineTheme = createTheme({
     cursorType: "pointer",
     primaryColor: "cine",
@@ -79,6 +80,9 @@ export const cineTheme = createTheme({
     },
 });
 
+/** Define variables globales de Mantine para el modo oscuro del proyecto.
+ * @returns Variables CSS del tema usadas por los componentes de cine.
+ */
 export const cineCssVariablesResolver: CSSVariablesResolver = () => ({
     variables: {
         "--mantine-z-index-modal": "1200",

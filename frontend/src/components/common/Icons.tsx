@@ -1,11 +1,19 @@
 import type { SVGProps } from "react";
 
+/**
+ * Props compartidas por los íconos SVG de la interfaz.
+ * `size` define ancho y alto; las demás props SVG se reenvían al elemento.
+ */
 export interface IconProps extends SVGProps<SVGSVGElement> {
     size?: number;
     className?: string;
     filled?: boolean;
 }
 
+/** Ícono de navegación hacia el elemento anterior.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const ChevronLeftIcon = ({ size = 20, ...props }: IconProps) => (
     <svg
         width={size}
@@ -23,6 +31,10 @@ export const ChevronLeftIcon = ({ size = 20, ...props }: IconProps) => (
     </svg>
 );
 
+/** Ícono de navegación hacia el elemento siguiente.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const ChevronRightIcon = ({ size = 20, ...props }: IconProps) => (
     <svg
         width={size}
@@ -40,6 +52,10 @@ export const ChevronRightIcon = ({ size = 20, ...props }: IconProps) => (
     </svg>
 );
 
+/** Ícono de la ruta de inicio.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const HomeIcon = ({
     size = 28,
     className = "home-icon-svg",
@@ -73,6 +89,10 @@ export const HomeIcon = ({
     </svg>
 );
 
+/** Ícono de usuario o perfil.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const UserIcon = ({
     size = 28,
     className = "user-icon-svg",
@@ -116,6 +136,10 @@ export const UserIcon = ({
     </svg>
 );
 
+/** Ícono de búsqueda.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const SearchIcon = ({
     size = 16,
     className = "search-icon-svg",
@@ -139,6 +163,10 @@ export const SearchIcon = ({
     </svg>
 );
 
+/** Ícono de película.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const FilmIcon = ({
     size = 36,
     className = "empty-state-svg",
@@ -168,6 +196,10 @@ export const FilmIcon = ({
     </svg>
 );
 
+/** Ícono de ubicación en mapa.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const MapPinIcon = ({
     size = 14,
     className = "pin-icon-svg",
@@ -191,6 +223,10 @@ export const MapPinIcon = ({
     </svg>
 );
 
+/** Ícono de fecha o calendario.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const CalendarIcon = ({
     size = 36,
     className = "empty-state-svg",
@@ -216,6 +252,10 @@ export const CalendarIcon = ({
     </svg>
 );
 
+/** Ícono de valoración; puede mostrarse relleno o solo contorno.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const StarIcon = ({
     size = 14,
     className = "star-icon-svg",
@@ -239,6 +279,10 @@ export const StarIcon = ({
     </svg>
 );
 
+/** Ícono para cerrar sesión.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const LogOutIcon = ({
     size = 26,
     className = "logout-icon-svg",
@@ -263,6 +307,10 @@ export const LogOutIcon = ({
     </svg>
 );
 
+/** Ícono para iniciar sesión.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const LogInIcon = ({
     size = 26,
     className = "login-icon-svg",
@@ -287,6 +335,10 @@ export const LogInIcon = ({
     </svg>
 );
 
+/** Ícono de cierre o eliminación.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const CloseIcon = ({
     size = 20,
     className = "close-icon-svg",
@@ -310,6 +362,10 @@ export const CloseIcon = ({
     </svg>
 );
 
+/** Ícono de correo electrónico.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const MailIcon = ({
     size = 18,
     className = "mail-icon-svg",
@@ -328,6 +384,10 @@ export const MailIcon = ({
     </svg>
 );
 
+/** Ícono de identidad de una persona.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const PersonIcon = ({
     size = 18,
     className = "person-icon-svg",
@@ -346,6 +406,10 @@ export const PersonIcon = ({
     </svg>
 );
 
+/** Ícono para indicar que un campo secreto está visible.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const EyeIcon = ({
     size = 19,
     className = "eye-icon-svg",
@@ -369,6 +433,10 @@ export const EyeIcon = ({
     </svg>
 );
 
+/** Ícono para indicar que un campo secreto está oculto.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const EyeOffIcon = ({
     size = 19,
     className = "eye-off-icon-svg",
@@ -392,6 +460,10 @@ export const EyeOffIcon = ({
     </svg>
 );
 
+/** Ícono de ticket o entrada de cine.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const TicketIcon = ({
     size = 28,
     className = "ticket-icon-svg",
@@ -430,6 +502,10 @@ export const TicketIcon = ({
     </svg>
 );
 
+/** Ícono de butaca.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const SeatIcon = ({
     size = 14,
     className = "seat-icon-svg",
@@ -449,6 +525,10 @@ export const SeatIcon = ({
     </svg>
 );
 
+/** Ícono de aviso o error.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const AlertCircleIcon = ({
     size = 18,
     className = "alert-circle-icon-svg",
@@ -474,6 +554,10 @@ export const AlertCircleIcon = ({
     </svg>
 );
 
+/** Ícono de controles de filtro.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const SlidersIcon = ({
     size = 18,
     className = "sliders-icon-svg",
@@ -505,6 +589,10 @@ export const SlidersIcon = ({
     </svg>
 );
 
+/** Ícono de edición.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const PencilIcon = ({
     size = 16,
     className = "pencil-icon-svg",
@@ -529,6 +617,10 @@ export const PencilIcon = ({
     </svg>
 );
 
+/** Ícono de favorito; `filled` indica el estado activo.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Ícono SVG que representa la acción o concepto indicado.
+ */
 export const HeartIcon = ({
     size = 14,
     className = "heart-icon-svg",

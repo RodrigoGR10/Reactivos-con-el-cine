@@ -7,11 +7,17 @@ import {
 
 const router = express.Router();
 
+/** Rutas públicas para consultar el catálogo y la cartelera de películas. */
+
 router.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
     next();
 });
 
+/**
+ * GET /api/peliculas. El query param `cartelera` acepta `true` o `false`.
+ * Devuelve todas las películas si no se indica.
+ */
 router.get("/", async (req, res) => {
     const { cartelera } = req.query;
 
@@ -29,6 +35,7 @@ router.get("/", async (req, res) => {
     return res.json(peliculas);
 });
 
+/** GET /api/peliculas/:id. `id` debe ser un identificador numérico existente. */
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
 

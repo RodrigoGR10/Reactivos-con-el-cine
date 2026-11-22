@@ -2,9 +2,15 @@ import { normalizarTrailerUrl } from "../../utils/trailer.ts";
 import { cleanPromotionalTitle } from "./consulta.ts";
 import { sinAcentosEnMayusculas } from "../../utils/titulos.ts";
 
+/**
+ * Categoría usada para indicar si un tráiler es doblado, original o subtitulado.
+ */
 export type VersionTrailerEspanol =
     "doblado" | "original" | "subtitulado" | "espanol" | "otro";
 
+/**
+ * Datos de un video asociado a una película en TMDB.
+ */
 export interface VideoTrailer {
     key: string;
     site: string;
@@ -16,6 +22,9 @@ export interface VideoTrailer {
     published_at?: string;
 }
 
+/**
+ * Campos de la película de TMDB necesarios para evaluar sus videos.
+ */
 export interface PeliculaConVideos {
     title?: string;
     original_title?: string;
@@ -26,12 +35,18 @@ export interface PeliculaConVideos {
     translations?: { translations?: { data?: { title?: string } }[] };
 }
 
+/**
+ * URL del tráiler elegido y clasificación del idioma de su versión.
+ */
 export interface TrailerEspanol {
     url: string;
     version: VersionTrailerEspanol;
     idioma: string;
 }
 
+/**
+ * Información pública de YouTube usada para verificar un enlace de tráiler.
+ */
 export interface MetadatosYoutube {
     title?: string;
     author_name?: string;
@@ -70,6 +85,11 @@ const NO_TRAILER =
 const LATINO = /\b(LATINO|LATINA|LATINOAMERICANO|LATINOAMERICA|LATAM)\b/;
 const DOBLADO = /\b(DOBLAD[OA]|DUBBED|DOBLAJE)\b/;
 
+/**
+ * Evalúa si los datos del video indican una versión en español.
+ * @param version Versión de idioma y doblaje que se evalúa.
+ * @returns Valor booleano que indica si se cumple la condición.
+ */
 export function esVersionEspanol(
     version: unknown,
 ): version is VersionTrailerEspanol {
@@ -99,6 +119,13 @@ function esVideoYoutubeValido(video: VideoTrailer): boolean {
     );
 }
 
+/**
+ * Comprueba si el idioma del tráiler está confirmado como español.
+ * @param nombre Nombre o título que se analiza.
+ * @param pelicula Datos de la película que se procesa.
+ * @param pais Código del país de origen del video.
+ * @param idiomaVideo Código del idioma informado para el video.
+ */
 export function versionEspanolConfirmada(
     nombre: string,
     pelicula: PeliculaConVideos,
@@ -140,6 +167,11 @@ export function versionEspanolConfirmada(
     return undefined;
 }
 
+/**
+ * Filtra los videos de la película que pueden servir como tráiler en español.
+ * @param pelicula Datos de la película que se procesa.
+ * @returns Lista de resultados encontrados o transformados.
+ */
 export function candidatosEspanol(pelicula: PeliculaConVideos): VideoTrailer[] {
     return (pelicula.videos?.results ?? [])
         .filter(
@@ -191,6 +223,13 @@ function prioridadVersion(version: VersionTrailerEspanol | undefined): number {
     }
 }
 
+/**
+ * Normaliza un título para facilitar su comparación.
+ * Elimina acentos y convierte los separadores en espacios.
+ *
+ * @param titulo Título que se desea normalizar.
+ * @returns Título normalizado en palabras.
+ */
 function palabrasTitulo(titulo: string): string {
     return (sinAcentosEnMayusculas(titulo).match(/[\p{L}\p{N}]+/gu) ?? []).join(
         " ",
@@ -244,6 +283,14 @@ export function titulosDePelicula(
     ];
 }
 
+/**
+ * Valida el tráiler aportado por un cine antes de asociarlo a la película.
+ * @param url Dirección del recurso que se consulta.
+ * @param youtube Metadatos públicos del video obtenidos desde YouTube.
+ * @param titulo Título que se normaliza, compara o busca.
+ * @param pelicula Datos de la película que se procesa.
+ * @returns Valor booleano que indica si se cumple la condición evaluada.
+ */
 export function validarTrailerDelCine(
     url: string,
     youtube: MetadatosYoutube,
@@ -359,6 +406,14 @@ async function elegirYoutubeValido(
     return undefined;
 }
 
+/**
+ * Busca y prioriza un tráiler en español latino o subtitulado al español.
+ * @param titulo Título que se normaliza, compara o busca.
+ * @param actual URL de tráiler que tiene actualmente la película.
+ * @param pelicula Datos de la película que se procesa.
+ * @param consultarYoutube Indica si se permite verificar candidatos con YouTube.
+ * @returns Datos encontrados, o `null` cuando el registro no existe.
+ */
 export async function buscarTrailerEspanol(
     titulo: string,
     actual: string | null,

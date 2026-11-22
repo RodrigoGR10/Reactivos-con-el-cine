@@ -2,7 +2,10 @@ import { CloseIcon } from "../Icons";
 import type { ChipsFiltrosActivosProps } from "./types";
 
 /**
- * Fila reutilizable de chips para visualizar y quitar filtros aplicados.
+ * Muestra los filtros activos como chips que pueden quitarse individualmente.
+ * @param chips Lista de etiquetas, roles accesibles y acciones para quitarlas.
+ * @param ariaLabel Nombre accesible opcional del grupo de chips.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
 export function ChipsFiltrosActivos({
     chips,

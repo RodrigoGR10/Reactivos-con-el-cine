@@ -1,3 +1,6 @@
+/**
+ * Decisión manual para vincular un título local con una película de TMDB.
+ */
 export interface ResolucionManual {
     peliculaId: number;
     tmdbId: number | null;

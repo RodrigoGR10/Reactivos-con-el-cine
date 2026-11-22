@@ -6,6 +6,9 @@ export const SITE = "https://www.cinemark.cl";
 let baseUrl = "";
 let initialization: Promise<void> | undefined;
 
+/**
+ * Verifica que el cliente de Cinemark esté inicializado.
+ */
 export async function ensureCinemark(): Promise<void> {
     if (baseUrl) return;
     if (!initialization) {
@@ -16,6 +19,10 @@ export async function ensureCinemark(): Promise<void> {
     await initialization;
 }
 
+/**
+ * Inicializa el acceso al sitio de Cinemark y configura el intervalo entre solicitudes.
+ * @param delayMs Tiempo de espera entre solicitudes, en milisegundos.
+ */
 export async function initializeCinemark(delayMs = 500): Promise<void> {
     configureRequests(delayMs);
     baseUrl = "";
@@ -52,6 +59,12 @@ export async function initializeCinemark(delayMs = 500): Promise<void> {
     baseUrl = base.href.replace(/\/$/, "");
 }
 
+/**
+ * Consulta un recurso del sitio de Cinemark y devuelve su respuesta tipada.
+ * @param path Ruta relativa del recurso solicitado.
+ * @param params Valores para los parámetros posicionales de la consulta SQL.
+ * @returns Respuesta tipada entregada por el proveedor.
+ */
 export async function cinemarkData<T>(
     path: string,
     params: Record<string, string> = {},

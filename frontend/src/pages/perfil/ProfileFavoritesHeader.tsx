@@ -14,6 +14,11 @@ interface ProfileFavoritesHeaderProps {
     onToggleEdicion: () => void;
 }
 
+/**
+ * Controles de pestañas, búsqueda y edición para las listas del perfil.
+ * @param props Pestaña activa, valores visibles y callbacks de interacción.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const ProfileFavoritesHeader = ({
     tabActiva,
     onCambiarTab,

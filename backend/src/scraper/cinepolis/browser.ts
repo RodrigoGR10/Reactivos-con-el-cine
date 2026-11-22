@@ -6,6 +6,10 @@ import path from "node:path";
 const UA_POR_DEFECTO =
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
+/**
+ * Busca una instalación local de Chrome o Chromium para automatizar el navegador.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function findChromePath(): string {
     const envPath = process.env.CHROME_BIN || process.env.CHROME_PATH;
     if (envPath && fs.existsSync(envPath)) return envPath;
@@ -39,6 +43,9 @@ export function findChromePath(): string {
     return "google-chrome";
 }
 
+/**
+ * Datos normalizados de una función para la cartelera común.
+ */
 export interface ChromeSession {
     evaluate: <T>(expression: string) => Promise<T>;
     close: () => void;
@@ -59,6 +66,10 @@ function conTimeout<T>(
     return Promise.race([promesa, limite]).finally(() => clearTimeout(timer));
 }
 
+/**
+ * Inicia una sesión de Chrome para consultar páginas que requieren navegador.
+ * @param opts Opciones para iniciar la sesión automatizada del navegador.
+ */
 export async function startChromeSession(
     opts: { url?: string; esperaMs?: number; profileDir?: string } = {},
 ): Promise<ChromeSession> {

@@ -26,6 +26,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Comparte la sesión y los controles del modal de autenticación con la app.
+ * @param children Componentes que podrán consultar la sesión con `useAuth`.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<Usuario | null>(null);
     const [isLoadingSession, setIsLoadingSession] = useState(true);
@@ -117,6 +122,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
+/**
+ * Obtiene la sesión y las acciones de autenticación del contexto más cercano.
+ * @returns Usuario, estado de carga, métodos de sesión y control del modal.
+ * @throws Error si se usa fuera de `AuthProvider`.
+ */
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (!context) {

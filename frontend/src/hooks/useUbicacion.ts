@@ -1,13 +1,23 @@
 import { useCallback, useState } from "react";
 
+/**
+ * Coordenadas y datos de la ubicación actual o seleccionada.
+ */
 export interface Ubicacion {
     latitud: number;
     longitud: number;
 }
 
+/**
+ * Estado de solicitud de ubicación, incluyendo errores y disponibilidad.
+ */
 export type EstadoUbicacion =
     "inactivo" | "cargando" | "listo" | "denegado" | "error";
 
+/**
+ * Solicita la ubicación solo cuando la interfaz llama a `solicitar`.
+ * @returns Coordenadas, estado de permiso/consulta y acciones relacionadas.
+ */
 export function useUbicacion() {
     const [ubicacion, setUbicacion] = useState<Ubicacion | null>(null);
     const [estado, setEstado] = useState<EstadoUbicacion>("inactivo");

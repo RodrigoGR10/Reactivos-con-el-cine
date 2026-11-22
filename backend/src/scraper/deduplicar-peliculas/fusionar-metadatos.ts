@@ -1,5 +1,11 @@
 import type { DbClient } from "./types.ts";
 
+/**
+ * Completa los metadatos de la película canónica usando los registros duplicados.
+ * @param client Cliente PostgreSQL usado para ejecutar consultas dentro de la transacción.
+ * @param canonicaId Identificador del registro relacionado.
+ * @param idsDuplicados Identificadores de las películas que se van a fusionar.
+ */
 export async function completarMetadatosCanonica(
     client: DbClient,
     canonicaId: number,

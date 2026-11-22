@@ -1,3 +1,6 @@
+/**
+ * Precio de una entrada asociado a una función y su formato.
+ */
 export interface Tarifa {
     id: number;
     cineId: string;
@@ -8,4 +11,7 @@ export interface Tarifa {
     creadoEn?: Date;
 }
 
+/**
+ * Datos necesarios para registrar una tarifa de función.
+ */
 export type CrearTarifaDTO = Omit<Tarifa, "id" | "creadoEn">;

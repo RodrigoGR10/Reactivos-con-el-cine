@@ -22,12 +22,18 @@ export type CinepolisCinemaFull = ScrapedCinema & {
     vistaId: string;
 };
 
+/**
+ * Película normalizada a partir de la API de Cinépolis.
+ */
 export type CinepolisMovieFull = ScrapedMovie & {
     tituloOriginal?: string;
     clasificacionDescripcion?: string;
     datosIncompletos: boolean;
 };
 
+/**
+ * Horario normalizado a partir de la API de Cinépolis.
+ */
 export type CinepolisScheduleFull = ScrapedSchedule & {
     proyeccion: Proyeccion;
     experiencia: string | null;
@@ -48,6 +54,12 @@ function text(value: string, field: string): string {
     return value.trim();
 }
 
+/**
+ * Convierte los datos de un cine al modelo común usado por el backend.
+ * @param cinema Datos del cine que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeCinema(
     cinema: CinepolisCinema,
     extractedAt: string,
@@ -77,6 +89,12 @@ export function normalizeCinema(
     };
 }
 
+/**
+ * Convierte los datos de una película al modelo común usado por el backend.
+ * @param movie Datos de la película que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeMovie(
     movie: CinepolisMovie,
     extractedAt: string,
@@ -109,6 +127,14 @@ export function normalizeMovie(
     };
 }
 
+/**
+ * Convierte una función extraída al modelo común de horarios.
+ * @param showtime Datos de la función extraídos desde la API de Cinépolis.
+ * @param movie Datos de la película que se procesa.
+ * @param cinema Datos del cine que se procesa.
+ * @param extractedAt Instante en que se extrajeron los datos, en formato ISO.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function normalizeSchedule(
     showtime: CinepolisShowtime,
     movie: CinepolisMovie,
@@ -172,14 +198,18 @@ const HORA_SANTIAGO = new Intl.DateTimeFormat("en-GB", {
     hourCycle: "h23",
 });
 
-/** Devuelve el texto recortado o null cuando no hay valor útil. */
+/** Devuelve el texto recortado o null cuando no hay valor útil.
+ * @param v Valor que se convierte a texto si es válido.
+ */
 export function txt(v: unknown): string | null {
     if (v === undefined || v === null) return null;
     const s = String(v).trim();
     return s === "" ? null : s;
 }
 
-/** Convierte duraciones comunes a minutos; rechaza valores menores de 30. */
+/** Convierte duraciones comunes a minutos; rechaza valores menores de 30.
+ * @param raw Valor original recibido desde la fuente externa.
+ */
 export function parseDuracion(raw: unknown): number | null {
     if (typeof raw === "number")
         return Number.isInteger(raw) && raw >= 30 ? raw : null;
@@ -213,6 +243,11 @@ export function parseDuracion(raw: unknown): number | null {
     return null;
 }
 
+/**
+ * Unifica el formato de una clasificación por edad.
+ * @param raw Valor original recibido desde la fuente externa.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function normalizarClasificacion(raw?: string | null): string {
     if (!raw) return "TE";
     const con = raw.startsWith("+") ? raw : `+${raw}`;
@@ -221,6 +256,10 @@ export function normalizarClasificacion(raw?: string | null): string {
     return con;
 }
 
+/**
+ * Determina el idioma y tipo de doblaje de una función según los datos de Cinépolis.
+ * @param lang Datos de idioma recibidos desde la fuente.
+ */
 export function idiomaDesde(lang: RawGqlLanguage): {
     normalizado: string;
     raw: string | null;
@@ -233,7 +272,9 @@ export function idiomaDesde(lang: RawGqlLanguage): {
     return { normalizado: raw ?? "Doblada", raw };
 }
 
-/** Hora local de Santiago (HH:MM). Si la fecha-hora trae zona, la convierte; si no, la toma tal cual. */
+/** Hora local de Santiago (HH:MM). Si la fecha-hora trae zona, la convierte; si no, la toma tal cual.
+ * @param datetime Fecha y hora recibidas desde la fuente.
+ */
 export function horaLocal(datetime: string | null): string | null {
     if (!datetime) return null;
     const m = datetime.match(
@@ -274,6 +315,7 @@ function desdeExperiencia(
 /**
  * Determina proyección y experiencia. Prioridad: dato de la API; luego heurísticas,
  * que quedan marcadas con fuente "heuristica" para que se puedan filtrar o revisar.
+ * @param input Datos de entrada que se interpretan o transforman.
  */
 export function resolveCinepolisFormat(input: FormatoInput): FormatoSala {
     const proyeccion: Proyeccion = (input.formatName ?? "")
@@ -336,6 +378,12 @@ export function resolveCinepolisFormat(input: FormatoInput): FormatoSala {
     };
 }
 
+/**
+ * Construye la URL pública de un afiche a partir de la ruta entregada por Cinépolis.
+ * @param rawPath Ruta original de la imagen entregada por el proveedor.
+ * @param resourceName Nombre del recurso de imagen que se quiere obtener.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function buildPosterUrl(
     rawPath?: string,
     resourceName?: string,
@@ -352,6 +400,10 @@ export function buildPosterUrl(
     return `https://pimcore-content.cinepolis.com/${clean}`;
 }
 
+/**
+ * Convierte una película de la respuesta de Cinépolis al modelo interno.
+ * @param raw Valor original recibido desde la fuente externa.
+ */
 export function movieDesdeApi(raw: RawGqlMovie): CinepolisMovie {
     const posterItem =
         raw.media?.find((m) => m.code === "poster") ||
@@ -389,7 +441,9 @@ export function movieDesdeApi(raw: RawGqlMovie): CinepolisMovie {
     };
 }
 
-/** Película de respaldo cuando aparece en horarios pero no en la cartelera. */
+/** Película de respaldo cuando aparece en horarios pero no en la cartelera.
+ * @param movieId Identificador de la película.
+ */
 export function peliculaMinima(movieId: string): CinepolisMovie {
     return {
         id: movieId,
@@ -404,6 +458,9 @@ export function peliculaMinima(movieId: string): CinepolisMovie {
     };
 }
 
+/**
+ * Datos de película, cine y fecha necesarios para interpretar una función.
+ */
 export interface ContextoSesion {
     cinema: CinepolisCinema;
     movie: CinepolisMovie;
@@ -412,7 +469,10 @@ export interface ContextoSesion {
     idioma: { normalizado: string; raw: string | null };
 }
 
-/** Traduce una función cruda de GraphQL al modelo de dominio de Cinépolis. */
+/** Traduce una función cruda de GraphQL al modelo de dominio de Cinépolis.
+ * @param st Datos originales de la función recibidos desde GraphQL.
+ * @param ctx Datos de contexto de la fecha, el cine y la película de la función.
+ */
 export function showtimeDesdeApi(
     st: RawGqlShowtime,
     ctx: ContextoSesion,

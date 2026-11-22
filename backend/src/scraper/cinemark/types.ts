@@ -1,3 +1,6 @@
+/**
+ * Estructura original de un cine tal como la entrega la API de Cinemark.
+ */
 export interface RawCinema {
     id: number;
     name: string;
@@ -8,6 +11,9 @@ export interface RawCinema {
     longitude?: string;
 }
 
+/**
+ * Estructura original de una película tal como la entrega la API de Cinemark.
+ */
 export interface RawMovie {
     status?: string;
     openingDate?: string;
@@ -22,6 +28,9 @@ export interface RawMovie {
     trailerUrl?: string;
 }
 
+/**
+ * Estructura original de una función tal como la entrega la API de Cinemark.
+ */
 export interface RawSession {
     corporateId: string;
     theaterId: string;
@@ -34,6 +43,9 @@ export interface RawSession {
     occupation?: { availableSeats: number; capacity?: number; status?: string };
 }
 
+/**
+ * Estructura original de un tipo de entrada de Cinemark.
+ */
 export interface RawTicket {
     title: string;
     areaCategoryCode: string;
@@ -55,6 +67,9 @@ export interface RawTicket {
     }[];
 }
 
+/**
+ * Grupo de precios recibido desde la API de Cinemark.
+ */
 export interface RawPriceGroup {
     title: string;
     tickets: RawTicket[];

@@ -14,6 +14,13 @@ import type {
 const CONSULTAS_SIMULTANEAS = 2;
 const TAMANO_LOTE_CINEPOLIS = 3;
 
+/**
+ * Obtiene el estado de butacas para las funciones de un cine.
+ * @param peliculaId Identificador de la película.
+ * @param cineId Identificador del cine.
+ * @param fecha Fecha de cartelera en el formato usado por el sistema.
+ * @param onHorario Horario o datos de función que se procesan.
+ */
 export async function butacasPorCine(
     peliculaId: string,
     cineId: string,

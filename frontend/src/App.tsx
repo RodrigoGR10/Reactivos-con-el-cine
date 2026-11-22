@@ -23,6 +23,7 @@ import CinemasPage from "./pages/CinemasPage";
 import CinemaDetailPage from "./pages/CinemaDetailPage";
 import LoginPage from "./pages/LoginPage";
 
+/** Muestra una salida clara cuando la URL no corresponde a ninguna ruta. */
 function PaginaNoEncontrada() {
     return (
         <Mensaje
@@ -38,6 +39,7 @@ function PaginaNoEncontrada() {
     );
 }
 
+/** Convierte los errores de React Router en un mensaje entendible para el usuario. */
 function ErrorRuta() {
     const error = useRouteError();
     if (isRouteErrorResponse(error) && error.status === 404) {
@@ -82,6 +84,7 @@ const router = createBrowserRouter(
     ),
 );
 
+/** Configura Mantine, los contextos compartidos y el enrutador de la aplicación. */
 function App() {
     return (
         <MantineProvider

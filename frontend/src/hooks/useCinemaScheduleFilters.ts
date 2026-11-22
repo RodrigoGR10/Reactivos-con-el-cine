@@ -18,6 +18,12 @@ const TODOS = "Todos";
  * fecha, formato, idioma y búsqueda por título.
  */
 
+/**
+ * Mantiene los filtros de la cartelera de un cine y calcula los grupos visibles.
+ * @param horarios Funciones disponibles para el cine.
+ * @param peliculas Catálogo usado para resolver los títulos de cada función.
+ * @returns Fechas, opciones de filtro, selecciones actuales y grupos filtrados.
+ */
 export function useCinemaScheduleFilters(
     horarios: Horario[],
     peliculas: Pelicula[],

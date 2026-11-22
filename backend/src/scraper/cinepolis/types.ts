@@ -1,3 +1,6 @@
+/**
+ * Cine normalizado a partir de la API de Cinépolis.
+ */
 export interface CinepolisCinema {
     id: string;
     name: string;
@@ -10,6 +13,9 @@ export interface CinepolisCinema {
     longitude?: number;
 }
 
+/**
+ * Película normalizada a partir de la API de Cinépolis.
+ */
 export interface CinepolisMovie {
     id: string;
     title: string;
@@ -27,6 +33,9 @@ export interface CinepolisMovie {
     datosIncompletos?: boolean;
 }
 
+/**
+ * Formatos de proyección disponibles: 2D o 3D.
+ */
 export type Proyeccion = "2D" | "3D";
 
 /**
@@ -36,6 +45,9 @@ export type Proyeccion = "2D" | "3D";
  */
 export type FormatoFuente = "api" | "heuristica" | "por_defecto";
 
+/**
+ * Función normalizada a partir de la API de Cinépolis.
+ */
 export interface CinepolisShowtime {
     sessionId: string;
     cinemaId: string;
@@ -67,6 +79,9 @@ export interface CinepolisShowtime {
     purchaseUrl: string;
 }
 
+/**
+ * Estructura recibida directamente desde la fuente externa Cinépolis.
+ */
 export interface RawCinepolisShowtime {
     CinemaId: number | string;
     VistaCinemaId: string;
@@ -76,12 +91,18 @@ export interface RawCinepolisShowtime {
     ShowtimeAMPM?: string;
 }
 
+/**
+ * Estructura recibida directamente desde la fuente externa Cinépolis.
+ */
 export interface RawCinepolisFormat {
     Name: string;
     Language: string;
     Showtimes: RawCinepolisShowtime[];
 }
 
+/**
+ * Estructura recibida directamente desde la fuente externa Cinépolis.
+ */
 export interface RawCinepolisMovie {
     Id: number | string;
     Title: string;
@@ -116,6 +137,9 @@ export interface RawGqlMovie {
     }>;
 }
 
+/**
+ * Estructura recibida directamente desde la fuente externa Cinépolis.
+ */
 export interface RawGqlShowtime {
     format?: { name?: string } | null;
     experience?: { name?: string } | null;
@@ -127,17 +151,26 @@ export interface RawGqlShowtime {
     availability?: string | number | null;
 }
 
+/**
+ * Estructura recibida directamente desde la fuente externa Cinépolis.
+ */
 export interface RawGqlLanguage {
     language?: string;
     displayLanguage?: string;
     showtimes?: RawGqlShowtime[];
 }
 
+/**
+ * Estructura recibida directamente desde la fuente externa Cinépolis.
+ */
 export interface RawGqlDate {
     date: string;
     languages?: RawGqlLanguage[];
 }
 
+/**
+ * Estructura recibida directamente desde la fuente externa Cinépolis.
+ */
 export interface RawGqlSchedule {
     movieId: string;
     dates?: RawGqlDate[];
@@ -164,6 +197,9 @@ export interface PageResult {
     >;
 }
 
+/**
+ * Formato y experiencia de sala usados para interpretar la proyección.
+ */
 export interface FormatoSala {
     proyeccion: Proyeccion;
     experiencia: string | null;
@@ -171,6 +207,9 @@ export interface FormatoSala {
     fuente: FormatoFuente;
 }
 
+/**
+ * Formato y experiencia de sala usados para interpretar la proyección.
+ */
 export interface FormatoInput {
     formatName?: string | null;
     experienceName?: string | null;

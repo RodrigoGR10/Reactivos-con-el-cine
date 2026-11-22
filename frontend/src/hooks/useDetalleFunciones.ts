@@ -49,6 +49,10 @@ function esperaAbortable(ms: number, signal: AbortSignal): Promise<void> {
  * Coordina cache (< 5 min), consultas paralelas de precios y butacas,
  * cooldown de 5 min y expiracion automatica a los 60 min.
  */
+/**
+ * Gestiona consultas de precios y butacas, su vigencia, progreso y cancelación.
+ * @returns Detalles por horario y acciones para consultar o preparar tarjetas.
+ */
 export function useDetalleFunciones() {
     const [porHorario, setPorHorario] = useState<
         Record<string, DetalleHorario>

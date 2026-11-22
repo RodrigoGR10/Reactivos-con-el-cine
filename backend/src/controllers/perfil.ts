@@ -5,6 +5,13 @@ import { pool, query, isUuid, isNumericId, isCineId } from "../db.ts";
 const router = express.Router();
 
 // El bloqueo del usuario serializa las alternancias simultaneas sin perder favoritos.
+/**
+ * Alterna un favorito dentro de una transacción y serializa cambios del mismo usuario.
+ * @param userId UUID de la persona autenticada.
+ * @param tipo Tabla de favoritos y entidad que se va a modificar.
+ * @param id Identificador numérico de película o textual de cine.
+ * @returns Lista actualizada de IDs o un error con su estado HTTP.
+ */
 async function alternarFavorito(
     userId: string,
     tipo: "peliculas" | "cines",
@@ -75,6 +82,7 @@ router.use((req, res, next) => {
     next();
 });
 
+/** GET /api/perfil/favoritos devuelve las dos listas del usuario autenticado. */
 router.get("/favoritos", middleware.withUser, async (req, res) => {
     const userId = req.userId;
     if (!userId || !isUuid(userId)) {
@@ -103,6 +111,7 @@ router.get("/favoritos", middleware.withUser, async (req, res) => {
     return res.json(rows[0]);
 });
 
+/** Alterna la película indicada en la lista de favoritos del usuario autenticado. */
 router.post(
     "/favoritos/peliculas/:movieId",
     middleware.withUser,
@@ -132,6 +141,7 @@ router.post(
     },
 );
 
+/** Alterna el cine indicado en la lista de favoritos del usuario autenticado. */
 router.post(
     "/favoritos/cines/:cinemaId",
     middleware.withUser,

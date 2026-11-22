@@ -5,6 +5,11 @@ import type {
     ReglaCupoCategoria,
 } from "./types.ts";
 
+/**
+ * Limita el valor del generador aleatorio al intervalo [0, 1).
+ * @param rng Generador aleatorio que devuelve un número.
+ * @returns Valor válido para índices y probabilidades.
+ */
 export function rollSeguro(rng: () => number): number {
     const valor = rng();
     if (!Number.isFinite(valor) || valor <= 0) return 0;
@@ -12,6 +17,12 @@ export function rollSeguro(rng: () => number): number {
     return valor;
 }
 
+/**
+ * Elige una opción con probabilidad proporcional a su peso positivo.
+ * @param opciones Opciones con propiedad `pesoVariable`.
+ * @param rng Generador de números aleatorios, inyectable para reproducir resultados.
+ * @returns Opción seleccionada según sus pesos.
+ */
 export function elegirPonderada<T extends { pesoVariable: number }>(
     opciones: readonly T[],
     rng: () => number,
@@ -31,6 +42,13 @@ export function elegirPonderada<T extends { pesoVariable: number }>(
     return opciones[opciones.length - 1];
 }
 
+/**
+ * Selecciona una película por ranking o por sorteo ponderado según la regla.
+ * @param disponibles Películas no utilizadas de la categoría.
+ * @param regla Estrategia y cupo configurados para la categoría.
+ * @param rng Generador aleatorio usado por la estrategia aleatoria.
+ * @returns Película seleccionada del conjunto disponible.
+ */
 export function elegirCandidata(
     disponibles: readonly Pelicula[],
     regla: ReglaCupoCategoria,
@@ -52,6 +70,12 @@ export function elegirCandidata(
     return elegirPonderada(candidatasPonderadas, rng).pelicula;
 }
 
+/**
+ * Mezcla el orden de destacadas y reserva una categoría prioritaria para el inicio.
+ * @param items Películas con etiquetas y categorías ya seleccionadas.
+ * @param rng Generador aleatorio para el orden reproducible.
+ * @returns Lista mezclada con una categoría prioritaria en la primera posición.
+ */
 export function mezclarCarrusel(
     items: readonly PeliculaDestacadaSeleccionada[],
     rng: () => number,

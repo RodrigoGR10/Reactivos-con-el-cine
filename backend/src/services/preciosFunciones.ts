@@ -10,6 +10,9 @@ import type {
 
 export { CACHE_PRECIOS_MS } from "./preciosFunciones/estado.ts";
 
+/**
+ * Datos normalizados de una función para la cartelera común.
+ */
 export type HorarioPublico = ReturnType<typeof horarioPublico>;
 
 const TAMANO_LOTE_CINEPOLIS = 3;
@@ -26,6 +29,13 @@ function necesitaConsultarPrecio(s: ScheduleRow, ahora: number): boolean {
     );
 }
 
+/**
+ * Obtiene los precios de las funciones disponibles en un cine.
+ * @param peliculaId Identificador de la película.
+ * @param cineId Identificador del cine.
+ * @param fecha Fecha de cartelera en el formato usado por el sistema.
+ * @param onHorario Horario o datos de función que se procesan.
+ */
 export async function preciosPorCine(
     peliculaId: string,
     cineId: string,

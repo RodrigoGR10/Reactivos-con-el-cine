@@ -1,11 +1,17 @@
 import { sinAcentosEnMayusculas } from "../../utils/titulos.ts";
 
+/**
+ * Criterios opcionales para buscar una película en TMDB.
+ */
 export interface TmdbSearchOptions {
     tituloOriginal?: string | null;
     duracion?: number | null;
     origenId?: string | null;
 }
 
+/**
+ * Título de búsqueda y variantes generados para consultar TMDB.
+ */
 export interface ParsedMovieSearch {
     queries: string[];
     titulosPrincipales: string[];
@@ -79,6 +85,11 @@ const NUMBER_WORDS_REGEX = new RegExp(
     "g",
 );
 
+/**
+ * Convierte palabras numéricas de un título a una forma comparable.
+ * @param value Valor que se valida o normaliza.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function normalizeNumberWords(value: string): string {
     return sinAcentosEnMayusculas(value).replace(
         NUMBER_WORDS_REGEX,
@@ -86,14 +97,28 @@ export function normalizeNumberWords(value: string): string {
     );
 }
 
+/**
+ * Crea una clave normalizada para comparar títulos de películas.
+ * @param value Valor que se valida o normaliza.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function normalizeTitleKey(value: string): string {
     return normalizeNumberWords(value).replace(/[^A-Z0-9]/g, "");
 }
 
+/**
+ * Quita el artículo inicial de un título para facilitar su comparación.
+ * @param value Valor que se valida o normaliza.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function stripLeadingArticle(value: string): string {
     return value.replace(/^(?:el|la|los|las|un|una|the|a|an)\s+/i, "").trim();
 }
 
+/**
+ * Extrae las palabras significativas de un título.
+ * @param value Valor que se valida o normaliza.
+ */
 export function extractContentTokens(value: string): string[] {
     return normalizeNumberWords(value)
         .replace(/[^A-Z0-9\s]/g, " ")
@@ -105,10 +130,20 @@ export function extractContentTokens(value: string): string[] {
         );
 }
 
+/**
+ * Normaliza palabras de contenido para comparar títulos con variantes.
+ * @param value Valor que se valida o normaliza.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function normalizeContentWords(value: string): string {
     return extractContentTokens(value).join(" ");
 }
 
+/**
+ * Elimina etiquetas promocionales que no forman parte del título.
+ * @param rawTitle Título que se analiza o compara.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function cleanPromotionalTitle(rawTitle: string): string {
     return rawTitle
         .replace(/[\(\[]\d{4}[\)\]]/g, "")
@@ -126,6 +161,11 @@ export function cleanPromotionalTitle(rawTitle: string): string {
         .trim();
 }
 
+/**
+ * Detecta si un prefijo corresponde a una etiqueta de festival o ciclo.
+ * @param prefix Prefijo del título que se quiere clasificar.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export function isFestivalPrefix(prefix: string): boolean {
     return (
         /\b(?:FESTIVAL|CICLO|MUESTRA|TEMPORADA)\b/i.test(prefix) ||
@@ -133,10 +173,19 @@ export function isFestivalPrefix(prefix: string): boolean {
     );
 }
 
+/**
+ * Detecta si un prefijo del título es una sigla.
+ * @param prefix Prefijo del título que se quiere clasificar.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export function isAcronymPrefix(prefix: string): boolean {
     return /^[A-Z]{2,4}$/.test(prefix.trim());
 }
 
+/**
+ * Separa el título de sus subtítulos o descriptores.
+ * @param title Título que se normaliza, compara o busca.
+ */
 export function splitTitleBySeparator(title: string): {
     hasPrefix: boolean;
     left: string;
@@ -151,6 +200,10 @@ export function splitTitleBySeparator(title: string): {
     };
 }
 
+/**
+ * Recupera un título legible desde el identificador textual de su fuente.
+ * @param origenId Identificador del registro relacionado.
+ */
 export function titleFromOrigenSlug(
     origenId?: string | null,
 ): string | undefined {
@@ -167,6 +220,10 @@ export function titleFromOrigenSlug(
     return slugTitle.length >= 4 ? slugTitle : undefined;
 }
 
+/**
+ * Extrae el subtítulo base que acompaña a un título.
+ * @param title Título que se normaliza, compara o busca.
+ */
 export function extractBaseSubtitle(title: string): string | undefined {
     const { hasPrefix, left } = splitTitleBySeparator(title);
     if (!hasPrefix) return undefined;
@@ -176,6 +233,10 @@ export function extractBaseSubtitle(title: string): string | undefined {
     return left;
 }
 
+/**
+ * Extrae el texto asociado a una sigla al final del título.
+ * @param title Título que se normaliza, compara o busca.
+ */
 export function extractAcronymRightTitle(title: string): string | undefined {
     const { hasPrefix, left, right } = splitTitleBySeparator(title);
     if (!hasPrefix || !isAcronymPrefix(left)) return undefined;
@@ -185,6 +246,11 @@ export function extractAcronymRightTitle(title: string): string | undefined {
     return right;
 }
 
+/**
+ * Normaliza los números romanos de un título para compararlo.
+ * @param value Valor que se valida o normaliza.
+ * @returns Texto normalizado o generado por la operación.
+ */
 export function romanNumeralsKey(value: string): string {
     return (
         value
@@ -194,6 +260,12 @@ export function romanNumeralsKey(value: string): string {
     );
 }
 
+/**
+ * Detecta números incompatibles que podrían indicar películas distintas.
+ * @param qTokens Palabras significativas extraídas del título consultado.
+ * @param candTokens Palabras significativas extraídas del título candidato.
+ * @returns Resultado que indica si se cumple la condición evaluada.
+ */
 export function hasConflictingNumberTokens(
     qTokens: string[],
     candTokens: Set<string>,
@@ -204,6 +276,12 @@ export function hasConflictingNumberTokens(
     return !qNums.every((num) => candTokens.has(num));
 }
 
+/**
+ * Calcula cuántas ediciones separan dos textos.
+ * @param a Primer texto que se compara.
+ * @param b Segundo texto que se compara.
+ * @returns Valor numérico calculado por la operación.
+ */
 export function levenshteinDistance(a: string, b: string): number {
     const m = a.length;
     const n = b.length;
@@ -230,6 +308,8 @@ export function levenshteinDistance(a: string, b: string): number {
 /**
  * Limpia sufijos promocionales de los cines (ej. "[2006]", "(1988)", "50 AÑOS", "BONUS", "PT2")
  * y genera consultas en cascada de mayor a menor especificidad para TMDB.
+ * @param rawTitle Título que se analiza o compara.
+ * @param optionsOrOriginal Valor original recibido desde la fuente externa.
  */
 export function parseMovieTitleForSearch(
     rawTitle: string,
@@ -334,6 +414,12 @@ export function parseMovieTitleForSearch(
     };
 }
 
+/**
+ * Construye variantes del título que se usarán para buscar en TMDB.
+ * @param parsed Título y variantes preparados para la búsqueda.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Valor convertido al formato requerido por la aplicación.
+ */
 export function buildTargetTitles(
     parsed: ParsedMovieSearch,
     options: TmdbSearchOptions = {},

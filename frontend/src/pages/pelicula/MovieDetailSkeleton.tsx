@@ -9,6 +9,11 @@ interface MovieDetailSkeletonProps {
     volverA: RutaRetorno;
 }
 
+/**
+ * Conserva la navegación de retorno mientras carga el detalle de película.
+ * @param volverA Ruta interna y etiqueta del enlace de regreso.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function MovieDetailSkeleton({ volverA }: MovieDetailSkeletonProps) {
     return (
         <div className="detalle-pelicula" role="status" aria-busy="true">

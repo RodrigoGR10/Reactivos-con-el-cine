@@ -14,6 +14,10 @@ import type {
     ScrapeResult,
 } from "../types.ts";
 
+/**
+ * Lista los cines disponibles en la cadena correspondiente.
+ * @returns Lista de resultados encontrados o transformados.
+ */
 export async function listCinemas(): Promise<RawCinema[]> {
     await ensureCinemark();
 
@@ -30,6 +34,11 @@ export async function listCinemas(): Promise<RawCinema[]> {
     return cinemas;
 }
 
+/**
+ * Extrae desde Cinemark cines, películas, funciones y datos relacionados.
+ * @param options Opciones que controlan la consulta o transformación.
+ * @returns Resultado de la operación, incluidos los registros procesados.
+ */
 export async function scrapeCinemark(
     options: ScrapeOptions,
 ): Promise<ScrapeResult> {

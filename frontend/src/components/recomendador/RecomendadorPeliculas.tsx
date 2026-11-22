@@ -64,6 +64,10 @@ function mostrarFechaHora(fechaHora: string): string {
     return `${fecha} · ${coincidencia[2]}`;
 }
 
+/**
+ * Permite elegir fecha, hora y ubicación, y propone hasta tres películas al azar.
+ * Las recomendaciones salen de funciones disponibles en las tres horas siguientes.
+ */
 function RecomendadorPeliculas() {
     const inicial = useMemo(() => fechaYHoraInicial(), []);
     const [fecha, setFecha] = useState(inicial.fecha);

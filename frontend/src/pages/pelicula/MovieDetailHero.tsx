@@ -23,6 +23,11 @@ interface MovieDetailHeroProps {
     onToggleFavorite: () => void;
 }
 
+/**
+ * Presenta póster, sinopsis, tráiler y datos principales de la película.
+ * @param props Película, estado favorito y callback para alternarlo.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function MovieDetailHero({
     pelicula,
     esFavorita,

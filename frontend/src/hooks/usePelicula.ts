@@ -49,6 +49,10 @@ function mismasPeliculas(actuales: Pelicula[], nuevas: Pelicula[]): boolean {
     );
 }
 
+/**
+ * Carga y conserva en memoria la cartelera y calcula sus películas destacadas.
+ * @returns Películas, destacadas y estados de carga o error.
+ */
 export function usePeliculas() {
     const hayDatos = useRef(peliculasEnMemoria.length > 0);
     const [semillaDestacadas] = useState(() =>
