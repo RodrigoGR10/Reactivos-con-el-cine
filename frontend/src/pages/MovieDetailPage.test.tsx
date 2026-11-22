@@ -3,7 +3,7 @@ import { HeadlessMantineProvider } from "@mantine/core";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../context/AuthContext";
 import { FavoritesProvider } from "../context/FavoritesContext";
 import cineService from "../services/cines";
@@ -83,7 +83,13 @@ beforeEach(() => {
         poster: "",
     });
     vi.mocked(cineService.getAll).mockResolvedValue([
-        { id: "alameda", nombre: "Cine Alameda", comuna: "Santiago" },
+        {
+            id: "alameda",
+            nombre: "Cine Alameda",
+            comuna: "Santiago",
+            latitud: -33.45,
+            longitud: -70.65,
+        },
         { id: "plaza", nombre: "Cine Plaza", comuna: "Providencia" },
     ]);
 });
@@ -244,3 +250,52 @@ describe("Respuestas parciales del detalle de una función", () => {
         },
     );
 });
+
+afterEach(() => Reflect.deleteProperty(navigator, "geolocation"));
+
+it.each([
+    [1, /habilita el permiso/i],
+    [2, /no está disponible en este momento/i],
+    [3, /tardó demasiado/i],
+] as const)(
+    "explica el error de geolocalización %i y conserva los cines",
+    async (code, aviso) => {
+        const getCurrentPosition = vi.fn(
+            (_exito: PositionCallback, error: PositionErrorCallback) =>
+                error({ code } as GeolocationPositionError),
+        );
+        Object.defineProperty(navigator, "geolocation", {
+            configurable: true,
+            value: { getCurrentPosition },
+        });
+        vi.mocked(funcionesService.getHorarios).mockResolvedValue([
+            horario("1", "alameda", primerDia, "15:30"),
+        ]);
+        const { user } = renderDetalle();
+        const cercania = await screen.findByRole("button", {
+            name: "Cerca de mí",
+        });
+        expect(getCurrentPosition).not.toHaveBeenCalled();
+        await user.click(cercania);
+
+        expect(screen.getByText(aviso)).toBeVisible();
+        expect(
+            await screen.findByRole("link", { name: "Cine Alameda" }),
+        ).toBeVisible();
+        await user.click(
+            screen.getByRole("button", { name: "Cerrar aviso de ubicación" }),
+        );
+        expect(screen.queryByText(aviso)).not.toBeInTheDocument();
+        expect(cercania).toBeEnabled();
+
+        getCurrentPosition.mockImplementationOnce((exito) =>
+            exito({
+                coords: { latitude: -33.45, longitude: -70.65 },
+            } as GeolocationPosition),
+        );
+        await user.click(cercania);
+
+        expect(cercania).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByText("0 m")).toBeVisible();
+    },
+);
