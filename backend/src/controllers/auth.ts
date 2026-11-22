@@ -8,6 +8,14 @@ import middleware from "../utils/middleware.ts";
 
 const router = express.Router();
 
+function cuerpoCredenciales(body: unknown): {
+    nombre?: unknown;
+    email?: unknown;
+    contrasena?: unknown;
+} {
+    return body && typeof body === "object" ? body : {};
+}
+
 interface UsuarioPublicoRow {
     id: string;
     email: string;
@@ -62,7 +70,7 @@ router.use((req, res, next) => {
 
 /** POST /api/auth/register valida datos, guarda hash y devuelve la nueva sesión. */
 router.post("/register", async (req, res) => {
-    const { nombre, email, contrasena } = req.body ?? {};
+    const { nombre, email, contrasena } = cuerpoCredenciales(req.body);
 
     if (
         typeof nombre !== "string" ||
@@ -149,7 +157,7 @@ router.post("/register", async (req, res) => {
 
 /** POST /api/auth/login verifica correo y contraseña y crea una sesión. */
 router.post("/login", async (req, res) => {
-    const { email, contrasena } = req.body ?? {};
+    const { email, contrasena } = cuerpoCredenciales(req.body);
 
     if (
         typeof email !== "string" ||

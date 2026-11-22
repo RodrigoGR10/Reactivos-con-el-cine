@@ -45,7 +45,16 @@ export async function initializeCinemark(delayMs = 500): Promise<void> {
     const decoded = LZString.decompressFromEncodedURIComponent(encoded);
     if (!decoded)
         throw new Error("Configuracion publica de Cinemark invalida.");
-    const config = JSON.parse(decoded);
+    const config: unknown = JSON.parse(decoded);
+    if (
+        !config ||
+        typeof config !== "object" ||
+        !("CLIENT_BFF_BASE_URL" in config) ||
+        typeof config.CLIENT_BFF_BASE_URL !== "string" ||
+        !("COUNTRY" in config)
+    ) {
+        throw new Error("Configuracion publica de Cinemark invalida.");
+    }
     const base = new URL(config.CLIENT_BFF_BASE_URL);
     if (
         base.protocol !== "https:" ||
@@ -79,10 +88,15 @@ export async function cinemarkData<T>(
         await response.body?.cancel();
         throw new Error(`Cinemark HTTP ${response.status}: ${path}`);
     }
-    const payload = await response.json();
-    if (!payload || !Object.hasOwn(payload, "data"))
+    const payload: unknown = await response.json();
+    if (
+        !payload ||
+        typeof payload !== "object" ||
+        !("data" in payload) ||
+        !Object.hasOwn(payload, "data")
+    )
         throw new Error(`Respuesta invalida en ${path}.`);
-    if (payload.code !== undefined && payload.code !== 0)
+    if ("code" in payload && payload.code !== undefined && payload.code !== 0)
         throw new Error(`Cinemark devolvio codigo ${payload.code} en ${path}.`);
     return payload.data as T;
 }

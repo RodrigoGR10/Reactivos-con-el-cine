@@ -23,18 +23,25 @@ const withUser = async (
     response: Response,
     next: NextFunction,
 ) => {
-    const token = request.cookies?.token;
+    const cookies: unknown = request.cookies;
+    const token =
+        cookies && typeof cookies === "object" && "token" in cookies
+            ? cookies.token
+            : undefined;
     if (typeof token !== "string" || !token) {
         return response.status(401).json({ error: "No hay una sesión activa" });
     }
 
-    const decodedToken = jwt.verify(token, config.JWT_SECRET, {
+    const decodedToken: unknown = jwt.verify(token, config.JWT_SECRET, {
         algorithms: ["HS256"],
     });
     const csrfToken = request.headers["x-csrf-token"];
 
     if (
+        !decodedToken ||
         typeof decodedToken !== "object" ||
+        !("id" in decodedToken) ||
+        !("csrf" in decodedToken) ||
         typeof decodedToken.id !== "string" ||
         typeof decodedToken.csrf !== "string" ||
         decodedToken.csrf !== csrfToken
