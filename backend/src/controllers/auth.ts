@@ -139,7 +139,8 @@ router.post("/register", async (req, res) => {
         nombreNormalizado,
     ]);
 
-    const user = rows[0];
+    const [user] = rows;
+    if (!user) throw new Error("El registro no devolvió el usuario creado.");
 
     createSession(res, { id: user.id, email: user.email });
 
@@ -208,14 +209,15 @@ router.get("/me", middleware.withUser, async (req, res) => {
 
     const { rows } = await query<UsuarioPublicoRow>(sql, [userId]);
 
-    if (rows.length === 0) {
+    const [user] = rows;
+    if (!user) {
         return res
             .status(401)
             .json({ error: "El usuario de la sesión no existe" });
     }
 
     res.setHeader("X-CSRF-Token", req.headers["x-csrf-token"] as string);
-    return res.json(usuarioPublico(rows[0]));
+    return res.json(usuarioPublico(user));
 });
 
 /** POST /api/auth/logout revoca la cookie de sesión del navegador. */

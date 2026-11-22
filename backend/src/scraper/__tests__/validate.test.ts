@@ -109,14 +109,14 @@ describe("validarScrapeResult", () => {
 
     it("falla si una película tiene duración menor a 30 minutos o trailer inválido", () => {
         const datos = buildValido();
-        datos.peliculas[0].duracion = 15;
+        datos.peliculas[0]!.duracion = 15;
         expect(() => validarScrapeResult(datos)).toThrow(
             "Película cinemark:m1: datos obligatorios inválidos.",
         );
 
         const datosTrailerInvalido = buildValido();
-        datosTrailerInvalido.peliculas[0].duracion = 120;
-        datosTrailerInvalido.peliculas[0].trailerUrl = "ftp://invalido.mp4";
+        datosTrailerInvalido.peliculas[0]!.duracion = 120;
+        datosTrailerInvalido.peliculas[0]!.trailerUrl = "ftp://invalido.mp4";
         expect(() => validarScrapeResult(datosTrailerInvalido)).toThrow(
             "Película cinemark:m1: enlace de trailer invalido.",
         );
@@ -124,7 +124,7 @@ describe("validarScrapeResult", () => {
 
     it("falla si un horario tiene butacas inconsistentes", () => {
         const datos = buildValido();
-        datos.horarios[0].butacas = {
+        datos.horarios[0]!.butacas = {
             disponibles: 100,
             total: 50, // total < disponibles
             consultadasEn: new Date().toISOString(),

@@ -32,10 +32,13 @@ function sonDuplicadas(a: PeliculaRow, b: PeliculaRow): boolean {
     );
 }
 
-function elegirCanonica(grupo: PeliculaRow[]): PeliculaRow {
+function elegirCanonica(grupo: [PeliculaRow, ...PeliculaRow[]]): PeliculaRow {
     return (
         grupo.find((pelicula) => pelicula.tiene_cinemark) ??
-        [...grupo].sort((a, b) => a.id - b.id)[0]
+        grupo.reduce(
+            (menor, actual) => (actual.id < menor.id ? actual : menor),
+            grupo[0],
+        )
     );
 }
 
@@ -50,7 +53,7 @@ export function detectarGrupos(peliculas: PeliculaRow[]): GrupoDuplicado[] {
     for (const pelicula of peliculas) {
         if (visitadas.has(pelicula.id)) continue;
 
-        const grupo: PeliculaRow[] = [pelicula];
+        const grupo: [PeliculaRow, ...PeliculaRow[]] = [pelicula];
         visitadas.add(pelicula.id);
 
         // Agrupación transitiva.

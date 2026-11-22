@@ -279,9 +279,8 @@ export function seleccionarMejorPosterLimpio(
     posters: TmdbImageItem[] | undefined,
 ): string | undefined {
     const candidatos = (posters ?? []).filter(esPosterVerticalLimpio);
-    if (!candidatos.length) return undefined;
     candidatos.sort(compararPostersLimpios);
-    return urlPoster(candidatos[0].file_path);
+    return urlPoster(candidatos[0]?.file_path);
 }
 
 /**

@@ -139,7 +139,7 @@ export async function startChromeSession(
                     const m = stderr.match(
                         /DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//,
                     );
-                    if (m) resolve(m[1]);
+                    if (m?.[1]) resolve(m[1]);
                 });
                 chrome.on("error", reject);
                 chrome.on("exit", (code) =>
@@ -196,8 +196,8 @@ export async function startChromeSession(
 
         ws.onmessage = (evt) => {
             const msg: RespuestaCDP = JSON.parse(String(evt.data));
-            const p =
-                typeof msg.id === "number" ? pendientes.get(msg.id) : undefined;
+            if (typeof msg.id !== "number") return;
+            const p = pendientes.get(msg.id);
             if (!p) return;
             pendientes.delete(msg.id);
             if (msg.error) p.reject(new Error(msg.error.message));

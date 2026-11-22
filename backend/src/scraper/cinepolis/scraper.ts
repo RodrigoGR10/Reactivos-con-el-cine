@@ -59,6 +59,9 @@ function incidencia(
 
 function sumarDias(fecha: string, dias: number): string {
     const [y, m, d] = fecha.split("-").map(Number);
+    if (y === undefined || m === undefined || d === undefined) {
+        throw new Error(`Fecha inválida: ${fecha}`);
+    }
     return new Date(Date.UTC(y, m - 1, d + dias)).toISOString().slice(0, 10);
 }
 

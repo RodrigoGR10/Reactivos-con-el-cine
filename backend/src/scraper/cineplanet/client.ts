@@ -80,6 +80,8 @@ function publicConfig(source: string) {
         const key = read("apiManagerTokenMicroservices");
         const token = read("microservicesToken");
         if (
+            !key ||
+            !token ||
             !/^[a-f\d]{32}$/i.test(key) ||
             !/^[\w-]+\.[\w-]+\.[\w-]+$/.test(token)
         )

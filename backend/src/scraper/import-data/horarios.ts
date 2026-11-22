@@ -54,8 +54,8 @@ export async function upsertSchedule(
     const butacasRevision = schedule.butacas ? schedule.revision : null;
     const butacasActualizadasEn = schedule.butacas?.consultadasEn ?? null;
 
-    if (existing.rows.length > 0) {
-        const current = existing.rows[0];
+    const [current] = existing.rows;
+    if (current) {
         const changed = current.revision !== schedule.revision;
 
         let invalidated = 0;
@@ -211,8 +211,10 @@ export async function upsertSchedule(
         ],
     );
 
+    const [row] = inserted.rows;
+    if (!row) throw new Error(`La importación del horario ${schedule.id} no devolvió un ID.`);
     return {
-        id: inserted.rows[0].id,
+        id: row.id,
         inserted: true,
         invalidated: 0,
     };

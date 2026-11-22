@@ -100,7 +100,7 @@ describe("Limpieza de cartelera al importar", () => {
     it("conserva los horarios si la respuesta vacía reporta una incidencia", async () => {
         const { lote, obsoleto, fueraDelAlcance } = await prepararCartelera();
         lote.incidencias.push({
-            cineId: lote.cines[0].id,
+            cineId: lote.cines[0]!.id,
             etapa: "cine",
             mensaje: "El proveedor no entregó la cartelera",
         });

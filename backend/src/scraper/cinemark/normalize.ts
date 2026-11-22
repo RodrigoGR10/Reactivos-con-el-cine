@@ -116,9 +116,10 @@ export function sessionDateTime(session: RawSession): {
     const match = /^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d):/.exec(
         session.sessionDateTime,
     );
-    if (!match || !isDate(match[1]))
+    const [, fecha, hora, minutos] = match ?? [];
+    if (!fecha || !hora || !minutos || !isDate(fecha))
         throw new Error("Fecha u hora de funcion invalida.");
-    return { fecha: match[1], horario: `${match[2]}:${match[3]}` };
+    return { fecha, horario: `${hora}:${minutos}` };
 }
 
 /** Normaliza butacas de Cinemark tolerando salas cuya API informa capacity ligeramente menor a availableSeats.
@@ -303,8 +304,8 @@ export function normalizePrices(
                     Number.isFinite(option.totalWithFee) &&
                     option.totalWithFee >= option.priceInCents,
             );
-            if (!options?.length) continue;
-            const option = options[0];
+            const option = options?.[0];
+            if (!option) continue;
             const area = text(ticket.areaCategoryCode, "area de tarifa");
             const previous = byArea.get(area);
             if (!previous || rank > previous.rank) {

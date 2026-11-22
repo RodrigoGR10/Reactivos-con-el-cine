@@ -220,7 +220,8 @@ export async function ticketPage(
         );
         for (const cookie of response.headers.getSetCookie()) {
             const pair = cookie.split(";", 1)[0];
-            cookies.set(pair.split("=", 1)[0], pair);
+            const name = pair?.split("=", 1)[0];
+            if (name && pair) cookies.set(name, pair);
         }
         if (response.status >= 300 && response.status < 400) {
             await response.body?.cancel();

@@ -25,7 +25,6 @@
     "noUncheckedIndexedAccess": true,
 
     // Style Options
-    "strictNullChecks": false,
     // "noUnusedLocals": true,
     // "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true,

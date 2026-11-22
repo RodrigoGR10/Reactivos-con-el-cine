@@ -25,9 +25,9 @@ describe("detectarGrupos (deduplicación)", () => {
         const grupos = detectarGrupos(peliculas);
 
         expect(grupos).toHaveLength(1);
-        expect(grupos[0].canonica.id).toBe(1);
-        expect(grupos[0].duplicadas).toHaveLength(1);
-        expect(grupos[0].duplicadas[0].id).toBe(2);
+        expect(grupos[0]?.canonica.id).toBe(1);
+        expect(grupos[0]?.duplicadas).toHaveLength(1);
+        expect(grupos[0]?.duplicadas[0]?.id).toBe(2);
     });
 
     it("prioriza la película de Cinemark como canónica", () => {
@@ -49,8 +49,8 @@ describe("detectarGrupos (deduplicación)", () => {
         const grupos = detectarGrupos(peliculas);
 
         expect(grupos).toHaveLength(1);
-        expect(grupos[0].canonica.id).toBe(25);
-        expect(grupos[0].duplicadas[0].id).toBe(10);
+        expect(grupos[0]?.canonica.id).toBe(25);
+        expect(grupos[0]?.duplicadas[0]?.id).toBe(10);
     });
 
     it("no agrupa una edición de aniversario con una versión original", () => {
@@ -74,6 +74,6 @@ describe("detectarGrupos (deduplicación)", () => {
         const grupos = detectarGrupos(peliculas);
 
         expect(grupos).toHaveLength(1);
-        expect(grupos[0].duplicadas).toHaveLength(2);
+        expect(grupos[0]?.duplicadas).toHaveLength(2);
     });
 });

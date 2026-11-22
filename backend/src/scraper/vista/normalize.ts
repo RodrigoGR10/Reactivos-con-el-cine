@@ -134,7 +134,8 @@ export function normalizeSchedule(
     const languages = attributes.filter((value) =>
         ["DOB", "SUB", "ESP", "ORI", "VO"].includes(value),
     );
-    if (languages.length !== 1)
+    const [language] = languages;
+    if (!language || languages.length !== 1)
         throw new Error("Idioma de funcion desconocido o ambiguo.");
     const formato = attributes.filter(
         (value) =>
@@ -168,9 +169,9 @@ export function normalizeSchedule(
         fecha: session.Showtime.slice(0, 10),
         horario: session.Showtime.slice(11, 16),
         fechaCartelera: session.SessionBusinessDate.slice(0, 10),
-        idioma: ["DOB", "ESP"].includes(languages[0])
+        idioma: ["DOB", "ESP"].includes(language)
             ? "Doblada"
-            : languages[0] === "SUB"
+            : language === "SUB"
               ? "Subtitulada"
               : "Version original",
         formatoResumen: formato
@@ -222,11 +223,12 @@ export function normalizePrices(
     const service = doc(".disclaimer-show")
         .text()
         .match(/cargo\s+por\s+servicio\s+de\s*\$\s*([\d.]+)\s+por\s+entrada/i);
-    if (!service)
+    const amount = service?.[1];
+    if (!amount)
         throw new Error(
             "El sitio no informo el cargo de servicio por entrada.",
         );
-    const bookingFee = Number(service[1].replaceAll(".", ""));
+    const bookingFee = Number(amount.replaceAll(".", ""));
     const result: ScrapedSession[] = [];
     const seen = new Set<string>();
     for (const element of doc("#standard li.item").toArray()) {

@@ -81,7 +81,7 @@ async function main() {
     };
 
     const desdeArg = args.find((arg) => arg.startsWith("--desde="));
-    if (desdeArg) options.desde = desdeArg.split("=")[1];
+    if (desdeArg) options.desde = desdeArg.slice("--desde=".length);
 
     const diasArg = args.find(
         (arg) => arg.startsWith("--dias=") || arg.startsWith("--days="),

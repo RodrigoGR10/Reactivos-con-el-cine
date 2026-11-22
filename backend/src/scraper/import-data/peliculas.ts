@@ -48,8 +48,9 @@ export async function upsertMovie(
     const genero = normalizarGeneros(pelicula.genero);
     const clasificacion = normalizarClasificacion(pelicula.clasificacion);
 
-    if (existing.rows.length > 0) {
-        const id = existing.rows[0].pelicula_id;
+    const [fuente] = existing.rows;
+    if (fuente) {
+        const id = fuente.pelicula_id;
 
         await client.query(
             `SELECT id FROM peliculas WHERE id = $1 FOR UPDATE;`,
@@ -157,7 +158,9 @@ export async function upsertMovie(
         ],
     );
 
-    const id = inserted.rows[0].id;
+    const [row] = inserted.rows;
+    if (!row) throw new Error(`La importación de la película ${pelicula.id} no devolvió un ID.`);
+    const { id } = row;
 
     await client.query(
         `

@@ -45,5 +45,7 @@ export async function upsertCinema(
         ],
     );
 
-    return result.rows[0].id;
+    const [row] = result.rows;
+    if (!row) throw new Error(`La importación del cine ${cine.id} no devolvió un ID.`);
+    return row.id;
 }

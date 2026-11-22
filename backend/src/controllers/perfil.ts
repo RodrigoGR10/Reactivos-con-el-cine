@@ -16,7 +16,7 @@ async function alternarFavorito(
     userId: string,
     tipo: "peliculas" | "cines",
     id: string | number,
-) {
+): Promise<{ ids: string[] } | { status: number; error: string }> {
     const tabla =
         tipo === "peliculas" ? "favoritos_peliculas" : "favoritos_cines";
     const columna = tipo === "peliculas" ? "pelicula_id" : "cine_id";
@@ -32,7 +32,7 @@ async function alternarFavorito(
             return {
                 status: 401,
                 error: "El usuario de la sesión no existe",
-            } as const;
+            };
         }
         const favorito = await client.query(
             `SELECT 1 FROM ${tabla} WHERE user_id = $1 AND ${columna} = $2;`,
@@ -56,7 +56,7 @@ async function alternarFavorito(
                         tipo === "peliculas"
                             ? "Película no encontrada"
                             : "Cine no encontrado",
-                } as const;
+                };
             }
             await client.query(
                 `INSERT INTO ${tabla} (user_id, ${columna}) VALUES ($1, $2);`,

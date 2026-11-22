@@ -242,9 +242,9 @@ export function normalizePrices(
             throw new Error("Cargo de servicio de Cineplanet invalido.");
         const included = ticket.LongDescription?.match(
             /incluye\s+(?:el\s+)?(?:cargo\s+(?:de|por)\s+)?servicio\s+online\s+de\s*\$\s*([\d.]+)/i,
-        );
+        )?.[1];
         const servicioIncluido = included
-            ? Number(included[1].replaceAll(".", ""))
+            ? Number(included.replaceAll(".", ""))
             : undefined;
         if (
             servicioIncluido !== undefined &&

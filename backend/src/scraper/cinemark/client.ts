@@ -40,7 +40,7 @@ export async function initializeCinemark(delayMs = 500): Promise<void> {
             "Cinemark no publico su configuracion (CNK_PUBLIC_ENVS).",
         );
     const encoded = decodeURIComponent(
-        cookie.split(";")[0].slice("CNK_PUBLIC_ENVS=".length),
+        cookie.slice("CNK_PUBLIC_ENVS=".length).split(";", 1)[0] ?? "",
     );
     const decoded = LZString.decompressFromEncodedURIComponent(encoded);
     if (!decoded)
