@@ -22,6 +22,7 @@
         "scrape:cinepolis": "node src/scraper/cli.ts --chain=cinepolis",
         "sync:cinepolis": "node src/scraper/cli.ts --chain=cinepolis --sync",
         "import:scrape": "node src/scraper/import-cli.ts",
+        "mantenimiento": "node src/scripts/mantenimiento.ts",
         "sync:tmdb": "node src/scraper/import-cli.ts --tmdb",
         "sync:trailers": "node src/scraper/import-cli.ts --trailers",
         "sync:posters": "node src/scraper/import-cli.ts --posters",

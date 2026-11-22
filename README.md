@@ -410,7 +410,28 @@ Los diez casos se ejecutan en cada motor, para un total de **30 ejecuciones**. E
 
 Las validaciones de formularios, los resultados vacíos y las combinaciones adicionales de filtros se ejercitan en Vitest. Los scrapers y las páginas externas de compra quedan fuera de la suite habitual.
 
-## 6. Arquitectura de datos y sincronización
+## 6. Mantenimiento y sincronización de cartelera
+
+### 6.1. Mantenimiento y sincronización en un comando
+
+Desde `backend/`, usa el comando de mantenimiento para comprobar que la API responde, consultar la cobertura de horarios vigentes en PostgreSQL y validar la extracción de las cinco cadenas.
+
+```bash
+npm run mantenimiento
+npm run mantenimiento -- --apply
+npm run mantenimiento -- --dry-run --tmdb
+npm run mantenimiento -- --apply --tmdb
+```
+
+El diagnóstico es el modo predeterminado. Consulta las fuentes en vivo y muestra el resumen en consola sin escribir en PostgreSQL ni generar archivos de resultados. Cinépolis usa un perfil temporal de Chrome durante el diagnóstico.
+
+Con `--apply`, ambas comprobaciones iniciales deben pasar antes de importar. Cada cadena se procesa de forma independiente. Una extracción parcial conserva los horarios anteriores y el comando termina con código distinto de cero si hubo extracciones parciales o fallos, incluso si importó otras cadenas. Al final se vuelve a consultar la cobertura.
+
+La comprobación de la API usa `http://localhost` y el puerto de `PORT` (3001 por defecto). Si el servidor está en otra dirección, configura `MANTENIMIENTO_API_URL` con su URL base.
+
+`--tmdb` requiere `TMDB_API_KEY`. En diagnóstico, evalúa metadatos sobre el catálogo guardado. En aplicación, lo hace después de las importaciones. La fusión de duplicados y la sincronización de pósters y tráileres se ejecutan con sus comandos específicos.
+
+### 6.2. Arquitectura de datos
 
 La base PostgreSQL es la fuente de datos que consume el backend. Los scrapers obtienen información desde las cadenas de cine y la preparan para incorporarla al catálogo.
 
@@ -426,7 +447,7 @@ El flujo general es:
 
 La importación utiliza transacciones para mantener la consistencia de los cambios. Las relaciones entre películas, cines, fuentes, horarios y tarifas se resuelven durante el proceso.
 
-### 6.1. Diferencia entre extracción y sincronización
+### 6.3. Diferencia entre extracción y sincronización
 
 | Operación       | Qué hace                                                  | ¿Modifica PostgreSQL? |
 | --------------- | --------------------------------------------------------- | --------------------- |
@@ -436,7 +457,7 @@ La importación utiliza transacciones para mantener la consistencia de los cambi
 
 Una extracción parcial se puede importar, pero no se considera completa y no ejecuta la limpieza de horarios anteriores. Esto evita borrar horarios válidos por una extracción incompleta.
 
-### 6.2. Sincronizar las cadenas de cine
+### 6.4. Sincronizar las cadenas de cine
 
 Desde `backend/`, ejecuta:
 
@@ -452,7 +473,7 @@ Conviene ejecutarlos secuencialmente para facilitar el diagnóstico y poder iden
 
 Cada comando utiliza por defecto la fecha actual en Chile e incluye todas las funciones futuras disponibles (se puede acotar con `--dias=N`).
 
-### 6.3. Extraer datos sin importarlos
+### 6.5. Extraer datos sin importarlos
 
 Si se necesita inspeccionar una extracción antes de modificar la base:
 
@@ -472,7 +493,7 @@ backend/data/scrapes/
 
 La extracción no actualiza PostgreSQL.
 
-### 6.4. Importar una extracción existente
+### 6.6. Importar una extracción existente
 
 Para importar un JSON generado anteriormente:
 
@@ -514,7 +535,7 @@ node src/scraper/cli.ts --deduplicar --apply
 
 **Precaución:** el modo `--apply` modifica el catálogo y sus relaciones. Antes de utilizarlo, revisa el diagnóstico y realiza un respaldo de la base.
 
-### 7.4. Sincronización de metadatos con TMDB
+### 7.3. Sincronización de metadatos con TMDB
 
 La integración con TMDB permite completar metadatos de películas que todavía no tienen un `tmdb_id`.
 
@@ -730,6 +751,8 @@ Todos los comandos de esta sección se ejecutan desde `backend/`, salvo que se i
 | `npm test`                                           | Ejecuta la suite de pruebas.          | Ninguno sobre `cine`; usa la base `cine_test`.               |
 | `npm run test:watch`                                 | Ejecuta Vitest en modo interactivo.   | Ninguno sobre `cine`; usa la base `cine_test`.               |
 | `npm run test:coverage`                              | Ejecuta la suite y mide cobertura.    | Ninguno sobre `cine`; usa la base `cine_test`.               |
+| `npm run mantenimiento`                           | Comprueba la API, PostgreSQL y las extracciones. | Ninguno persistente.                              |
+| `npm run mantenimiento -- --apply [--tmdb]`        | Ejecuta el mantenimiento y sincroniza la cartelera. | Importa la cartelera y, con `--tmdb`, actualiza metadatos. |
 | `npm run scrape:cinemark`                            | Extrae Cinemark y guarda JSON.        | Ninguno.                                                     |
 | `npm run scrape:cineplanet`                          | Extrae Cineplanet y guarda JSON.      | Ninguno.                                                     |
 | `npm run scrape:muvix`                               | Extrae Muvix y guarda JSON.           | Ninguno.                                                     |
