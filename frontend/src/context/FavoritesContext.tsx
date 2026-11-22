@@ -1,3 +1,4 @@
+
 import {
     createContext,
     useCallback,
@@ -25,35 +26,57 @@ interface FavoritesContextType {
     isFavoriteCinema: (cinemaId: string) => boolean;
 }
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(
-    undefined,
-);
+const FavoritesContext = createContext<
+    FavoritesContextType | undefined
+>(undefined);
 
 /**
- * Comparte y sincroniza los favoritos de películas y cines con la API.
- * @param children Componentes que podrán consultar o cambiar favoritos.
- * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ * Actualiza una lista de favoritos de forma inmutable.
  */
-function actualizarFavorito(ids: string[], id: string, activo: boolean) {
-    if (!activo) return ids.filter((otroId) => otroId !== id);
+function actualizarFavorito(
+    ids: string[],
+    id: string,
+    activo: boolean,
+): string[] {
+    if (!activo) {
+        return ids.filter((otroId) => otroId !== id);
+    }
+
     return ids.includes(id) ? ids : [...ids, id];
 }
 
-export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
+/**
+ * Comparte y sincroniza los favoritos de películas y cines con la API.
+ */
+export const FavoritesProvider = ({
+    children,
+}: {
+    children: ReactNode;
+}) => {
     const { user, invalidateSession } = useAuth();
+
     const navigate = useNavigate();
     const location = useLocation();
     const locationRef = useRef(location);
+
     const userId = user?.id;
     const [prevUserId, setPrevUserId] = useState(userId);
+
     const sesionActiva = useRef<{
         peliculas: Set<string>;
         cines: Set<string>;
     } | null>(null);
 
     useLayoutEffect(() => {
-        if (!userId) return;
-        sesionActiva.current = { peliculas: new Set(), cines: new Set() };
+        if (!userId) {
+            return;
+        }
+
+        sesionActiva.current = {
+            peliculas: new Set(),
+            cines: new Set(),
+        };
+
         return () => {
             sesionActiva.current = null;
         };
@@ -63,14 +86,22 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
         locationRef.current = location;
     }, [location]);
 
-    const [favoriteMovieIds, setFavoriteMovieIds] = useState<string[]>(
-        () => user?.peliculasFavoritas ?? [],
+    const [favoriteMovieIds, setFavoriteMovieIds] =
+        useState<string[]>(
+            () => user?.peliculasFavoritas ?? [],
+        );
+
+    const [favoriteCinemaIds, setFavoriteCinemaIds] =
+        useState<string[]>(
+            () => user?.cinesFavoritos ?? [],
+        );
+
+    const [loadedUserId, setLoadedUserId] =
+        useState<string | null>(null);
+
+    const isLoadingFavorites = Boolean(
+        user && loadedUserId !== user.id,
     );
-    const [favoriteCinemaIds, setFavoriteCinemaIds] = useState<string[]>(
-        () => user?.cinesFavoritos ?? [],
-    );
-    const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
-    const isLoadingFavorites = Boolean(user && loadedUserId !== user.id);
 
     const handleUnauthorized = useCallback(
         (error: unknown): boolean => {
@@ -82,38 +113,58 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
             }
 
             invalidateSession();
+
             navigate("/login", {
                 replace: true,
-                state: { from: locationRef.current },
+                state: {
+                    from: locationRef.current,
+                },
             });
+
             return true;
         },
         [invalidateSession, navigate],
     );
 
-    // Ajusta el estado inmediatamente cuando cambia el usuario activo (login/logout)
+    // Ajusta el estado inmediatamente cuando cambia el usuario activo.
     if (user?.id !== prevUserId) {
         setPrevUserId(user?.id);
-        setFavoriteMovieIds(user?.peliculasFavoritas ?? []);
-        setFavoriteCinemaIds(user?.cinesFavoritos ?? []);
+
+        setFavoriteMovieIds(
+            user?.peliculasFavoritas ?? [],
+        );
+
+        setFavoriteCinemaIds(
+            user?.cinesFavoritos ?? [],
+        );
     }
 
-    // Sincroniza favoritos desde el backend cuando hay sesión activa
+    // Sincroniza favoritos desde el backend cuando hay sesión activa.
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            return;
+        }
 
         const controller = new AbortController();
         const currentUserId = user.id;
+
         profileService
             .getFavorites(controller.signal)
             .then((favoritos) => {
                 if (!controller.signal.aborted) {
-                    setFavoriteMovieIds(favoritos.peliculasFavoritas);
-                    setFavoriteCinemaIds(favoritos.cinesFavoritos);
+                    setFavoriteMovieIds(
+                        favoritos.peliculasFavoritas,
+                    );
+
+                    setFavoriteCinemaIds(
+                        favoritos.cinesFavoritos,
+                    );
                 }
             })
             .catch((error: unknown) => {
-                if (!controller.signal.aborted) handleUnauthorized(error);
+                if (!controller.signal.aborted) {
+                    handleUnauthorized(error);
+                }
             })
             .finally(() => {
                 if (!controller.signal.aborted) {
@@ -132,26 +183,62 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
         solicitar: (id: string) => Promise<string[]>,
     ): Promise<boolean> => {
         const sesion = sesionActiva.current;
-        if (!sesion || sesion[tipo].has(id)) return false;
+
+        if (!sesion || sesion[tipo].has(id)) {
+            return false;
+        }
 
         const estabaActivo = ids.includes(id);
+
         sesion[tipo].add(id);
-        setIds((actuales) => actualizarFavorito(actuales, id, !estabaActivo));
+
+        // Actualización optimista de la interfaz.
+        setIds((actuales) =>
+            actualizarFavorito(
+                actuales,
+                id,
+                !estabaActivo,
+            ),
+        );
 
         try {
             const confirmados = await solicitar(id);
-            if (sesionActiva.current !== sesion) return false;
+
+            // Evita modificar el estado de una sesión anterior.
+            if (sesionActiva.current !== sesion) {
+                return false;
+            }
+
             setIds((actuales) =>
-                actualizarFavorito(actuales, id, confirmados.includes(id)),
+                actualizarFavorito(
+                    actuales,
+                    id,
+                    confirmados.includes(id),
+                ),
             );
+
             return true;
         } catch (error: unknown) {
-            if (sesionActiva.current !== sesion) return false;
+            if (sesionActiva.current !== sesion) {
+                return false;
+            }
+
+            // Revierte el cambio optimista si falla la API.
             setIds((actuales) =>
-                actualizarFavorito(actuales, id, estabaActivo),
+                actualizarFavorito(
+                    actuales,
+                    id,
+                    estabaActivo,
+                ),
             );
-            if (!handleUnauthorized(error))
-                console.error("Error al actualizar favorito:", error);
+
+            if (!handleUnauthorized(error)) {
+                console.error(
+                    "Error al actualizar favorito:",
+                    error,
+                );
+            }
+
             return false;
         } finally {
             sesion[tipo].delete(id);
@@ -205,14 +292,17 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
 /**
  * Obtiene listas, consultas y acciones de favoritos del contexto.
  * @returns Estado y métodos para películas y cines guardados.
- * @throws Error si se usa fuera de `FavoritesProvider`.
+ * @throws Error si se usa fuera de FavoritesProvider.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFavorites = (): FavoritesContextType => {
     const context = useContext(FavoritesContext);
+
     if (!context) {
         throw new Error(
             "useFavorites debe ser utilizado dentro de un FavoritesProvider",
         );
     }
+
     return context;
 };

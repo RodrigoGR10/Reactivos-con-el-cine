@@ -1,5 +1,10 @@
+
 import axios, { type AxiosResponse } from "axios";
-import type { Usuario, LoginInput, RegisterInput } from "../types/auth";
+import type {
+    Usuario,
+    LoginInput,
+    RegisterInput,
+} from "../types/auth";
 import { API_BASE_URL } from "./apiConfig";
 
 const STORAGE_KEY_CSRF = "csrfToken";
@@ -8,23 +13,36 @@ const baseUrl = `${API_BASE_URL}/auth`;
 /** Prepara cookie de sesión, token CSRF y cancelación para una petición autenticada. */
 const getAuthConfig = (signal?: AbortSignal) => {
     const csrfToken = localStorage.getItem(STORAGE_KEY_CSRF);
+
     return {
         withCredentials: true,
         signal,
-        headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+        headers: csrfToken
+            ? { "X-CSRF-Token": csrfToken }
+            : {},
     };
 };
 
 /** Extrae el mensaje JSON del backend o usa el texto alternativo indicado. */
-const extractErrorMessage = (error: unknown, fallback: string): string => {
+const extractErrorMessage = (
+    error: unknown,
+    fallback: string,
+): string => {
     if (axios.isAxiosError(error)) {
         const serverError = (
-            error.response?.data as { error?: string } | undefined
+            error.response?.data as
+                | { error?: string }
+                | undefined
         )?.error;
-        if (typeof serverError === "string" && serverError.trim()) {
+
+        if (
+            typeof serverError === "string" &&
+            serverError.trim()
+        ) {
             return serverError;
         }
     }
+
     return fallback;
 };
 
@@ -34,33 +52,46 @@ const clearSessionData = (): void => {
 };
 
 /** Guarda el token CSRF de la respuesta y devuelve el perfil normalizado. */
-const saveSessionData = (response: AxiosResponse<Usuario>): Usuario => {
+const saveSessionData = (
+    response: AxiosResponse<Usuario>,
+): Usuario => {
     const csrfToken = response.headers["x-csrf-token"];
+
     if (typeof csrfToken !== "string" || !csrfToken) {
-        throw new Error("El servidor no entregó el token CSRF de la sesión.");
+        throw new Error(
+            "El servidor no entregó el token CSRF de la sesión.",
+        );
     }
 
     const usuario = response.data;
+
     const datosUsuario: Usuario = {
         id: usuario.id,
         nombre: usuario.nombre,
         email: usuario.email,
         fechaRegistro: usuario.fechaRegistro,
-        peliculasFavoritas: usuario.peliculasFavoritas ?? [],
+        peliculasFavoritas:
+            usuario.peliculasFavoritas ?? [],
         cinesFavoritos: usuario.cinesFavoritos ?? [],
     };
+
     localStorage.setItem(STORAGE_KEY_CSRF, csrfToken);
+
     return datosUsuario;
 };
 
-/** El navegador recibe el JWT en una cookie; en localStorage solo guardamos el token CSRF. */
 /**
+ * El navegador recibe el JWT en una cookie; en localStorage
+ * solo guardamos el token CSRF.
+ *
  * Inicia sesión y conserva el perfil devuelto por el backend.
  * @param credenciales Correo y contraseña ingresados en el formulario.
  * @returns Usuario autenticado.
  * @throws Error con el mensaje recibido o uno alternativo si falla el acceso.
  */
-const login = async (credenciales: LoginInput): Promise<Usuario> => {
+const login = async (
+    credenciales: LoginInput,
+): Promise<Usuario> => {
     try {
         const response = await axios.post<Usuario>(
             `${baseUrl}/login`,
@@ -78,18 +109,22 @@ const login = async (credenciales: LoginInput): Promise<Usuario> => {
                 error,
                 "El correo o la contraseña son incorrectos.",
             ),
+            { cause: error },
         );
     }
 };
 
-/** Mantiene el inicio de sesión automático del formulario de registro existente. */
 /**
+ * Mantiene el inicio de sesión automático del formulario de registro.
+ *
  * Registra una cuenta y devuelve el perfil con sesión iniciada.
  * @param datos Nombre, correo y contraseñas del formulario de registro.
  * @returns Usuario creado y autenticado.
  * @throws Error con el mensaje recibido o uno alternativo si falla el registro.
  */
-const register = async (datos: RegisterInput): Promise<Usuario> => {
+const register = async (
+    datos: RegisterInput,
+): Promise<Usuario> => {
     try {
         const response = await axios.post<Usuario>(
             `${baseUrl}/register`,
@@ -104,32 +139,45 @@ const register = async (datos: RegisterInput): Promise<Usuario> => {
         return saveSessionData(response);
     } catch (error) {
         throw new Error(
-            extractErrorMessage(error, "Error al registrar el usuario."),
+            extractErrorMessage(
+                error,
+                "Error al registrar el usuario.",
+            ),
+            { cause: error },
         );
     }
 };
 
-/** Limpia los datos locales solo cuando el backend confirma el cierre de sesión. */
 /**
- * Solicita el cierre de sesión y limpia el token CSRF si el servidor confirma.
+ * Solicita el cierre de sesión y limpia el token CSRF
+ * si el servidor confirma.
  * @throws Error si el servidor no pudo cerrar la sesión.
  */
 const logout = async (): Promise<void> => {
     try {
-        await axios.post(`${baseUrl}/logout`, {}, getAuthConfig());
+        await axios.post(
+            `${baseUrl}/logout`,
+            {},
+            getAuthConfig(),
+        );
+
         clearSessionData();
     } catch (error) {
         throw new Error(
-            extractErrorMessage(error, "No se pudo cerrar la sesión."),
+            extractErrorMessage(
+                error,
+                "No se pudo cerrar la sesión.",
+            ),
+            { cause: error },
         );
     }
 };
 
-/** La sesión se verifica con el servidor, en lugar de confiar en localStorage. */
 /**
- * Restaura la sesión consultando al servidor; no confía en datos de usuario locales.
- * @param signal Señal opcional para cancelar la restauración de sesión.
- * @returns Usuario activo o `null` si no hay una sesión válida.
+ * Restaura la sesión consultando al servidor.
+ * No confía en datos de usuario locales.
+ * @param signal Señal opcional para cancelar la restauración.
+ * @returns Usuario activo o null si no hay sesión válida.
  */
 const getCurrentUser = async (
     signal?: AbortSignal,
@@ -139,7 +187,11 @@ const getCurrentUser = async (
             `${baseUrl}/me`,
             getAuthConfig(signal),
         );
-        if (signal?.aborted) return null;
+
+        if (signal?.aborted) {
+            return null;
+        }
+
         return saveSessionData(response);
     } catch (error) {
         if (
@@ -149,6 +201,7 @@ const getCurrentUser = async (
         ) {
             clearSessionData();
         }
+
         return null;
     }
 };
