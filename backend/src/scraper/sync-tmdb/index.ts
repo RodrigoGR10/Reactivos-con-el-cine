@@ -101,7 +101,7 @@ async function publicarReporte(
  * @returns Resultado de la operación, incluidos los registros procesados.
  */
 export async function sincronizarMetadatosTmdb(
-    options: { apply?: boolean } = {},
+    options: { apply?: boolean; reporteHtml?: boolean } = {},
 ) {
     const apply = options.apply === true;
     const summary = crearResumenVacio();
@@ -129,7 +129,8 @@ export async function sincronizarMetadatosTmdb(
 
     // DRY-RUN termina aquí: no abre una transacción ni ejecuta UPDATE.
     if (!apply) {
-        await publicarReporte(resultados, summary, apply);
+        if (options.reporteHtml !== false)
+            await publicarReporte(resultados, summary, apply);
         console.log("\n===== RESUMEN DRY-RUN =====");
         console.table(summary);
 
@@ -139,7 +140,8 @@ export async function sincronizarMetadatosTmdb(
     if (aplicables.length === 0) {
         console.log("No hay coincidencias seguras para aplicar.");
 
-        await publicarReporte(resultados, summary, apply);
+        if (options.reporteHtml !== false)
+            await publicarReporte(resultados, summary, apply);
         console.table(summary);
 
         return { summary, resultados };
@@ -151,7 +153,8 @@ export async function sincronizarMetadatosTmdb(
     summary.omitidasPorActualizacionConcurrente =
         aplicacion.omitidasPorActualizacionConcurrente;
 
-    await publicarReporte(resultados, summary, apply);
+    if (options.reporteHtml !== false)
+        await publicarReporte(resultados, summary, apply);
     console.log("\n===== RESUMEN APPLY =====");
     console.table(summary);
 
