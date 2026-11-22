@@ -488,55 +488,13 @@ El proceso valida el JSON antes de importarlo. Si la extracción es parcial, imp
 
 Los siguientes comandos permiten corregir y enriquecer los datos existentes. Es importante distinguir los diagnósticos de las operaciones que escriben en PostgreSQL.
 
-### 7.1. Normalización de géneros
+### 7.1. Normalización de géneros y comunas
 
-Cuando se incorporan películas nuevas, pueden aparecer variantes de un mismo género, por ejemplo `horror` y `terror`.
+Los comandos `sync:<cadena>` e `import:scrape` normalizan géneros y comunas al guardar datos en PostgreSQL. El JSON de extracción puede conservar variantes de los valores de origen.
 
-Primero ejecuta el diagnóstico:
+Las reglas se mantienen en `backend/src/utils/generos.ts` y `backend/src/utils/comunas.ts`. Los cambios en esas reglas se aplican a los valores que el importador vuelva a guardar.
 
-```bash
-node src/scripts/normalizar-generos.ts
-```
-
-El comando muestra qué valores cambiarían, pero no modifica la base.
-
-Para guardar los cambios:
-
-```bash
-node src/scripts/normalizar-generos.ts --write
-```
-
-Si aparecen variantes que no deberían unificarse automáticamente, revisa los alias en:
-
-```text
-backend/src/utils/generos.ts
-```
-
-### 7.2. Normalización de comunas
-
-El mismo criterio se aplica a las comunas de los cines.
-
-Diagnóstico:
-
-```bash
-node src/scripts/normalizar-comunas.ts
-```
-
-Aplicar cambios:
-
-```bash
-node src/scripts/normalizar-comunas.ts --write
-```
-
-Los alias se mantienen en:
-
-```text
-backend/src/utils/comunas.ts
-```
-
-El diagnóstico también muestra valores que no corresponden a comunas oficiales y variantes que todavía no se han unificado.
-
-### 7.3. Diagnóstico de películas duplicadas
+### 7.2. Diagnóstico de películas duplicadas
 
 El catálogo puede contener películas repetidas provenientes de distintas cadenas.
 
@@ -788,10 +746,6 @@ Todos los comandos de esta sección se ejecutan desde `backend/`, salvo que se i
 | `npm run sync:trailers -- --audit`                  | Revisa los títulos de los tráileres guardados con YouTube y TMDB. | Ninguno. |
 | `node src/scraper/cli.ts --deduplicar`               | Diagnostica duplicados.               | Ninguno.                                                     |
 | `node src/scraper/cli.ts --deduplicar --apply`       | Fusiona duplicados.                   | Modifica películas y relaciones.                             |
-| `node src/scripts/normalizar-generos.ts`             | Diagnostica géneros.                  | Ninguno.                                                     |
-| `node src/scripts/normalizar-generos.ts --write`     | Normaliza géneros.                    | Actualiza películas.                                         |
-| `node src/scripts/normalizar-comunas.ts`             | Diagnostica comunas.                  | Ninguno.                                                     |
-| `node src/scripts/normalizar-comunas.ts --write`     | Normaliza comunas.                    | Actualiza cines.                                             |
 
 ### 9.1. Opciones de los scrapers
 
@@ -877,8 +831,8 @@ Las rutas privadas requieren la cookie de sesión JWT y la cabecera `X-CSRF-Toke
 | Error de CORS                                  | Comprueba que `FRONTEND_URL` coincida con el origen del frontend.                                                        |
 | No aparecen horarios                           | Comprueba que la sincronización de la cadena haya terminado correctamente y que existan horarios vigentes en PostgreSQL. |
 | No aparecen precios                            | Comprueba que existan horarios para la fecha y que la consulta de precios haya terminado.                                |
-| Hay géneros duplicados                         | Ejecuta primero el diagnóstico de `normalizar-generos.ts` y revisa sus alias.                                            |
-| Hay comunas duplicadas                         | Ejecuta primero el diagnóstico de `normalizar-comunas.ts` y revisa sus alias.                                            |
+| Hay variantes de un mismo género               | Revisa los alias en `backend/src/utils/generos.ts` y vuelve a sincronizar la fuente que actualiza la película.           |
+| Hay variantes de una misma comuna              | Revisa las reglas en `backend/src/utils/comunas.ts` y vuelve a sincronizar la cadena del cine.                           |
 | Hay películas repetidas                        | Ejecuta el diagnóstico de deduplicación y revisa los grupos antes de aplicar.                                            |
 | TMDB no encuentra películas                    | Revisa `TMDB_API_KEY`, las resoluciones manuales y el reporte HTML generado.                                             |
 
