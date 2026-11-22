@@ -133,6 +133,22 @@ export function Mensaje({
     );
 }
 
+const textosUbicacion: Record<
+    Exclude<EstadoUbicacion, "inactivo" | "cargando" | "listo">,
+    string
+> = {
+    denegado:
+        "No pudimos acceder a tu ubicación. Habilita el permiso en tu navegador para ordenar por cercanía.",
+    "sin-posicion":
+        "Tu ubicación no está disponible en este momento. Revisa que la ubicación esté activada en tu dispositivo y vuelve a intentar.",
+    "tiempo-agotado":
+        "El navegador tardó demasiado en obtener tu ubicación. Intenta otra vez.",
+    "sin-soporte": "Este navegador no ofrece acceso a la ubicación.",
+    "conexion-insegura":
+        "Para usar tu ubicación, abre esta página con una conexión HTTPS.",
+    error: "No se pudo obtener tu ubicación. Intenta nuevamente.",
+};
+
 interface AvisoUbicacionProps {
     estado: EstadoUbicacion;
     onCerrar: () => void;
@@ -151,18 +167,14 @@ export function AvisoUbicacion({
     onCerrar,
     className = "",
 }: AvisoUbicacionProps) {
-    if (estado !== "denegado" && estado !== "error") return null;
-
-    const texto =
-        estado === "denegado"
-            ? "No pudimos acceder a tu ubicación. Habilita el permiso en tu navegador para ordenar por cercanía."
-            : "No se pudo obtener tu ubicación. Intenta nuevamente.";
+    if (estado === "inactivo" || estado === "cargando" || estado === "listo")
+        return null;
 
     return (
         <Mensaje
             tipo="error"
             compacto
-            texto={texto}
+            texto={textosUbicacion[estado]}
             onCerrar={onCerrar}
             cerrarLabel="Cerrar aviso de ubicación"
             className={className}
