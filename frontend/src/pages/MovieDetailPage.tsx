@@ -13,6 +13,7 @@ import { MovieDetailFilters } from "./pelicula/MovieDetailFilters";
 import { MovieCinemaList } from "./pelicula/MovieCinemaList";
 import "./MovieDetailPage.css";
 
+/** Muestra los datos de una película y las funciones disponibles por cine. */
 function MovieDetailPage() {
     const { id } = useParams();
     const location = useLocation();

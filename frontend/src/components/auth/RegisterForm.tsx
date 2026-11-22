@@ -19,6 +19,11 @@ const ETIQUETAS_ALTERNAR_CONFIRMACION = {
     ocultar: "Ocultar confirmación de contraseña",
 };
 
+/**
+ * Valida los datos de registro y solicita crear la cuenta con sesión activa.
+ * @param props Estado visible y callbacks del modal de autenticación.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const RegisterForm = ({
     activo,
     onCloseProgramado,

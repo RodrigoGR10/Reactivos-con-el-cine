@@ -8,6 +8,11 @@ import {
 } from "./config.ts";
 import { totalFavoritos } from "./predicates.ts";
 
+/**
+ * Calcula una calificación TMDB ajustada para que pocas votaciones pesen menos.
+ * @param pelicula Película con nota y cantidad de votos disponibles.
+ * @returns Nota bayesiana calculada con el promedio y votos de referencia.
+ */
 export function puntajeBayesiano(pelicula: Pelicula): number {
     const rating = pelicula.calificacionTmdb ?? 0;
     const votos = pelicula.votosTmdb ?? 0;
@@ -18,6 +23,11 @@ export function puntajeBayesiano(pelicula: Pelicula): number {
     );
 }
 
+/**
+ * Puntúa reestrenos combinando valoración, votos y popularidad TMDB.
+ * @param pelicula Película cuyo reestreno se evalúa.
+ * @returns Puntaje usado para ordenar candidatas a destacada.
+ */
 export function puntajeReestreno(pelicula: Pelicula): number {
     const votos = pelicula.votosTmdb ?? 0;
     const rating = pelicula.calificacionTmdb ?? 6;
@@ -27,16 +37,29 @@ export function puntajeReestreno(pelicula: Pelicula): number {
     );
 }
 
+/**
+ * Combina popularidad TMDB y cantidad de cines para medir tendencia.
+ * @param pelicula Película que se evalúa.
+ * @returns Puntaje de tendencia para ordenar el pool.
+ */
 export function puntajeTendencia(pelicula: Pelicula): number {
     return (pelicula.popularidadTmdb ?? 0) + (pelicula.totalCines ?? 0) * 3;
 }
 
+/**
+ * Datos usados para decidir si una película debe mostrarse como preventa esperada.
+ */
 export interface ReferenciaPreventa {
     maxLogFavoritos: number;
     maxCines: number;
     maxLogPopularidad: number;
 }
 
+/**
+ * Calcula los máximos del catálogo para normalizar señales de preventa.
+ * @param catalogo Películas que sirven como referencia de escala.
+ * @returns Máximos normalizados de favoritos, cines y popularidad.
+ */
 export function calcularReferenciaPreventa(
     catalogo: readonly Pelicula[],
 ): ReferenciaPreventa {
@@ -57,6 +80,12 @@ export function calcularReferenciaPreventa(
     };
 }
 
+/**
+ * Puntúa una preventa según favoritos, presencia en cines y popularidad.
+ * @param pelicula Preventa que se evalúa.
+ * @param ref Referencia de máximos calculada para el catálogo.
+ * @returns Puntaje ponderado para ordenar estrenos esperados.
+ */
 export function puntajePreventa(
     pelicula: Pelicula,
     ref: ReferenciaPreventa,

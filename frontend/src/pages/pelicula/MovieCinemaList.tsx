@@ -20,6 +20,13 @@ interface MovieCinemaListProps {
     detalle: ReturnType<typeof useDetalleFunciones>;
 }
 
+/**
+ * Agrupa funciones por cine y conecta favoritos, ubicación y consulta de detalle.
+ * @param pelicula Película cuyas funciones se muestran.
+ * @param filtros Grupos filtrados y acciones del hook de filtros.
+ * @param detalle Estado y acciones de consulta de precios y butacas.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function MovieCinemaList({
     pelicula,
     filtros,

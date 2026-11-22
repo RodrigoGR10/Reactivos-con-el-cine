@@ -26,6 +26,11 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
     undefined,
 );
 
+/**
+ * Comparte y sincroniza los favoritos de películas y cines con la API.
+ * @param children Componentes que podrán consultar o cambiar favoritos.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     const { user, invalidateSession } = useAuth();
     const navigate = useNavigate();
@@ -165,6 +170,11 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
+/**
+ * Obtiene listas, consultas y acciones de favoritos del contexto.
+ * @returns Estado y métodos para películas y cines guardados.
+ * @throws Error si se usa fuera de `FavoritesProvider`.
+ */
 export const useFavorites = (): FavoritesContextType => {
     const context = useContext(FavoritesContext);
     if (!context) {

@@ -11,9 +11,11 @@ import type {
 } from "./types";
 
 /**
- * En escritorio muestra los selectores directamente; en móvil los agrupa en un
- * botón compacto con indicador numérico que abre un Drawer con Accordion de Mantine
- * confirmando los cambios al pulsar "Listo".
+ * Agrupa filtros: en móvil permite confirmar o cancelar sus cambios en un panel.
+ * @param cantidadActivos Número de filtros seleccionados para el indicador.
+ * @param disabled Si es `true`, deshabilita el grupo completo.
+ * @param children Selectores que forman el grupo.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
 export function GrupoFiltros({
     cantidadActivos,

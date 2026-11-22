@@ -13,6 +13,7 @@ import { ProfileSavedMovies } from "./perfil/ProfileSavedMovies";
 import { ProfileSavedCinemas } from "./perfil/ProfileSavedCinemas";
 import "./ProfilePage.css";
 
+/** Permite buscar, revisar y editar películas y cines favoritos del usuario. */
 const ProfilePage = () => {
     const { user } = useAuth();
     const { toggleFavoriteMovie, toggleFavoriteCinema } = useFavorites();

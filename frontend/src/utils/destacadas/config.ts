@@ -1,5 +1,6 @@
 import type { CategoriaDestacada, ReglaCupoCategoria } from "./types.ts";
 
+/** Reparte los espacios del carrusel entre categorías y define cómo elegir sus películas. */
 export const CONFIG_CUPOS_DESTACADAS: readonly ReglaCupoCategoria[] = [
     {
         categoria: "favoritas",
@@ -50,6 +51,7 @@ export const CONFIG_CUPOS_DESTACADAS: readonly ReglaCupoCategoria[] = [
     },
 ];
 
+/** Umbrales y pesos que determinan qué películas califican para cada categoría. */
 export const DIAS_ESTRENO_RECIENTE = 14;
 export const DIAS_MAX_ESTRENO_ORIGINAL_PARA_NOVEDAD = 540;
 export const DIAS_MIN_REESTRENO = 730;
@@ -64,6 +66,7 @@ export const PESO_CINES_PREVENTA = 0.4;
 export const PESO_POPULARIDAD_PREVENTA = 0.2;
 export const PUNTAJE_MIN_PREVENTA_ESPERADA = 400;
 
+/** Categorías que pueden aparecer en la primera página del carrusel. */
 export const CATEGORIAS_PRIMER_SLIDE = new Set<CategoriaDestacada>([
     "favoritas",
     "preventas_esperadas",

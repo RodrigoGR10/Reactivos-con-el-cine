@@ -18,12 +18,21 @@ const OPCIONES_ACTUALIZACION_FILTRO = {
     preventScrollReset: true,
 } as const;
 
+/**
+ * Cine y conjunto de horarios asociados a una película.
+ */
 export interface GrupoCineHorarios {
     cine: Cine;
     horarios: Horario[];
     distancia: number;
 }
 
+/**
+ * Mantiene filtros de funciones de una película y refleja fecha/cine en la URL.
+ * @param horarios Horarios asociados a la película.
+ * @param cines Cines usados para mostrar y filtrar los horarios.
+ * @returns Opciones, selecciones, grupos de funciones y acciones de filtro.
+ */
 export function useMovieScheduleFilters(horarios: Horario[], cines: Cine[]) {
     const [searchParams, setSearchParams] = useSearchParams();
     const fechaSeleccionada = searchParams.get("fecha") ?? "";

@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
-/** Cuenta los segundos enteros desde que `activo` pasa a true; vuelve a 0 al desactivarse. */
+/**
+ * Cuenta segundos mientras una operación está activa y reinicia al detenerse.
+ * @param activo Indica si el contador debe avanzar.
+ * @returns Segundos transcurridos, o cero cuando está inactivo.
+ */
 export function useSegundosTranscurridos(activo: boolean): number {
     const [segundos, setSegundos] = useState(0);
 

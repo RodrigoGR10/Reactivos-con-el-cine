@@ -37,6 +37,7 @@ function obtenerNivelDisponibilidad(
     return "alta";
 }
 
+/** Propiedades para presentar una función y, opcionalmente, sus datos vigentes. */
 export interface TarjetaFuncionProps {
     horario?: Horario;
     funcion?: Funcion;
@@ -60,6 +61,11 @@ function DatoPendiente({ ancho }: { ancho: number }) {
 }
 
 /** Tarjeta compacta de horario con precio y disponibilidad revelados solo bajo consulta vigente (< 60 min). */
+/**
+ * Presenta una función y activa el enlace de compra solo si hay URL segura.
+ * @param props Horario y datos de contexto; `mostrarDetalle` habilita precios y butacas.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function TarjetaFuncion({
     horario,
     funcion,

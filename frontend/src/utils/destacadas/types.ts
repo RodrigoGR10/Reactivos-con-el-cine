@@ -5,6 +5,9 @@ export const LIMITE_DESTACADAS = 6;
 export const ESTADO_PREVENTA = "preventa" as const;
 export const ESTADO_PROXIMAMENTE = "proximamente" as const;
 
+/**
+ * Categorías de películas que pueden aparecer en el carrusel destacado.
+ */
 export type CategoriaDestacada =
     | "favoritas"
     | "estrenos_recientes"
@@ -14,10 +17,19 @@ export type CategoriaDestacada =
     | "reestrenos"
     | "destacada";
 
+/**
+ * Identificador del grupo de películas que alimenta una categoría destacada.
+ */
 export type CategoriaPoolId = Exclude<CategoriaDestacada, "destacada">;
 
+/**
+ * Estrategia usada para ponderar y seleccionar películas destacadas.
+ */
 export type EstrategiaSeleccion = "top" | "aleatoria";
 
+/**
+ * Límite de participación de una categoría dentro de las destacadas.
+ */
 export interface ReglaCupoCategoria {
     categoria: CategoriaPoolId;
     min: number;
@@ -27,11 +39,17 @@ export interface ReglaCupoCategoria {
     topAleatorio?: number;
 }
 
+/**
+ * Etiqueta adicional que explica por qué se destaca una película.
+ */
 export type ComplementoEtiquetaDestacada =
     | { tipo: "fecha"; valor: string }
     | { tipo: "calificacion"; valor: string }
     | { tipo: "favoritos"; valor: number };
 
+/**
+ * Película seleccionada con su etiqueta y categoría de origen.
+ */
 export interface PeliculaDestacadaSeleccionada {
     pelicula: Pelicula;
     categoria: CategoriaDestacada;
@@ -40,6 +58,9 @@ export interface PeliculaDestacadaSeleccionada {
     rangoCategoria?: number;
 }
 
+/**
+ * Parámetros de selección y ponderación del carrusel de destacadas.
+ */
 export interface OpcionesSeleccionDestacadas {
     limite?: number;
     hoy?: string;

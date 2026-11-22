@@ -81,6 +81,7 @@ function SidebarNavLink({
     );
 }
 
+/** Muestra navegación principal, acceso a cuenta y opciones de sesión. */
 function Sidebar() {
     const { user, isLoadingSession, logout, openAuthModal } = useAuth();
     const location = useLocation();

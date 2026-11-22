@@ -7,6 +7,11 @@ import { SeccionAcordeon } from "./SeccionAcordeon";
 import { SelectorDesplegable } from "./SelectorDesplegable";
 import type { SelectorUnicoProps } from "./types";
 
+/**
+ * Selector desplegable que permite elegir una opción y, opcionalmente, buscarla.
+ * @param props Opciones, valor activo, callback y etiquetas accesibles.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function SelectorUnico({
     opciones,
     seleccionada,

@@ -7,6 +7,12 @@ import {
     type ComplementoEtiquetaDestacada,
 } from "./types.ts";
 
+/**
+ * Produce el dato secundario que acompaña a la etiqueta de una destacada.
+ * @param categoria Categoría por la que se eligió la película.
+ * @param pelicula Película que se presenta.
+ * @returns Fecha, nota o conteo de favoritos cuando aplica.
+ */
 export function complementoPara(
     categoria: CategoriaDestacada,
     pelicula: Pelicula,
@@ -39,6 +45,13 @@ export function complementoPara(
     return undefined;
 }
 
+/**
+ * Genera la etiqueta visible que explica por qué se destaca una película.
+ * @param categoria Categoría asignada durante la selección.
+ * @param pelicula Película seleccionada.
+ * @param empateFavoritas Indica si comparte el máximo de favoritos.
+ * @returns Texto localizado para el carrusel.
+ */
 export function generarEtiqueta(
     categoria: CategoriaDestacada,
     pelicula: Pelicula,

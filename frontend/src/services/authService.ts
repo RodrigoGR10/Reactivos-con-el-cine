@@ -5,6 +5,7 @@ import { API_BASE_URL } from "./apiConfig";
 const STORAGE_KEY_CSRF = "csrfToken";
 const baseUrl = `${API_BASE_URL}/auth`;
 
+/** Prepara cookie de sesión, token CSRF y cancelación para una petición autenticada. */
 const getAuthConfig = (signal?: AbortSignal) => {
     const csrfToken = localStorage.getItem(STORAGE_KEY_CSRF);
     return {
@@ -14,6 +15,7 @@ const getAuthConfig = (signal?: AbortSignal) => {
     };
 };
 
+/** Extrae el mensaje JSON del backend o usa el texto alternativo indicado. */
 const extractErrorMessage = (error: unknown, fallback: string): string => {
     if (axios.isAxiosError(error)) {
         const serverError = (
@@ -26,10 +28,12 @@ const extractErrorMessage = (error: unknown, fallback: string): string => {
     return fallback;
 };
 
+/** Elimina el token CSRF local al terminar o invalidar la sesión. */
 const clearSessionData = (): void => {
     localStorage.removeItem(STORAGE_KEY_CSRF);
 };
 
+/** Guarda el token CSRF de la respuesta y devuelve el perfil normalizado. */
 const saveSessionData = (response: AxiosResponse<Usuario>): Usuario => {
     const csrfToken = response.headers["x-csrf-token"];
     if (typeof csrfToken !== "string" || !csrfToken) {
@@ -50,6 +54,12 @@ const saveSessionData = (response: AxiosResponse<Usuario>): Usuario => {
 };
 
 /** El navegador recibe el JWT en una cookie; en localStorage solo guardamos el token CSRF. */
+/**
+ * Inicia sesión y conserva el perfil devuelto por el backend.
+ * @param credenciales Correo y contraseña ingresados en el formulario.
+ * @returns Usuario autenticado.
+ * @throws Error con el mensaje recibido o uno alternativo si falla el acceso.
+ */
 const login = async (credenciales: LoginInput): Promise<Usuario> => {
     try {
         const response = await axios.post<Usuario>(
@@ -73,6 +83,12 @@ const login = async (credenciales: LoginInput): Promise<Usuario> => {
 };
 
 /** Mantiene el inicio de sesión automático del formulario de registro existente. */
+/**
+ * Registra una cuenta y devuelve el perfil con sesión iniciada.
+ * @param datos Nombre, correo y contraseñas del formulario de registro.
+ * @returns Usuario creado y autenticado.
+ * @throws Error con el mensaje recibido o uno alternativo si falla el registro.
+ */
 const register = async (datos: RegisterInput): Promise<Usuario> => {
     try {
         const response = await axios.post<Usuario>(
@@ -94,6 +110,10 @@ const register = async (datos: RegisterInput): Promise<Usuario> => {
 };
 
 /** Limpia los datos locales solo cuando el backend confirma el cierre de sesión. */
+/**
+ * Solicita el cierre de sesión y limpia el token CSRF si el servidor confirma.
+ * @throws Error si el servidor no pudo cerrar la sesión.
+ */
 const logout = async (): Promise<void> => {
     try {
         await axios.post(`${baseUrl}/logout`, {}, getAuthConfig());
@@ -106,6 +126,11 @@ const logout = async (): Promise<void> => {
 };
 
 /** La sesión se verifica con el servidor, en lugar de confiar en localStorage. */
+/**
+ * Restaura la sesión consultando al servidor; no confía en datos de usuario locales.
+ * @param signal Señal opcional para cancelar la restauración de sesión.
+ * @returns Usuario activo o `null` si no hay una sesión válida.
+ */
 const getCurrentUser = async (
     signal?: AbortSignal,
 ): Promise<Usuario | null> => {

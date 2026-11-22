@@ -15,6 +15,12 @@ interface MovieDetailFiltersProps {
     totalHorarios: number;
 }
 
+/**
+ * Presenta los controles para filtrar funciones del detalle de película.
+ * @param filtros Estado y acciones producidos por `useMovieScheduleFilters`.
+ * @param totalHorarios Cantidad inicial de horarios disponibles.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function MovieDetailFilters({
     filtros,
     totalHorarios,

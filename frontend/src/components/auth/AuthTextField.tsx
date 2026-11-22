@@ -24,6 +24,11 @@ const ETIQUETAS_ALTERNAR_POR_DEFECTO: EtiquetasAlternar = {
     ocultar: "Ocultar contraseña",
 };
 
+/**
+ * Campo controlado de formulario con icono y alternancia de contraseña opcional.
+ * @param props Identificador, etiqueta, valor, callback y opciones del input.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export const AuthTextField = ({
     id,
     label,

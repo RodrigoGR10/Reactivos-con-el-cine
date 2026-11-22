@@ -35,6 +35,11 @@ interface PoolFavoritas {
     empateEnTope: boolean;
 }
 
+/**
+ * Obtiene las películas de cartelera con más favoritos y detecta empate en el máximo.
+ * @param peliculas Catálogo que se examina.
+ * @returns Candidatas y una marca para manejar empates en el primer lugar.
+ */
 export function poolFavoritas(peliculas: readonly Pelicula[]): PoolFavoritas {
     const candidatas = peliculas
         .filter(
@@ -169,6 +174,13 @@ const CONSTRUCTORES_POOL: Record<CategoriaPoolId, ConstructorPool> = {
     reestrenos: construirPoolReestrenos,
 };
 
+/**
+ * Construye las candidatas de una categoría según sus condiciones de negocio.
+ * @param categoria Categoría para la que se arma el pool.
+ * @param peliculas Catálogo del que se seleccionan candidatas.
+ * @param hoy Fecha de referencia en formato `AAAA-MM-DD`.
+ * @returns Películas que cumplen las reglas de la categoría, ordenadas por puntaje.
+ */
 export function obtenerPoolCategoria(
     categoria: CategoriaPoolId,
     peliculas: readonly Pelicula[],

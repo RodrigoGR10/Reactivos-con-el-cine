@@ -13,6 +13,7 @@ import { CinemaMoviesList } from "./cine/CinemaMoviesList";
 import { obtenerVolverA } from "../utils/navegacion";
 import "./CinemaDetailPage.css";
 
+/** Muestra la información de un cine y filtra sus películas y funciones. */
 function CinemaDetailPage() {
     const { id } = useParams<{ id: string }>();
     const location = useLocation();

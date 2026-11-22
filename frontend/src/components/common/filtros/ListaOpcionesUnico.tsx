@@ -2,6 +2,11 @@ import { BuscadorOpciones } from "./BuscadorOpciones";
 import type { RefObject } from "react";
 import type { OpcionFiltro } from "./types";
 
+/**
+ * Presenta las opciones de un selector único y comunica la opción elegida.
+ * @param props Título, opciones, selección, búsqueda y callbacks opcionales.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function ListaOpcionesUnico({
     titulo,
     opciones,

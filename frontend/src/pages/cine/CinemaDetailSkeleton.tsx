@@ -9,6 +9,11 @@ interface CinemaDetailSkeletonProps {
     volverA: RutaRetorno;
 }
 
+/**
+ * Muestra placeholders de la ficha y cartelera de cine durante la carga.
+ * @param volverA Ruta interna y etiqueta del enlace de regreso.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function CinemaDetailSkeleton({ volverA }: CinemaDetailSkeletonProps) {
     return (
         <div className="detalle-cine-page" role="status" aria-busy="true">

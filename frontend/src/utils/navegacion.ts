@@ -1,3 +1,6 @@
+/**
+ * Destino al que se vuelve después de completar una navegación.
+ */
 export interface RutaRetorno {
     to: string;
     label: string;
@@ -9,7 +12,11 @@ interface LocationLike {
     hash?: unknown;
 }
 
-/** Valida que una ruta interna comience con "/" y no sea un esquema relativo "//". */
+/**
+ * Rechaza destinos externos antes de usarlos en una redirección interna.
+ * @param destino Ruta candidata que se desea validar.
+ * @returns La ruta segura o `null` si es externa o inválida.
+ */
 export function rutaInternaSegura(destino?: string | null): string | null {
     if (
         typeof destino !== "string" ||
@@ -21,7 +28,11 @@ export function rutaInternaSegura(destino?: string | null): string | null {
     return destino;
 }
 
-/** Obtiene de forma segura la URL previa guardada en `location.state.from` para volver tras el login. */
+/**
+ * Reconstruye la ruta interna que la persona intentaba abrir antes del login.
+ * @param state Estado de navegación recibido desde React Router.
+ * @returns Ruta de retorno válida o `null` si el estado no es confiable.
+ */
 export function obtenerDestinoLogin(state: unknown): string | null {
     if (!state || typeof state !== "object") return null;
     const from = (state as { from?: LocationLike }).from;
@@ -37,7 +48,11 @@ export function obtenerDestinoLogin(state: unknown): string | null {
     return `${pathname}${search}${hash}`;
 }
 
-/** Resuelve a qué ruta volver al cerrar `/login` sin haber iniciado sesión. */
+/**
+ * Decide el destino seguro al cerrar la vista `/login` sin autenticar.
+ * @param state Estado recibido desde la ruta anterior.
+ * @returns Ruta interna válida, con `/` como destino predeterminado.
+ */
 export function obtenerRutaCierreLogin(state: unknown): string {
     if (state && typeof state === "object") {
         const rawReturnTo = (state as { returnTo?: unknown }).returnTo;
@@ -54,7 +69,12 @@ export function obtenerRutaCierreLogin(state: unknown): string {
     return "/";
 }
 
-/** Lee `location.state.volverA` si es una ruta interna válida, o usa el fallback indicado. */
+/**
+ * Lee el destino de retorno de una navegación o utiliza el destino alternativo.
+ * @param state Estado recibido desde React Router.
+ * @param fallback Ruta y etiqueta usadas cuando no hay retorno válido.
+ * @returns Ruta interna y etiqueta para el enlace de regreso.
+ */
 export function obtenerVolverA(
     state: unknown,
     fallback: RutaRetorno,

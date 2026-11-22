@@ -5,7 +5,15 @@ import { TOOLTIP_EVENTS_DESKTOP } from "./constants";
 import type { BotonCercaniaProps } from "./types";
 
 /**
- * Botón reutilizable para activar/desactivar el ordenamiento por cercanía geográfica.
+ * Activa o desactiva el orden por distancia a la ubicación de la persona.
+ * @param activo Estado actual del filtro de cercanía.
+ * @param cargando Indica que se está solicitando la ubicación.
+ * @param onToggle Callback para cambiar el estado.
+ * @param tituloInactivo Etiqueta accesible cuando el filtro está apagado.
+ * @param tituloActivo Etiqueta accesible cuando el filtro está encendido.
+ * @param compacto Si es `true`, reduce la presentación del botón.
+ * @param className Clase CSS adicional.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
 export function BotonCercania({
     activo,

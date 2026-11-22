@@ -2,6 +2,7 @@ import { useId, useRef } from "react";
 import { CloseIcon, SearchIcon } from "../common/Icons";
 import "./FiltrosPeliculas.css";
 
+/** Propiedades del campo de búsqueda de películas. */
 interface BuscadorPeliculasProps {
     busqueda: string;
     onBusquedaChange: (nuevaBusqueda: string) => void;
@@ -11,6 +12,11 @@ interface BuscadorPeliculasProps {
     className?: string;
 }
 
+/**
+ * Campo accesible de búsqueda con limpieza por Escape o mediante su botón.
+ * @param props Texto de búsqueda, etiquetas accesibles y callback de cambios.
+ * @returns Campo de búsqueda de películas.
+ */
 function BuscadorPeliculas({
     busqueda,
     onBusquedaChange,

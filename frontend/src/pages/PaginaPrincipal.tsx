@@ -13,6 +13,7 @@ import RecomendadorPeliculas from "../components/recomendador/RecomendadorPelicu
 
 const CARTELERA_ESQUELETO = [0, 1, 2, 3, 4, 5, 6, 7];
 
+/** Compone la cartelera, destacadas, preventas, filtros y recomendador. */
 function PaginaPrincipal() {
     const { peliculas, peliculasDestacadas, cargando, error } = usePeliculas();
     const { peliculasFavoritasAlEntrar } = useFavoritosAlEntrar();

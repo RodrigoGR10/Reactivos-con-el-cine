@@ -4,8 +4,12 @@ import type { EstadoUbicacion } from "../../hooks/useUbicacion";
 import { AlertCircleIcon } from "./Icons";
 import "./Mensaje.css";
 
+/**
+ * Tipo compartido por los componentes de la aplicación.
+ */
 export type TipoMensaje = "estado" | "cargando" | "error";
 
+/** Propiedades para mostrar estado, carga, error y una acción opcional. */
 interface MensajeProps {
     texto: string;
     tipo?: TipoMensaje;
@@ -21,6 +25,11 @@ interface MensajeProps {
 /**
  * Muestra estados de carga (Loader), errores (Alert de Mantine) o avisos centrados
  * alineados con la estética oscura del proyecto.
+ */
+/**
+ * Renderiza mensajes uniformes para estados, cargas y errores de las vistas.
+ * @param props Tipo, texto, título y elementos opcionales del mensaje.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
 export function Mensaje({
     texto,
@@ -131,7 +140,11 @@ interface AvisoUbicacionProps {
 }
 
 /**
- * Banner compacto y cerrable para avisos de permiso o error de geolocalización.
+ * Muestra un aviso cerrable cuando se rechaza o falla la geolocalización.
+ * @param estado Estado de ubicación que determina si se presenta el aviso.
+ * @param onCerrar Acción para cerrar el aviso.
+ * @param className Clase CSS adicional opcional.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
  */
 export function AvisoUbicacion({
     estado,

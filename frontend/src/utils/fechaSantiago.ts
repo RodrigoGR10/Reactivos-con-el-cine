@@ -1,5 +1,10 @@
 const ZONA_SANTIAGO = "America/Santiago";
 
+/**
+ * Obtiene la fecha calendario de Santiago sin depender de la zona horaria del navegador.
+ * @param ahora Instante que se convierte; por defecto usa la hora actual.
+ * @returns Fecha local chilena en formato `AAAA-MM-DD`.
+ */
 export function fechaHoySantiago(ahora = new Date()): string {
     try {
         const formatted = new Intl.DateTimeFormat("en-CA", {

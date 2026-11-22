@@ -1,6 +1,11 @@
 import { CloseIcon, SearchIcon } from "../Icons";
 import type { BuscadorOpcionesProps } from "./types";
 
+/**
+ * Campo controlado para buscar dentro de las opciones de un selector.
+ * @param props Texto, callback, placeholder y referencia opcional del input.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function BuscadorOpciones({
     buscadorRef,
     autoFocus = true,
