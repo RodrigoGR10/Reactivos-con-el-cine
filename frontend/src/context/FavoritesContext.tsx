@@ -5,6 +5,9 @@ import {
     useRef,
     useState,
     useEffect,
+    useLayoutEffect,
+    type Dispatch,
+    type SetStateAction,
     type ReactNode,
 } from "react";
 import axios from "axios";
@@ -22,29 +25,82 @@ interface FavoritesContextType {
     isFavoriteCinema: (cinemaId: string) => boolean;
 }
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(
-    undefined,
-);
+const FavoritesContext = createContext<
+    FavoritesContextType | undefined
+>(undefined);
 
-export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
+/**
+ * Actualiza una lista de favoritos de forma inmutable.
+ */
+function actualizarFavorito(
+    ids: string[],
+    id: string,
+    activo: boolean,
+): string[] {
+    if (!activo) {
+        return ids.filter((otroId) => otroId !== id);
+    }
+
+    return ids.includes(id) ? ids : [...ids, id];
+}
+
+/**
+ * Comparte y sincroniza los favoritos de películas y cines con la API.
+ */
+export const FavoritesProvider = ({
+    children,
+}: {
+    children: ReactNode;
+}) => {
     const { user, invalidateSession } = useAuth();
+
     const navigate = useNavigate();
     const location = useLocation();
     const locationRef = useRef(location);
-    const [prevUserId, setPrevUserId] = useState<string | undefined>(user?.id);
+
+    const userId = user?.id;
+    const [prevUserId, setPrevUserId] = useState(userId);
+
+    const sesionActiva = useRef<{
+        peliculas: Set<string>;
+        cines: Set<string>;
+    } | null>(null);
+
+    useLayoutEffect(() => {
+        if (!userId) {
+            return;
+        }
+
+        sesionActiva.current = {
+            peliculas: new Set(),
+            cines: new Set(),
+        };
+
+        return () => {
+            sesionActiva.current = null;
+        };
+    }, [userId]);
 
     useEffect(() => {
         locationRef.current = location;
     }, [location]);
 
-    const [favoriteMovieIds, setFavoriteMovieIds] = useState<string[]>(
-        () => user?.peliculasFavoritas ?? [],
+    const [favoriteMovieIds, setFavoriteMovieIds] =
+        useState<string[]>(
+            () => user?.peliculasFavoritas ?? [],
+        );
+
+    const [favoriteCinemaIds, setFavoriteCinemaIds] =
+        useState<string[]>(
+            () => user?.cinesFavoritos ?? [],
+        );
+
+    const [loadedUserId, setLoadedUserId] =
+        useState<string | null>(null);
+
+    const isLoadingFavorites = Boolean(
+        user && loadedUserId !== user.id,
     );
-    const [favoriteCinemaIds, setFavoriteCinemaIds] = useState<string[]>(
-        () => user?.cinesFavoritos ?? [],
-    );
-    const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
-    const isLoadingFavorites = Boolean(user && loadedUserId !== user.id);
 
     const handleUnauthorized = useCallback(
         (error: unknown): boolean => {
@@ -56,38 +112,58 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
             }
 
             invalidateSession();
+
             navigate("/login", {
                 replace: true,
-                state: { from: locationRef.current },
+                state: {
+                    from: locationRef.current,
+                },
             });
+
             return true;
         },
         [invalidateSession, navigate],
     );
 
-    // Ajusta el estado inmediatamente cuando cambia el usuario activo (login/logout)
+    // Ajusta el estado inmediatamente cuando cambia el usuario activo.
     if (user?.id !== prevUserId) {
         setPrevUserId(user?.id);
-        setFavoriteMovieIds(user?.peliculasFavoritas ?? []);
-        setFavoriteCinemaIds(user?.cinesFavoritos ?? []);
+
+        setFavoriteMovieIds(
+            user?.peliculasFavoritas ?? [],
+        );
+
+        setFavoriteCinemaIds(
+            user?.cinesFavoritos ?? [],
+        );
     }
 
-    // Sincroniza favoritos desde el backend cuando hay sesión activa
+    // Sincroniza favoritos desde el backend cuando hay sesión activa.
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            return;
+        }
 
         const controller = new AbortController();
         const currentUserId = user.id;
+
         profileService
             .getFavorites(controller.signal)
             .then((favoritos) => {
                 if (!controller.signal.aborted) {
-                    setFavoriteMovieIds(favoritos.peliculasFavoritas);
-                    setFavoriteCinemaIds(favoritos.cinesFavoritos);
+                    setFavoriteMovieIds(
+                        favoritos.peliculasFavoritas,
+                    );
+
+                    setFavoriteCinemaIds(
+                        favoritos.cinesFavoritos,
+                    );
                 }
             })
             .catch((error: unknown) => {
-                if (!controller.signal.aborted) handleUnauthorized(error);
+                if (!controller.signal.aborted) {
+                    handleUnauthorized(error);
+                }
             })
             .finally(() => {
                 if (!controller.signal.aborted) {
@@ -98,46 +174,90 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
         return () => controller.abort();
     }, [user, handleUnauthorized]);
 
-    const toggleFavoriteMovie = async (movieId: string): Promise<boolean> => {
-        if (!user) return false;
-        const previos = favoriteMovieIds;
-        const yaEstaba = previos.includes(movieId);
-        setFavoriteMovieIds(
-            yaEstaba
-                ? previos.filter((id) => id !== movieId)
-                : [...previos, movieId],
+    const alternarFavorito = async (
+        tipo: "peliculas" | "cines",
+        id: string,
+        ids: string[],
+        setIds: Dispatch<SetStateAction<string[]>>,
+        solicitar: (id: string) => Promise<string[]>,
+    ): Promise<boolean> => {
+        const sesion = sesionActiva.current;
+
+        if (!sesion || sesion[tipo].has(id)) {
+            return false;
+        }
+
+        const estabaActivo = ids.includes(id);
+
+        sesion[tipo].add(id);
+
+        setIds((actuales) =>
+            actualizarFavorito(
+                actuales,
+                id,
+                !estabaActivo,
+            ),
         );
+
         try {
-            const updated = await profileService.toggleFavoriteMovie(movieId);
-            setFavoriteMovieIds(updated);
+            const confirmados = await solicitar(id);
+
+            if (sesionActiva.current !== sesion) {
+                return false;
+            }
+
+            setIds((actuales) =>
+                actualizarFavorito(
+                    actuales,
+                    id,
+                    confirmados.includes(id),
+                ),
+            );
+
             return true;
         } catch (error: unknown) {
-            setFavoriteMovieIds(previos);
-            if (!handleUnauthorized(error))
-                console.error("Error al actualizar película favorita:", error);
+            if (sesionActiva.current !== sesion) {
+                return false;
+            }
+
+            setIds((actuales) =>
+                actualizarFavorito(
+                    actuales,
+                    id,
+                    estabaActivo,
+                ),
+            );
+
+            if (!handleUnauthorized(error)) {
+                console.error(
+                    "Error al actualizar favorito:",
+                    error,
+                );
+            }
+
             return false;
+        } finally {
+            sesion[tipo].delete(id);
         }
     };
 
-    const toggleFavoriteCinema = (cinemaId: string) => {
-        if (!user) return;
-        const previos = favoriteCinemaIds;
-        const yaEstaba = previos.includes(cinemaId);
-        setFavoriteCinemaIds(
-            yaEstaba
-                ? previos.filter((id) => id !== cinemaId)
-                : [...previos, cinemaId],
+    const toggleFavoriteMovie = (movieId: string) =>
+        alternarFavorito(
+            "peliculas",
+            movieId,
+            favoriteMovieIds,
+            setFavoriteMovieIds,
+            profileService.toggleFavoriteMovie,
         );
-        profileService
-            .toggleFavoriteCinema(cinemaId)
-            .then((updated) => {
-                setFavoriteCinemaIds(updated);
-            })
-            .catch((error: unknown) => {
-                setFavoriteCinemaIds(previos);
-                if (handleUnauthorized(error)) return;
-                console.error("Error al actualizar cine favorito:", error);
-            });
+
+    const toggleFavoriteCinema = (cinemaId: string) => {
+        void alternarFavorito(
+            "cines",
+            cinemaId,
+            favoriteCinemaIds,
+            setFavoriteCinemaIds,
+            profileService.toggleFavoriteCinema,
+        );
     };
 
     const isFavoriteMovie = (movieId: string): boolean => {
@@ -165,12 +285,20 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
+/**
+ * Obtiene listas, consultas y acciones de favoritos del contexto.
+ * @returns Estado y métodos para películas y cines guardados.
+ * @throws Error si se usa fuera de FavoritesProvider.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFavorites = (): FavoritesContextType => {
     const context = useContext(FavoritesContext);
+
     if (!context) {
         throw new Error(
             "useFavorites debe ser utilizado dentro de un FavoritesProvider",
         );
     }
+
     return context;
 };
