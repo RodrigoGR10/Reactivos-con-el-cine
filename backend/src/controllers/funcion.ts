@@ -1,3 +1,4 @@
+
 import express from "express";
 import { isNumericId, isCineId } from "../db.ts";
 import { isDate } from "../scraper/normalize.ts";
@@ -29,6 +30,7 @@ router.get("/", async (req, res) => {
         if (typeof peliculaId !== "string" || !isNumericId(peliculaId)) {
             return res.status(400).json({ error: "peliculaId inválido" });
         }
+
         parsedPeliculaId = parseInt(peliculaId, 10);
     }
 
@@ -130,7 +132,9 @@ router.get("/butacas", async (req, res) => {
 });
 
 /**
- * GET /api/funciones/detalle-stream transmite eventos NDJSON de precio, butacas y cierre.
+ * GET /api/funciones/detalle-stream transmite eventos NDJSON
+ * de precio, butacas y cierre.
+ *
  * Los mismos tres query params identifican película, cine y fecha.
  */
 router.get("/detalle-stream", async (req, res) => {
@@ -155,21 +159,38 @@ router.get("/detalle-stream", async (req, res) => {
     res.flushHeaders();
 
     let cerrado = false;
-    req.on("close", () => {
+
+    res.on("close", () => {
+        if (!res.writableEnded) {
+            cerrado = true;
+        }
+    });
+
+    req.on("aborted", () => {
         cerrado = true;
     });
 
     const enviar = (evento: Record<string, unknown>) => {
-        if (cerrado || res.writableEnded) return;
+        if (cerrado || res.writableEnded) {
+            return;
+        }
+
         res.write(`${JSON.stringify(evento)}\n`);
     };
 
     const [resPrecios, resButacas] = await Promise.allSettled([
         preciosPorCine(peliculaId, cineId, fecha, (horario) => {
-            enviar({ tipo: "precio", horario });
+            enviar({
+                tipo: "precio",
+                horario,
+            });
         }),
+
         butacasPorCine(peliculaId, cineId, fecha, (horario) => {
-            enviar({ tipo: "butaca", horario: horarioPublico(horario) });
+            enviar({
+                tipo: "butaca",
+                horario: horarioPublico(horario),
+            });
         }),
     ]);
 
@@ -179,7 +200,9 @@ router.get("/detalle-stream", async (req, res) => {
         falloButacas: resButacas.status === "rejected",
     });
 
-    if (!res.writableEnded) res.end();
+    if (!res.writableEnded) {
+        res.end();
+    }
 });
 
 /** GET /api/funciones/:id. `id` debe ser numérico y corresponder a una tarifa. */
@@ -187,13 +210,17 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
     if (!isNumericId(id)) {
-        return res.status(400).json({ error: "ID de funcion invalido" });
+        return res.status(400).json({
+            error: "ID de funcion invalido",
+        });
     }
 
     const funcion = await obtenerFuncion(parseInt(id, 10));
 
     if (funcion === null) {
-        return res.status(404).json({ error: "Funcion no encontrada" });
+        return res.status(404).json({
+            error: "Funcion no encontrada",
+        });
     }
 
     return res.json(funcion);

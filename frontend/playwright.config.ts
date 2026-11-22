@@ -4,7 +4,7 @@ const frontendUrl = "http://127.0.0.1:4173";
 const backendUrl = "http://127.0.0.1:4301";
 
 export default defineConfig({
-    testDir: "./e2e",
+    testDir: "./e2etests",
     testMatch: "**/*.spec.ts",
     workers: 1,
     reporter: "list",
