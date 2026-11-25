@@ -2,132 +2,236 @@ import express, { type Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { randomUUID } from "node:crypto";
-import UserModel from "../models/user.ts";
+import { isUuid, query } from "../db.ts";
 import config from "../utils/config.ts";
 import middleware from "../utils/middleware.ts";
 
 const router = express.Router();
 
+function cuerpoCredenciales(body: unknown): {
+    nombre?: unknown;
+    email?: unknown;
+    contrasena?: unknown;
+} {
+    return body && typeof body === "object" ? body : {};
+}
+
+interface UsuarioPublicoRow {
+    id: string;
+    email: string;
+    nombre: string | null;
+    fechaRegistro?: Date;
+}
+
+/** Elimina campos internos y forma el perfil que se envía al navegador. */
+const usuarioPublico = (u: UsuarioPublicoRow) => ({
+    id: u.id,
+    nombre: u.nombre,
+    email: u.email,
+    fechaRegistro: u.fechaRegistro?.toISOString(),
+});
+
 const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  path: "/",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
 };
 
-const createSession = (response: Response, user: { id: string; email: string }) => {
-  const userForToken = {
-    id: user.id,
-    email: user.email,
-    csrf: randomUUID(),
-  };
-  const token = jwt.sign(userForToken, config.JWT_SECRET, { expiresIn: 60 * 60 });
+/**
+ * Firma el JWT y crea cookie httpOnly junto con el token CSRF de la respuesta.
+ * @param response Respuesta Express donde se escriben cookie y encabezado.
+ * @param user Identidad mínima usada para firmar el token de sesión.
+ */
+const createSession = (
+    response: Response,
+    user: { id: string; email: string },
+) => {
+    const userForToken = {
+        id: user.id,
+        email: user.email,
+        csrf: randomUUID(),
+    };
+    const token = jwt.sign(userForToken, config.JWT_SECRET, {
+        expiresIn: 60 * 60,
+    });
 
-  response.setHeader("X-CSRF-Token", userForToken.csrf);
-  response.cookie("token", token, { ...cookieOptions, maxAge: 60 * 60 * 1000 });
+    response.setHeader("X-CSRF-Token", userForToken.csrf);
+    response.cookie("token", token, {
+        ...cookieOptions,
+        maxAge: 60 * 60 * 1000,
+    });
 };
 
 router.use((req, res, next) => {
-  res.setHeader("Cache-Control", "no-store");
-  next();
+    res.setHeader("Cache-Control", "no-store");
+    next();
 });
 
+/** POST /api/auth/register valida datos, guarda hash y devuelve la nueva sesión. */
 router.post("/register", async (req, res) => {
-  const { nombre, email, contrasena } = req.body ?? {};
+    const { nombre, email, contrasena } = cuerpoCredenciales(req.body);
 
-  if (
-    typeof nombre !== "string" ||
-    !nombre.trim() ||
-    typeof email !== "string" ||
-    !email.trim() ||
-    typeof contrasena !== "string" ||
-    !contrasena
-  ) {
-    return res
-      .status(400)
-      .json({ error: "Todos los campos son obligatorios" });
-  }
+    if (
+        typeof nombre !== "string" ||
+        !nombre.trim() ||
+        typeof email !== "string" ||
+        !email.trim() ||
+        typeof contrasena !== "string" ||
+        !contrasena
+    ) {
+        return res
+            .status(400)
+            .json({ error: "Todos los campos son obligatorios" });
+    }
 
-  if (contrasena.length < 6) {
-    return res
-      .status(400)
-      .json({ error: "La contraseña debe tener al menos 6 caracteres" });
-  }
+    if (contrasena.length < 6) {
+        return res
+            .status(400)
+            .json({ error: "La contraseña debe tener al menos 6 caracteres" });
+    }
 
-  const emailNormalizado = email.trim().toLowerCase();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(emailNormalizado)) {
-    return res
-      .status(400)
-      .json({ error: "Ingresa un correo electrónico válido." });
-  }
+    if (nombre.trim().length < 2) {
+        return res.status(400).json({
+            error: "El nombre de usuario debe tener al menos 2 caracteres.",
+        });
+    }
 
-  const existe = await UserModel.findOne({ email: emailNormalizado });
-  if (existe) {
-    return res
-      .status(400)
-      .json({ error: "Este correo electrónico ya se encuentra registrado." });
-  }
+    const nombreNormalizado = nombre.trim();
 
-  const saltRounds = 10;
-  const passwordHash = await bcrypt.hash(contrasena, saltRounds);
+    const emailNormalizado = email.trim().toLowerCase();
+    if ([...nombreNormalizado].length > 150) {
+        return res.status(400).json({
+            error: "El nombre de usuario no puede superar 150 caracteres.",
+        });
+    }
+    if ([...emailNormalizado].length > 255) {
+        return res.status(400).json({
+            error: "El correo electrónico no puede superar 255 caracteres.",
+        });
+    }
+    if (Buffer.byteLength(contrasena, "utf8") > 72) {
+        return res.status(400).json({
+            error: "La contraseña no puede superar 72 bytes.",
+        });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailNormalizado)) {
+        return res
+            .status(400)
+            .json({ error: "Ingresa un correo electrónico válido." });
+    }
 
-  const nuevoUsuario = new UserModel({
-    nombre: nombre.trim(),
-    email: emailNormalizado,
-    passwordHash,
-  });
+    const checkEmail = await query("SELECT id FROM users WHERE email = $1", [
+        emailNormalizado,
+    ]);
 
-  const guardado = await nuevoUsuario.save();
-  createSession(res, guardado);
-  return res.status(201).json(guardado);
+    if (checkEmail.rows.length > 0) {
+        return res.status(409).json({
+            error: "Este correo electrónico ya se encuentra registrado.",
+        });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(contrasena, salt);
+
+    const insertSql = `
+        INSERT INTO users (email, password_hash, nombre)
+        VALUES ($1, $2, $3)
+        RETURNING id, email, nombre, creado_en AS "fechaRegistro";
+    `;
+
+    const { rows } = await query<UsuarioPublicoRow>(insertSql, [
+        emailNormalizado,
+        passwordHash,
+        nombreNormalizado,
+    ]);
+
+    const [user] = rows;
+    if (!user) throw new Error("El registro no devolvió el usuario creado.");
+
+    createSession(res, { id: user.id, email: user.email });
+
+    return res.status(201).json(usuarioPublico(user));
 });
 
+/** POST /api/auth/login verifica correo y contraseña y crea una sesión. */
 router.post("/login", async (req, res) => {
-  const { email, contrasena } = req.body ?? {};
+    const { email, contrasena } = cuerpoCredenciales(req.body);
 
-  if (
-    typeof email !== "string" ||
-    !email.trim() ||
-    typeof contrasena !== "string" ||
-    !contrasena
-  ) {
-    return res
-      .status(400)
-      .json({ error: "Debe ingresar correo y contraseña" });
-  }
+    if (
+        typeof email !== "string" ||
+        !email.trim() ||
+        typeof contrasena !== "string" ||
+        !contrasena
+    ) {
+        return res
+            .status(400)
+            .json({ error: "Debe ingresar correo y contraseña" });
+    }
 
-  const emailNormalizado = email.trim().toLowerCase();
-  const user = await UserModel.findOne({ email: emailNormalizado });
+    const emailNormalizado = email.trim().toLowerCase();
 
-  const passwordCorrecta =
-    user === null
-      ? false
-      : await bcrypt.compare(contrasena, user.passwordHash);
+    const sql = `
+        SELECT id, email, nombre, password_hash, creado_en AS "fechaRegistro"
+        FROM users
+        WHERE email = $1;
+    `;
 
-  if (!(user && passwordCorrecta)) {
-    return res
-      .status(401)
-      .json({ error: "El correo o la contraseña son incorrectos." });
-  }
+    const { rows } = await query<UsuarioPublicoRow & { password_hash: string }>(
+        sql,
+        [emailNormalizado],
+    );
+    const user = rows[0];
 
-  createSession(res, user);
-  return res.json(user);
+    const passwordCorrecta = user
+        ? await bcrypt.compare(contrasena, user.password_hash)
+        : false;
+
+    if (!(user && passwordCorrecta)) {
+        return res
+            .status(401)
+            .json({ error: "El correo o la contraseña son incorrectos." });
+    }
+
+    createSession(res, { id: user.id, email: user.email });
+
+    return res.json(usuarioPublico(user));
 });
 
+/** GET /api/auth/me restaura el perfil usando la cookie de sesión vigente. */
 router.get("/me", middleware.withUser, async (req, res) => {
-  const user = await UserModel.findById(req.userId);
-  if (!user) {
-    return res.status(401).json({ error: "El usuario de la sesión no existe" });
-  }
+    const userId = req.userId;
 
-  res.setHeader("X-CSRF-Token", req.headers["x-csrf-token"] as string);
-  return res.json(user);
+    if (typeof userId !== "string" || !isUuid(userId)) {
+        return res
+            .status(401)
+            .json({ error: "El usuario de la sesión no existe" });
+    }
+
+    const sql = `
+        SELECT id, email, nombre, creado_en AS "fechaRegistro"
+        FROM users
+        WHERE id = $1;
+    `;
+
+    const { rows } = await query<UsuarioPublicoRow>(sql, [userId]);
+
+    const [user] = rows;
+    if (!user) {
+        return res
+            .status(401)
+            .json({ error: "El usuario de la sesión no existe" });
+    }
+
+    res.setHeader("X-CSRF-Token", req.headers["x-csrf-token"] as string);
+    return res.json(usuarioPublico(user));
 });
 
+/** POST /api/auth/logout revoca la cookie de sesión del navegador. */
 router.post("/logout", middleware.withUser, (req, res) => {
-  res.clearCookie("token", cookieOptions);
-  return res.json({ message: "Sesión cerrada correctamente" });
+    res.clearCookie("token", cookieOptions);
+    return res.json({ message: "Sesión cerrada correctamente" });
 });
 
 export default router;

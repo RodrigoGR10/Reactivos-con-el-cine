@@ -1,51 +1,84 @@
-import { useEffect, useState } from "react";
-import type { Pelicula } from "../types/types";
-import peliculaService from "../services/peliculas";
 
-//Hook que sirve para cargar las peliculas (en pag principal)
+import { useEffect, useMemo, useState } from "react";
+import { usePeliculasStore } from "../stores/peliculasStore";
+import { seleccionarDestacadasConCategoria } from "../utils/seleccionarDestacadas";
 
-export function usePeliculas() {
-  const [peliculas, setPeliculas] = useState<Pelicula[]>([]);
-  const [peliculaDestacada, setPeliculaDestacada] = useState<Pelicula | null>(
-    null,
-  );
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelado = false;
-
-    const cargar = async () => {
-      try {
-        const data = await peliculaService.getCartelera();
-
-        if (!cancelado) {
-          const disponibles = data.filter((pelicula) => pelicula.estadoEstreno !== "proximamente");
-          setPeliculas(disponibles);
-
-          const soloPeliculas = disponibles.filter(
-            (pelicula) => !/concierto|live viewing/i.test(pelicula.genero ?? "")
-          );
-          const conBanner = soloPeliculas.filter((pelicula) => Boolean(pelicula.banner));
-          const candidatas = conBanner.length > 0 ? conBanner : soloPeliculas;
-          if (candidatas.length > 0) {
-            const indice = Math.floor(Math.random() * candidatas.length);
-            setPeliculaDestacada(candidatas[indice]);
-          }
-        }
-      } catch {
-        if (!cancelado) setError("No se pudieron cargar las películas.");
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    cargar();
+/**
+ * Genera números pseudoaleatorios a partir de una semilla.
+ * Permite que la selección de destacadas sea estable durante la sesión.
+ */
+function crearRngConSemilla(semilla: number): () => number {
+    let estado = semilla >>> 0;
 
     return () => {
-      cancelado = true;
-    };
-  }, []);
+        estado = (estado + 0x6d2b79f5) | 0;
 
-  return { peliculas, peliculaDestacada, cargando, error };
+        let t = Math.imul(
+            estado ^ (estado >>> 15),
+            1 | estado,
+        );
+
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+/**
+ * Carga y conserva en memoria la cartelera y calcula sus películas destacadas.
+ *
+ * @returns Películas disponibles, destacadas y estados de carga o error.
+ */
+export function usePeliculas() {
+    const [semillaDestacadas] = useState(() =>
+        Math.floor(Math.random() * 2 ** 32),
+    );
+
+    const peliculasOriginales = usePeliculasStore(
+        (state) => state.peliculas,
+    );
+
+    const cargando = usePeliculasStore(
+        (state) => state.cargando,
+    );
+
+    const cargada = usePeliculasStore(
+        (state) => state.isLoaded,
+    );
+
+    const errorCarga = usePeliculasStore(
+        (state) => state.error,
+    );
+
+    const cargarPeliculas = usePeliculasStore(
+        (state) => state.cargarPeliculas,
+    );
+
+    useEffect(() => {
+        void cargarPeliculas();
+    }, [cargarPeliculas]);
+
+    const peliculas = useMemo(
+        () =>
+            peliculasOriginales.filter(
+                (pelicula) =>
+                    pelicula.estadoEstreno !== "proximamente",
+            ),
+        [peliculasOriginales],
+    );
+
+    const peliculasDestacadas = useMemo(
+        () =>
+            seleccionarDestacadasConCategoria(peliculas, {
+                rng: crearRngConSemilla(semillaDestacadas),
+            }),
+        [peliculas, semillaDestacadas],
+    );
+
+    return {
+        peliculas,
+        peliculasDestacadas,
+        cargando,
+        error: errorCarga && !cargada ? errorCarga : null,
+    };
 }

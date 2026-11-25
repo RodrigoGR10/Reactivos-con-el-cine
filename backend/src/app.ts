@@ -11,15 +11,20 @@ import funcionRouter from "./controllers/funcion.ts";
 import cineRouter from "./controllers/cine.ts";
 import authRouter from "./controllers/auth.ts";
 import perfilRouter from "./controllers/perfil.ts";
+import recomendacionRouter from "./controllers/recomendaciones.ts";
 
+/**
+ * Configura Express: políticas de acceso, cookies, rutas de la API y entrega de la SPA.
+ * Los errores y las rutas desconocidas se resuelven al final de la cadena de middleware.
+ */
 const app = express();
 
 app.use(
-  cors({
-    origin: config.FRONTEND_URL,
-    credentials: true,
-    exposedHeaders: ["X-CSRF-Token"],
-  }),
+    cors({
+        origin: config.FRONTEND_URL,
+        credentials: true,
+        exposedHeaders: ["X-CSRF-Token"],
+    }),
 );
 app.use(express.json());
 app.use(cookieParser());
@@ -29,17 +34,15 @@ app.use(middleware.requestLogger);
 app.use("/api/peliculas", peliculaRouter);
 app.use("/api/funciones", funcionRouter);
 app.use("/api/cines", cineRouter);
+app.use("/api/recomendaciones", recomendacionRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/perfil", perfilRouter);
 app.use("/api", middleware.unknownEndpoint);
 
 app.use(express.static("dist"));
-app.get(
-  ["/", "/login", "/perfil", "/cines", "/cines/:id", "/peliculas/:id"],
-  (request, response) => {
+app.get("/{*splat}", (_request, response) => {
     response.sendFile(path.resolve("dist/index.html"));
-  },
-);
+});
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);

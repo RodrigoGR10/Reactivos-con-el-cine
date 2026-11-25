@@ -1,112 +1,117 @@
+
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
+    createContext,
+    useContext,
+    useEffect,
+    type ReactNode,
 } from "react";
-import type { Usuario, LoginInput, RegisterInput } from "../types/auth";
-import authService from "../services/authService";
+import type {
+    Usuario,
+    LoginInput,
+    RegisterInput,
+} from "../types/auth";
+import { useAuthStore } from "../stores/authStore";
 
 interface AuthContextType {
-  user: Usuario | null;
-  isAuthenticated: boolean;
-  isLoadingSession: boolean;
-  login: (credenciales: LoginInput) => Promise<void>;
-  register: (datos: RegisterInput) => Promise<void>;
-  logout: () => Promise<void>;
-  invalidateSession: () => void;
-  isAuthModalOpen: boolean;
-  openAuthModal: () => void;
-  closeAuthModal: () => void;
+    user: Usuario | null;
+    isAuthenticated: boolean;
+    isLoadingSession: boolean;
+    login: (credenciales: LoginInput) => Promise<void>;
+    register: (datos: RegisterInput) => Promise<void>;
+    logout: () => Promise<void>;
+    invalidateSession: () => void;
+    isAuthModalOpen: boolean;
+    authModalRedirectTo: string | null;
+    openAuthModal: (redirectTo?: string) => void;
+    closeAuthModal: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(
+    undefined,
+);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<Usuario | null>(null);
-  const [isLoadingSession, setIsLoadingSession] = useState(true);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  // Evita que una restauración pendiente sobrescriba un login o logout posterior.
-  const restoreController = useRef<AbortController | null>(null);
+/**
+ * Comparte la sesión y los controles del modal de autenticación
+ * utilizando el estado global de Zustand.
+ */
+export const AuthProvider = ({
+    children,
+}: {
+    children: ReactNode;
+}) => {
+    const user = useAuthStore((state) => state.user);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    restoreController.current = controller;
+    const isLoadingSession = useAuthStore(
+        (state) => state.isLoadingSession,
+    );
 
-    authService.getCurrentUser(controller.signal).then((usuario) => {
-      if (!controller.signal.aborted) {
-        setUser(usuario);
-        setIsLoadingSession(false);
-      }
-    });
+    const login = useAuthStore((state) => state.login);
+    const register = useAuthStore((state) => state.register);
+    const logout = useAuthStore((state) => state.logout);
 
-    return () => controller.abort();
-  }, []);
+    const invalidateSession = useAuthStore(
+        (state) => state.invalidateSession,
+    );
 
-  const openAuthModal = (): void => setIsAuthModalOpen(true);
-  const closeAuthModal = (): void => setIsAuthModalOpen(false);
+    const isAuthModalOpen = useAuthStore(
+        (state) => state.isAuthModalOpen,
+    );
 
-  const invalidateSession = useCallback((): void => {
-    restoreController.current?.abort();
-    authService.clearSessionData();
-    setUser(null);
-    setIsLoadingSession(false);
-    setIsAuthModalOpen(false);
-  }, []);
+    const authModalRedirectTo = useAuthStore(
+        (state) => state.authModalRedirectTo,
+    );
 
-  const login = async (credenciales: LoginInput): Promise<void> => {
-    restoreController.current?.abort();
-    try {
-      const usuarioAutenticado = await authService.login(credenciales);
-      setUser(usuarioAutenticado);
-    } finally {
-      setIsLoadingSession(false);
-    }
-  };
+    const openAuthModal = useAuthStore(
+        (state) => state.openAuthModal,
+    );
 
-  const register = async (datos: RegisterInput): Promise<void> => {
-    restoreController.current?.abort();
-    try {
-      const nuevoUsuario = await authService.register(datos);
-      setUser(nuevoUsuario);
-    } finally {
-      setIsLoadingSession(false);
-    }
-  };
+    const closeAuthModal = useAuthStore(
+        (state) => state.closeAuthModal,
+    );
 
-  const logout = async (): Promise<void> => {
-    restoreController.current?.abort();
-    try {
-      await authService.logout();
-      setUser(null);
-    } finally {
-      setIsLoadingSession(false);
-    }
-  };
+    const startSessionRestore = useAuthStore(
+        (state) => state.startSessionRestore,
+    );
 
-  const value: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    isLoadingSession,
-    login,
-    register,
-    logout,
-    invalidateSession,
-    isAuthModalOpen,
-    openAuthModal,
-    closeAuthModal,
-  };
+    useEffect(() => {
+        return startSessionRestore();
+    }, [startSessionRestore]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    const value: AuthContextType = {
+        user,
+        isAuthenticated: Boolean(user),
+        isLoadingSession,
+        login,
+        register,
+        logout,
+        invalidateSession,
+        isAuthModalOpen,
+        authModalRedirectTo,
+        openAuthModal,
+        closeAuthModal,
+    };
+
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
+/**
+ * Obtiene la sesión y las acciones de autenticación.
+ *
+ * @throws Error si se utiliza fuera de AuthProvider.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth debe ser utilizado dentro de un AuthProvider");
-  }
-  return context;
+    const context = useContext(AuthContext);
+
+    if (!context) {
+        throw new Error(
+            "useAuth debe ser utilizado dentro de un AuthProvider",
+        );
+    }
+
+    return context;
 };

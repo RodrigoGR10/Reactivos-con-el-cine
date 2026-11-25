@@ -37,7 +37,14 @@ function formatear(genero: string): string {
 }
 
 // "ACCION, aventuras" -> "Acción, Aventura"
-export function normalizarGeneros(valor: string): string {
+/**
+ * Normaliza y ordena los géneros de una película.
+ * @param valor Texto que se normaliza o valida.
+ * @returns Texto normalizado o generado por la operación.
+ */
+export function normalizarGeneros(valor: string): string;
+export function normalizarGeneros(valor: string | null | undefined): string | null | undefined;
+export function normalizarGeneros(valor: string | null | undefined) {
     if (typeof valor !== "string") return valor;
 
     const generos = valor

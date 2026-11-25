@@ -1,49 +1,11 @@
-html:has(.auth-modal-overlay),
-body:has(.auth-modal-overlay) {
-    overflow: hidden;
-}
-
-.auth-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.42);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    padding: 20px;
-    box-sizing: border-box;
-    animation: authOverlayFadeIn 0.16s ease-out;
-    overscroll-behavior: contain;
-}
-
-@keyframes authOverlayFadeIn {
-    from {
-        background-color: rgba(0, 0, 0, 0);
-    }
-    to {
-        background-color: rgba(0, 0, 0, 0.42);
-    }
-}
-
 .auth-modal-wrapper {
     position: relative;
-    width: 410px;
+    width: 100%;
+    max-width: 410px;
     height: 465px;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.12) 0%,
-            rgba(255, 255, 255, 0.02) 100%
-        ),
-        rgba(14, 18, 26, 0.32);
+    background: #1b1b1d;
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 20px;
-    backdrop-filter: blur(10px) saturate(190%);
-    -webkit-backdrop-filter: blur(10px) saturate(190%);
     box-shadow:
         0 24px 50px -10px rgba(0, 0, 0, 0.75),
         inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
@@ -58,16 +20,6 @@ body:has(.auth-modal-overlay) {
     transition:
         height 0.35s ease,
         transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    animation: authCardPop 0.16s ease-out;
-}
-
-@keyframes authCardPop {
-    from {
-        transform: scale(0.96) translateZ(0);
-    }
-    to {
-        transform: scale(1) translateZ(0);
-    }
 }
 
 .auth-modal-wrapper.active {
@@ -227,6 +179,11 @@ body:has(.auth-modal-overlay) {
     box-sizing: border-box;
 }
 
+.auth-input-box input::-ms-reveal,
+.auth-input-box input::-ms-clear {
+    display: none;
+}
+
 .auth-input-box .icon {
     position: absolute;
     right: 8px;
@@ -245,7 +202,8 @@ body:has(.auth-modal-overlay) {
 
 .auth-input-box .auth-btn-toggle-password {
     position: absolute;
-    right: 8px;
+    right: 0;
+    z-index: 1;
     background: transparent;
     border: none;
     outline: none;
@@ -256,10 +214,17 @@ body:has(.auth-modal-overlay) {
     align-items: center;
     justify-content: center;
     height: 100%;
+    width: 36px;
     padding: 0;
     transition:
         color 0.2s ease,
         transform 0.15s ease;
+}
+
+.auth-input-box .auth-btn-toggle-password:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: -4px;
+    border-radius: 4px;
 }
 
 .auth-input-box .auth-btn-toggle-password:hover {
@@ -312,6 +277,7 @@ body:has(.auth-modal-overlay) {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     letter-spacing: -0.2px;
 }
 
@@ -366,9 +332,9 @@ body:has(.auth-modal-overlay) {
 }
 
 .auth-alert.error {
-    background: rgba(204, 18, 11, 0.18);
-    border: 1px solid rgba(204, 18, 11, 0.5);
-    color: #fca5a5;
+    background: rgba(204, 18, 11, 0.14);
+    border: 1px solid rgba(204, 18, 11, 0.45);
+    color: var(--color-acento);
 }
 
 .auth-alert.success {

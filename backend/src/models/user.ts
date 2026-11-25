@@ -1,60 +1,36 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import mongoose from "mongoose";
-import { nombreColeccion } from "../utils/colecciones.ts";
-
-const url = process.env.MONGODB_URI;
-const dbName = process.env.MONGODB_NAME || "reactivos-cine";
-
-mongoose.set("strictQuery", false);
-
-if (url && mongoose.connection.readyState === 0) {
-  mongoose.connect(url, { dbName }).catch((error) => {
-    console.log("error connecting to MongoDB:", error.message);
-  });
-}
-
+/**
+ * Datos de cuenta que se guardan para una persona usuaria.
+ */
 export interface User {
-  nombre: string;
-  email: string;
-  passwordHash: string;
-  fechaRegistro?: string;
-  peliculasFavoritas: string[];
-  cinesFavoritos: string[];
+    id: string;
+    nombre?: string;
+    email: string;
+    passwordHash: string;
+    creadoEn?: string;
 }
 
-const userSchema = new mongoose.Schema<User>(
-  {
-    nombre: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    passwordHash: { type: String, required: true },
-    fechaRegistro: { type: String, default: () => new Date().toISOString() },
-    peliculasFavoritas: { type: [String], default: [] },
-    cinesFavoritos: { type: [String], default: [] },
-  },
-  {
-    timestamps: true,
-  },
-);
+/**
+ * Relación entre una persona y sus cines favoritos.
+ */
+export interface UserFavoritosCines {
+    userId: string;
+    cineId: string;
+    creadoEn?: Date;
+}
 
-userSchema.set("toJSON", {
-  transform: (
-    _,
-    returnedObject: {
-      id?: string;
-      _id?: mongoose.Types.ObjectId;
-      __v?: number;
-      passwordHash?: string;
-    },
-  ) => {
-    returnedObject.id = returnedObject._id?.toString();
-    delete returnedObject._id;
-    delete returnedObject.__v;
-    delete returnedObject.passwordHash;
-  },
-});
+/**
+ * Relación entre una persona y sus películas favoritas.
+ */
+export interface UserFavoritosPeliculas {
+    userId: string;
+    peliculaId: number;
+    creadoEn?: Date;
+}
 
-const UserModel = mongoose.model<User>("User", userSchema, nombreColeccion("users"));
-
-export default UserModel;
+/**
+ * Datos de entrada aceptados al guardar registros de la aplicación.
+ */
+export type CrearUserDTO = Omit<User, "id" | "creadoEn">;

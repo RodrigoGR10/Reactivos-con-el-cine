@@ -3,3 +3,8 @@ node_modules
 out/
 dist/
 data/
+debug/
+reports/
+.DS_Store/
+.data/scrapes/*.json
+coverage

@@ -1,0 +1,53 @@
+.logo-cine-caja {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: var(--logo-cine-size, 46px);
+    height: var(--logo-cine-size, 46px);
+    padding: var(--logo-cine-pad, 5px);
+    border-radius: var(--logo-cine-radius, 7px);
+    background: #ffffff;
+    color: #29292d;
+}
+
+.logo-cine-caja--xs {
+    --logo-cine-size: 30px;
+    --logo-cine-pad: 3px;
+    --logo-cine-pad-cinestar: 2px;
+    --logo-cine-radius: 5px;
+}
+
+.logo-cine-caja--sm {
+    --logo-cine-size: 46px;
+    --logo-cine-pad: 5px;
+    --logo-cine-pad-cinestar: 3px;
+    --logo-cine-radius: 7px;
+}
+
+.logo-cine-caja--md {
+    --logo-cine-size: 58px;
+    --logo-cine-pad: 8px;
+    --logo-cine-pad-cinestar: 4px;
+    --logo-cine-radius: 10px;
+}
+
+.logo-cine-caja--lg {
+    --logo-cine-size: 84px;
+    --logo-cine-pad: 10px;
+    --logo-cine-pad-cinestar: 5px;
+    --logo-cine-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.logo-cine-caja[data-origen="cinestar"] {
+    padding: var(--logo-cine-pad-cinestar, 3px);
+}
+
+.logo-cine-imagen {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}

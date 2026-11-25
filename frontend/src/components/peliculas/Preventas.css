@@ -1,87 +1,126 @@
 .seccion-preventas {
-  margin-top: clamp(48px, 5vw, 80px);
+    margin-top: 56px;
 }
 
 .panel-filtros + .seccion-preventas {
-  margin-top: 0;
+    margin-top: 0;
 }
 
-.controles-preventas {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
+.navegacion-preventas {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 16px;
 }
 
-.controles-preventas button {
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--color-borde);
-  border-radius: 10px;
-  background: var(--color-superficie-clara);
-  color: var(--color-texto);
-  font-size: 2rem;
-  cursor: pointer;
+.seccion-preventas .estado-preventas {
+    flex-shrink: 0;
+    margin: 0;
+    color: #f5f5f6;
+    font-size: 13px;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
-.controles-preventas button:hover:not(:disabled),
-.controles-preventas button:focus-visible {
-  border-color: var(--color-acento);
+.estado-preventas > span {
+    margin-left: 3px;
+    color: #92929e;
 }
-
-.controles-preventas button:disabled {
-  opacity: 0.35;
-  cursor: default;
+.carrusel-preventas {
+    position: relative;
 }
-
-.estado-preventas {
-  color: var(--color-texto-secundario);
-  font-size: 0.9rem;
-}
-
 .ventana-preventas {
-  overflow: hidden;
-  padding-top: 6px;
-  touch-action: pan-y pinch-zoom;
+    overflow: hidden;
+    padding: 4px 0;
+    touch-action: pan-y pinch-zoom;
 }
 
 .fila-preventas {
-  --separacion: 24px;
-  display: flex;
-  gap: var(--separacion);
-  transform: translateX(calc(-1 * var(--posicion) * (100% + var(--separacion)) / var(--visibles)));
-  transition: transform 300ms ease;
+    --separacion: clamp(24px, 1.7vw, 36px);
+    display: flex;
+    align-items: stretch;
+    gap: var(--separacion);
+    transform: translateX(
+        calc(
+            -1 * var(--posicion) * (100% + var(--separacion)) / var(--visibles)
+        )
+    );
+    transition: transform 360ms ease;
 }
 
 .elemento-preventa {
-  flex: 0 0 calc((100% - (var(--visibles) - 1) * var(--separacion)) / var(--visibles));
-  min-width: 0;
+    flex: 0 0
+        calc(
+            (100% - (var(--visibles) - 1) * var(--separacion)) / var(--visibles)
+        );
+    min-width: 0;
 }
 
-.elemento-preventa .tarjeta-pelicula {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+.controles-preventas {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.controles-preventas button {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #41414a;
+    border-radius: 4px;
+    background: #17171c;
+    color: #fff;
+    cursor: pointer;
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease;
+}
+.controles-preventas button svg {
+    width: 20px;
+    height: 20px;
+}
+.controles-preventas button:hover:not(:disabled) {
+    border-color: var(--color-acento);
+    background: var(--color-acento);
+}
+.controles-preventas button:disabled {
+    border-color: #29292e;
+    background: #111113;
+    color: #72727e;
+    cursor: default;
+}
+.seccion-preventas a:focus-visible,
+.seccion-preventas button:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 3px;
 }
 
-.elemento-preventa .contenido-tarjeta {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+@media (max-width: 759px) {
+    .seccion-preventas {
+        margin-top: 36px;
+    }
+    .navegacion-preventas {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+    .seccion-preventas .estado-preventas {
+        font-size: 12px;
+    }
 }
 
-.elemento-preventa .pie-tarjeta {
-  margin-top: auto;
-}
-
-.etiqueta-preventa {
-  display: inline-block;
-  align-self: flex-start;
-  margin: 0 0 12px;
-  color: var(--color-acento);
-  font-size: 0.9rem;
-  font-weight: 700;
+@media (max-width: 560px) {
+    .fila-preventas {
+        --separacion: 16px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fila-preventas { transition: none; }
+    .fila-preventas,
+    .controles-preventas button {
+        transition: none;
+    }
 }

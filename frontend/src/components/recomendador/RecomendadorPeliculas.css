@@ -1,0 +1,361 @@
+.recomendador {
+    width: 100%;
+    min-width: 0;
+    margin-top: clamp(40px, 5vw, 72px);
+    padding: clamp(20px, 3vw, 32px);
+    color: var(--color-texto);
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 14px;
+}
+
+.recomendador-encabezado {
+    margin-bottom: 24px;
+}
+
+.recomendador-encabezado .subtitulo-seccion {
+    margin: 0 0 8px;
+    color: var(--color-acento);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.recomendador-encabezado h2 {
+    margin: 0;
+    font-size: clamp(1.38rem, 2.8vw, 1.95rem);
+    line-height: 1.2;
+    text-wrap: balance;
+}
+
+.recomendador-encabezado > p:last-child {
+    margin: 10px 0 0;
+    color: var(--color-texto-secundario);
+    font-size: 0.96rem;
+    line-height: 1.55;
+}
+
+.recomendador-formulario {
+    display: grid;
+    grid-template-columns: minmax(145px, 0.9fr) minmax(125px, 0.75fr) minmax(
+            165px,
+            0.95fr
+        ) minmax(210px, 1.3fr) auto;
+    align-items: end;
+    gap: 12px 14px;
+}
+
+.recomendador-campo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    gap: 7px;
+    color: var(--color-texto-secundario);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.recomendador-campo > input {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 46px;
+    padding: 0 14px;
+    color: var(--color-texto);
+    background: var(--color-superficie-clara);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 400;
+    text-align: left;
+    -webkit-appearance: none;
+    appearance: none;
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease;
+}
+
+.recomendador-campo > input::-webkit-date-and-time-value {
+    text-align: left;
+    margin: 0;
+}
+
+.recomendador-campo > input:hover {
+    border-color: #494a54;
+    background-color: #202128;
+}
+
+.recomendador-campo > input[type="date"],
+.recomendador-campo > input[type="time"] {
+    color-scheme: dark;
+}
+
+.recomendador-campo > input:focus-visible,
+.recomendador .cines-comunas-trigger:focus-visible,
+.recomendador-boton:focus-visible,
+.recomendador-resultados-encabezado button:focus-visible,
+.recomendador-tarjeta-enlace:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+}
+
+.recomendador-selector {
+    width: 100%;
+}
+
+.recomendador .cines-comunas-trigger {
+    justify-content: space-between;
+    width: 100%;
+    max-width: none;
+    height: 46px;
+    padding: 0 14px;
+    color: var(--color-texto-secundario);
+    background: var(--color-superficie-clara);
+    border-color: var(--color-borde);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 400;
+}
+
+.recomendador .cines-comunas-trigger:hover:not(:disabled),
+.recomendador .cines-comunas-trigger[aria-expanded="true"] {
+    color: var(--color-texto);
+    background: #202128;
+    border-color: #494a54;
+}
+
+.recomendador .cines-comunas-trigger.activo,
+.recomendador
+    .cines-comunas-trigger.activo:not(:hover):not([aria-expanded="true"]) {
+    color: var(--color-texto);
+    background: var(--color-superficie-clara);
+    border-color: var(--color-borde);
+}
+
+.recomendador-boton {
+    white-space: nowrap;
+}
+
+.recomendador-boton[data-disabled]:not([data-loading]),
+.recomendador-boton:disabled:not([data-loading]) {
+    background: var(--color-superficie-clara);
+    border: 1px solid #34353e;
+    color: var(--color-texto-secundario);
+    opacity: 0.78;
+    cursor: not-allowed;
+}
+
+.recomendador-alerta.mantine-Alert-root {
+    margin-top: 18px;
+}
+
+.recomendador-alerta:not(.recomendador-alerta--error).mantine-Alert-root {
+    background: var(--color-superficie-clara);
+    border-color: var(--color-borde);
+    color: var(--color-texto-secundario);
+}
+
+.recomendador-alerta:not(.recomendador-alerta--error) .mantine-Alert-message {
+    color: var(--color-texto-secundario);
+}
+
+.recomendador-alerta--error.mantine-Alert-root {
+    background: #141214;
+    border: 1px solid rgba(204, 18, 11, 0.34);
+    color: var(--color-texto);
+}
+
+.recomendador-alerta--error .mantine-Alert-icon {
+    color: var(--color-acento);
+}
+
+.recomendador-alerta--error .mantine-Alert-message {
+    color: var(--color-texto);
+}
+
+.recomendador-resultados {
+    margin-top: 28px;
+}
+
+.recomendador-resultados-encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.recomendador-resultados-encabezado p {
+    margin: 0;
+    color: var(--color-texto-secundario);
+    font-size: 0.9rem;
+}
+
+.recomendador-grilla {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.recomendador-tarjeta {
+    min-width: 0;
+    overflow: hidden;
+    background: var(--color-superficie-clara);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    transition:
+        border-color 160ms ease,
+        transform 160ms ease;
+}
+
+.recomendador-tarjeta:hover {
+    border-color: #494a54;
+    transform: translateY(-2px);
+}
+
+.recomendador-tarjeta-enlace {
+    display: grid;
+    grid-template-columns: minmax(92px, 0.7fr) minmax(0, 1.3fr);
+    gap: 14px;
+    height: 100%;
+    color: var(--color-texto);
+    text-decoration: none;
+}
+
+.recomendador-poster {
+    display: grid;
+    min-height: 176px;
+    place-items: center;
+    overflow: hidden;
+    color: var(--color-texto-secundario);
+    background: var(--color-superficie);
+    font-size: 2rem;
+}
+
+.recomendador-poster img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 176px;
+    object-fit: cover;
+}
+
+.recomendador-detalle {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 14px 14px 0;
+    overflow-wrap: anywhere;
+}
+
+.recomendador-etiqueta.mantine-Badge-root {
+    margin-bottom: 6px;
+    flex-shrink: 0;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    color: var(--color-texto-secundario);
+}
+
+.recomendador-titulo {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+.recomendador-cine,
+.recomendador-comuna,
+.recomendador-formato,
+.recomendador-detalle time {
+    margin-top: 6px;
+    color: var(--color-texto-secundario);
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.recomendador-accion {
+    margin-top: auto;
+    padding-top: 12px;
+    color: var(--color-acento);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+@media (max-width: 1220px) {
+    .recomendador-formulario {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .recomendador-boton {
+        grid-column: 1 / -1;
+        justify-self: start;
+        min-width: 240px;
+    }
+}
+
+@media (max-width: 1050px) {
+    .recomendador-grilla {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .recomendador-campo > input {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .recomendador {
+        padding: 18px;
+    }
+
+    .recomendador-encabezado {
+        margin-bottom: 18px;
+    }
+
+    .recomendador-formulario,
+    .recomendador-grilla {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .recomendador-boton {
+        grid-column: auto;
+        justify-self: stretch;
+        width: 100%;
+        min-width: 0;
+        margin-top: 2px;
+    }
+
+    .recomendador-resultados-encabezado {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (hover: none) {
+    .recomendador-tarjeta:hover {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .recomendador-campo > input,
+    .recomendador .cines-comunas-trigger,
+    .recomendador-boton,
+    .recomendador-tarjeta {
+        transition: none;
+    }
+
+    .recomendador-tarjeta:hover {
+        transform: none;
+    }
+}

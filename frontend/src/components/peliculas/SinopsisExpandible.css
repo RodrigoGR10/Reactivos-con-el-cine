@@ -1,0 +1,160 @@
+.sinopsis-contenedor {
+    position: relative;
+    width: 100%;
+}
+
+.sinopsis-detalle {
+    margin: 0;
+    width: 100%;
+    color: var(--color-texto-secundario);
+    font-size: 1rem;
+    line-height: 1.625;
+}
+
+.sinopsis-colapsada {
+    max-height: 4.875em;
+    overflow: hidden;
+}
+
+.sinopsis-desvanecida {
+    -webkit-mask-image:
+        linear-gradient(
+            to bottom,
+            #000 0 calc(100% - 1.625em),
+            transparent calc(100% - 1.625em)
+        ),
+        linear-gradient(
+            to right,
+            #000 0 calc(100% - 8.5rem),
+            transparent calc(100% - 4.5rem)
+        );
+    -webkit-mask-position:
+        top left,
+        bottom left;
+    -webkit-mask-size:
+        100% 100%,
+        100% 1.625em;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-composite: source-over;
+    mask-image:
+        linear-gradient(
+            to bottom,
+            #000 0 calc(100% - 1.625em),
+            transparent calc(100% - 1.625em)
+        ),
+        linear-gradient(
+            to right,
+            #000 0 calc(100% - 8.5rem),
+            transparent calc(100% - 4.5rem)
+        );
+    mask-position:
+        top left,
+        bottom left;
+    mask-size:
+        100% 100%,
+        100% 1.625em;
+    mask-repeat: no-repeat;
+    mask-composite: add;
+}
+
+.sinopsis-toggle {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-texto);
+    font-size: 0.96rem;
+    font-weight: 600;
+    line-height: 1.625;
+    cursor: pointer;
+    transition:
+        color 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.sinopsis-toggle:hover {
+    color: #ffffff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.sinopsis-toggle:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.sinopsis-toggle-colapsada {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding-left: 6px;
+}
+
+.sinopsis-toggle-expandida {
+    display: inline-block;
+    margin-top: 6px;
+}
+
+@media (max-width: 600px) {
+    .sinopsis-detalle {
+        font-size: 0.9375rem;
+        line-height: 1.6;
+    }
+
+    .sinopsis-colapsada {
+        max-height: 4.8em;
+    }
+
+    .sinopsis-toggle {
+        font-size: 0.9375rem;
+        line-height: 1.6;
+    }
+
+    .sinopsis-desvanecida {
+        -webkit-mask-image:
+            linear-gradient(
+                to bottom,
+                #000 0 calc(100% - 1.6em),
+                transparent calc(100% - 1.6em)
+            ),
+            linear-gradient(
+                to right,
+                #000 0 calc(100% - 7.75rem),
+                transparent calc(100% - 4.4rem)
+            );
+        -webkit-mask-size:
+            100% 100%,
+            100% 1.6em;
+        mask-image:
+            linear-gradient(
+                to bottom,
+                #000 0 calc(100% - 1.6em),
+                transparent calc(100% - 1.6em)
+            ),
+            linear-gradient(
+                to right,
+                #000 0 calc(100% - 7.75rem),
+                transparent calc(100% - 4.4rem)
+            );
+        mask-size:
+            100% 100%,
+            100% 1.6em;
+    }
+}
+
+@media (forced-colors: active) {
+    .sinopsis-desvanecida {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .sinopsis-toggle-colapsada {
+        background: Canvas;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sinopsis-toggle {
+        transition: none;
+    }
+}

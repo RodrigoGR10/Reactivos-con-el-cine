@@ -1,76 +1,74 @@
+import {
+    formatearDiaSemanaCorto,
+    formatearFechaEstrenoCompacta,
+} from "../../utils/formatearPeliculaDestacada";
+import { fechaHoySantiago } from "../../utils/fechaSantiago";
 import "./SelectorFechas.css";
 
+/**
+ * Propiedades que configuran el componente SelectorFechas.
+ */
 export interface SelectorFechasProps {
-  fechas: string[];
-  fechaSeleccionada: string;
-  onSeleccionarFecha: (fecha: string) => void;
+    /** Días con al menos una función disponible, en formato `AAAA-MM-DD`. */
+    fechas: string[];
+    /** Día que aparece seleccionado actualmente. */
+    fechaSeleccionada: string;
+    /** Callback que recibe el día elegido por la persona. */
+    onSeleccionarFecha: (fecha: string) => void;
 }
 
+/** Muestra los días disponibles como pestañas y comunica la fecha elegida.
+ * @param props Propiedades que determinan el contenido y las acciones del componente.
+ * @returns Elemento de interfaz que representa el componente con las propiedades recibidas.
+ */
 export function SelectorFechas({
-  fechas,
-  fechaSeleccionada,
-  onSeleccionarFecha,
+    fechas,
+    fechaSeleccionada,
+    onSeleccionarFecha,
 }: SelectorFechasProps) {
-  if (fechas.length <= 1) return null;
+    if (fechas.length === 0) return null;
 
-  const ahora = new Date();
-  const hoyLocal = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-${String(ahora.getDate()).padStart(2, "0")}`;
-  const hoyChile = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Santiago",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(ahora);
+    const hoyChile = fechaHoySantiago();
 
-  return (
-    <div
-      className="selector-fechas-barra"
-      role="tablist"
-      aria-label="Seleccionar fecha de funciones"
-    >
-      {fechas.map((fecha) => {
-        const [year, month, day] = fecha.split("-").map(Number);
-        const fechaObj = new Date(year, month - 1, day);
+    return (
+        <div
+            className="selector-fechas-barra"
+            role="tablist"
+            aria-label="Seleccionar fecha de funciones"
+        >
+            {fechas.map((fecha) => {
+                const esHoy = fecha === hoyChile;
+                const diaSemana = formatearDiaSemanaCorto(fecha);
+                const fechaCorta = formatearFechaEstrenoCompacta(fecha, "/");
+                const esActivo = fechaSeleccionada === fecha;
 
-        const esHoy = fecha === hoyLocal || fecha === hoyChile;
-
-        const diaSemana = new Intl.DateTimeFormat("es-CL", { weekday: "short" })
-          .format(fechaObj)
-          .replace(".", "")
-          .toUpperCase();
-
-        const mes = new Intl.DateTimeFormat("es-CL", { month: "short" })
-          .format(fechaObj)
-          .replace(".", "")
-          .toUpperCase();
-
-        const esActivo = fechaSeleccionada === fecha;
-
-        return (
-          <button
-            key={fecha}
-            type="button"
-            role="tab"
-            aria-selected={esActivo}
-            className={`fecha-segmento-btn ${esActivo ? "active" : ""}`}
-            onClick={() => onSeleccionarFecha(fecha)}
-            title={esHoy ? "Hoy" : `${diaSemana} ${day}/${mes}`}
-          >
-            {esHoy ? (
-              <span className="fecha-segmento-hoy">HOY</span>
-            ) : (
-              <>
-                <span className="fecha-segmento-dia">{diaSemana}</span>
-                <span className="fecha-segmento-fecha">
-                  {day}/{mes}
-                </span>
-              </>
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
+                return (
+                    <button
+                        key={fecha}
+                        type="button"
+                        role="tab"
+                        aria-selected={esActivo}
+                        className={`fecha-segmento-btn ${esActivo ? "active" : ""}`}
+                        onClick={() => onSeleccionarFecha(fecha)}
+                        title={esHoy ? "Hoy" : `${diaSemana} ${fechaCorta}`}
+                    >
+                        {esHoy ? (
+                            <span className="fecha-segmento-hoy">HOY</span>
+                        ) : (
+                            <>
+                                <span className="fecha-segmento-dia">
+                                    {diaSemana}
+                                </span>
+                                <span className="fecha-segmento-fecha">
+                                    {fechaCorta}
+                                </span>
+                            </>
+                        )}
+                    </button>
+                );
+            })}
+        </div>
+    );
 }
 
 export default SelectorFechas;
